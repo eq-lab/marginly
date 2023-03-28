@@ -1,4 +1,4 @@
-# Marginly protocol v1
+![Logo](https://www.gitbook.com/cdn-cgi/image/width=256,dpr=2,height=40,fit=contain,format=auto/https%3A%2F%2F817273339-files.gitbook.io%2F~%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FQiFBW4qPpAjrKQaezZ3s%252Flogo%252FOc3PF8jhGWKJtyrvvF9r%252FMarginly-Logotype.png%3Falt%3Dmedia%26token%3D258404b4-55fc-41d0-b6d4-daee903b5a7b)
 
 ## What is Marginly ?
 
