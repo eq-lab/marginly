@@ -1,0 +1,53 @@
+{
+  "keys": [
+    {
+      "type": "MetaMask",
+      "name": "MetaMask"
+    },
+    {
+      "type": "private key",
+      "name": "Treasury",
+      "key": "0xc7bffcab03bc10eb939f5a4ef3349cf9ff038d078d1eb70762624f6c52266651"
+    },
+    {
+      "type": "private key",
+      "name": "TestAcc 1",
+      "key": "0x7ac357cb337689afc51fa1d579a54053536247d14e0c15933fca2ce58ba7878e"
+    },
+    {
+      "type": "private key",
+      "name": "TestAcc 2",
+      "key": "0x3123a2f2029043aa2f3aacad8d90718e5bc83329b89f112b78779f96eae904f0"
+    },
+    {
+      "type": "private key",
+      "name": "TestAcc 3",
+      "key": "0x9ea467745000106e691ceb44d81ffee9122697ee1fb9d96c0b55c041a5b2a0fe"
+    },
+    {
+      "type": "private key",
+      "name": "TestAcc 4",
+      "key": "0x1f99e5633484fc4e7dbf002b65607cd0866f040ab29fc88d1b2dc81d0a1535f2"
+    },
+    {
+      "type": "private key",
+      "name": "TestAcc 5",
+      "key": "0x98129bd3d0106a70fc62f92eb8a9099d8051636d1696d5c83e849e3447f48e02"
+    },
+    {
+      "type": "unlocked",
+      "name": "Binance 14",
+      "key": "0x28c6c06298d514db089934071355e5743bf21d60"
+    },
+    {
+      "type": "unlocked",
+      "name": "Binance 7",
+      "key": "0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8"
+    },
+    {
+      "type": "unlocked",
+      "name": "USDC minter",
+      "key": "0xFcb19e6a322b27c06842A71e8c725399f049AE3a"
+    }
+  ]
+}

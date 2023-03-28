@@ -1,0 +1,28 @@
+{
+  "name": "@marginly/deploy",
+  "version": "0.1.0",
+  "description": "Marginly Deploy",
+  "main": "dist/index.js",
+  "author": "EqLab",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "prettify": "prettier --write ."
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.4.0",
+    "typescript": "^4.4.2"
+  },
+  "dependencies": {
+    "@marginly/contracts": "0.1.0",
+    "@uniswap/v3-core": "^1.0.1",
+    "@openzeppelin/contracts": "^4.8.0",
+    "ethers": "^5.7.2"
+  }
+}

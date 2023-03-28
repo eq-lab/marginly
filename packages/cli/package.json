@@ -1,0 +1,38 @@
+{
+  "name": "@marginly/cli",
+  "version": "0.1.0",
+  "description": "Marginly Command Line Interface",
+  "main": "dist/index.js",
+  "author": "EqLab",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "prettify": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/prompts": "^2.4.2",
+    "@types/read": "^0.0.29",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "@types/fs-extra": "^11.0.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.4.0",
+    "typescript": "^4.4.2"
+  },
+  "dependencies": {
+    "@marginly/deploy": "0.1.0",
+    "@ethersproject/hardware-wallets": "^5.6.0",
+    "@marginly/contracts": "0.1.0",
+    "@uniswap/v3-core": "^1.0.1",
+    "@openzeppelin/contracts": "^4.8.0",
+    "fs-extra": "^11.1.0",
+    "commander": "^8.1.0",
+    "ethers": "^5.7.2",
+    "ganache": "^7.7.3",
+    "prompts": "^2.4.2",
+    "read": "^2.0.0"
+  }
+}

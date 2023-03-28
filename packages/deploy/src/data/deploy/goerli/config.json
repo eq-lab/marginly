@@ -1,0 +1,55 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.ankr.com/eth_goerli"
+  },
+  "connection": {
+    "assertChainId": 5,
+    "ethOptions": {}
+  },
+  "uniswap": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
+  },
+  "tokens": [
+    {
+      "id": "usdc",
+      "address": "0xfF9Bc7A03e47c1d5EDA0cDa7e1A769AF83967210",
+      "assertSymbol": "USDC1"
+    },
+    {
+      "id": "weth",
+      "address": "0x36F769E0d8CceAde6ed5f5a7841643bD92c4Ca12",
+      "assertSymbol": "WETH1"
+    }
+  ],
+  "uniswapPools": [
+    {
+      "id": "usdc-weth",
+      "token0Id": "usdc",
+      "token1Id": "weth",
+      "fee": "0.05%",
+      "allowCreate": false
+    }
+  ],
+  "marginlyPools": [
+    {
+      "id": "usdc-weth",
+      "uniswapPoolId": "usdc-weth",
+      "baseToken": "token1",
+      "quoteToken": "token0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "priceAgo": "15 min",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "positionMinAmount": "0.001"
+      }
+    }
+  ]
+}

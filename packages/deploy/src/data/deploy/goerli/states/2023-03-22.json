@@ -1,0 +1,15 @@
+{
+  "contracts": {
+    "marginlyFactory": {
+      "address": "0xf99572917a43F4386A2B74B76349f605a5211b6b",
+      "txHash": "0xb47ecabdc309dd1dcfe804b21bcc530c9a2d26b6cf4dfe649cea84e784412c78"
+    },
+    "uniswapPool_usdc-weth": {
+      "address": "0x21f3cA980f4F8E3127B598f7F51286879DB7754b"
+    },
+    "marginlyPool_usdc-weth": {
+      "address": "0xD3774866ad2A871d1c19a4d90996c9c36B6215c2",
+      "txHash": "0x7f39cb64f09b42e5222f8c5a09dcff2f6f4b40e14c3d99dba7705aecf0d6d925"
+    }
+  }
+}
