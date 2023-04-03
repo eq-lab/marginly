@@ -316,6 +316,10 @@ contract MarginlyPool is IMarginlyPool {
       }
     }
 
+    uint256 poolBaseBalance = 
+      baseCollateralCoeff.mul(discountedBaseCollateral).sub(baseDebtCoeff.mul(discountedBaseDebt));
+    require(poolBaseBalance.add(amount) <= params.baseLimit, 'EL'); // exceeds limit
+
     if (position._type == PositionType.Short) {
       uint256 realBaseDebt = baseDebtCoeff.mul(position.discountedBaseAmount);
 
@@ -378,6 +382,10 @@ contract MarginlyPool is IMarginlyPool {
         return;
       }
     }
+
+    uint256 poolQuoteBalance = 
+      quoteCollateralCoeff.mul(discountedQuoteCollateral).sub(quoteDebtCoeff.mul(discountedQuoteDebt));
+    require(poolQuoteBalance.add(amount) <= params.quoteLimit, 'EL'); // exceeds limit
 
     if (position._type == PositionType.Long) {
       uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
@@ -673,11 +681,16 @@ contract MarginlyPool is IMarginlyPool {
     uint256 quoteOutMinumum = getCurrentBasePrice()
       .mul(FP96.fromRatio(WHOLE_ONE - params.positionSlippage, WHOLE_ONE))
       .mul(realBaseAmount);
-    uint256 realQuoteCollateralChange = swapExactInput(false, realBaseAmount, quoteOutMinumum);
+    uint256 realQuoteCollateralChangeWithFee = swapExactInput(false, realBaseAmount, quoteOutMinumum);
 
-    uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteCollateralChange, WHOLE_ONE);
+    uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteCollateralChangeWithFee, WHOLE_ONE);
+    uint256 realQuoteCollateralChange = realQuoteCollateralChangeWithFee.sub(realSwapFee);
 
-    uint256 discountedQuoteChange = quoteCollateralCoeff.recipMul(realQuoteCollateralChange.sub(realSwapFee));
+    uint256 poolQuoteBalance = 
+      quoteCollateralCoeff.mul(discountedQuoteCollateral).sub(quoteDebtCoeff.mul(discountedQuoteDebt));
+    require(poolQuoteBalance.add(realQuoteCollateralChange) <= params.quoteLimit, 'EL'); // exceeds limit
+
+    uint256 discountedQuoteChange = quoteCollateralCoeff.recipMul(realQuoteCollateralChange);
 
     position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteChange);
     discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteChange);
@@ -717,6 +730,10 @@ contract MarginlyPool is IMarginlyPool {
     if (marginCallHappened) {
       return;
     }
+
+    uint256 poolBaseBalance = 
+      baseCollateralCoeff.mul(discountedBaseCollateral) - baseDebtCoeff.mul(discountedBaseDebt);
+    require(realBaseAmount.add(poolBaseBalance) <= params.quoteLimit, 'EL'); // exceeds limit
 
     Position storage position = positions[msg.sender];
     require(

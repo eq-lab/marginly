@@ -123,6 +123,8 @@ export async function createMarginlyPool(): Promise<{
     positionSlippage: 20000, // 2%
     mcSlippage: 50000, //5%
     positionMinAmount: 5, // 5 Wei
+    baseLimit: 1_000_000,
+    quoteLimit: 1_000_000,
   };
 
   const poolAddress = await factory.callStatic.createPool(quoteToken, baseToken, fee, params);
