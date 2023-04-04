@@ -733,7 +733,7 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 poolBaseBalance = 
       baseCollateralCoeff.mul(discountedBaseCollateral) - baseDebtCoeff.mul(discountedBaseDebt);
-    require(realBaseAmount.add(poolBaseBalance) <= params.quoteLimit, 'EL'); // exceeds limit
+    require(realBaseAmount.add(poolBaseBalance) <= params.baseLimit, 'EL'); // exceeds limit
 
     Position storage position = positions[msg.sender];
     require(
