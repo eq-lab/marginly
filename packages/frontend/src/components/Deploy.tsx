@@ -54,8 +54,8 @@ export const Deploy: FC = () => {
       new SimpleLogger((x) => console.log(x))
     );
 
-    const firstPool = deploymentResult.marginlyPools[0];
-    alert(`Marginly pool deployed at address ${firstPool.address}`);
+    const resultStr = deploymentResult.marginlyPools.map((x) => x.id + ': ' + x.address).join(', ');
+    alert(`Marginly pools deployed: ${resultStr}`);
   };
 
   return (
