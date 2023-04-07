@@ -33,6 +33,8 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       positionSlippage: 300000,
       mcSlippage: 400000,
+      baseLimit: 1_000_000_000,
+      quoteLimit: 1_000_000_000,
     };
 
     await expect(
@@ -52,6 +54,8 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       positionSlippage: 300000,
       mcSlippage: 400000,
+      baseLimit: 1_000_000_000,
+      quoteLimit: 1_000_000_000,
     });
 
     const params = await pool.params();
@@ -64,6 +68,8 @@ describe('MarginlyPool.Base', () => {
     expect(params.positionMinAmount).to.equal(100);
     expect(params.positionSlippage).to.equal(300000);
     expect(params.mcSlippage).to.equal(400000);
+    expect(params.baseLimit).to.equal(1_000_000_000);
+    expect(params.quoteLimit).to.equal(1_000_000_000);
   });
 
   it('should raise error when not an owner trying to set parameters', async () => {
@@ -82,6 +88,8 @@ describe('MarginlyPool.Base', () => {
         positionMinAmount: 100,
         positionSlippage: 300000,
         mcSlippage: 400000,
+        baseLimit: 1_000_000_000,
+        quoteLimit: 1_000_000_000,
       })
     ).to.be.revertedWith('AD');
   });
@@ -92,6 +100,13 @@ describe('MarginlyPool.Base', () => {
       const [_, otherSigner] = await ethers.getSigners();
 
       await expect(marginlyPool.connect(otherSigner).depositBase(0)).to.be.revertedWith('ZA');
+    });
+
+    it('exceeds limit', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, otherSigner] = await ethers.getSigners();
+
+      await expect(marginlyPool.connect(otherSigner).depositBase(2_000_000)).to.be.revertedWith('EL');
     });
 
     it('first deposit should create position', async () => {
@@ -241,6 +256,13 @@ describe('MarginlyPool.Base', () => {
       const [_, otherSigner] = await ethers.getSigners();
 
       await expect(marginlyPool.connect(otherSigner).depositQuote(0)).to.be.revertedWith('ZA');
+    });
+
+    it('exceeds limit', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, otherSigner] = await ethers.getSigners();
+
+      await expect(marginlyPool.connect(otherSigner).depositQuote(2_000_000)).to.be.revertedWith('EL');
     });
 
     it('first deposit should create position', async () => {
@@ -645,6 +667,21 @@ describe('MarginlyPool.Base', () => {
       await expect(marginlyPool.connect(shorter).short(shortAmount)).to.be.rejectedWith('MA');
     });
 
+    it('exceeds limit', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, shorter, depositer] = await ethers.getSigners();
+      const amountToDeposit = 450_000;
+      const basePrice = (await marginlyPool.getBasePrice()).inner;
+      const shortAmount = BigNumber.from(200_000).mul(FP96.one).div(basePrice);
+
+      await marginlyPool.connect(depositer).depositBase(shortAmount);
+      await marginlyPool.connect(depositer).depositQuote(amountToDeposit);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
+
+      // 450 + 450 + 200 > 1000
+      await expect(marginlyPool.connect(shorter).short(shortAmount)).to.be.revertedWith('EL');
+    });
+
     it('short should update leverageShort', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, shorter, depositer] = await ethers.getSigners();
@@ -851,6 +888,18 @@ describe('MarginlyPool.Base', () => {
       const shortAmount = 1;
       await marginlyPool.connect(longer).depositBase(amountToDeposit);
       await expect(marginlyPool.connect(longer).long(shortAmount)).to.be.rejectedWith('MA');
+    });
+
+    it('exceeds limit', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, longer, depositer] = await ethers.getSigners();
+      const amountToDeposit = 400_000;
+
+      await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+      await marginlyPool.connect(depositer).depositQuote(amountToDeposit);
+      await marginlyPool.connect(longer).depositBase(amountToDeposit);
+
+      await expect(marginlyPool.connect(longer).long(amountToDeposit)).to.be.revertedWith('EL');
     });
 
     it('long should update leverageLong', async () => {

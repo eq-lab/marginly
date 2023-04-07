@@ -7,6 +7,13 @@
     ]
   },
   {
+    "code": "EL",
+    "description": "exceeds limit",
+    "fileNames": [
+      "MarginlyPool.sol"
+    ]
+  },
+  {
     "code": "EM",
     "description": "Emergency mode activated",
     "fileNames": [

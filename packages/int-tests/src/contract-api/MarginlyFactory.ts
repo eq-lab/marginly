@@ -62,6 +62,8 @@ export interface MarginlyFactoryContract extends BaseContract {
       positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
+      baseLimit: BigNumberish;
+      quoteLimit: BigNumberish;
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -108,6 +110,8 @@ export interface MarginlyFactoryContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
+        baseLimit: BigNumberish;
+        quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -130,6 +134,8 @@ export interface MarginlyFactoryContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
+        baseLimit: BigNumberish;
+        quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -152,6 +158,8 @@ export interface MarginlyFactoryContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
+        baseLimit: BigNumberish;
+        quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<string>;

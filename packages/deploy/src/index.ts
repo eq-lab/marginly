@@ -406,6 +406,8 @@ class MarginlyDeployer {
       const one = BigNumber.from(1e6);
       const baseDecimals = await this.getErc20Decimals(config.baseToken.address);
       const baseOne = BigNumber.from(10).pow(baseDecimals);
+      const quoteDecimals = await this.getErc20Decimals(config.quoteToken.address);
+      const quoteOne = BigNumber.from(10).pow(quoteDecimals);
       const params = {
         interestRate: config.params.interestRate.mul(one).toInteger(),
         maxLeverage: config.params.maxLeverage.toInteger(),
@@ -415,6 +417,8 @@ class MarginlyDeployer {
         positionSlippage: config.params.positionSlippage.mul(one).toInteger(),
         mcSlippage: config.params.mcSlippage.mul(one).toInteger(),
         positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
+        baseLimit: config.params.baseLimit.mul(baseOne).toInteger(),
+        quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
       };
       const tx = await marginlyPoolFactoryContract.createPool(
         config.quoteToken.address.toString(),
@@ -670,6 +674,8 @@ interface MarginlyPoolParams {
   positionSlippage: RationalNumber;
   mcSlippage: RationalNumber;
   positionMinAmount: RationalNumber;
+  baseLimit: RationalNumber;
+  quoteLimit: RationalNumber;
 }
 
 interface MarginlyConfigMarginlyPool {
@@ -780,6 +786,8 @@ class StrictMarginlyDeployConfig {
         positionSlippage: RationalNumber.parsePercent(rawPool.params.positionSlippage),
         mcSlippage: RationalNumber.parsePercent(rawPool.params.mcSlippage),
         positionMinAmount: RationalNumber.parse(rawPool.params.positionMinAmount),
+        baseLimit: RationalNumber.parse(rawPool.params.baseLimit),
+        quoteLimit: RationalNumber.parse(rawPool.params.quoteLimit),
       };
       marginlyPools.push({
         id: rawPool.id,

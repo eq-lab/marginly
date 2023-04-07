@@ -43,7 +43,8 @@ export async function longAndShort(sut: SystemUnderTest) {
   const swapFeeX96 = BigNumber.from((await marginlyPool.params()).swapFee)
     .mul(FP96.one)
     .div(1e6);
-  const swapMultiplier = FP96.one.sub(swapFeeX96);
+  const swapMultiplierShort = FP96.one.sub(swapFeeX96);
+  const swapMultiplierLong = FP96.one.add(swapFeeX96);
 
   const longersAmounts = [];
   const shortersAmounts = [];
@@ -102,7 +103,7 @@ export async function longAndShort(sut: SystemUnderTest) {
     const swapAmount = BigNumber.from(swapEvent.amount0.abs());
     logger.warn(`swap amount ${formatUnits(swapAmount, 6)}`);
     longersAmounts[i][0] = longersAmounts[i][0].add(longAmount);
-    longersAmounts[i][1] = longersAmounts[i][1].add(swapAmount.mul(swapMultiplier).div(FP96.one));
+    longersAmounts[i][1] = longersAmounts[i][1].add(swapAmount.mul(swapMultiplierLong).div(FP96.one));
 
     const position = await marginlyPool.positions(longer.address);
     const discountedBaseAmount = BigNumber.from(position.discountedBaseAmount);
@@ -130,7 +131,7 @@ export async function longAndShort(sut: SystemUnderTest) {
     const swapAmount = BigNumber.from(swapEvent.amount0.abs());
     logger.warn(`swap amount: ${formatUnits(swapAmount, 6)}`);
     shortersAmounts[i][0] = shortersAmounts[i][0].add(shortAmount);
-    shortersAmounts[i][1] = shortersAmounts[i][1].add(swapAmount.mul(swapMultiplier).div(FP96.one));
+    shortersAmounts[i][1] = shortersAmounts[i][1].add(swapAmount.mul(swapMultiplierShort).div(FP96.one));
 
     const position = await marginlyPool.positions(shorter.address);
     const discountedBaseAmount = BigNumber.from(position.discountedBaseAmount);
