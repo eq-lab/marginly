@@ -1,8 +1,5 @@
 FROM node:18.14.2-alpine3.17 as build-front
 WORKDIR /usr/src/app
-COPY package.json .
-COPY yarn.lock .
-RUN yarn
 COPY . .
 RUN yarn build
 
