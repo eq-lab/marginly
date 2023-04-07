@@ -4,7 +4,9 @@
   "description": "Marginly protocol",
   "author": "EqLab",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "build": "yarn workspace @marginly/contracts install && yarn workspace @marginly/contracts compile && yarn workspace @marginly/deploy install && yarn workspace @marginly/deploy build && yarn workspace @marginly/cli install && yarn workspace @marginly/cli build && yarn workspace @marginly/int-tests install && yarn workspace @marginly/int-tests compile && yarn workspace @marginly/int-tests build && yarn workspace @marginly/frontend install && yarn workspace @marginly/frontend build"
+  },
   "workspaces": [
     "packages/*"
   ],
