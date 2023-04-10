@@ -6,6 +6,7 @@ import {
   TestUniswapPool,
   TestERC20,
   TestSwapRouter,
+  MarginlyPoolWrapper,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -210,4 +211,43 @@ export async function getInitializedPool(): Promise<{
   await time.increase(24 * 60 * 60);
 
   return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: additionalWallets };
+}
+
+export async function createMarginlyPoolWithWrapper(): Promise<{
+  marginlyPool: MarginlyPool;
+  marginlyPoolWrapper: MarginlyPoolWrapper;
+  factoryOwner: SignerWithAddress;
+  uniswapPoolInfo: UniswapPoolInfo;
+  quoteContract: TestERC20;
+  baseContract: TestERC20;
+  swapRouter: TestSwapRouter;
+}> {
+  const { marginlyPool, factoryOwner, uniswapPoolInfo, quoteContract, baseContract, swapRouter } = await createMarginlyPool();
+  const wrapperFactory = await ethers.getContractFactory('MarginlyPoolWrapper');
+
+  const marginlyPoolWrapper = await wrapperFactory.deploy(marginlyPool.address);
+  
+  const amountToDeposit = 5000n * 10n ** BigInt(await uniswapPoolInfo.token0.decimals());
+
+  const signers = (await ethers.getSigners()).slice(0, 5);
+  for (let i = 0; i < signers.length; i++) {
+    await uniswapPoolInfo.token0.mint(signers[i].address, 1000);
+    await uniswapPoolInfo.token1.mint(signers[i].address, 1000);
+
+    await uniswapPoolInfo.token0.connect(signers[i]).approve(marginlyPoolWrapper.address, 1000);
+    await uniswapPoolInfo.token1.connect(signers[i]).approve(marginlyPoolWrapper.address, 1000);
+
+    await uniswapPoolInfo.token0.connect(marginlyPoolWrapper.signer).approve(marginlyPool.address, 1000);
+    await uniswapPoolInfo.token1.connect(marginlyPoolWrapper.signer).approve(marginlyPool.address, 1000);
+  }
+
+  return {
+    marginlyPool,
+    marginlyPoolWrapper,
+    factoryOwner, 
+    uniswapPoolInfo, 
+    quoteContract, 
+    baseContract, 
+    swapRouter
+  };
 }
