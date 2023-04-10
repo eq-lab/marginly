@@ -126,6 +126,13 @@
     ]
   },
   {
+    "code": "SO",
+    "description": "same owner",
+    "fileNames": [
+      "MarginlyPool.sol"
+    ]
+  },
+  {
     "code": "U",
     "description": "Uninitialized position",
     "fileNames": [

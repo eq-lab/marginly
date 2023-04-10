@@ -69,6 +69,11 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param amount Amount of withdraw
   event EmergencyWithdraw(address indexed who, address indexed token, uint256 amount);
 
+  /// @dev Emitted when user transfer their position to new owner
+  /// @param from address of previous position owner
+  /// @param to address of new position owner
+  event PositionTransfer(address indexed from, address indexed to);
+
   /// @dev Initializes the pool
   function initialize(
     address quoteToken,
@@ -140,4 +145,8 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @notice Withdraw position collateral in emergency mode
   function emergencyWithdraw() external;
+
+  /// @notice Transfer position to new owner
+  /// @param newOwner address of new position owner
+  function transferPosition(address newOwner) external;
 }

@@ -1196,4 +1196,54 @@ describe('MarginlyPool.Base', () => {
       expect(position3.heapPosition).to.be.equal(1);
     });
   });
+
+  describe('Transfer position', () => {
+    it('success', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, from, to] = await ethers.getSigners();
+
+      await marginlyPool.connect(from).depositBase(100);
+
+      const positionBefore = await marginlyPool.positions(from.address);
+
+      await marginlyPool.connect(from).transferPosition(to.address);
+
+      const positionAfter = await marginlyPool.positions(from.address);
+      const newPosition = await marginlyPool.positions(to.address);
+
+      expect(positionBefore._type).to.be.equal(newPosition._type);
+      expect(positionBefore.heapPosition).to.be.equal(newPosition.heapPosition);
+      expect(positionBefore.discountedBaseAmount).to.be.equal(newPosition.discountedBaseAmount);
+      expect(positionBefore.discountedQuoteAmount).to.be.equal(newPosition.discountedQuoteAmount);
+
+      expect(positionAfter._type).to.be.equal(0);
+      expect(positionAfter.heapPosition).to.be.equal(0);
+      expect(positionAfter.discountedBaseAmount).to.be.equal(0);
+      expect(positionAfter.discountedQuoteAmount).to.be.equal(0);
+    });
+
+    it('same owner', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, from] = await ethers.getSigners();
+
+      expect(marginlyPool.connect(from).transferPosition(from.address)).to.be.revertedWith('SO');
+    });
+
+    it('uninitialized', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, from, to] = await ethers.getSigners();
+
+      expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('U');
+    });
+
+    it('receiver already has position', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, from, to] = await ethers.getSigners();
+
+      await marginlyPool.connect(from).depositBase(100);
+      await marginlyPool.connect(to).depositBase(100);
+
+      expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('U');
+    });
+  })
 });
