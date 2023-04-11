@@ -15,7 +15,7 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   using SafeERC20 for IERC20;
 
   /// @dev Emited when liquidation occurs
-  /// @param liquidatedPosition User that was reinited
+  /// @param liquidatedPosition liquidated position
   /// @param token profit token
   /// @param amount profit amount
   event Profit(address liquidatedPosition, address token, uint256 amount);
