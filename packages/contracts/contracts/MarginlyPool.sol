@@ -1149,6 +1149,16 @@ contract MarginlyPool is IMarginlyPool {
   function transferPosition(address newOwner) external override lock {
     require(msg.sender != newOwner, 'SO'); // same owner
 
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    if (callerMarginCalled) {
+      return;
+    }
+
+    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
+    if (marginCallHappened) {
+      return;
+    }
+
     Position memory positionToTransfer = positions[msg.sender];
     require(positionToTransfer._type != PositionType.Uninitialized, 'U'); // Uninitialized position
 
