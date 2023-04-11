@@ -1229,6 +1229,14 @@ describe('MarginlyPool.Base', () => {
       expect(marginlyPool.connect(from).transferPosition(from.address)).to.be.revertedWith('SO');
     });
 
+    it('null address', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, from] = await ethers.getSigners();
+      const nullAddress = "0x0000000000000000000000000000000000000000";
+
+      expect(marginlyPool.connect(from).transferPosition(nullAddress)).to.be.revertedWith('WA');
+    });
+
     it('uninitialized', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, from, to] = await ethers.getSigners();

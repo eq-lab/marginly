@@ -1148,6 +1148,7 @@ contract MarginlyPool is IMarginlyPool {
 
   function transferPosition(address newOwner) external override lock {
     require(msg.sender != newOwner, 'SO'); // same owner
+    require(newOwner != address(0), 'WA'); // wrong address
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
     if (callerMarginCalled) {

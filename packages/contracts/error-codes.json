@@ -147,6 +147,13 @@
     ]
   },
   {
+    "code": "WA",
+    "description": "wrong address",
+    "fileNames": [
+      "MarginlyPool.sol"
+    ]
+  },
+  {
     "code": "WI",
     "description": "Wrong index",
     "fileNames": [
