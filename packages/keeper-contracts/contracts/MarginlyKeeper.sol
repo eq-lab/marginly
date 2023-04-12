@@ -5,6 +5,7 @@ import '@aave/core-v3/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.so
 import '@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol';
 import '@aave/core-v3/contracts/interfaces/IPool.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyPool.sol';
+import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
@@ -27,14 +28,12 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     uint256 minProfit;
   }
 
-  ISwapRouter public immutable SWAP_ROUTER;
   IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
   IPool public immutable override POOL;
 
-  constructor(address addressProvider, address _swapRouter) {
-    ADDRESSES_PROVIDER = IPoolAddressesProvider(addressProvider);
+  constructor(address addressesProvider) {
+    ADDRESSES_PROVIDER = IPoolAddressesProvider(addressesProvider);
     POOL = IPool(ADDRESSES_PROVIDER.getPool());
-    SWAP_ROUTER = ISwapRouter(_swapRouter);
   }
 
   /// @notice Takes simpe flashloan in AAVE v3 protocol to liquidate position in Marginly
@@ -96,9 +95,11 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
 
     address collateralToken;
     if (quoteToken == asset) {
+      IERC20(quoteToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, amount, 0);
       collateralToken = baseToken;
     } else {
+      IERC20(baseToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, 0, amount);
       collateralToken = quoteToken;
     }
@@ -110,7 +111,9 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
       marginlyPool.withdrawQuote(type(uint256).max);
     }
 
-    uint256 amountOut = exactInputSwap(collateralToken, asset, marginlyPool.uniswapFee());
+    IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
+
+    uint256 amountOut = exactInputSwap(marginlyFactory.swapRouter(), collateralToken, asset, marginlyPool.uniswapFee());
     uint256 paybackAmount = amount + premium;
     uint256 resultingBalance = amountOut - paybackAmount;
 
@@ -125,12 +128,17 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   }
 
   /// @notice Uniswap exchange
-  function exactInputSwap(address tokenIn, address tokenOut, uint24 swapFee) private returns (uint256) {
+  function exactInputSwap(
+    address swapRouter,
+    address tokenIn,
+    address tokenOut,
+    uint24 swapFee
+  ) private returns (uint256) {
     uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
-    IERC20(tokenIn).safeApprove(address(SWAP_ROUTER), amountIn);
+    IERC20(tokenIn).safeApprove(swapRouter, amountIn);
 
     return
-      SWAP_ROUTER.exactInputSingle(
+      ISwapRouter(swapRouter).exactInputSingle(
         ISwapRouter.ExactInputSingleParams({
           tokenIn: tokenIn,
           tokenOut: tokenOut,

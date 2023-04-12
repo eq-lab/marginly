@@ -94,6 +94,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns true if the token0 in Uniswap pool is a stable-coin
   function quoteTokenIsToken0() external view returns (bool);
 
+  /// @notice Returns address of Marginly factory
+  function factory() external view returns (address);
+
   /// @notice Deposit base token
   /// @param amount Amount of base token
   function depositBase(uint256 amount) external;

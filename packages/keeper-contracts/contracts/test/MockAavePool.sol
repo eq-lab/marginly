@@ -97,6 +97,8 @@ contract MockAavePool is IPool {
     IFlashLoanSimpleReceiver receiver = IFlashLoanSimpleReceiver(receiverAddress);
     uint256 premium = (amount / 10000) * 9; // 0.09 %
 
+    IERC20(asset).transfer(msg.sender, amount);
+
     require(receiver.executeOperation(asset, amount, premium, msg.sender, params), 'Invalid flashloan return');
     IERC20(asset).transferFrom(msg.sender, address(this), amount + premium);
 

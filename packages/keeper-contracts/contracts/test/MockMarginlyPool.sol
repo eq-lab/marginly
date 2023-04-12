@@ -10,13 +10,15 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 contract MockMarginlyPool is IMarginlyPool {
   address public override quoteToken;
   address public override baseToken;
+  address public override factory;
 
   address private badPositionAddress;
   uint256 private quoteAmount;
   uint256 private baseAmount;
   PositionType private positionType;
 
-  constructor(address _quoteToken, address _baseToken) {
+  constructor(address _factory, address _quoteToken, address _baseToken) {
+    factory = _factory;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
   }
@@ -82,6 +84,13 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function receivePosition(address _badPositionAddress, uint256 _quoteAmount, uint256 _baseAmount) external {
     require(_badPositionAddress == badPositionAddress);
+    if (_quoteAmount != 0) {
+      IERC20(quoteToken).transferFrom(msg.sender, address(this), quoteAmount);
+    }
+
+    if (_baseAmount != 0) {
+      IERC20(baseToken).transferFrom(msg.sender, address(this), baseAmount);
+    }
   }
 
   function emergencyWithdraw() external {}
