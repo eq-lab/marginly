@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import { createMarginlyPoolWithWrapper } from './shared/fixtures';
 import { FP96, PositionType } from './shared/utils';
 import { expect } from 'chai';
+import snapshotGasCost from '@uniswap/snapshot-gas-cost';
 
 describe('MarginlyPoolWrapper long', () => {
   it('success', async () => {
@@ -57,6 +58,19 @@ describe('MarginlyPoolWrapper long', () => {
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
 
   });
+
+  it('gas cost snapshot', async () => {
+    const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
+    const [_, signer, lender] = await ethers.getSigners();
+
+    const depositBaseAmount = 1000n;
+    const depositQuoteAmount = 5000n;
+    const longAmount = 2000n;
+
+    await marginlyPool.connect(lender).depositBase(depositBaseAmount);
+    await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
+    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).long(depositBaseAmount, longAmount));
+  });
 });
 
 describe('MarginlyPoolWrapper short', () => {
@@ -94,12 +108,12 @@ describe('MarginlyPoolWrapper short', () => {
 
     const depositBaseAmount = 1000n;
     const depositQuoteAmount = 5000n;
-    const longAmount = 1n;
+    const shortAmount = 1n;
 
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    expect(marginlyPoolWrapper.connect(signer).short(depositBaseAmount, longAmount)).to.be.revertedWith('MA');
+    expect(marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount)).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
@@ -112,5 +126,18 @@ describe('MarginlyPoolWrapper short', () => {
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
 
+  });
+
+  it('gas cost snapshot', async () => {
+    const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
+    const [_, signer, lender] = await ethers.getSigners();
+
+    const depositBaseAmount = 5000n;
+    const depositQuoteAmount = 1000n;
+    const shortAmount = 2000n;
+
+    await marginlyPool.connect(lender).depositBase(depositBaseAmount);
+    await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
+    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount));
   });
 });
