@@ -7,10 +7,12 @@ import {
   readFlag,
   readParameter,
   SystemContext,
-} from '../../system-context';
+  log,
+  readEthSignerFromContext,
+  registerEthSignerParameters,
+} from '@marginly/common';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
-import { log, readEthSignerFromContext, registerEthSignerParameters } from '../../common';
 import * as ethers from 'ethers';
 import * as ganache from 'ganache';
 import * as os from 'os';

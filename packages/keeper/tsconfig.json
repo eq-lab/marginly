@@ -4,12 +4,10 @@
     "outDir": "dist"
   },
   "include": ["src"],
-  "references": [
-    {
-      "path": "../deploy"
-    },
-    {
-      "path": "../common"
-    }
-  ]
-}
+    "references": [
+      {
+        "path": "../common"
+      }
+    ]
+  }
+  

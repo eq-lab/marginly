@@ -1,44 +1,20 @@
-import fs from 'fs';
 import * as ethers from 'ethers';
 import { Signer } from 'ethers';
-import * as path from 'path';
+import fs from 'fs';
+
 import {
   askParameter,
   getCommanderForm,
   readParameter,
   readParameterInteractive,
   SystemContext,
-} from '../system-context';
+} from './system-context';
 import { LedgerSigner } from '@ethersproject/hardware-wallets';
 import { Command } from 'commander';
-import { BigNumber } from '@ethersproject/bignumber';
+
+import { log } from './log';
 
 export type SignerOrProvider = ethers.Signer | ethers.providers.Provider;
-
-export interface ContractDescription {
-  abi: ethers.utils.Interface;
-  bytecode: string;
-}
-
-export type ContractReader = (name: string) => ContractDescription;
-
-export const createContractReader =
-  (contractRoot: string) =>
-  (name: string): ContractDescription => {
-    return JSON.parse(fs.readFileSync(`${contractRoot}${path.sep}${name}.json`, 'utf-8'));
-  };
-
-export const log = (message: string): void => {
-  console.error(message);
-};
-
-export const sectionLog = (message: string): void => {
-  console.error(`\n${message}`);
-};
-
-export const subsectionLog = (message: string): void => {
-  console.error(`  ${message}`);
-};
 
 export const ethKeyTypeParameter = {
   name: ['eth', 'key', 'type'],
@@ -119,28 +95,5 @@ export const readEthSignerFromContext = async (systemContext: SystemContext): Pr
     return signer;
   } else {
     throw new Error(`Unknown ${getCommanderForm(ethKeyTypeParameter)} value`);
-  }
-};
-
-export function formatBalance(amount: BigNumber, decimals: number, assetSymbol: string): string {
-  return `${amount} (${ethers.utils.formatUnits(amount, decimals)} ${assetSymbol.toUpperCase()})`;
-}
-
-export const sleep = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
-export const waitForTx = async (provider: ethers.providers.Provider, hash: string) => {
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const receipt = await provider.getTransactionReceipt(hash);
-    if (!receipt) {
-      await sleep(3000);
-    } else {
-      if (!receipt.status) {
-        throw new Error('Transaction failed');
-      }
-      break;
-    }
   }
 };

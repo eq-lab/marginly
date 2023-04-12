@@ -1,0 +1,19 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.ankr.com/eth_goerli"
+  },
+  "aavePoolAdressesProviderAddress": "0xb13Cfa6f8B2Eed2C37fB00fF0c1A59807C585810",
+  "uniswapRouterContractAddress": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  "marginlyPools": [
+    {
+      "address": "0x...",
+      "minProfitQuote": "0",
+      "minProfitBase": "0"
+    },
+    {
+      "address": "0x...",
+      "minProfitQuote": "0",
+      "minProfitBase": "0"
+    }
+  ]
+}
