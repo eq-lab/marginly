@@ -1226,7 +1226,7 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, from] = await ethers.getSigners();
 
-      expect(marginlyPool.connect(from).transferPosition(from.address)).to.be.revertedWith('SO');
+      await expect(marginlyPool.connect(from).transferPosition(from.address)).to.be.revertedWith('SO');
     });
 
     it('null address', async () => {
@@ -1234,14 +1234,14 @@ describe('MarginlyPool.Base', () => {
       const [_, from] = await ethers.getSigners();
       const nullAddress = "0x0000000000000000000000000000000000000000";
 
-      expect(marginlyPool.connect(from).transferPosition(nullAddress)).to.be.revertedWith('WA');
+      await expect(marginlyPool.connect(from).transferPosition(nullAddress)).to.be.revertedWith('WA');
     });
 
     it('uninitialized', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, from, to] = await ethers.getSigners();
 
-      expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('U');
+      await expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('U');
     });
 
     it('receiver already has position', async () => {
@@ -1251,7 +1251,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(from).depositBase(100);
       await marginlyPool.connect(to).depositBase(100);
 
-      expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('U');
+      await expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('PI');
     });
   })
 });

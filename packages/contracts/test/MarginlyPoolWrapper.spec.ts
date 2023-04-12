@@ -44,7 +44,7 @@ describe('MarginlyPoolWrapper long', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    expect(marginlyPoolWrapper.connect(signer).long(depositBaseAmount, longAmount)).to.be.revertedWith('MA');
+    await expect(marginlyPoolWrapper.connect(signer).long(depositBaseAmount, longAmount)).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
@@ -107,13 +107,13 @@ describe('MarginlyPoolWrapper short', () => {
     const [_, signer, lender] = await ethers.getSigners();
 
     const depositBaseAmount = 1000n;
-    const depositQuoteAmount = 5000n;
+    const depositQuoteAmount = 1000n;
     const shortAmount = 1n;
 
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    expect(marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount)).to.be.revertedWith('MA');
+    await expect(marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount)).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
