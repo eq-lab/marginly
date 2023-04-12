@@ -52,7 +52,8 @@
     "code": "LOK",
     "description": "Locked for reentrant call",
     "fileNames": [
-      "MarginlyPool.sol"
+      "MarginlyPool.sol",
+      "MarginlyPoolWrapper.sol"
     ]
   },
   {
