@@ -8,12 +8,12 @@ import './libraries/FP96.sol';
 
 contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
   /// @dev Marginly pool address to work with
-  address public marginlyPool;
+  address public marginlyPoolAddress;
   /// @dev reentrancy guard
   bool public unlocked;
 
-  constructor(address _marginlyPool) {
-    marginlyPool = _marginlyPool;
+  constructor(address _marginlyPoolAddress) {
+    marginlyPoolAddress = _marginlyPoolAddress;
     unlocked = true;
   }
 
@@ -31,21 +31,23 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
 
   /// @inheritdoc IMarginlyPoolWrapper
   function long(uint256 depositBaseAmount, uint256 longBaseAmount) external lock {
-    address baseToken = IMarginlyPool(marginlyPool).baseToken();
+    IMarginlyPool marginlyPool = IMarginlyPool(marginlyPoolAddress);
+    address baseToken = marginlyPool.baseToken();
     TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), depositBaseAmount);
-    TransferHelper.safeApprove(baseToken, marginlyPool, depositBaseAmount);
-    IMarginlyPool(marginlyPool).depositBase(depositBaseAmount);
-    IMarginlyPool(marginlyPool).long(longBaseAmount);
-    IMarginlyPool(marginlyPool).transferPosition(msg.sender);
+    TransferHelper.safeApprove(baseToken, marginlyPoolAddress, depositBaseAmount);
+    marginlyPool.depositBase(depositBaseAmount);
+    marginlyPool.long(longBaseAmount);
+    marginlyPool.transferPosition(msg.sender);
   }
 
   /// @inheritdoc IMarginlyPoolWrapper
   function short(uint256 depositQuoteAmount, uint256 shortBaseAmount) external lock {
-    address quoteToken = IMarginlyPool(marginlyPool).quoteToken();
+    IMarginlyPool marginlyPool = IMarginlyPool(marginlyPoolAddress);
+    address quoteToken = marginlyPool.quoteToken();
     TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), depositQuoteAmount);
-    TransferHelper.safeApprove(quoteToken, marginlyPool, depositQuoteAmount);
-    IMarginlyPool(marginlyPool).depositQuote(depositQuoteAmount);
-    IMarginlyPool(marginlyPool).short(shortBaseAmount);
-    IMarginlyPool(marginlyPool).transferPosition(msg.sender);
+    TransferHelper.safeApprove(quoteToken, marginlyPoolAddress, depositQuoteAmount);
+    marginlyPool.depositQuote(depositQuoteAmount);
+    marginlyPool.short(shortBaseAmount);
+    marginlyPool.transferPosition(msg.sender);
   }
 }
