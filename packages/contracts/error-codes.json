@@ -93,6 +93,13 @@
     ]
   },
   {
+    "code": "NW",
+    "description": "not whitelisted",
+    "fileNames": [
+      "MarginlyPoolWrapper.sol"
+    ]
+  },
+  {
     "code": "PC",
     "description": "Pool already created",
     "fileNames": [

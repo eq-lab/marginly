@@ -17,7 +17,7 @@ describe('MarginlyPoolWrapper long', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await marginlyPoolWrapper.connect(signer).long(0, depositBaseAmount, longAmount);
+    await marginlyPoolWrapper.connect(signer).long(marginlyPool.address, depositBaseAmount, longAmount);
 
     const baseCollCoeff = await marginlyPool.baseCollateralCoeff();
 
@@ -44,7 +44,9 @@ describe('MarginlyPoolWrapper long', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await expect(marginlyPoolWrapper.connect(signer).long(0, depositBaseAmount, longAmount)).to.be.revertedWith('MA');
+    await expect(
+      marginlyPoolWrapper.connect(signer).long(marginlyPool.address, depositBaseAmount, longAmount)
+    ).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
@@ -59,6 +61,23 @@ describe('MarginlyPoolWrapper long', () => {
 
   });
 
+  it('pool address isn\'t whitelisted', async () => {
+    const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
+    const [_, signer, lender] = await ethers.getSigners();
+
+    const depositBaseAmount = 1000n;
+    const depositQuoteAmount = 5000n;
+    const longAmount = 1n;
+
+    await marginlyPool.connect(lender).depositBase(depositBaseAmount);
+    await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
+
+    const nullAddress = '0x0000000000000000000000000000000000000000';
+    await expect(
+      marginlyPoolWrapper.connect(signer).long(nullAddress, depositBaseAmount, longAmount)
+    ).to.be.revertedWith('NW');
+  });
+
   it('gas cost snapshot', async () => {
     const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
     const [_, signer, lender] = await ethers.getSigners();
@@ -69,7 +88,9 @@ describe('MarginlyPoolWrapper long', () => {
 
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
-    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).long(0, depositBaseAmount, longAmount));
+    await snapshotGasCost(
+      await marginlyPoolWrapper.connect(signer).long(marginlyPool.address, depositBaseAmount, longAmount)
+    );
   });
 });
 
@@ -85,7 +106,7 @@ describe('MarginlyPoolWrapper short', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await marginlyPoolWrapper.connect(signer).short(0, depositQuoteAmount, shortAmount);
+    await marginlyPoolWrapper.connect(signer).short(marginlyPool.address, depositQuoteAmount, shortAmount);
 
     const quoteCollCoeff = await marginlyPool.quoteCollateralCoeff();
     const price = (await marginlyPool.getBasePrice()).inner;
@@ -113,7 +134,9 @@ describe('MarginlyPoolWrapper short', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await expect(marginlyPoolWrapper.connect(signer).short(0, depositQuoteAmount, shortAmount)).to.be.revertedWith('MA');
+    await expect(
+      marginlyPoolWrapper.connect(signer).short(marginlyPool.address, depositQuoteAmount, shortAmount)
+    ).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
@@ -128,6 +151,23 @@ describe('MarginlyPoolWrapper short', () => {
 
   });
 
+  it('pool address isn\'t whitelisted', async () => {
+    const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
+    const [_, signer, lender] = await ethers.getSigners();
+
+    const depositBaseAmount = 1000n;
+    const depositQuoteAmount = 1000n;
+    const shortAmount = 1n;
+
+    await marginlyPool.connect(lender).depositBase(depositBaseAmount);
+    await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
+
+    const nullAddress = '0x0000000000000000000000000000000000000000';
+    await expect(
+      marginlyPoolWrapper.connect(signer).short(nullAddress, depositQuoteAmount, shortAmount)
+    ).to.be.revertedWith('NW');
+  });
+
   it('gas cost snapshot', async () => {
     const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
     const [_, signer, lender] = await ethers.getSigners();
@@ -138,7 +178,9 @@ describe('MarginlyPoolWrapper short', () => {
 
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
-    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).short(0, depositQuoteAmount, shortAmount));
+    await snapshotGasCost(
+      await marginlyPoolWrapper.connect(signer).short(marginlyPool.address, depositQuoteAmount, shortAmount)
+    );
   });
 });
 
@@ -146,24 +188,19 @@ describe('MarginlyPoolWrapper manager', () => {
   it('add new address', async () => {
     const { marginlyPoolWrapper, factoryOwner } = await loadFixture(createMarginlyPoolWithWrapper);
 
-    await expect(marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.revertedWithoutReason();
     const newAddress = '0x0000000000000000000000000000000000000001';
-    await marginlyPoolWrapper.connect(factoryOwner).addNewPoolAddress(newAddress);
+    expect(await marginlyPoolWrapper.whitelistedMarginlyPools(newAddress)).to.be.equal(false);
+    await marginlyPoolWrapper.connect(factoryOwner).addPoolAddress(newAddress);
 
-    expect(await marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.equal(newAddress);
+    expect(await marginlyPoolWrapper.whitelistedMarginlyPools(newAddress)).to.be.equal(true);
   });
 
   it('delete address', async () => {
-    const { marginlyPoolWrapper, factoryOwner } = await loadFixture(createMarginlyPoolWithWrapper);
+    const { marginlyPool, marginlyPoolWrapper, factoryOwner } = await loadFixture(createMarginlyPoolWithWrapper);
 
-    await expect(marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.revertedWithoutReason();
-    const newAddress = '0x0000000000000000000000000000000000000001';
-    await marginlyPoolWrapper.connect(factoryOwner).addNewPoolAddress(newAddress);
-
-    expect(await marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.equal(newAddress);
-    await marginlyPoolWrapper.connect(factoryOwner).popPoolAddress(0);
-    expect(await marginlyPoolWrapper.marginlyPoolAddresses(0)).to.be.equal(newAddress);
-    expect(await marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.revertedWithoutReason();
+    expect(await marginlyPoolWrapper.whitelistedMarginlyPools(marginlyPool.address)).to.be.equal(true);
+    await marginlyPoolWrapper.connect(factoryOwner).deletePoolAddress(marginlyPool.address);
+    expect(await marginlyPoolWrapper.whitelistedMarginlyPools(marginlyPool.address)).to.be.equal(false);
   });
 
   it('add, not manager', async () => {
@@ -171,13 +208,15 @@ describe('MarginlyPoolWrapper manager', () => {
     const [_, notManager] = await ethers.getSigners();
 
     const newAddress = '0x0000000000000000000000000000000000000001';
-    await expect(marginlyPoolWrapper.connect(notManager).addNewPoolAddress(newAddress)).to.be.revertedWith('AD');
+    await expect(marginlyPoolWrapper.connect(notManager).addPoolAddress(newAddress)).to.be.revertedWith('AD');
   });
 
   it('delete, not manager', async () => {
-    const { marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
+    const { marginlyPool, marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
     const [_, notManager] = await ethers.getSigners();
 
-    await expect(marginlyPoolWrapper.connect(notManager).popPoolAddress(0)).to.be.revertedWith('AD');
+    await expect(
+      marginlyPoolWrapper.connect(notManager).deletePoolAddress(marginlyPool.address)
+    ).to.be.revertedWith('AD');
   });
 });

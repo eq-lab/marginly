@@ -8,14 +8,16 @@ import './libraries/FP96.sol';
 
 contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
   /// @dev Marginly pool address to work with
-  address[] public marginlyPoolAddresses;
+  mapping (address => bool) public whitelistedMarginlyPools;
   /// @dev reentrancy guard
   bool public unlocked;
   /// @dev contract admin
   address public admin;
 
-  constructor(address[] memory _marginlyPoolAddresses, address _admin) {
-    marginlyPoolAddresses = _marginlyPoolAddresses;
+  constructor(address[] memory marginlyPoolAddresses, address _admin) {
+    for(uint256 index = 0; index < marginlyPoolAddresses.length; ++index) {
+      whitelistedMarginlyPools[marginlyPoolAddresses[index]] = true;
+    }
     unlocked = true;
     admin = _admin;
   }
@@ -42,8 +44,8 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
   }
 
   /// @inheritdoc IMarginlyPoolWrapper
-  function long(uint32 poolIndex, uint256 depositBaseAmount, uint256 longBaseAmount) external lock {
-    address marginlyPoolAddress = marginlyPoolAddresses[poolIndex];
+  function long(address marginlyPoolAddress, uint256 depositBaseAmount, uint256 longBaseAmount) external lock {
+    require(whitelistedMarginlyPools[marginlyPoolAddress], 'NW'); // not whitelisted
     IMarginlyPool marginlyPool = IMarginlyPool(marginlyPoolAddress);
     address baseToken = marginlyPool.baseToken();
     TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), depositBaseAmount);
@@ -54,8 +56,8 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
   }
 
   /// @inheritdoc IMarginlyPoolWrapper
-  function short(uint32 poolIndex, uint256 depositQuoteAmount, uint256 shortBaseAmount) external lock {
-    address marginlyPoolAddress = marginlyPoolAddresses[poolIndex];
+  function short(address marginlyPoolAddress, uint256 depositQuoteAmount, uint256 shortBaseAmount) external lock {
+    require(whitelistedMarginlyPools[marginlyPoolAddress], 'NW'); // not whitelisted
     IMarginlyPool marginlyPool = IMarginlyPool(marginlyPoolAddress);
     address quoteToken = marginlyPool.quoteToken();
     TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), depositQuoteAmount);
@@ -65,15 +67,11 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
     marginlyPool.transferPosition(msg.sender);
   }
 
-  function addNewPoolAddress(address newPool) external onlyAdminOrManager {
-    marginlyPoolAddresses.push(newPool);
+  function addPoolAddress(address newPool) external onlyAdminOrManager {
+    whitelistedMarginlyPools[newPool] = true;
   }
 
-  function popPoolAddress(uint32 index) external onlyAdminOrManager {
-    uint256 arrayLastIndex = marginlyPoolAddresses.length - 1;
-    for (uint32 i = index; i < arrayLastIndex; i++) {
-      marginlyPoolAddresses[i] = marginlyPoolAddresses[i + 1];
-    }
-    delete marginlyPoolAddresses[arrayLastIndex];
+  function deletePoolAddress(address poolToDelete) external onlyAdminOrManager {
+    delete whitelistedMarginlyPools[poolToDelete];
   }
 }
