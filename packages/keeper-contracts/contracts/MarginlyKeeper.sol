@@ -96,9 +96,11 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
 
     address collateralToken;
     if (quoteToken == asset) {
+      IERC20(quoteToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, amount, 0);
       collateralToken = baseToken;
     } else {
+      IERC20(baseToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, 0, amount);
       collateralToken = quoteToken;
     }

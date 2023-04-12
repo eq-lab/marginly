@@ -82,6 +82,13 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function receivePosition(address _badPositionAddress, uint256 _quoteAmount, uint256 _baseAmount) external {
     require(_badPositionAddress == badPositionAddress);
+    if (_quoteAmount != 0) {
+      IERC20(quoteToken).transferFrom(msg.sender, address(this), quoteAmount);
+    }
+
+    if (_baseAmount != 0) {
+      IERC20(baseToken).transferFrom(msg.sender, address(this), baseAmount);
+    }
   }
 
   function emergencyWithdraw() external {}

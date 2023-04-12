@@ -57,6 +57,9 @@ export async function createMarginlyKeeperContract(): Promise<{
   await baseToken.mint(swapRouter.address, mintAmount);
   await quoteToken.mint(swapRouter.address, mintAmount);
 
+  await baseToken.mint(aavePool.address, mintAmount);
+  await quoteToken.mint(aavePool.address, mintAmount);
+
   const factory = await ethers.getContractFactory('MarginlyKeeper');
   const marginlyKeeper = await factory.deploy(addressesProvider.address, swapRouter.address);
 
