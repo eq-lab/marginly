@@ -31,8 +31,8 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
   IPool public immutable override POOL;
 
-  constructor(address addressProvider, address _swapRouter) {
-    ADDRESSES_PROVIDER = IPoolAddressesProvider(addressProvider);
+  constructor(address addressesProvider) {
+    ADDRESSES_PROVIDER = IPoolAddressesProvider(addressesProvider);
     POOL = IPool(ADDRESSES_PROVIDER.getPool());
   }
 
