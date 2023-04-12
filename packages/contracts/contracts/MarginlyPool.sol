@@ -33,8 +33,8 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Denominator of fee value
   uint24 constant WHOLE_ONE = 1e6;
 
-  /// @notice Marginly pool creator
-  address public factory;
+  /// @inheritdoc IMarginlyPool
+  address public override factory;
 
   /// @inheritdoc IMarginlyPool
   address public override quoteToken;
@@ -321,8 +321,9 @@ contract MarginlyPool is IMarginlyPool {
     uint256 _discountedBaseCollateral = discountedBaseCollateral;
     uint256 _discountedBaseDebt = discountedBaseDebt;
 
-    uint256 poolBaseBalance = 
-      _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(_baseDebtCoeff.mul(_discountedBaseDebt));
+    uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(
+      _baseDebtCoeff.mul(_discountedBaseDebt)
+    );
     require(poolBaseBalance.add(amount) <= params.baseLimit, 'EL'); // exceeds limit
 
     if (position._type == PositionType.Short) {
@@ -393,8 +394,9 @@ contract MarginlyPool is IMarginlyPool {
     uint256 _discountedQuoteCollateral = discountedQuoteCollateral;
     uint256 _discountedQuoteDebt = discountedQuoteDebt;
 
-    uint256 poolQuoteBalance = 
-      _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(_quoteDebtCoeff.mul(_discountedQuoteDebt));
+    uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
+      _quoteDebtCoeff.mul(_discountedQuoteDebt)
+    );
     require(poolQuoteBalance.add(amount) <= params.quoteLimit, 'EL'); // exceeds limit
 
     if (position._type == PositionType.Long) {
@@ -699,8 +701,9 @@ contract MarginlyPool is IMarginlyPool {
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff;
     uint256 _discountedQuoteCollateral = discountedQuoteCollateral;
 
-    uint256 poolQuoteBalance = 
-      _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(quoteDebtCoeff.mul(discountedQuoteDebt));
+    uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
+      quoteDebtCoeff.mul(discountedQuoteDebt)
+    );
     require(poolQuoteBalance.add(realQuoteCollateralChange) <= params.quoteLimit, 'EL'); // exceeds limit
 
     uint256 discountedQuoteChange = _quoteCollateralCoeff.recipMul(realQuoteCollateralChange);
@@ -747,8 +750,8 @@ contract MarginlyPool is IMarginlyPool {
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff;
     uint256 _discountedBaseCollateral = discountedBaseCollateral;
 
-    uint256 poolBaseBalance = 
-      _baseCollateralCoeff.mul(_discountedBaseCollateral) - baseDebtCoeff.mul(discountedBaseDebt);
+    uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral) -
+      baseDebtCoeff.mul(discountedBaseDebt);
     require(realBaseAmount.add(poolBaseBalance) <= params.baseLimit, 'EL'); // exceeds limit
 
     Position storage position = positions[msg.sender];
