@@ -10,13 +10,15 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 contract MockMarginlyPool is IMarginlyPool {
   address public override quoteToken;
   address public override baseToken;
+  address public override factory;
 
   address private badPositionAddress;
   uint256 private quoteAmount;
   uint256 private baseAmount;
   PositionType private positionType;
 
-  constructor(address _quoteToken, address _baseToken) {
+  constructor(address _factory, address _quoteToken, address _baseToken) {
+    factory = _factory;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
   }
