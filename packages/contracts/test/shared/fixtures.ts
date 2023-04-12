@@ -225,7 +225,7 @@ export async function createMarginlyPoolWithWrapper(): Promise<{
   const { marginlyPool, factoryOwner, uniswapPoolInfo, quoteContract, baseContract, swapRouter } = await createMarginlyPool();
   const wrapperFactory = await ethers.getContractFactory('MarginlyPoolWrapper');
 
-  const marginlyPoolWrapper = await wrapperFactory.deploy(marginlyPool.address);
+  const marginlyPoolWrapper = await wrapperFactory.deploy([marginlyPool.address], factoryOwner.address);
   
   const amountToDeposit = 5000n * 10n ** BigInt(await uniswapPoolInfo.token0.decimals());
 

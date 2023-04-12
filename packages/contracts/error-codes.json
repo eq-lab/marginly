@@ -3,7 +3,8 @@
     "code": "AD",
     "description": "Access denied",
     "fileNames": [
-      "MarginlyPool.sol"
+      "MarginlyPool.sol",
+      "MarginlyPoolWrapper.sol"
     ]
   },
   {

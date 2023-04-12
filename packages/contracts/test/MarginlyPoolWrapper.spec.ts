@@ -17,7 +17,7 @@ describe('MarginlyPoolWrapper long', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await marginlyPoolWrapper.connect(signer).long(depositBaseAmount, longAmount);
+    await marginlyPoolWrapper.connect(signer).long(0, depositBaseAmount, longAmount);
 
     const baseCollCoeff = await marginlyPool.baseCollateralCoeff();
 
@@ -44,7 +44,7 @@ describe('MarginlyPoolWrapper long', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await expect(marginlyPoolWrapper.connect(signer).long(depositBaseAmount, longAmount)).to.be.revertedWith('MA');
+    await expect(marginlyPoolWrapper.connect(signer).long(0, depositBaseAmount, longAmount)).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
@@ -69,7 +69,7 @@ describe('MarginlyPoolWrapper long', () => {
 
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
-    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).long(depositBaseAmount, longAmount));
+    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).long(0, depositBaseAmount, longAmount));
   });
 });
 
@@ -85,7 +85,7 @@ describe('MarginlyPoolWrapper short', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount);
+    await marginlyPoolWrapper.connect(signer).short(0, depositQuoteAmount, shortAmount);
 
     const quoteCollCoeff = await marginlyPool.quoteCollateralCoeff();
     const price = (await marginlyPool.getBasePrice()).inner;
@@ -113,7 +113,7 @@ describe('MarginlyPoolWrapper short', () => {
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
 
-    await expect(marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount)).to.be.revertedWith('MA');
+    await expect(marginlyPoolWrapper.connect(signer).short(0, depositQuoteAmount, shortAmount)).to.be.revertedWith('MA');
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
@@ -138,6 +138,46 @@ describe('MarginlyPoolWrapper short', () => {
 
     await marginlyPool.connect(lender).depositBase(depositBaseAmount);
     await marginlyPool.connect(lender).depositQuote(depositQuoteAmount);
-    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).short(depositQuoteAmount, shortAmount));
+    await snapshotGasCost(await marginlyPoolWrapper.connect(signer).short(0, depositQuoteAmount, shortAmount));
+  });
+});
+
+describe('MarginlyPoolWrapper manager', () => {
+  it('add new address', async () => {
+    const { marginlyPoolWrapper, factoryOwner } = await loadFixture(createMarginlyPoolWithWrapper);
+
+    await expect(marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.revertedWithoutReason();
+    const newAddress = '0x0000000000000000000000000000000000000001';
+    await marginlyPoolWrapper.connect(factoryOwner).addNewPoolAddress(newAddress);
+
+    expect(await marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.equal(newAddress);
+  });
+
+  it('delete address', async () => {
+    const { marginlyPoolWrapper, factoryOwner } = await loadFixture(createMarginlyPoolWithWrapper);
+
+    await expect(marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.revertedWithoutReason();
+    const newAddress = '0x0000000000000000000000000000000000000001';
+    await marginlyPoolWrapper.connect(factoryOwner).addNewPoolAddress(newAddress);
+
+    expect(await marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.equal(newAddress);
+    await marginlyPoolWrapper.connect(factoryOwner).popPoolAddress(0);
+    expect(await marginlyPoolWrapper.marginlyPoolAddresses(0)).to.be.equal(newAddress);
+    expect(await marginlyPoolWrapper.marginlyPoolAddresses(1)).to.be.revertedWithoutReason();
+  });
+
+  it('add, not manager', async () => {
+    const { marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
+    const [_, notManager] = await ethers.getSigners();
+
+    const newAddress = '0x0000000000000000000000000000000000000001';
+    await expect(marginlyPoolWrapper.connect(notManager).addNewPoolAddress(newAddress)).to.be.revertedWith('AD');
+  });
+
+  it('delete, not manager', async () => {
+    const { marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
+    const [_, notManager] = await ethers.getSigners();
+
+    await expect(marginlyPoolWrapper.connect(notManager).popPoolAddress(0)).to.be.revertedWith('AD');
   });
 });

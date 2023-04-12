@@ -1146,6 +1146,7 @@ contract MarginlyPool is IMarginlyPool {
     emit EmergencyWithdraw(msg.sender, token, transferAmount);
   }
 
+  /// @inheritdoc IMarginlyPool
   function transferPosition(address newOwner) external override lock {
     require(msg.sender != newOwner, 'SO'); // same owner
     require(newOwner != address(0), 'WA'); // wrong address
