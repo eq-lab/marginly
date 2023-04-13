@@ -711,6 +711,7 @@ contract MarginlyPool is IMarginlyPool {
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff;
     uint256 _discountedQuoteCollateral = discountedQuoteCollateral;
 
+    // use scope here to avoid "Stack too deep error"
     {
       uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
         quoteDebtCoeff.mul(discountedQuoteDebt)
