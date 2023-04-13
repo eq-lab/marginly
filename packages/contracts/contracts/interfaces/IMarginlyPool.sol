@@ -8,7 +8,8 @@ import '../libraries/FP96.sol';
 interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emited when margin call is took place
   /// @param user User that was reinited
-  event EnactMarginCall(address indexed user);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event EnactMarginCall(address indexed user, uint256 swapPriceX96);
 
   /// @dev Emited when user deposit base token
   /// @param user Depositor

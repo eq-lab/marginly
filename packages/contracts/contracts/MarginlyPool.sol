@@ -207,6 +207,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param user User's address
   /// @param position User's position to reinit
   function enactMarginCall(address user, Position storage position) private {
+    uint256 swapPriceX96;
     if (position._type == PositionType.Short) {
       uint256 realQuoteCollateral = quoteCollateralCoeff.mul(position.discountedQuoteAmount);
       uint256 realBaseDebt = baseDebtCoeff.mul(position.discountedBaseAmount);
@@ -216,6 +217,7 @@ contract MarginlyPool is IMarginlyPool {
         getCurrentBasePrice().recipMul(realQuoteCollateral)
       );
       uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum);
+      swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       // baseCollateralCoeff += rcd * (rqc - sqc) / sqc
       if (swappedBaseDebt >= realBaseDebt) {
         // Position has enough collateral to repay debt
@@ -232,7 +234,6 @@ contract MarginlyPool is IMarginlyPool {
 
       //remove position
       shortHeap.remove(positions, 0);
-      delete positions[user];
     } else if (position._type == PositionType.Long) {
       uint256 realBaseCollateral = baseCollateralCoeff.mul(position.discountedBaseAmount);
       uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
@@ -242,6 +243,7 @@ contract MarginlyPool is IMarginlyPool {
         getCurrentBasePrice().mul(realBaseCollateral)
       );
       uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum);
+      swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       // quoteCollateralCoef += rqd * (rbc - sbc) / sbc
       if (swappedQuoteDebt >= realQuoteDebt) {
         // Position has enough collateral to repay debt
@@ -258,8 +260,12 @@ contract MarginlyPool is IMarginlyPool {
 
       //remove position
       longHeap.remove(positions, 0);
-      delete positions[user];
+    } else {
+      revert('WPT'); // Wrong position type to MC
     }
+
+    delete positions[user];
+    emit EnactMarginCall(user, swapPriceX96);
   }
 
   /// @dev Calculate leverage
@@ -901,7 +907,6 @@ contract MarginlyPool is IMarginlyPool {
       uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
       if (leverageX96 > maxLeverageX96) {
         enactMarginCall(user, position);
-        emit EnactMarginCall(user);
         return true;
       }
 
@@ -919,7 +924,6 @@ contract MarginlyPool is IMarginlyPool {
       uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
       if (leverageX96 > maxLeverageX96) {
         enactMarginCall(user, position);
-        emit EnactMarginCall(user);
         return true;
       }
 
@@ -1197,7 +1201,8 @@ contract MarginlyPool is IMarginlyPool {
     return IMarginlyFactory(factory).swapRouter();
   }
 
-  function getSwapPrice(uint256 quoteAmount, uint256 baseAmount) private view returns (uint256) {
+  /// @dev Calculate swap price in Q96
+  function getSwapPrice(uint256 quoteAmount, uint256 baseAmount) private pure returns (uint256) {
     return Math.mulDiv(quoteAmount, FP96.Q96, baseAmount);
   }
 }
