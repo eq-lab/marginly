@@ -55,7 +55,6 @@
     }
   ],
   "marginlyWrapper": {
-    "pools": ["usdc-weth"],
-    "address": ""
+    "pools": ["usdc-weth"]
   }
 }
