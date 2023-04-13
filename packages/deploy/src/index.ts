@@ -212,6 +212,19 @@ class MarginlyDeployer {
     );
   }
 
+  public deployMarginlyWrapper(
+    marginlyPools: MarginlyDeploymentMarginlyPool[],
+  ): Promise<DeployResult> {
+    const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
+      return marginlyPool.address
+    });
+    return this.deploy(
+      'MarginlyWrapper',
+      [marginlyPoolsString],
+      'MarginlyWrapper'
+    );
+  }
+
   private static toUniswapFee(fee: RationalNumber): BigNumber {
     const uniswapFeeMultiplier = BigNumber.from('1000000');
     return fee.nom.mul(uniswapFeeMultiplier).div(fee.denom);
@@ -686,6 +699,10 @@ interface MarginlyConfigMarginlyPool {
   params: MarginlyPoolParams;
 }
 
+interface MarginlyConfigMarginlyWrapper {
+  ids: string[];
+}
+
 class StrictMarginlyDeployConfig {
   public readonly connection: EthConnectionConfig;
   public readonly uniswap: MarginlyConfigUniswap;
@@ -693,6 +710,7 @@ class StrictMarginlyDeployConfig {
   public readonly tokens: MarginlyConfigToken[];
   public readonly uniswapPools: MarginlyConfigUniswapPool[];
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
+  public readonly marginlyWrapper: MarginlyConfigMarginlyWrapper;
 
   private constructor(
     connection: EthConnectionConfig,
@@ -700,7 +718,8 @@ class StrictMarginlyDeployConfig {
     marginlyFactory: MarginlyFactoryConfig,
     tokens: MarginlyConfigToken[],
     uniswapPools: MarginlyConfigUniswapPool[],
-    marginlyPools: MarginlyConfigMarginlyPool[]
+    marginlyPools: MarginlyConfigMarginlyPool[],
+    marginlyWrapper: MarginlyConfigMarginlyWrapper
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
@@ -708,6 +727,7 @@ class StrictMarginlyDeployConfig {
     this.tokens = tokens;
     this.uniswapPools = uniswapPools;
     this.marginlyPools = marginlyPools;
+    this.marginlyWrapper = marginlyWrapper;
   }
 
   private static parseTokenSide(str: string): 'token0' | 'token1' {
@@ -761,6 +781,8 @@ class StrictMarginlyDeployConfig {
         assertAddress: rawPool.assertAddress === undefined ? undefined : EthAddress.parse(rawPool.assertAddress),
       });
     }
+    const ids = [];
+
     const marginlyPools: MarginlyConfigMarginlyPool[] = [];
     for (let i = 0; i < config.marginlyPools.length; i++) {
       const rawPool = config.marginlyPools[i];
@@ -789,6 +811,7 @@ class StrictMarginlyDeployConfig {
         baseLimit: RationalNumber.parse(rawPool.params.baseLimit),
         quoteLimit: RationalNumber.parse(rawPool.params.quoteLimit),
       };
+      ids.push(rawPool.id);
       marginlyPools.push({
         id: rawPool.id,
         uniswapPool,
@@ -797,6 +820,9 @@ class StrictMarginlyDeployConfig {
         params,
       });
     }
+
+    const marginlyWrapper: MarginlyConfigMarginlyWrapper = { ids };
+
     return new StrictMarginlyDeployConfig(
       config.connection,
       {
@@ -808,7 +834,8 @@ class StrictMarginlyDeployConfig {
       },
       Array.from(tokens.values()),
       Array.from(uniswapPools.values()),
-      marginlyPools
+      marginlyPools,
+      marginlyWrapper,
     );
   }
 }
@@ -820,6 +847,7 @@ interface MarginlyDeploymentMarginlyPool {
 
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
+  marginlyWrapperAddress: string;
 }
 
 export function mergeMarginlyDeployments(
@@ -841,6 +869,7 @@ export function mergeMarginlyDeployments(
 
   const mergedDeployment = {
     marginlyPools: [...oldDeployment.marginlyPools],
+    marginlyWrapperAddress: oldDeployment.marginlyWrapperAddress,
   };
 
   for (const marginlyPool of newDeployment.marginlyPools) {
@@ -993,7 +1022,17 @@ export async function deployMarginly(
     return deployedMarginlyPools;
   });
 
+  const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
+    const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
+      deployedMarginlyPools
+    );
+    printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
+
+    return marginlyWrapperDeployResult;
+  });
+
   return {
     marginlyPools: deployedMarginlyPools,
+    marginlyWrapperAddress: marginlyWrapperDeployResult.address,
   };
 }
