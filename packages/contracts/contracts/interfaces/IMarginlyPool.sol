@@ -33,18 +33,21 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emited when user shorts
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  event Short(address indexed user, uint256 amount);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event Short(address indexed user, uint256 amount, uint256 swapPriceX96);
 
   /// @dev Emitted when user make long position
   /// @param user User
   /// @param amount Amount of token user use in long position
-  event Long(address indexed user, uint256 amount);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event Long(address indexed user, uint256 amount, uint256 swapPriceX96);
 
   /// @dev Emited when user closed position
   /// @param user User
   /// @param token Collateral token
   /// @param collateralDelta Amount of collateral reduction
-  event ClosePosition(address indexed user, address indexed token, uint256 collateralDelta);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event ClosePosition(address indexed user, address indexed token, uint256 collateralDelta, uint256 swapPriceX96);
 
   /// @dev Emited when user deposit base token to increase base collateral coeff
   /// @param baseAmount Amount of base token
