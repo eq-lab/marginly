@@ -214,14 +214,15 @@ class MarginlyDeployer {
 
   public deployMarginlyWrapper(
     marginlyPools: MarginlyDeploymentMarginlyPool[],
+    wrapperAdminAddress: string
   ): Promise<DeployResult> {
     const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
       return marginlyPool.address
     });
     return this.deploy(
-      'MarginlyWrapper',
-      [marginlyPoolsString],
-      'MarginlyWrapper'
+      'MarginlyPoolWrapper',
+      [marginlyPoolsString, wrapperAdminAddress],
+      'MarginlyPoolWrapper'
     );
   }
 
@@ -466,6 +467,20 @@ class MarginlyDeployer {
       txHash: creationTxHash,
       contract: marginlyPoolContract,
     };
+  }
+
+  public async getMarginlyWrapper(marginlyWrapperAddress: string): Promise<LimitedDeployResult> {
+    const marginlyWrapperContractDescription = this.readMarginlyContract('MarginlyPoolWrapper');
+      const marginlyPoolContract = new ethers.Contract(
+        marginlyWrapperAddress,
+        marginlyWrapperContractDescription.abi,
+        this.provider
+      );
+
+      return {
+        address: marginlyWrapperAddress,
+        contract: marginlyPoolContract
+      };
   }
 
   public async getErc20Symbol(tokenAddress: EthAddress): Promise<string> {
@@ -847,7 +862,7 @@ interface MarginlyDeploymentMarginlyPool {
 
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
-  marginlyWrapperAddress: string;
+  marginlyWrapper?: { address: string };
 }
 
 export function mergeMarginlyDeployments(
@@ -869,7 +884,7 @@ export function mergeMarginlyDeployments(
 
   const mergedDeployment = {
     marginlyPools: [...oldDeployment.marginlyPools],
-    marginlyWrapperAddress: oldDeployment.marginlyWrapperAddress,
+    marginlyWrapper: newDeployment.marginlyWrapper,
   };
 
   for (const marginlyPool of newDeployment.marginlyPools) {
@@ -928,7 +943,8 @@ export async function deployMarginly(
   signer: ethers.Signer,
   rawConfig: MarginlyDeployConfig,
   stateStore: StateStore,
-  logger: Logger
+  logger: Logger,
+  marginlyWrapperAddress?: string,
 ): Promise<MarginlyDeployment> {
   const { config, marginlyDeployer } = await using(logger.beginScope('Initialize'), async () => {
     if (signer.provider === undefined) {
@@ -1022,17 +1038,28 @@ export async function deployMarginly(
     return deployedMarginlyPools;
   });
 
-  const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
-    const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
-      deployedMarginlyPools
-    );
-    printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
-
-    return marginlyWrapperDeployResult;
-  });
+  if(marginlyWrapperAddress === undefined) {
+    const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
+      const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
+        deployedMarginlyPools,
+        await signer.getAddress(),
+      );
+      printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
+  
+      return marginlyWrapperDeployResult;
+    });
+    marginlyWrapperAddress = marginlyWrapperDeployResult.address;
+  } else {
+    const marginlyWrapperContract = (await marginlyDeployer.getMarginlyWrapper(marginlyWrapperAddress)).contract;
+    for (const marginlyPoolAddress of deployedMarginlyPools) {
+      if (!(await marginlyWrapperContract.whitelistedMarginlyPools(marginlyPoolAddress))) {
+        await marginlyWrapperContract.connect(signer).addPoolAddress(marginlyPoolAddress);
+      }
+    }
+  }
 
   return {
     marginlyPools: deployedMarginlyPools,
-    marginlyWrapperAddress: marginlyWrapperDeployResult.address,
+    marginlyWrapper: { address: marginlyWrapperAddress },
   };
 }

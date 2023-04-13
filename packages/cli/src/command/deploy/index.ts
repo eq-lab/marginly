@@ -336,9 +336,8 @@ const deployMarginlyCommand = new Command('marginly')
           logger
         ).createStateStore();
         const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
-
-        const marginlyDeployment = await deployMarginly(signer, rawConfig, stateStore, logger);
-
+        const marginlyWrapperAddress = getMarginlyWrapperAddress(actualDeploymentFile);
+        const marginlyDeployment = await deployMarginly(signer, rawConfig, stateStore, logger, marginlyWrapperAddress);
         updateDeploymentFile(actualDeploymentFile, marginlyDeployment, logger);
       }
     );
@@ -354,13 +353,21 @@ function updateDeploymentFile(deploymentFile: string, currentDeployment: Marginl
     logger.log('Deployment file not found. Creating new one');
     existingDeployment = {
       marginlyPools: [],
-      marginlyWrapperAddress: '',
     };
   }
 
   const mergedDeployment = mergeMarginlyDeployments(existingDeployment, currentDeployment);
 
   fs.writeFileSync(deploymentFile, JSON.stringify(mergedDeployment, null, 2), { encoding: 'utf-8' });
+}
+
+function getMarginlyWrapperAddress(deploymentFile: string): string | undefined {
+  if (!fs.existsSync(deploymentFile)) {
+    return undefined;
+  }
+  const existingDeployment: MarginlyDeployment = JSON.parse(fs.readFileSync(deploymentFile, 'utf-8'));
+
+  return existingDeployment.marginlyWrapper ? existingDeployment.marginlyWrapper.address : undefined;
 }
 
 export const readReadOnlyEthFromContext = async (
