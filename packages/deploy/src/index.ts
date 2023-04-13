@@ -2,6 +2,7 @@ import * as ethers from 'ethers';
 import { Contract, ContractFactory, Signer } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonFragment } from '@ethersproject/abi';
+import { ContractReader } from '@marginly/common';
 import { EthConnectionConfig, EthOptions, MarginlyDeployConfig } from './config';
 
 export { DeployConfig } from './config';
@@ -95,8 +96,6 @@ interface ContractDescription {
   abi: JsonFragment[];
   bytecode: string;
 }
-
-type ContractReader = (name: string) => ContractDescription;
 
 function createMarginlyContractReader(): ContractReader {
   return (name: string): ContractDescription => {
