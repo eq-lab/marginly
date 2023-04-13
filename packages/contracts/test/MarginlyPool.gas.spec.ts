@@ -171,17 +171,24 @@ describe('mc happens:', async () => {
   it('long closePosition with one mc', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [owner, longer, lender, longer2] = await ethers.getSigners();
+
     const params = await marginlyPool.params();
-    await marginlyPool.connect(owner).setParameters({ ...params, positionMinAmount: 1 });
-    await marginlyPool.connect(longer).depositBase(1000);
-    await marginlyPool.connect(longer2).depositBase(1000);
-    await marginlyPool.connect(longer2).long(1);
+    await marginlyPool.connect(owner).setParameters({ ...params, positionMinAmount: 10 });
+
     const lev = (await marginlyPool.params()).maxLeverage - 0.25;
     const longAmount = Math.floor((lev - 1) * 1000);
+
     await marginlyPool.connect(lender).depositQuote(3 * longAmount);
+
+    await marginlyPool.connect(longer).depositBase(1000);
     await marginlyPool.connect(longer).long(longAmount);
+    await marginlyPool.connect(longer2).depositBase(1000);
+    await marginlyPool.connect(longer2).long(10);
+
     await time.increase(24 * 60 * 60);
+
     await snapshotGasCost(await marginlyPool.connect(longer2).closePosition());
+
     expect(await marginlyPool.discountedBaseDebt()).to.be.equal(BigNumber.from(0));
   });
 
@@ -270,7 +277,7 @@ describe('mc happens:', async () => {
     } = await loadFixture(createMarginlyPool);
     const [owner, longer, longer2, shorter, lender, depositer] = await ethers.getSigners();
     const params = await marginlyPool.params();
-    await marginlyPool.connect(owner).setParameters({ ...params, positionMinAmount: 1 });
+    await marginlyPool.connect(owner).setParameters({ ...params, positionMinAmount: 10 });
     await marginlyPool.connect(longer).depositBase(1000);
     await marginlyPool.connect(longer2).depositBase(1000);
     await marginlyPool.connect(shorter).depositQuote(1000);
@@ -281,7 +288,7 @@ describe('mc happens:', async () => {
     await marginlyPool.connect(shorter).short(shortAmount);
     const longAmount = Math.floor((lev - 1) * 1000);
     await marginlyPool.connect(lender).depositQuote(Math.floor(20 * longAmount * price));
-    await marginlyPool.connect(longer2).long(1);
+    await marginlyPool.connect(longer2).long(10);
     await marginlyPool.connect(longer).long(longAmount);
     await time.increase(180 * 24 * 60 * 60);
     await snapshotGasCost(await marginlyPool.connect(longer2).closePosition());
