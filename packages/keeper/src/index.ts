@@ -8,6 +8,7 @@ import {
   MarginlyMode,
   Position,
   sleep,
+  ContractDescription,
 } from '@marginly/common';
 import {
   createSystemContext,
@@ -17,7 +18,6 @@ import {
   readEthSignerFromContext,
   readParameter,
   SystemContext,
-  ContractDescription,
 } from '@marginly/cli-common';
 import * as fs from 'fs';
 import { ethers } from 'ethers';
