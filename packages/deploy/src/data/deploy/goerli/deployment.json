@@ -2,7 +2,10 @@
   "marginlyPools": [
     {
       "id": "usdc-weth",
-      "address": "0xD3774866ad2A871d1c19a4d90996c9c36B6215c2"
+      "address": "0x4EA591825630ACD81a4B1110f88F316eD75aC3A6"
     }
-  ]
+  ],
+  "marginlyWrapper": {
+    "address": "0x68BD0b41Fbdc739Ee43c59D605bFE0e4350865EC"
+  }
 }

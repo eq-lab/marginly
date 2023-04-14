@@ -8,7 +8,8 @@ import '../libraries/FP96.sol';
 interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emited when margin call is took place
   /// @param user User that was reinited
-  event EnactMarginCall(address indexed user);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event EnactMarginCall(address indexed user, uint256 swapPriceX96);
 
   /// @dev Emited when user deposit base token
   /// @param user Depositor
@@ -33,18 +34,21 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emited when user shorts
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  event Short(address indexed user, uint256 amount);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event Short(address indexed user, uint256 amount, uint256 swapPriceX96);
 
   /// @dev Emitted when user make long position
   /// @param user User
   /// @param amount Amount of token user use in long position
-  event Long(address indexed user, uint256 amount);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event Long(address indexed user, uint256 amount, uint256 swapPriceX96);
 
   /// @dev Emited when user closed position
   /// @param user User
   /// @param token Collateral token
   /// @param collateralDelta Amount of collateral reduction
-  event ClosePosition(address indexed user, address indexed token, uint256 collateralDelta);
+  /// @param swapPriceX96 Price of swap worth in quote token as Q96
+  event ClosePosition(address indexed user, address indexed token, uint256 collateralDelta, uint256 swapPriceX96);
 
   /// @dev Emited when user deposit base token to increase base collateral coeff
   /// @param baseAmount Amount of base token
@@ -68,6 +72,11 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param token Token of withdraw
   /// @param amount Amount of withdraw
   event EmergencyWithdraw(address indexed who, address indexed token, uint256 amount);
+
+  /// @dev Emitted when user transfer their position to new owner
+  /// @param from address of previous position owner
+  /// @param to address of new position owner
+  event PositionTransfer(address indexed from, address indexed to);
 
   /// @dev Initializes the pool
   function initialize(
@@ -143,4 +152,8 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @notice Withdraw position collateral in emergency mode
   function emergencyWithdraw() external;
+
+  /// @notice Transfer position to new owner
+  /// @param newOwner address of new position owner
+  function transferPosition(address newOwner) external;
 }
