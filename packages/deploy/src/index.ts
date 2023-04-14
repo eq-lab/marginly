@@ -1,4 +1,5 @@
 import * as ethers from 'ethers';
+import * as fs from 'fs';
 import { Contract, ContractFactory, Signer } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonFragment } from '@ethersproject/abi';
@@ -939,12 +940,16 @@ export async function getMarginlyDeployBundles(logger: Logger): Promise<Marginly
   return result;
 }
 
+function getMarginlyWrapperAddress(stateStore: StateStore): string | undefined {
+  const deployState = stateStore.getById('MarginlyPoolWrapper');
+  return deployState ? deployState.address : undefined;
+}
+
 export async function deployMarginly(
   signer: ethers.Signer,
   rawConfig: MarginlyDeployConfig,
   stateStore: StateStore,
-  logger: Logger,
-  marginlyWrapperAddress?: string,
+  logger: Logger
 ): Promise<MarginlyDeployment> {
   const { config, marginlyDeployer } = await using(logger.beginScope('Initialize'), async () => {
     if (signer.provider === undefined) {
@@ -1037,6 +1042,8 @@ export async function deployMarginly(
     }
     return deployedMarginlyPools;
   });
+
+  let marginlyWrapperAddress = getMarginlyWrapperAddress(stateStore);
 
   if(marginlyWrapperAddress === undefined) {
     const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
