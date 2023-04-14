@@ -1163,6 +1163,38 @@ contract MarginlyPool is IMarginlyPool {
     emit EmergencyWithdraw(msg.sender, token, transferAmount);
   }
 
+  /// @inheritdoc IMarginlyPool
+  function transferPosition(address newOwner) external override lock {
+    require(msg.sender != newOwner, 'SO'); // same owner
+    require(newOwner != address(0), 'WA'); // wrong address
+
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    if (callerMarginCalled) {
+      return;
+    }
+
+    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
+    if (marginCallHappened) {
+      return;
+    }
+
+    Position memory positionToTransfer = positions[msg.sender];
+    require(positionToTransfer._type != PositionType.Uninitialized, 'U'); // Uninitialized position
+
+    require(positions[newOwner]._type == PositionType.Uninitialized, 'PI'); // Position initialized
+
+    if (positionToTransfer._type == PositionType.Long) {
+      longHeap.updateAccount(positionToTransfer.heapPosition - 1, newOwner);
+    } else if (positionToTransfer._type == PositionType.Short) {
+      shortHeap.updateAccount(positionToTransfer.heapPosition - 1, newOwner);
+    }
+
+    positions[newOwner] = positionToTransfer;
+    delete positions[msg.sender];
+    
+    emit PositionTransfer(msg.sender, newOwner);
+  }
+
   function updateSystemLeverageLong(FP96.FixedPoint memory basePrice) private {
     if (discountedBaseCollateral == 0) {
       systemLeverage.longX96 = uint128(FP96.Q96);

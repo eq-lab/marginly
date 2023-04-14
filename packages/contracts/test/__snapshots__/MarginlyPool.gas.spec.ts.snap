@@ -17,28 +17,28 @@ Object {
 exports[`Liquidation liquidate long position and create new long position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 229141,
+  "gasUsed": 229163,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 246020,
+  "gasUsed": 246042,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 257192,
+  "gasUsed": 257214,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new short position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 240152,
+  "gasUsed": 240174,
 }
 `;
 
@@ -101,7 +101,7 @@ Object {
 exports[`System initialized: withdrawQuote 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 190306,
+  "gasUsed": 190328,
 }
 `;
 

@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MarginlyPoolWrapper long gas cost snapshot 1`] = `
+Object {
+  "calldataByteLength": 100,
+  "gasUsed": 439305,
+}
+`;
+
+exports[`MarginlyPoolWrapper short gas cost snapshot 1`] = `
+Object {
+  "calldataByteLength": 100,
+  "gasUsed": 436227,
+}
+`;

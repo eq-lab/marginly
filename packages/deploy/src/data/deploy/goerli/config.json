@@ -53,5 +53,8 @@
         "quoteLimit": "20000000"
       }
     }
-  ]
+  ],
+  "marginlyWrapper": {
+    "pools": ["usdc-weth"]
+  }
 }

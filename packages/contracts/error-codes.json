@@ -3,7 +3,8 @@
     "code": "AD",
     "description": "Access denied",
     "fileNames": [
-      "MarginlyPool.sol"
+      "MarginlyPool.sol",
+      "MarginlyPoolWrapper.sol"
     ]
   },
   {
@@ -52,7 +53,8 @@
     "code": "LOK",
     "description": "Locked for reentrant call",
     "fileNames": [
-      "MarginlyPool.sol"
+      "MarginlyPool.sol",
+      "MarginlyPoolWrapper.sol"
     ]
   },
   {
@@ -91,6 +93,13 @@
     ]
   },
   {
+    "code": "NW",
+    "description": "not whitelisted",
+    "fileNames": [
+      "MarginlyPoolWrapper.sol"
+    ]
+  },
+  {
     "code": "PC",
     "description": "Pool already created",
     "fileNames": [
@@ -126,6 +135,13 @@
     ]
   },
   {
+    "code": "SO",
+    "description": "same owner",
+    "fileNames": [
+      "MarginlyPool.sol"
+    ]
+  },
+  {
     "code": "U",
     "description": "Uninitialized position",
     "fileNames": [
@@ -137,6 +153,13 @@
     "description": "Uniswap pool not found",
     "fileNames": [
       "MarginlyFactory.sol"
+    ]
+  },
+  {
+    "code": "WA",
+    "description": "wrong address",
+    "fileNames": [
+      "MarginlyPool.sol"
     ]
   },
   {
