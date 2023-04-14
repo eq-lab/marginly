@@ -1,0 +1,13 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://ganache-node.equilab.io"
+  },
+  "keeperAddress": "0x003E10B715bF75dC0a956d586e0e7CA6D8f2f234",
+  "marginlyPools": [
+    {
+      "address": "0x003E10B715bF75dC0a956d586e0e7CA6D8f2f234",
+      "minProfitQuote": "200",
+      "minProfitBase": "0.15"
+    }
+  ]
+}

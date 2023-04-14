@@ -5,3 +5,5 @@ export * from './signer';
 export * from './system-context';
 export * from './utils';
 export * from './contract-reader';
+export * from './types';
+export * from './marginly-types';
