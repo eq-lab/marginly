@@ -94,4 +94,6 @@ contract MockMarginlyPool is IMarginlyPool {
   }
 
   function emergencyWithdraw() external {}
+
+  function transferPosition(address newOwner) external {}
 }
