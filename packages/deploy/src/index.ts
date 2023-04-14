@@ -1,7 +1,6 @@
 import * as ethers from 'ethers';
 import { Contract, ContractFactory, Signer } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonFragment } from '@ethersproject/abi';
 import { ContractDescription, ContractReader } from '@marginly/cli-common';
 import { EthAddress, RationalNumber } from '@marginly/common';
 import { EthConnectionConfig, EthOptions, MarginlyDeployConfig } from './config';
