@@ -2,6 +2,9 @@ import * as ethers from 'ethers';
 import { Signer } from 'ethers';
 import fs from 'fs';
 
+import { log } from '@marginly/common';
+import { LedgerSigner } from '@ethersproject/hardware-wallets';
+import { Command } from 'commander';
 import {
   askParameter,
   getCommanderForm,
@@ -9,10 +12,6 @@ import {
   readParameterInteractive,
   SystemContext,
 } from './system-context';
-import { LedgerSigner } from '@ethersproject/hardware-wallets';
-import { Command } from 'commander';
-
-import { log } from './log';
 
 export type SignerOrProvider = ethers.Signer | ethers.providers.Provider;
 

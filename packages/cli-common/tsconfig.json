@@ -7,6 +7,11 @@
       "rootDir": "src",
       "resolveJsonModule": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "src/**/*.json"],
+    "references": [
+      {
+        "path": "../common"
+      },
+    ]
   }
   

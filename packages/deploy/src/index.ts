@@ -2,7 +2,8 @@ import * as ethers from 'ethers';
 import { Contract, ContractFactory, Signer } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonFragment } from '@ethersproject/abi';
-import { ContractReader, EthAddress, RationalNumber } from '@marginly/common';
+import { ContractDescription, ContractReader } from '@marginly/cli-common';
+import { EthAddress, RationalNumber } from '@marginly/common';
 import { EthConnectionConfig, EthOptions, MarginlyDeployConfig } from './config';
 
 export { DeployConfig } from './config';
@@ -90,11 +91,6 @@ function using<TVal extends Closable, TRet>(val: TVal, func: (val: TVal) => TRet
 export interface StateStore {
   getById: (id: string) => DeployState | undefined;
   setById: (id: string, deployState: DeployState) => void;
-}
-
-interface ContractDescription {
-  abi: JsonFragment[];
-  bytecode: string;
 }
 
 function createMarginlyContractReader(): ContractReader {

@@ -16,11 +16,6 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "ethers": "^5.7.2",
-    "fs-extra": "^11.1.0",
-    "commander": "^8.1.0",
-    "ganache": "^7.7.3",
-    "prompts": "^2.4.2",
-    "read": "^2.0.0"
+    "ethers": "^5.7.2"
   }
 }

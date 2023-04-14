@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { log } from '@marginly/common';
 import {
   createSystemContext,
   getCommanderFlagForm,
@@ -7,10 +8,9 @@ import {
   readFlag,
   readParameter,
   SystemContext,
-  log,
   readEthSignerFromContext,
   registerEthSignerParameters,
-} from '@marginly/common';
+} from '@marginly/cli-common';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import * as ethers from 'ethers';

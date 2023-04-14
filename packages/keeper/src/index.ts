@@ -1,14 +1,5 @@
 import { Command } from 'commander';
 import {
-  createSystemContext,
-  getCommanderForm,
-  registerEthSignerParameters,
-  Parameter,
-  readEthSignerFromContext,
-  readParameter,
-  SystemContext,
-  sleep,
-  ContractDescription,
   RationalNumber,
   MarginlyPoolParameters,
   PositionType,
@@ -16,7 +7,18 @@ import {
   Fp96,
   MarginlyMode,
   Position,
+  sleep,
 } from '@marginly/common';
+import {
+  createSystemContext,
+  getCommanderForm,
+  registerEthSignerParameters,
+  Parameter,
+  readEthSignerFromContext,
+  readParameter,
+  SystemContext,
+  ContractDescription,
+} from '@marginly/cli-common';
 import * as fs from 'fs';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import fs from 'fs';
-import { createSystemContext, getCommanderForm, Parameter, readParameterInteractive } from '../system-context';
 import * as ethers from 'ethers';
+import { createSystemContext, getCommanderForm, Parameter, readParameterInteractive } from '../system-context';
 
 const ethKeyParameter: Parameter = {
   name: ['eth', 'key'],
