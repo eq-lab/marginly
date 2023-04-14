@@ -12,14 +12,14 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
   /// @dev reentrancy guard
   bool public unlocked;
   /// @dev contract admin
-  address public admin;
+  address public owner;
 
-  constructor(address[] memory marginlyPoolAddresses, address _admin) {
+  constructor(address[] memory marginlyPoolAddresses, address _owner) {
     for(uint256 index = 0; index < marginlyPoolAddresses.length; ++index) {
       whitelistedMarginlyPools[marginlyPoolAddresses[index]] = true;
     }
     unlocked = true;
-    admin = _admin;
+    owner = _owner;
   }
 
   function _lock() private view {
@@ -34,12 +34,12 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
     unlocked = true;
   }
 
-  function _onlyAdminOrManager() private view {
-    require(msg.sender == admin, 'AD'); // Access denied
+  function _onlyOwner() private view {
+    require(msg.sender == owner, 'AD'); // Access denied
   }
 
-  modifier onlyAdminOrManager() {
-    _onlyAdminOrManager();
+  modifier onlyOwner() {
+    _onlyOwner();
     _;
   }
 
@@ -67,11 +67,11 @@ contract MarginlyPoolWrapper is IMarginlyPoolWrapper {
     marginlyPool.transferPosition(msg.sender);
   }
 
-  function addPoolAddress(address newPool) external onlyAdminOrManager {
+  function addPoolAddress(address newPool) external onlyOwner {
     whitelistedMarginlyPools[newPool] = true;
   }
 
-  function deletePoolAddress(address poolToDelete) external onlyAdminOrManager {
+  function deletePoolAddress(address poolToDelete) external onlyOwner {
     delete whitelistedMarginlyPools[poolToDelete];
   }
 }

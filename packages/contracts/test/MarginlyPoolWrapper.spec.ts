@@ -184,7 +184,7 @@ describe('MarginlyPoolWrapper short', () => {
   });
 });
 
-describe('MarginlyPoolWrapper manager', () => {
+describe('MarginlyPoolWrapper owner', () => {
   it('add new address', async () => {
     const { marginlyPoolWrapper, factoryOwner } = await loadFixture(createMarginlyPoolWithWrapper);
 
@@ -203,20 +203,20 @@ describe('MarginlyPoolWrapper manager', () => {
     expect(await marginlyPoolWrapper.whitelistedMarginlyPools(marginlyPool.address)).to.be.equal(false);
   });
 
-  it('add, not manager', async () => {
+  it('add, not owner', async () => {
     const { marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
-    const [_, notManager] = await ethers.getSigners();
+    const [_, notOwner] = await ethers.getSigners();
 
     const newAddress = '0x0000000000000000000000000000000000000001';
-    await expect(marginlyPoolWrapper.connect(notManager).addPoolAddress(newAddress)).to.be.revertedWith('AD');
+    await expect(marginlyPoolWrapper.connect(notOwner).addPoolAddress(newAddress)).to.be.revertedWith('AD');
   });
 
-  it('delete, not manager', async () => {
+  it('delete, not owner', async () => {
     const { marginlyPool, marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
-    const [_, notManager] = await ethers.getSigners();
+    const [_, notOwner] = await ethers.getSigners();
 
     await expect(
-      marginlyPoolWrapper.connect(notManager).deletePoolAddress(marginlyPool.address)
+      marginlyPoolWrapper.connect(notOwner).deletePoolAddress(marginlyPool.address)
     ).to.be.revertedWith('AD');
   });
 });
