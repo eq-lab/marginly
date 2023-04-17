@@ -80,7 +80,7 @@ Object {
 exports[`System initialized: long 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 304717,
+  "gasUsed": 304739,
 }
 `;
 
@@ -150,21 +150,21 @@ Object {
 exports[`mc happens: long initialized heap with one mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 269525,
+  "gasUsed": 269547,
 }
 `;
 
 exports[`mc happens: long with one mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 320247,
+  "gasUsed": 320269,
 }
 `;
 
 exports[`mc happens: long with two mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 329672,
+  "gasUsed": 329690,
 }
 `;
 

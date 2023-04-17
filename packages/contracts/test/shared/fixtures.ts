@@ -7,12 +7,18 @@ import {
   TestERC20,
   TestSwapRouter,
   MarginlyPoolWrapper,
+  MockAavePool,
+  MockAavePoolAddressesProvider,
+  MockMarginlyPool,
+  MarginlyKeeper,
+  MockSwapRouter,
+  MockMarginlyFactory,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { FP96, generateWallets } from './utils';
+import { generateWallets } from './utils';
 import { Wallet } from 'ethers';
-import { mine, time } from '@nomicfoundation/hardhat-network-helpers';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseUnits } from 'ethers/lib/utils';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
@@ -222,11 +228,12 @@ export async function createMarginlyPoolWithWrapper(): Promise<{
   baseContract: TestERC20;
   swapRouter: TestSwapRouter;
 }> {
-  const { marginlyPool, factoryOwner, uniswapPoolInfo, quoteContract, baseContract, swapRouter } = await createMarginlyPool();
+  const { marginlyPool, factoryOwner, uniswapPoolInfo, quoteContract, baseContract, swapRouter } =
+    await createMarginlyPool();
   const wrapperFactory = await ethers.getContractFactory('MarginlyPoolWrapper');
 
   const marginlyPoolWrapper = await wrapperFactory.deploy([marginlyPool.address], factoryOwner.address);
-  
+
   const amountToDeposit = 5000n * 10n ** BigInt(await uniswapPoolInfo.token0.decimals());
 
   const signers = (await ethers.getSigners()).slice(0, 5);
@@ -244,10 +251,78 @@ export async function createMarginlyPoolWithWrapper(): Promise<{
   return {
     marginlyPool,
     marginlyPoolWrapper,
-    factoryOwner, 
-    uniswapPoolInfo, 
-    quoteContract, 
-    baseContract, 
-    swapRouter
+    factoryOwner,
+    uniswapPoolInfo,
+    quoteContract,
+    baseContract,
+    swapRouter,
+  };
+}
+
+export async function createAavePool(): Promise<MockAavePool> {
+  const factory = await ethers.getContractFactory('MockAavePool');
+  return factory.deploy();
+}
+
+export async function createAavePoolAddressProvider(poolAddress: string): Promise<MockAavePoolAddressesProvider> {
+  const factory = await ethers.getContractFactory('MockAavePoolAddressesProvider');
+  return factory.deploy(poolAddress);
+}
+
+export async function createMockMarginlyFactory(swapRouterAddress: string): Promise<MockMarginlyFactory> {
+  const factory = await ethers.getContractFactory('MockMarginlyFactory');
+  return factory.deploy(swapRouterAddress);
+}
+
+export async function createMockMarginlyPool(
+  marginlyFactory: string,
+  quoteToken: string,
+  baseToken: string
+): Promise<MockMarginlyPool> {
+  const factory = await ethers.getContractFactory('MockMarginlyPool');
+  return factory.deploy(marginlyFactory, quoteToken, baseToken);
+}
+
+export async function createSwapRouter(quoteToken: string, baseToken: string): Promise<MockSwapRouter> {
+  const factory = await ethers.getContractFactory('MockSwapRouter');
+  return factory.deploy(quoteToken, baseToken);
+}
+
+export async function createMarginlyKeeperContract(): Promise<{
+  marginlyKeeper: MarginlyKeeper;
+  swapRouter: MockSwapRouter;
+  baseToken: TestERC20;
+  quoteToken: TestERC20;
+  marginlyPool: MockMarginlyPool;
+}> {
+  const aavePool = await createAavePool();
+  const addressesProvider = await createAavePoolAddressProvider(aavePool.address);
+  const baseToken = await createToken('Base token', 'BT');
+  const quoteToken = await createToken('Quote token', 'QT');
+  const swapRouter = await createSwapRouter(quoteToken.address, baseToken.address);
+  const marginlyFactory = await createMockMarginlyFactory(swapRouter.address);
+  const marginlyPool = await createMockMarginlyPool(marginlyFactory.address, quoteToken.address, baseToken.address);
+
+  const decimals = BigInt(await baseToken.decimals());
+  const mintAmount = 10000000000n * 10n ** decimals;
+
+  await baseToken.mint(marginlyPool.address, mintAmount);
+  await quoteToken.mint(marginlyPool.address, mintAmount);
+
+  await baseToken.mint(swapRouter.address, mintAmount);
+  await quoteToken.mint(swapRouter.address, mintAmount);
+
+  await baseToken.mint(aavePool.address, mintAmount);
+  await quoteToken.mint(aavePool.address, mintAmount);
+
+  const factory = await ethers.getContractFactory('MarginlyKeeper');
+  const marginlyKeeper = await factory.deploy(addressesProvider.address);
+
+  return {
+    marginlyKeeper,
+    swapRouter,
+    baseToken,
+    quoteToken,
+    marginlyPool,
   };
 }

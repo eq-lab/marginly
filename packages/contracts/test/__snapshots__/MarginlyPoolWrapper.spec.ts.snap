@@ -3,13 +3,13 @@
 exports[`MarginlyPoolWrapper long gas cost snapshot 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 439305,
+  "gasUsed": 439718,
 }
 `;
 
 exports[`MarginlyPoolWrapper short gas cost snapshot 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 436227,
+  "gasUsed": 436640,
 }
 `;
