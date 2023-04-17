@@ -932,8 +932,10 @@ class StrictMarginlyDeployConfig {
     const marginlyWrapper: MarginlyConfigMarginlyWrapper = { ids };
 
     if (
-      config.marginlyKeeper.aavePoolAddressesProvider.address &&
-      config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock
+      (config.marginlyKeeper.aavePoolAddressesProvider.address &&
+        config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) ||
+      (!config.marginlyKeeper.aavePoolAddressesProvider.address &&
+        !config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock)
     ) {
       throw new Error(
         `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
@@ -1211,8 +1213,6 @@ export async function deployMarginly(
       );
 
       aavePoolAddressesProviderAddress = EthAddress.parse(aavePoolAddressesProvider.address);
-    } else {
-      throw 'Wrong config for marginlyKeeper.aavePoolAddressesProvider';
     }
 
     const deployedMarginlyKeeper = await using(logger.beginScope('Deploy MarginlyKeeper'), async () => {
