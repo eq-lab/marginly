@@ -91,12 +91,12 @@ export interface StateStore {
   setById: (id: string, deployState: DeployState) => void;
 }
 
-export interface ContractDescription {
+interface ContractDescription {
   abi: JsonFragment[];
   bytecode: string;
 }
 
-export type ContractReader = (name: string) => ContractDescription;
+type ContractReader = (name: string) => ContractDescription;
 
 function createMarginlyContractReader(): ContractReader {
   return (name: string): ContractDescription => {
@@ -137,7 +137,7 @@ interface DeployResult extends DeployState {
   contract: Contract;
 }
 
-export const deployTemplate = (
+const deployTemplate = (
   signer: Signer,
   ethArgs: EthOptions,
   contractReader: (name: string) => ContractDescription,
@@ -625,7 +625,7 @@ class TimeSpan {
   }
 }
 
-export class EthAddress {
+class EthAddress {
   private static zeroRegex = /^0x0{40}$/;
 
   private readonly address: string;
