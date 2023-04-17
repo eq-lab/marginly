@@ -17,6 +17,7 @@
   },
   "author": "EqLab",
   "devDependencies": {
+    "@aave/core-v3": "1.17.2",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",

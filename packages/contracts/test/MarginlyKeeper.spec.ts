@@ -1,8 +1,8 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { createMarginlyKeeperContract } from './shared/fixture';
 import { BigNumber } from 'ethers';
+import { createMarginlyKeeperContract } from './shared/fixtures';
 
 const shortPositionType = 2;
 const longPositionType = 3;
