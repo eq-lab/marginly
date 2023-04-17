@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import '@marginly/contracts/contracts/interfaces/IMarginlyPool.sol';
-
-import '@marginly/contracts/contracts/dataTypes/Position.sol';
-
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
+import '../interfaces/IMarginlyPool.sol';
+import '../dataTypes/Position.sol';
 
 contract MockMarginlyPool is IMarginlyPool {
   address public override quoteToken;
@@ -78,7 +77,7 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function reinit() external {}
 
-  function increaseBaseCollateralCoeff(uint256 realBaseaAmount) external {}
+  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external {}
 
   function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external {}
 

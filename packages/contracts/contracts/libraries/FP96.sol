@@ -129,7 +129,7 @@ library FP96 {
     return self.inner >= other.inner;
   }
 
-  /// @notice Calulates rhs * self
+  /// @notice Calculates rhs * self
   /// @param self FixedPoint multiplier
   /// @param rhs Integer operand
   /// @return result Integer result
@@ -141,7 +141,7 @@ library FP96 {
     result = Math.mulDiv(self.inner, rhs, Q96, rounding);
   }
 
-  /// @notice Calulates rhs / self
+  /// @notice Calculates rhs / self
   /// @param self FixedPoint divisor
   /// @param rhs Integer operand
   /// @return result Integer result
