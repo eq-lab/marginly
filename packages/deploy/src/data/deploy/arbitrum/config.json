@@ -1,128 +1,132 @@
 {
-    "systemContextDefaults": {
-      "ethNodeUri": "https://rpc.ankr.com/arbitrum"
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.ankr.com/arbitrum"
+  },
+  "connection": {
+    "assertChainId": 42161,
+    "ethOptions": {}
+  },
+  "uniswap": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
+  },
+  "tokens": [
+    {
+      "id": "usdc",
+      "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
     },
-    "connection": {
-      "assertChainId": 42161,
-      "ethOptions": {}
+    {
+      "id": "weth",
+      "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
     },
-    "uniswap": {
-      "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-      "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+    {
+      "id": "arb",
+      "address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+      "assertSymbol": "ARB",
+      "assertDecimals": 18
     },
-    "marginlyFactory": {
-      "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
+    {
+      "id": "gmx",
+      "address": "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a",
+      "assertSymbol": "GMX",
+      "assertDecimals": 18
+    }
+  ],
+  "uniswapPools": [
+    {
+      "id": "usdc-weth",
+      "token0Id": "usdc",
+      "token1Id": "weth",
+      "fee": "0.05%",
+      "allowCreate": false,
+      "assertAddress": "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443"
     },
-    "tokens": [
-      {
-        "id": "usdc",
-        "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-        "assertSymbol": "USDC",
-        "assertDecimals": 6
-      },
-      {
-        "id": "weth",
-        "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-        "assertSymbol": "WETH",
-        "assertDecimals": 18
-      },
-      {
-        "id": "arb",
-        "address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
-        "assertSymbol": "ARB",
-        "assertDecimals": 18
-      },
-      {
-        "id": "gmx",
-        "address": "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a",
-        "assertSymbol": "GMX",
-        "assertDecimals": 18
+    {
+      "id": "arb-weth",
+      "token0Id": "arb",
+      "token1Id": "weth",
+      "fee": "0.05%",
+      "allowCreate": false,
+      "assertAddress": "0xC6F780497A95e246EB9449f5e4770916DCd6396A"
+    },
+    {
+      "id": "weth-gmx",
+      "token0Id": "weth",
+      "token1Id": "gmx",
+      "fee": "0.3%",
+      "allowCreate": false,
+      "assertAddress": "0x1aEEdD3727A6431b8F070C0aFaA81Cc74f273882"
+    }
+  ],
+  "marginlyPools": [
+    {
+      "id": "usdc-weth",
+      "uniswapPoolId": "usdc-weth",
+      "baseToken": "token1",
+      "quoteToken": "token0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "10000",
+        "quoteLimit": "20000000"
       }
-    ],
-    "uniswapPools": [
-      {
-        "id": "usdc-weth",
-        "token0Id": "usdc",
-        "token1Id": "weth",
-        "fee": "0.05%",
-        "allowCreate": false,
-        "assertAddress": "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443"
-      },
-      {
-        "id": "arb-weth",
-        "token0Id": "arb",
-        "token1Id": "weth",
-        "fee": "0.05%",
-        "allowCreate": false,
-        "assertAddress": "0xC6F780497A95e246EB9449f5e4770916DCd6396A"
-      },
-      {
-        "id": "weth-gmx",
-        "token0Id": "weth",
-        "token1Id": "gmx",
-        "fee": "0.3%",
-        "allowCreate": false,
-        "assertAddress": "0x1aEEdD3727A6431b8F070C0aFaA81Cc74f273882"
+    },
+    {
+      "id": "arb-weth",
+      "uniswapPoolId": "arb-weth",
+      "baseToken": "token1",
+      "quoteToken": "token0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "500",
+        "quoteLimit": "700000"
       }
-    ],
-    "marginlyPools": [
-      {
-        "id": "usdc-weth",
-        "uniswapPoolId": "usdc-weth",
-        "baseToken": "token1",
-        "quoteToken": "token0",
-        "params": {
-          "interestRate": "5.4%",
-          "maxLeverage": "20",
-          "recoveryMaxLeverage": "17",
-          "swapFee": "0.1%",
-          "positionSlippage": "2.0%",
-          "mcSlippage": "5.0%",
-          "priceAgo": "15 min",
-          "positionMinAmount": "0.001",
-          "baseLimit": "10000",
-          "quoteLimit": "20000000"
-        }
-      },
-      {
-        "id": "arb-weth",
-        "uniswapPoolId": "arb-weth",
-        "baseToken": "token1",
-        "quoteToken": "token0",
-        "params": {
-          "interestRate": "5.4%",
-          "maxLeverage": "20",
-          "recoveryMaxLeverage": "17",
-          "swapFee": "0.1%",
-          "positionSlippage": "2.0%",
-          "mcSlippage": "5.0%",
-          "priceAgo": "15 min",
-          "positionMinAmount": "0.001",
-          "baseLimit": "500",
-          "quoteLimit": "700000"
-        }
-      },
-      {
-        "id": "gmx-weth",
-        "uniswapPoolId": "weth-gmx",
-        "baseToken": "token0",
-        "quoteToken": "token1",
-        "params": {
-          "interestRate": "5.4%",
-          "maxLeverage": "20",
-          "recoveryMaxLeverage": "17",
-          "swapFee": "0.1%",
-          "positionSlippage": "2.0%",
-          "mcSlippage": "5.0%",
-          "priceAgo": "15 min",
-          "positionMinAmount": "0.001",
-          "baseLimit": "500",
-          "quoteLimit": "12000"
-        }
+    },
+    {
+      "id": "gmx-weth",
+      "uniswapPoolId": "weth-gmx",
+      "baseToken": "token0",
+      "quoteToken": "token1",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "500",
+        "quoteLimit": "12000"
       }
-    ],
-    "marginlyWrapper": {
-      "pools": ["usdc-weth", "arb-weth", "gmx-weth"]
+    }
+  ],
+  "marginlyWrapper": {
+    "pools": ["usdc-weth", "arb-weth", "gmx-weth"]
+  },
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0xa97684ead0e402dc232d5a977953df7ecbab3cdb"
     }
   }
-  
+}
