@@ -90,14 +90,14 @@ export async function mc(sut: SystemUnderTest) {
   const nextDate = +BigNumber.from(await marginlyPool.lastReinitTimestampSeconds()).add(numOfSeconds);
   await provider.mineAtTimestamp(nextDate);
 
-  const depositer = accounts[numberOfLenders + numberOfLongers + numberOfShorters];
+  const depositor = accounts[numberOfLenders + numberOfLongers + numberOfShorters];
 
-  await (await weth.connect(treasury).transfer(depositer.address, baseAmount)).wait();
-  await (await weth.connect(depositer).approve(marginlyPool.address, baseAmount)).wait();
+  await (await weth.connect(treasury).transfer(depositor.address, baseAmount)).wait();
+  await (await weth.connect(depositor).approve(marginlyPool.address, baseAmount)).wait();
 
   const txReceipt = await gasReporter.saveGasUsage(
     'depositBase',
-    marginlyPool.connect(depositer).depositBase(baseAmount, { gasLimit: 500_000 })
+    marginlyPool.connect(depositor).depositBase(baseAmount, { gasLimit: 500_000 })
   );
 
   const mcEventsNumber = txReceipt.events?.filter((e) => e.event == 'EnactMarginCall').length;

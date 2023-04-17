@@ -7,10 +7,10 @@ import { FP96, MarginlyPoolMode } from './shared/utils';
 describe('MarginlyPool.Shutdown', () => {
   it('should revert when collateral enough', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
-    const [owner, depositer] = await ethers.getSigners();
+    const [owner, depositor] = await ethers.getSigners();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
 
     await expect(marginlyPool.connect(owner).shutDown()).to.be.rejectedWith('NE');
   });
@@ -20,12 +20,12 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, shorter] = await ethers.getSigners();
+    const [owner, depositor, shorter] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
 
     await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
     const shortAmount = 100;
@@ -53,12 +53,12 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, longer] = await ethers.getSigners();
+    const [owner, depositor, longer] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositQuote(amountToDeposit);
+    await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
 
     await marginlyPool.connect(longer).depositBase(amountToDeposit);
     const longAmount = 100;
@@ -86,12 +86,12 @@ describe('MarginlyPool.Shutdown', () => {
       baseContract,
       quoteContract,
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, shorter, longer] = await ethers.getSigners();
+    const [owner, depositor, shorter, longer] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
 
     await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
     const shortAmount = 100;
@@ -114,37 +114,37 @@ describe('MarginlyPool.Shutdown', () => {
     const emergencyWithdrawCoeff = await marginlyPool.emergencyWithdrawCoeff();
 
     const longerBalanceBefore = await baseContract.balanceOf(longer.address);
-    const depositerBalanceBefore = await baseContract.balanceOf(depositer.address);
+    const depositorBalanceBefore = await baseContract.balanceOf(depositor.address);
 
-    const depositerPosition = await marginlyPool.positions(depositer.address);
+    const depositorPosition = await marginlyPool.positions(depositor.address);
 
     const longerPosition = await marginlyPool.positions(longer.address);
 
-    await marginlyPool.connect(depositer).emergencyWithdraw();
+    await marginlyPool.connect(depositor).emergencyWithdraw();
     await marginlyPool.connect(longer).emergencyWithdraw();
 
     const longerBalanceAfter = await baseContract.balanceOf(longer.address);
-    const depositerBalanceAfter = await baseContract.balanceOf(depositer.address);
+    const depositorBalanceAfter = await baseContract.balanceOf(depositor.address);
     const actualLongerBaseAmount = longerBalanceAfter.sub(longerBalanceBefore);
-    const actualDepositerBaseAmount = depositerBalanceAfter.sub(depositerBalanceBefore);
+    const actualDepositorBaseAmount = depositorBalanceAfter.sub(depositorBalanceBefore);
 
     const expectedLongerBaseAmount = emergencyWithdrawCoeff.mul(longerPosition.discountedBaseAmount).div(FP96.one);
-    const expectedDepositerBaseAmount = emergencyWithdrawCoeff
-      .mul(depositerPosition.discountedBaseAmount)
+    const expectedDepositorBaseAmount = emergencyWithdrawCoeff
+      .mul(depositorPosition.discountedBaseAmount)
       .div(FP96.one);
 
     expect(actualLongerBaseAmount).to.be.equal(expectedLongerBaseAmount);
-    expect(actualDepositerBaseAmount).to.be.equal(expectedDepositerBaseAmount);
+    expect(actualDepositorBaseAmount).to.be.equal(expectedDepositorBaseAmount);
 
-    const longerPositionafter = await marginlyPool.positions(longer.address);
-    expect(longerPositionafter._type).to.be.equal(0);
-    expect(longerPositionafter.discountedBaseAmount).to.be.equal(0);
-    expect(longerPositionafter.discountedQuoteAmount).to.be.equal(0);
+    const longerPositionAfter = await marginlyPool.positions(longer.address);
+    expect(longerPositionAfter._type).to.be.equal(0);
+    expect(longerPositionAfter.discountedBaseAmount).to.be.equal(0);
+    expect(longerPositionAfter.discountedQuoteAmount).to.be.equal(0);
 
-    const depositerPositionAfter = await marginlyPool.positions(depositer.address);
-    expect(depositerPositionAfter._type).to.be.equal(0);
-    expect(depositerPositionAfter.discountedBaseAmount).to.be.equal(0);
-    expect(depositerPositionAfter.discountedQuoteAmount).to.be.equal(0);
+    const depositorPositionAfter = await marginlyPool.positions(depositor.address);
+    expect(depositorPositionAfter._type).to.be.equal(0);
+    expect(depositorPositionAfter.discountedBaseAmount).to.be.equal(0);
+    expect(depositorPositionAfter.discountedQuoteAmount).to.be.equal(0);
 
     const poolBaseBalance = await baseContract.balanceOf(marginlyPool.address);
     expect(poolBaseBalance).to.be.lessThanOrEqual(2);
@@ -161,13 +161,13 @@ describe('MarginlyPool.Shutdown', () => {
       quoteContract,
       baseContract,
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, longer, shorter] = await ethers.getSigners();
+    const [owner, depositor, longer, shorter] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositQuote(amountToDeposit);
-    await marginlyPool.connect(depositer).depositBase(10);
+    await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(10);
 
     await marginlyPool.connect(longer).depositBase(amountToDeposit);
 
@@ -191,38 +191,38 @@ describe('MarginlyPool.Shutdown', () => {
     const emergencyWithdrawCoeff = await marginlyPool.emergencyWithdrawCoeff();
 
     const shorterBalanceBefore = await quoteContract.balanceOf(shorter.address);
-    const depositerBalanceBefore = await quoteContract.balanceOf(depositer.address);
+    const depositorBalanceBefore = await quoteContract.balanceOf(depositor.address);
 
-    const depositerPosition = await marginlyPool.positions(depositer.address);
+    const depositorPosition = await marginlyPool.positions(depositor.address);
 
     const shorterPosition = await marginlyPool.positions(shorter.address);
 
-    await marginlyPool.connect(depositer).emergencyWithdraw();
+    await marginlyPool.connect(depositor).emergencyWithdraw();
     await marginlyPool.connect(shorter).emergencyWithdraw();
 
     const shorterBalanceAfter = await quoteContract.balanceOf(shorter.address);
-    const depositerBalanceAfter = await quoteContract.balanceOf(depositer.address);
+    const depositorBalanceAfter = await quoteContract.balanceOf(depositor.address);
     const actualShorterQuoteAmount = shorterBalanceAfter.sub(shorterBalanceBefore);
-    const actualDepositerQuoteAmount = depositerBalanceAfter.sub(depositerBalanceBefore);
+    const actualDepositorQuoteAmount = depositorBalanceAfter.sub(depositorBalanceBefore);
 
     const expectedShorterQuoteAmount = emergencyWithdrawCoeff.mul(shorterPosition.discountedQuoteAmount).div(FP96.one);
 
-    const expectedDepositerQuoteAmount = emergencyWithdrawCoeff
-      .mul(depositerPosition.discountedQuoteAmount)
+    const expectedDepositorQuoteAmount = emergencyWithdrawCoeff
+      .mul(depositorPosition.discountedQuoteAmount)
       .div(FP96.one);
 
     expect(actualShorterQuoteAmount).to.be.equal(expectedShorterQuoteAmount);
-    expect(actualDepositerQuoteAmount).to.be.equal(expectedDepositerQuoteAmount);
+    expect(actualDepositorQuoteAmount).to.be.equal(expectedDepositorQuoteAmount);
 
     const shorterPositionAfter = await marginlyPool.positions(shorter.address);
     expect(shorterPositionAfter._type).to.be.equal(0);
     expect(shorterPositionAfter.discountedBaseAmount).to.be.equal(0);
     expect(shorterPositionAfter.discountedQuoteAmount).to.be.equal(0);
 
-    const depositerPositionAfter = await marginlyPool.positions(depositer.address);
-    expect(depositerPositionAfter._type).to.be.equal(0);
-    expect(depositerPositionAfter.discountedBaseAmount).to.be.equal(0);
-    expect(depositerPositionAfter.discountedQuoteAmount).to.be.equal(0);
+    const depositorPositionAfter = await marginlyPool.positions(depositor.address);
+    expect(depositorPositionAfter._type).to.be.equal(0);
+    expect(depositorPositionAfter.discountedBaseAmount).to.be.equal(0);
+    expect(depositorPositionAfter.discountedQuoteAmount).to.be.equal(0);
 
     const poolBaseBalance = await baseContract.balanceOf(marginlyPool.address);
     expect(poolBaseBalance).to.be.lessThanOrEqual(2);
@@ -237,12 +237,12 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, shorter] = await ethers.getSigners();
+    const [owner, depositor, shorter] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
 
     await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
     const shortAmount = 100;
@@ -266,12 +266,12 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, longer] = await ethers.getSigners();
+    const [owner, depositor, longer] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositQuote(amountToDeposit);
+    await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
 
     await marginlyPool.connect(longer).depositBase(amountToDeposit);
     const longAmount = 100;

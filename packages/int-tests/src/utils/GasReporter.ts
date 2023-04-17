@@ -27,7 +27,7 @@ export class GasReporter {
     } else if ('gasUsed' in resolved) {
       txReceipt = resolved;
     } else {
-      throw Error('Uknown argument');
+      throw Error('Unknown argument');
     }
 
     const gasUsed = txReceipt.gasUsed.toNumber();

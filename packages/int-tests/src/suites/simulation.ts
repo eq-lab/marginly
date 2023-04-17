@@ -39,10 +39,10 @@ export async function simulation1(sut: SystemUnderTest) {
   const receiver = accounts[3];
 
   // lender deposit 2.0 ETH
-  const lenderDeposiBaseAmount = parseUnits('2', 18);
-  logger.info(`Lender deposit ${formatUnits(lenderDeposiBaseAmount, 18)} WETH`);
-  await (await weth.connect(lender).approve(marginlyPool.address, lenderDeposiBaseAmount)).wait();
-  await (await marginlyPool.connect(lender).depositBase(lenderDeposiBaseAmount, { gasLimit: 400_000 })).wait();
+  const lenderDepositBaseAmount = parseUnits('2', 18);
+  logger.info(`Lender deposit ${formatUnits(lenderDepositBaseAmount, 18)} WETH`);
+  await (await weth.connect(lender).approve(marginlyPool.address, lenderDepositBaseAmount)).wait();
+  await (await marginlyPool.connect(lender).depositBase(lenderDepositBaseAmount, { gasLimit: 400_000 })).wait();
   await showSystemAggregates(sut);
 
   //shorter deposit 1000 USDC
@@ -124,10 +124,10 @@ export async function simulation2(sut: SystemUnderTest) {
   const liquidator = accounts[3];
 
   // lender deposit 3200 USDC
-  const lenderDeposiQuoteAmount = parseUnits('3200', 6);
-  logger.info(`Lender deposit ${formatUnits(lenderDeposiQuoteAmount, 6)} UDSC`);
-  await (await usdc.connect(lender).approve(marginlyPool.address, lenderDeposiQuoteAmount)).wait();
-  await (await marginlyPool.connect(lender).depositQuote(lenderDeposiQuoteAmount, { gasLimit: 400_000 })).wait();
+  const lenderDepositQuoteAmount = parseUnits('3200', 6);
+  logger.info(`Lender deposit ${formatUnits(lenderDepositQuoteAmount, 6)} USDC`);
+  await (await usdc.connect(lender).approve(marginlyPool.address, lenderDepositQuoteAmount)).wait();
+  await (await marginlyPool.connect(lender).depositQuote(lenderDepositQuoteAmount, { gasLimit: 400_000 })).wait();
   await showSystemAggregates(sut);
 
   // longer deposit 0.3 ETH
@@ -206,14 +206,14 @@ export async function simulation3(sut: SystemUnderTest) {
   const longer = accounts[2];
 
   // lender deposit 3200 USDC and 2.0 ETH
-  const lenderDeposiQuoteAmount = parseUnits('3200', 6);
-  logger.info(`Lender deposit ${formatUnits(lenderDeposiQuoteAmount, 6)} UDSC`);
-  await (await usdc.connect(lender).approve(marginlyPool.address, lenderDeposiQuoteAmount)).wait();
-  await (await marginlyPool.connect(lender).depositQuote(lenderDeposiQuoteAmount, { gasLimit: 400_000 })).wait();
+  const lenderDepositQuoteAmount = parseUnits('3200', 6);
+  logger.info(`Lender deposit ${formatUnits(lenderDepositQuoteAmount, 6)} USDC`);
+  await (await usdc.connect(lender).approve(marginlyPool.address, lenderDepositQuoteAmount)).wait();
+  await (await marginlyPool.connect(lender).depositQuote(lenderDepositQuoteAmount, { gasLimit: 400_000 })).wait();
 
-  const lenderDeposiBaseAmount = parseUnits('0.1', 18);
-  await (await weth.connect(lender).approve(marginlyPool.address, lenderDeposiBaseAmount)).wait();
-  await (await marginlyPool.connect(lender).depositBase(lenderDeposiBaseAmount, { gasLimit: 400_000 })).wait();
+  const lenderDepositBaseAmount = parseUnits('0.1', 18);
+  await (await weth.connect(lender).approve(marginlyPool.address, lenderDepositBaseAmount)).wait();
+  await (await marginlyPool.connect(lender).depositBase(lenderDepositBaseAmount, { gasLimit: 400_000 })).wait();
   await showSystemAggregates(sut);
 
   // longer deposit 0.3 ETH
