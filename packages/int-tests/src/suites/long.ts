@@ -35,7 +35,7 @@ export async function long(sut: SystemUnderTest) {
   }
 
   const realQuoteBalance = await usdc.balanceOf(marginlyPool.address);
-  logger.info(`RealQuteBalance is: ${formatUnits(realQuoteBalance, 6)} USDC`);
+  logger.info(`RealQuoteBalance is: ${formatUnits(realQuoteBalance, 6)} USDC`);
   assert.deepEqual(expectedRealQuoteBalance, realQuoteBalance, 'realQuoteBalance');
 
   const params = await marginlyPool.params();

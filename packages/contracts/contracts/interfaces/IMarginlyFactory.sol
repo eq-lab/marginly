@@ -19,7 +19,7 @@ interface IMarginlyFactory is IOwnable {
     address pool
   );
 
-  /// @notice Creates a pool for the given two tokens and fee
+  /// @notice Creates a pool for the two given tokens and fee
   /// @param quoteToken One of the two tokens in the desired pool
   /// @param baseToken The other of the two tokens in the desired pool
   /// @param uniswapFee Fee for uniswap pool

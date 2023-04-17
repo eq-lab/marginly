@@ -28,12 +28,12 @@ describe('MarginlyPool.Recovery', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositer, shorter] = await ethers.getSigners();
+    const [owner, depositor, shorter] = await ethers.getSigners();
 
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
 
     await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
     const shortAmount = 100;
@@ -57,26 +57,26 @@ describe('MarginlyPool.Recovery', () => {
 
   it('opening new position not allowed in recovery mode', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
-    const [owner, shorter, depositer] = await ethers.getSigners();
+    const [owner, shorter, depositor] = await ethers.getSigners();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositer).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
     await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
 
     await marginlyPool.connect(owner).setRecoveryMode(true);
 
-    await expect(marginlyPool.connect(depositer).long(1)).to.be.rejectedWith('NA');
+    await expect(marginlyPool.connect(depositor).long(1)).to.be.rejectedWith('NA');
 
     await expect(marginlyPool.connect(shorter).short(1)).to.be.rejectedWith('NA');
   });
 
   it('reinit short position in Recovery mode', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
-    const [owner, shorter, depositer] = await ethers.getSigners();
+    const [owner, shorter, depositor] = await ethers.getSigners();
 
     const depositAmount = 20000;
-    await marginlyPool.connect(depositer).depositBase(depositAmount);
-    await marginlyPool.connect(depositer).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount);
 
     const shorterCollateral = 100;
     await marginlyPool.connect(shorter).depositQuote(shorterCollateral);
@@ -95,12 +95,12 @@ describe('MarginlyPool.Recovery', () => {
     );
     console.log(toHumanString(leverage));
 
-    await marginlyPool.connect(depositer).reinit();
+    await marginlyPool.connect(depositor).reinit();
     shortPosition = await marginlyPool.positions(shorter.address);
     expect(shortPosition._type).to.be.equal(PositionType.Short);
 
     await marginlyPool.connect(owner).setRecoveryMode(true);
-    await marginlyPool.connect(depositer).reinit();
+    await marginlyPool.connect(depositor).reinit();
 
     shortPosition = await marginlyPool.positions(shorter.address);
     expect(shortPosition._type).to.be.equal(PositionType.Uninitialized);
@@ -108,11 +108,11 @@ describe('MarginlyPool.Recovery', () => {
 
   it('reinit long position in Recovery mode', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
-    const [owner, longer, depositer] = await ethers.getSigners();
+    const [owner, longer, depositor] = await ethers.getSigners();
 
     const depositAmount = 40000;
-    await marginlyPool.connect(depositer).depositBase(depositAmount);
-    await marginlyPool.connect(depositer).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount);
 
     const baseCollateral = 100;
     await marginlyPool.connect(longer).depositBase(baseCollateral);
@@ -131,12 +131,12 @@ describe('MarginlyPool.Recovery', () => {
     );
     console.log(toHumanString(leverage));
 
-    await marginlyPool.connect(depositer).reinit();
+    await marginlyPool.connect(depositor).reinit();
     longPosition = await marginlyPool.positions(longer.address);
     expect(longPosition._type).to.be.equal(PositionType.Long);
 
     await marginlyPool.connect(owner).setRecoveryMode(true);
-    await marginlyPool.connect(depositer).reinit();
+    await marginlyPool.connect(depositor).reinit();
 
     longPosition = await marginlyPool.positions(longer.address);
     expect(longPosition._type).to.be.equal(PositionType.Uninitialized);
@@ -144,11 +144,11 @@ describe('MarginlyPool.Recovery', () => {
 
   it('receive short position in recovery mode', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
-    const [owner, shorter, depositer, receiver] = await ethers.getSigners();
+    const [owner, shorter, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 20000;
-    await marginlyPool.connect(depositer).depositBase(depositAmount);
-    await marginlyPool.connect(depositer).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount);
 
     const shorterCollateral = 100;
     await marginlyPool.connect(shorter).depositQuote(shorterCollateral);
@@ -172,11 +172,11 @@ describe('MarginlyPool.Recovery', () => {
 
   it('receive long position in recovery mode', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
-    const [owner, longer, depositer, receiver] = await ethers.getSigners();
+    const [owner, longer, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 40000;
-    await marginlyPool.connect(depositer).depositBase(depositAmount);
-    await marginlyPool.connect(depositer).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount);
 
     const baseCollateral = 100;
     await marginlyPool.connect(longer).depositBase(baseCollateral);

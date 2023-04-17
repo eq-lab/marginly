@@ -46,8 +46,8 @@ export async function showSystemAggregates(sut: SystemUnderTest) {
   logger.info(`📜 Marginly state: `);
   logger.info(`     discountedBaseCollateral = ${formatUnits(discountedBaseCollateral, 18)}  WETH`);
   logger.info(`     discountedBaseDebt       = ${formatUnits(discountedBaseDebt, 18)} WETH`);
-  logger.info(`     discoutedQuoteCollateral = ${formatUnits(discountedQuoteCollateral, 6)} USDC`);
-  logger.info(`     discoutedQuoteDebt       = ${formatUnits(discountedQuoteDebt, 6)} USDC`);
+  logger.info(`     discountedQuoteCollateral = ${formatUnits(discountedQuoteCollateral, 6)} USDC`);
+  logger.info(`     discountedQuoteDebt       = ${formatUnits(discountedQuoteDebt, 6)} USDC`);
   logger.info(` `);
   logger.info(`     realBaseCollateral       = ${formatUnits(realBaseCollateral, 18)} WETH`);
   logger.info(`     realBaseDebt             = ${formatUnits(realBaseDebt, 18)} WETH`);

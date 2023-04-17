@@ -10,12 +10,12 @@ enum PositionType {
 
 /// @dev User's position in current pool
 struct Position {
-  /// @dev Position in heap equals indexOfHeap + 1. Zero value means not existed in heap
+  /// @dev Position in heap equals indexOfHeap + 1. Zero value means position does not exist in heap
   uint32 heapPosition;
-  /// @dev Type for a given position
+  /// @dev Type of a given position
   PositionType _type;
-  /// @dev negative position if _type == Short, positive position otherwise in base asset (e.g. WETH)
+  /// @dev negative value if _type == Short, positive value otherwise in base asset (e.g. WETH)
   uint256 discountedBaseAmount;
-  /// @dev negative position if _type == Long, positive position otherwise in quote asset (e.g. USDC)
+  /// @dev negative value if _type == Long, positive value otherwise in quote asset (e.g. USDC)
   uint256 discountedQuoteAmount;
 }
