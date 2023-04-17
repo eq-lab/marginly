@@ -1,9 +1,8 @@
 import * as ethers from 'ethers';
-import * as fs from 'fs';
 import { Contract, ContractFactory, Signer } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonFragment } from '@ethersproject/abi';
-import { EthConnectionConfig, EthOptions, MarginlyDeployConfig } from './config';
+import { EthConnectionConfig, EthOptions, KeeperDeployConfig, MarginlyDeployConfig } from './config';
 
 export { DeployConfig } from './config';
 
@@ -92,12 +91,12 @@ export interface StateStore {
   setById: (id: string, deployState: DeployState) => void;
 }
 
-interface ContractDescription {
+export interface ContractDescription {
   abi: JsonFragment[];
   bytecode: string;
 }
 
-type ContractReader = (name: string) => ContractDescription;
+export type ContractReader = (name: string) => ContractDescription;
 
 function createMarginlyContractReader(): ContractReader {
   return (name: string): ContractDescription => {
@@ -126,7 +125,7 @@ interface DeployResult extends DeployState {
   contract: Contract;
 }
 
-const deployTemplate = (
+export const deployTemplate = (
   signer: Signer,
   ethArgs: EthOptions,
   contractReader: (name: string) => ContractDescription,
@@ -218,13 +217,9 @@ class MarginlyDeployer {
     wrapperAdminAddress: string
   ): Promise<DeployResult> {
     const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
-      return marginlyPool.address
+      return marginlyPool.address;
     });
-    return this.deploy(
-      'MarginlyPoolWrapper',
-      [marginlyPoolsString, wrapperAdminAddress],
-      'MarginlyPoolWrapper'
-    );
+    return this.deploy('MarginlyPoolWrapper', [marginlyPoolsString, wrapperAdminAddress], 'MarginlyPoolWrapper');
   }
 
   private static toUniswapFee(fee: RationalNumber): BigNumber {
@@ -472,16 +467,16 @@ class MarginlyDeployer {
 
   public async getMarginlyWrapper(marginlyWrapperAddress: string): Promise<LimitedDeployResult> {
     const marginlyWrapperContractDescription = this.readMarginlyContract('MarginlyPoolWrapper');
-      const marginlyPoolContract = new ethers.Contract(
-        marginlyWrapperAddress,
-        marginlyWrapperContractDescription.abi,
-        this.provider
-      );
+    const marginlyPoolContract = new ethers.Contract(
+      marginlyWrapperAddress,
+      marginlyWrapperContractDescription.abi,
+      this.provider
+    );
 
-      return {
-        address: marginlyWrapperAddress,
-        contract: marginlyPoolContract
-      };
+    return {
+      address: marginlyWrapperAddress,
+      contract: marginlyPoolContract,
+    };
   }
 
   public async getErc20Symbol(tokenAddress: EthAddress): Promise<string> {
@@ -543,7 +538,7 @@ class TimeSpan {
   }
 }
 
-class EthAddress {
+export class EthAddress {
   private static zeroRegex = /^0x0{40}$/;
 
   private readonly address: string;
@@ -851,7 +846,7 @@ class StrictMarginlyDeployConfig {
       Array.from(tokens.values()),
       Array.from(uniswapPools.values()),
       marginlyPools,
-      marginlyWrapper,
+      marginlyWrapper
     );
   }
 }
@@ -1045,14 +1040,14 @@ export async function deployMarginly(
 
   let marginlyWrapperAddress = getMarginlyWrapperAddress(stateStore);
 
-  if(marginlyWrapperAddress === undefined) {
+  if (marginlyWrapperAddress === undefined) {
     const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
       const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
         deployedMarginlyPools,
-        await signer.getAddress(),
+        await signer.getAddress()
       );
       printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
-  
+
       return marginlyWrapperDeployResult;
     });
     marginlyWrapperAddress = marginlyWrapperDeployResult.address;
@@ -1068,5 +1063,88 @@ export async function deployMarginly(
   return {
     marginlyPools: deployedMarginlyPools,
     marginlyWrapper: { address: marginlyWrapperAddress },
+  };
+}
+
+function createKeeperContractReader(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/keeper-contracts/artifacts/contracts/${name}.sol/${name}.json`);
+  };
+}
+
+class KeeperDeployer {
+  private readonly readKeeperContract;
+  private readonly deploy;
+  private readonly signer;
+  private readonly provider;
+  private readonly stateStore;
+  private readonly logger;
+  private readonly ethArgs;
+
+  public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
+    this.readKeeperContract = createKeeperContractReader();
+    this.deploy = deployTemplate(signer, ethArgs, this.readKeeperContract, stateStore, logger);
+    this.ethArgs = ethArgs;
+    this.signer = signer;
+
+    if (signer.provider === undefined) {
+      throw new Error('Provider is required');
+    }
+    this.provider = signer.provider;
+    this.stateStore = stateStore;
+    this.logger = logger;
+  }
+
+  public deployKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
+    return this.deploy('MarginlyKeeper', [aavePoolAddressesProvider.toString()], 'marginlyKeeper');
+  }
+}
+
+export interface KeeperDeployment {
+  keeper: { address: string };
+}
+
+export async function deployKeeper(
+  signer: ethers.Signer,
+  rawConfig: KeeperDeployConfig,
+  stateStore: StateStore,
+  logger: Logger
+): Promise<KeeperDeployment> {
+  const { config, keeperDeployer } = await using(logger.beginScope('Initialize'), async () => {
+    if (signer.provider === undefined) {
+      throw new Error('Provider is required');
+    }
+
+    const provider = signer.provider;
+
+    const config = {
+      connection: rawConfig.connection,
+      aavePoolAddressesProvider: EthAddress.parse(rawConfig.aavePoolAddressesProvider),
+    };
+
+    if (config.connection.assertChainId !== undefined) {
+      const expectedChainId = config.connection.assertChainId;
+      const { chainId: actualChainId } = await provider.getNetwork();
+      if (actualChainId !== expectedChainId) {
+        throw new Error(`Wrong chain id ${actualChainId}. Expected to be ${expectedChainId}`);
+      }
+    }
+
+    const keeperDeployer = new KeeperDeployer(signer, config.connection.ethOptions, stateStore, logger);
+
+    return { config, keeperDeployer };
+  });
+
+  const keeperDeploymentResult = await using(logger.beginScope('Deploy marginly keeper'), async () => {
+    const keeperDeployResult = await keeperDeployer.deployKeeper(config.aavePoolAddressesProvider);
+    printDeployState('Marginly Keeper', keeperDeployResult, logger);
+
+    return keeperDeployResult;
+  });
+
+  return {
+    keeper: {
+      address: keeperDeploymentResult.address,
+    },
   };
 }

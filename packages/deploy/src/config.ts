@@ -54,3 +54,8 @@ export interface MarginlyDeployConfig {
     };
   }[];
 }
+
+export interface KeeperDeployConfig {
+  connection: EthConnectionConfig;
+  aavePoolAddressesProvider: string;
+}
