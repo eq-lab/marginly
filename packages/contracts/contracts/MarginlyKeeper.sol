@@ -15,7 +15,7 @@ import './interfaces/IMarginlyFactory.sol';
 contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   using SafeERC20 for IERC20;
 
-  /// @dev Emited when liquidation occurs
+  /// @dev Emitted when liquidation occurs
   /// @param liquidatedPosition liquidated position
   /// @param token profit token
   /// @param amount profit amount
@@ -36,12 +36,12 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     POOL = IPool(ADDRESSES_PROVIDER.getPool());
   }
 
-  /// @notice Takes simpe flashloan in AAVE v3 protocol to liquidate position in Marginly
+  /// @notice Takes simple flashloan in AAVE v3 protocol to liquidate position in Marginly
   /// @param asset borrow asset
   /// @param amount borrow amount
-  /// @param referralCode refferal code to get rewards in AAVE
+  /// @param referralCode referral code to get rewards in AAVE
   /// @param marginlyPool address of marginly pool
-  /// @param positionToLiquidate addres of liquidatable position in Marginly pool
+  /// @param positionToLiquidate address of liquidatable position in Marginly pool
   /// @param minProfit amount of minimum profit worth in borrow asset
   function flashLoan(
     address asset,

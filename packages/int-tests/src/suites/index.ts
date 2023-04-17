@@ -157,7 +157,7 @@ export async function startSuite(
   }
 
   await suite(sut);
-  logger.info(`Test suite finished successefully`);
+  logger.info(`Test suite finished successfully`);
   sut.gasReporter.reportToConsole();
   await sut.gasReporter.saveToFile();
 }

@@ -77,7 +77,7 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function reinit() external {}
 
-  function increaseBaseCollateralCoeff(uint256 realBaseaAmount) external {}
+  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external {}
 
   function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external {}
 
