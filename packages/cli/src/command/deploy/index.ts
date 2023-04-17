@@ -25,7 +25,6 @@ import {
   BaseState,
   DeployState,
   DeployConfig,
-  deployKeeper,
 } from '@marginly/deploy';
 
 const nodeUriParameter = {
@@ -345,30 +344,6 @@ const deployMarginlyCommand = new Command('marginly')
     );
   });
 
-const deployKeeperCommand = new Command('keeper')
-  .requiredOption('--state-mode <stateMode>', 'Mode to process state: new, latest, existing')
-  .option('--state-file <stateFile>', 'State file name for new and existing state modes')
-  .action(async (deployCommandArgs: DeployCommandArgs, command: Command) => {
-    await deployCommandTemplate(
-      command,
-      deployCommandArgs,
-      async (signer, actualConfigFile, actualStateFile, actualDeploymentFile) => {
-        const logger = new SimpleLogger((x) => console.error(x));
-        const stateStore = new StateFile(
-          'MarginlyKeeper',
-          createDefaultBaseState,
-          actualStateFile,
-          logger
-        ).createStateStore();
-        const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
-
-        const keeperDeployment = await deployKeeper(signer, rawConfig, stateStore, logger);
-
-        fs.writeFileSync(actualDeploymentFile, JSON.stringify(keeperDeployment, null, 2), { encoding: 'utf-8' });
-      }
-    );
-  });
-
 function updateDeploymentFile(deploymentFile: string, currentDeployment: MarginlyDeployment, logger: Logger) {
   let existingDeployment: MarginlyDeployment;
 
@@ -451,6 +426,4 @@ export const registerReadWriteEthParameters = (command: Command): Command => {
   );
 };
 
-export const deployCommand = registerReadWriteEthParameters(new Command('deploy'))
-  .addCommand(deployMarginlyCommand)
-  .addCommand(deployKeeperCommand);
+export const deployCommand = registerReadWriteEthParameters(new Command('deploy')).addCommand(deployMarginlyCommand);

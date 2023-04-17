@@ -53,9 +53,10 @@ export interface MarginlyDeployConfig {
       quoteLimit: string;
     };
   }[];
-}
-
-export interface KeeperDeployConfig {
-  connection: EthConnectionConfig;
-  aavePoolAddressesProvider: string;
+  marginlyKeeper: {
+    aavePoolAddressesProvider: {
+      address?: string;
+      allowCreateMock?: boolean;
+    };
+  };
 }

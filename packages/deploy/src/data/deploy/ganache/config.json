@@ -1,9 +1,9 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://ethereum-mainnet-rpc.allthatnode.com"
+    "ethNodeUri": "https://ganache-node.equilab.io"
   },
   "connection": {
-    "assertChainId": 1,
+    "assertChainId": 1337,
     "ethOptions": {}
   },
   "uniswap": {
@@ -25,12 +25,6 @@
       "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
       "assertSymbol": "WETH",
       "assertDecimals": 18
-    },
-    {
-      "id": "wbtc",
-      "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-      "assertSymbol": "WBTC",
-      "assertDecimals": 8
     }
   ],
   "uniswapPools": [
@@ -41,14 +35,6 @@
       "fee": "0.05%",
       "allowCreate": false,
       "assertAddress": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
-    },
-    {
-      "id": "wbtc-usdc",
-      "token0Id": "wbtc",
-      "token1Id": "usdc",
-      "fee": "0.3%",
-      "allowCreate": false,
-      "assertAddress": "0x99ac8ca7087fa4a2a1fb6357269965a2014abc35"
     }
   ],
   "marginlyPools": [
@@ -69,33 +55,14 @@
         "baseLimit": "10000",
         "quoteLimit": "20000000"
       }
-    },
-    {
-      "id": "wbtc-usdc",
-      "uniswapPoolId": "wbtc-usdc",
-      "baseToken": "token0",
-      "quoteToken": "token1",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
-        "swapFee": "0.1%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.001",
-        "baseLimit": "10000",
-        "quoteLimit": "20000000"
-      }
     }
   ],
   "marginlyWrapper": {
-    "pools": ["usdc-weth", "wbtc-usdc"]
+    "pools": ["usdc-weth"]
   },
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
-      "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
-      "allowCreateMock": false
+      "allowCreateMock": true
     }
   }
 }

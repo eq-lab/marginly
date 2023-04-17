@@ -2,7 +2,7 @@ import * as ethers from 'ethers';
 import { Contract, ContractFactory, Signer } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonFragment } from '@ethersproject/abi';
-import { EthConnectionConfig, EthOptions, KeeperDeployConfig, MarginlyDeployConfig } from './config';
+import { EthConnectionConfig, EthOptions, MarginlyDeployConfig } from './config';
 
 export { DeployConfig } from './config';
 
@@ -104,6 +104,12 @@ function createMarginlyContractReader(): ContractReader {
   };
 }
 
+function createMarginlyMockContractReader(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/contracts/artifacts/contracts/test/${name}.sol/${name}.json`);
+  };
+}
+
 function createUniswapV3CoreInterfacesReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@uniswap/v3-core/artifacts/contracts/interfaces/${name}.sol/${name}.json`);
@@ -113,6 +119,12 @@ function createUniswapV3CoreInterfacesReader(): ContractReader {
 function createOpenzeppelinContractReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
+  };
+}
+
+function createAaveContractReader(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@aave/core-v3/artifacts/contracts/interfaces/${name}.sol/${name}.json`);
   };
 }
 
@@ -132,8 +144,13 @@ export const deployTemplate = (
   stateStore: StateStore,
   logger: Logger
 ) => {
-  return async (name: string, args: unknown[], id: string): Promise<DeployResult> => {
-    const contractDescription = contractReader(name);
+  return async (
+    name: string,
+    args: unknown[],
+    id: string,
+    contractReaderOverride: (name: string) => ContractDescription = contractReader
+  ): Promise<DeployResult> => {
+    const contractDescription = contractReaderOverride(name);
     const factory = new ethers.ContractFactory(contractDescription.abi, contractDescription.bytecode, signer);
 
     const stateFromFile = stateStore.getById(id);
@@ -172,6 +189,8 @@ class MarginlyDeployer {
   private readonly readMarginlyContract;
   private readonly readUniswapCoreInterface;
   private readonly readOpenzeppelin;
+  private readonly readAaveContract;
+  private readonly readMarginlyMockContract;
   private readonly deploy;
   private readonly signer;
   private readonly ethArgs;
@@ -183,6 +202,8 @@ class MarginlyDeployer {
     this.readMarginlyContract = createMarginlyContractReader();
     this.readUniswapCoreInterface = createUniswapV3CoreInterfacesReader();
     this.readOpenzeppelin = createOpenzeppelinContractReader();
+    this.readAaveContract = createAaveContractReader();
+    this.readMarginlyMockContract = createMarginlyMockContractReader();
     this.deploy = deployTemplate(signer, ethArgs, this.readMarginlyContract, stateStore, logger);
     this.ethArgs = ethArgs;
     this.signer = signer;
@@ -220,6 +241,10 @@ class MarginlyDeployer {
       return marginlyPool.address;
     });
     return this.deploy('MarginlyPoolWrapper', [marginlyPoolsString, wrapperAdminAddress], 'MarginlyPoolWrapper');
+  }
+
+  public deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
+    return this.deploy('MarginlyKeeper', [aavePoolAddressesProvider.toString()], 'marginlyKeeper');
   }
 
   private static toUniswapFee(fee: RationalNumber): BigNumber {
@@ -492,6 +517,68 @@ class MarginlyDeployer {
 
     return await tokenContract.decimals();
   }
+
+  public async getOrCreateMockAavePool(): Promise<LimitedDeployResult> {
+    const stateFileId = `mockAavePool`;
+    const mockAavePoolContractDescription = this.readMarginlyMockContract('MockAavePool');
+
+    const stateFromFile = this.stateStore.getById(stateFileId);
+    if (stateFromFile !== undefined) {
+      this.logger.log(`Import MockAavePool from state file`);
+
+      const mockAavePoolContract = new ethers.Contract(
+        stateFromFile.address,
+        mockAavePoolContractDescription.abi,
+        this.provider
+      );
+
+      return {
+        address: stateFromFile.address,
+        txHash: stateFromFile.txHash,
+        contract: mockAavePoolContract,
+      };
+    }
+
+    const deployResult = await this.deploy('MockAavePool', [], 'mockAavePool', this.readMarginlyMockContract);
+    return deployResult;
+  }
+
+  public async getOrCreateMockAavePoolAddressesProvider(aavePoolAddress: EthAddress): Promise<LimitedDeployResult> {
+    const stateFileId = `mockAavePoolAddressesProvider`;
+    const mockAavePoolAddressesProviderContractDescription = this.readMarginlyMockContract(
+      'MockAavePoolAddressesProvider'
+    );
+
+    const stateFromFile = this.stateStore.getById(stateFileId);
+    if (stateFromFile !== undefined) {
+      this.logger.log(`Import MockAavePool from state file`);
+
+      const mockAavePoolAddressesProviderContract = new ethers.Contract(
+        stateFromFile.address,
+        mockAavePoolAddressesProviderContractDescription.abi,
+        this.provider
+      );
+
+      return {
+        address: stateFromFile.address,
+        txHash: stateFromFile.txHash,
+        contract: mockAavePoolAddressesProviderContract,
+      };
+    }
+
+    const deployResult = await this.deploy(
+      'MockAavePoolAddressesProvider',
+      [aavePoolAddress.toString()],
+      'mockAavePoolAddressesProvider',
+      this.readMarginlyMockContract
+    );
+    return deployResult;
+  }
+
+  public getAavePoolAddressesProvider(address: EthAddress): ethers.Contract {
+    const aavePoolAddressesProviderContractDescription = this.readAaveContract('IPoolAddressesProvider');
+    return new ethers.Contract(address.toString(), aavePoolAddressesProviderContractDescription.abi, this.signer);
+  }
 }
 
 class TimeSpan {
@@ -714,6 +801,13 @@ interface MarginlyConfigMarginlyWrapper {
   ids: string[];
 }
 
+interface MarginlyConfigMarginlyKeeper {
+  aavePoolAddressesProvider: {
+    address?: EthAddress;
+    allowCreateMock?: boolean;
+  };
+}
+
 class StrictMarginlyDeployConfig {
   public readonly connection: EthConnectionConfig;
   public readonly uniswap: MarginlyConfigUniswap;
@@ -722,6 +816,7 @@ class StrictMarginlyDeployConfig {
   public readonly uniswapPools: MarginlyConfigUniswapPool[];
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
   public readonly marginlyWrapper: MarginlyConfigMarginlyWrapper;
+  public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
 
   private constructor(
     connection: EthConnectionConfig,
@@ -730,7 +825,8 @@ class StrictMarginlyDeployConfig {
     tokens: MarginlyConfigToken[],
     uniswapPools: MarginlyConfigUniswapPool[],
     marginlyPools: MarginlyConfigMarginlyPool[],
-    marginlyWrapper: MarginlyConfigMarginlyWrapper
+    marginlyWrapper: MarginlyConfigMarginlyWrapper,
+    marginlyKeeper: MarginlyConfigMarginlyKeeper
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
@@ -739,6 +835,7 @@ class StrictMarginlyDeployConfig {
     this.uniswapPools = uniswapPools;
     this.marginlyPools = marginlyPools;
     this.marginlyWrapper = marginlyWrapper;
+    this.marginlyKeeper = marginlyKeeper;
   }
 
   private static parseTokenSide(str: string): 'token0' | 'token1' {
@@ -834,6 +931,24 @@ class StrictMarginlyDeployConfig {
 
     const marginlyWrapper: MarginlyConfigMarginlyWrapper = { ids };
 
+    if (
+      config.marginlyKeeper.aavePoolAddressesProvider.address &&
+      config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock
+    ) {
+      throw new Error(
+        `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
+      );
+    }
+
+    const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
+      aavePoolAddressesProvider: {
+        address: config.marginlyKeeper.aavePoolAddressesProvider.address
+          ? EthAddress.parse(config.marginlyKeeper.aavePoolAddressesProvider.address)
+          : undefined,
+        allowCreateMock: config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock,
+      },
+    };
+
     return new StrictMarginlyDeployConfig(
       config.connection,
       {
@@ -846,7 +961,8 @@ class StrictMarginlyDeployConfig {
       Array.from(tokens.values()),
       Array.from(uniswapPools.values()),
       marginlyPools,
-      marginlyWrapper
+      marginlyWrapper,
+      marginlyKeeper
     );
   }
 }
@@ -859,6 +975,7 @@ interface MarginlyDeploymentMarginlyPool {
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
   marginlyWrapper?: { address: string };
+  marginlyKeeper?: { address: string };
 }
 
 export function mergeMarginlyDeployments(
@@ -881,6 +998,7 @@ export function mergeMarginlyDeployments(
   const mergedDeployment = {
     marginlyPools: [...oldDeployment.marginlyPools],
     marginlyWrapper: newDeployment.marginlyWrapper,
+    marginlyKeeper: newDeployment.marginlyKeeper,
   };
 
   for (const marginlyPool of newDeployment.marginlyPools) {
@@ -937,6 +1055,11 @@ export async function getMarginlyDeployBundles(logger: Logger): Promise<Marginly
 
 function getMarginlyWrapperAddress(stateStore: StateStore): string | undefined {
   const deployState = stateStore.getById('MarginlyPoolWrapper');
+  return deployState ? deployState.address : undefined;
+}
+
+function getMarginlyKeeperAddress(stateStore: StateStore): string | undefined {
+  const deployState = stateStore.getById('marginlyKeeper');
   return deployState ? deployState.address : undefined;
 }
 
@@ -1060,91 +1183,50 @@ export async function deployMarginly(
     }
   }
 
+  let marginlyKeeperAddress = getMarginlyKeeperAddress(stateStore);
+  if (!marginlyKeeperAddress) {
+    let aavePoolAddressesProviderAddress: EthAddress;
+
+    if (config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) {
+      const deployedMockAavePool = await using(logger.beginScope('Deploy MockAavePool'), async () => {
+        const deploymentResult = await marginlyDeployer.getOrCreateMockAavePool();
+        printDeployState(`Mock AAVE pool`, deploymentResult, logger);
+        return deploymentResult;
+      });
+
+      const deployedMockAavePoolAddressesProvider = await using(
+        logger.beginScope('Deploy MockAavePoolAddressesProvider'),
+        async () => {
+          const deploymentResult = await marginlyDeployer.getOrCreateMockAavePoolAddressesProvider(
+            EthAddress.parse(deployedMockAavePool.address)
+          );
+          printDeployState(`MockAavePoolAddressesProvider`, deploymentResult, logger);
+          return deploymentResult;
+        }
+      );
+      aavePoolAddressesProviderAddress = EthAddress.parse(deployedMockAavePoolAddressesProvider.address);
+    } else if (config.marginlyKeeper.aavePoolAddressesProvider.address) {
+      const aavePoolAddressesProvider = marginlyDeployer.getAavePoolAddressesProvider(
+        config.marginlyKeeper.aavePoolAddressesProvider.address
+      );
+
+      aavePoolAddressesProviderAddress = EthAddress.parse(aavePoolAddressesProvider.address);
+    } else {
+      throw 'Wrong config for marginlyKeeper.aavePoolAddressesProvider';
+    }
+
+    const deployedMarginlyKeeper = await using(logger.beginScope('Deploy MarginlyKeeper'), async () => {
+      const deploymentResult = await marginlyDeployer.deployMarginlyKeeper(aavePoolAddressesProviderAddress);
+      printDeployState(`Marginly keeper`, deploymentResult, logger);
+      return deploymentResult;
+    });
+
+    marginlyKeeperAddress = deployedMarginlyKeeper.address;
+  }
+
   return {
     marginlyPools: deployedMarginlyPools,
     marginlyWrapper: { address: marginlyWrapperAddress },
-  };
-}
-
-function createKeeperContractReader(): ContractReader {
-  return (name: string): ContractDescription => {
-    return require(`@marginly/keeper-contracts/artifacts/contracts/${name}.sol/${name}.json`);
-  };
-}
-
-class KeeperDeployer {
-  private readonly readKeeperContract;
-  private readonly deploy;
-  private readonly signer;
-  private readonly provider;
-  private readonly stateStore;
-  private readonly logger;
-  private readonly ethArgs;
-
-  public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
-    this.readKeeperContract = createKeeperContractReader();
-    this.deploy = deployTemplate(signer, ethArgs, this.readKeeperContract, stateStore, logger);
-    this.ethArgs = ethArgs;
-    this.signer = signer;
-
-    if (signer.provider === undefined) {
-      throw new Error('Provider is required');
-    }
-    this.provider = signer.provider;
-    this.stateStore = stateStore;
-    this.logger = logger;
-  }
-
-  public deployKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
-    return this.deploy('MarginlyKeeper', [aavePoolAddressesProvider.toString()], 'marginlyKeeper');
-  }
-}
-
-export interface KeeperDeployment {
-  keeper: { address: string };
-}
-
-export async function deployKeeper(
-  signer: ethers.Signer,
-  rawConfig: KeeperDeployConfig,
-  stateStore: StateStore,
-  logger: Logger
-): Promise<KeeperDeployment> {
-  const { config, keeperDeployer } = await using(logger.beginScope('Initialize'), async () => {
-    if (signer.provider === undefined) {
-      throw new Error('Provider is required');
-    }
-
-    const provider = signer.provider;
-
-    const config = {
-      connection: rawConfig.connection,
-      aavePoolAddressesProvider: EthAddress.parse(rawConfig.aavePoolAddressesProvider),
-    };
-
-    if (config.connection.assertChainId !== undefined) {
-      const expectedChainId = config.connection.assertChainId;
-      const { chainId: actualChainId } = await provider.getNetwork();
-      if (actualChainId !== expectedChainId) {
-        throw new Error(`Wrong chain id ${actualChainId}. Expected to be ${expectedChainId}`);
-      }
-    }
-
-    const keeperDeployer = new KeeperDeployer(signer, config.connection.ethOptions, stateStore, logger);
-
-    return { config, keeperDeployer };
-  });
-
-  const keeperDeploymentResult = await using(logger.beginScope('Deploy marginly keeper'), async () => {
-    const keeperDeployResult = await keeperDeployer.deployKeeper(config.aavePoolAddressesProvider);
-    printDeployState('Marginly Keeper', keeperDeployResult, logger);
-
-    return keeperDeployResult;
-  });
-
-  return {
-    keeper: {
-      address: keeperDeploymentResult.address,
-    },
+    marginlyKeeper: { address: marginlyKeeperAddress },
   };
 }
