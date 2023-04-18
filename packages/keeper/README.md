@@ -25,6 +25,11 @@ Example of config.
   "systemContextDefaults": {
     "ethNodeUri": "https://ethereum-mainnet-rpc.allthatnode.com"
   },
+  "connection": {
+    "ethOptions": {
+      "gasPrice": 700000
+    }
+  },
   "keeperAddress": "0x003E10B715bF75dC0a956d586e0e7CA6D8f2f234",
   "marginlyPools": [
     {

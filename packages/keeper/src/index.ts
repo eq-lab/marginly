@@ -9,6 +9,7 @@ import {
   Position,
   sleep,
   ContractDescription,
+  HeapNode,
 } from '@marginly/common';
 import {
   createSystemContext,
@@ -23,8 +24,18 @@ import * as fs from 'fs';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 
+interface EthOptions {
+  gasLimit?: number;
+  gasPrice?: number;
+}
+
+interface EthConnectionConfig {
+  ethOptions: EthOptions;
+}
+
 interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
+  connection: EthConnectionConfig;
   marginlyKeeperAddress: string;
   marginlyPools: {
     address: string;
@@ -72,10 +83,6 @@ function createMarginlyContractDescription(name: string): ContractDescription {
   return require(`@marginly/contracts/artifacts/contracts/${name}.sol/${name}.json`);
 }
 
-function createMarginlyKeeperContractDescription(name: string): ContractDescription {
-  return require(`@marginly/keeper-contracts/artifacts/contracts/${name}.sol/${name}.json`);
-}
-
 function createOpenZeppelinContractDescription(name: string): ContractDescription {
   return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
 }
@@ -83,12 +90,10 @@ function createOpenZeppelinContractDescription(name: string): ContractDescriptio
 function prepareContractDescriptions() {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
-    keeper: createMarginlyKeeperContractDescription('MarginlyKeeper'),
+    keeper: createMarginlyContractDescription('MarginlyKeeper'),
     marginlyPool: createMarginlyContractDescription('MarginlyPool'),
   };
 }
-
-type HeapNode = { account: string; key: BigNumber };
 
 type LiquidationParams = {
   position: string;
@@ -117,14 +122,14 @@ class PoolWatcher {
   }
 
   public async findBadPositions(): Promise<LiquidationParams[]> {
-    const [basePriceX96, params, mode, baseCollateralCoeff, baseDebtCoeff, quoteCollateralCoeff, quoteDebtCoeff]: [
-      BigNumber,
+    const [basePrice, params, mode, baseCollateralCoeff, baseDebtCoeff, quoteCollateralCoeff, quoteDebtCoeff]: [
+      Fp96,
       MarginlyPoolParameters,
       number,
-      Fp96,
-      Fp96,
-      Fp96,
-      Fp96
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber
     ] = await Promise.all([
       this.pool.getBasePrice(),
       this.pool.params(),
@@ -135,18 +140,19 @@ class PoolWatcher {
       this.pool.quoteDebtCoeff(),
     ]);
 
+    const basePriceX96 = BigNumber.from(basePrice.inner);
+
     const poolCoeffs: PoolCoeffs = {
-      baseCollateralCoeffX96: baseCollateralCoeff.inner,
-      baseDebtCoeffX96: baseDebtCoeff.inner,
-      quoteCollateralCoeffX96: quoteCollateralCoeff.inner,
-      quoteDebtCoeffX96: quoteDebtCoeff.inner,
+      baseCollateralCoeffX96: baseCollateralCoeff,
+      baseDebtCoeffX96: baseDebtCoeff,
+      quoteCollateralCoeffX96: quoteCollateralCoeff,
+      quoteDebtCoeffX96: quoteDebtCoeff,
     };
 
     if (mode > MarginlyMode.Recovery) {
       console.log('System in emergency mode. Liquidation not available');
       return [];
     }
-
     const maxLeverage: BigNumber = mode == MarginlyMode.Regular ? params.maxLeverage : params.recoveryMaxLeverage;
 
     const riskiestPositions = await Promise.all([this.getRiskiestShortPosition(), this.getRiskiestLongPosition()]);
@@ -206,8 +212,8 @@ class PoolWatcher {
         .mul(poolCoeffs.baseCollateralCoeffX96)
         .div(Fp96One);
       const collateralInQuote = collateral.mul(basePriceX96).div(Fp96One);
-      const leverage = collateral.div(collateralInQuote.sub(debt));
 
+      const leverage = collateralInQuote.div(collateralInQuote.sub(debt));
       return leverage > maxLeverage
         ? {
             position: positionAddress,
@@ -259,7 +265,6 @@ const watchMarginlyPoolsCommand = new Command()
     const signer = await createSignerFromContext(systemContext);
 
     const contractDescriptions = prepareContractDescriptions();
-
     const keeperContract = new ethers.Contract(
       config.marginlyKeeperAddress,
       contractDescriptions.keeper.abi,
@@ -279,9 +284,9 @@ const watchMarginlyPoolsCommand = new Command()
         const liquidateioParams = await poolWatcher.findBadPositions();
         for (const liquidationParam of liquidateioParams) {
           const refferalCode = 0;
-          console.log(liquidationParam);
 
           try {
+            console.log(`Send tx to liquidate position with params ${liquidationParam}`);
             await keeperContract
               .connect(signer)
               .flashLoan(
@@ -290,9 +295,9 @@ const watchMarginlyPoolsCommand = new Command()
                 refferalCode,
                 liquidationParam.pool,
                 liquidationParam.position,
-                liquidationParam.minProfit
+                liquidationParam.minProfit,
+                config.connection.ethOptions
               );
-            console.log(`Tx to liquidate position sent with params ${liquidationParam}`);
           } catch (error) {
             console.error(`Liquidation failed with error: ${error}}`);
           }

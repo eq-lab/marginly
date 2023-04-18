@@ -32,3 +32,5 @@ export const MarginlyMode = {
   ShortEmergency: 2,
   LongEmergency: 3,
 };
+
+export type HeapNode = { account: string; key: BigNumber };
