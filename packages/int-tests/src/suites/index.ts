@@ -25,6 +25,8 @@ import { mc } from './mc';
 import { GasReporter } from '../utils/GasReporter';
 import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
+import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
+import { keeper } from './keeper';
 
 export type SystemUnderTest = {
   uniswap: UniswapV3PoolContract;
@@ -32,6 +34,7 @@ export type SystemUnderTest = {
   swapRouter: SwapRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
+  keeper: MarginlyKeeperContract;
   treasury: Wallet;
   accounts: Wallet[];
   usdc: FiatTokenV2_1Contract;
@@ -99,8 +102,8 @@ async function initializeTestSystem(
     positionSlippage: 20000, // 2%
     mcSlippage: 50000, //5%
     positionMinAmount: 10000000000000000n, // 0,01 ETH
-    baseLimit: 10n**9n * 10n**18n,
-    quoteLimit: 10n**12n * 10n**6n,
+    baseLimit: 10n ** 9n * 10n ** 18n,
+    quoteLimit: 10n ** 12n * 10n ** 6n,
   };
   const gasReporter = new GasReporter(suiteName);
   await gasReporter.saveGasUsage(
@@ -111,6 +114,10 @@ async function initializeTestSystem(
   const marginlyAddress = await marginlyFactory.getPool(weth.address, usdc.address, 500n);
   const marginlyPool = MarginlyPool.connect(marginlyAddress, provider);
   logger.info(`marginly <> uniswap: ${marginlyPool.address} <> ${uniswap.address}`);
+
+  const aavePoolAddressesProviderAddress = '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e';
+  const keeper = await MarginlyKeeper.deploy(aavePoolAddressesProviderAddress, treasury);
+  logger.info(`keeper: ${keeper.address}`);
 
   logger.info('Initialization completed');
 
@@ -124,6 +131,7 @@ async function initializeTestSystem(
     marginlyFactory,
     marginlyPool,
     swapRouter,
+    keeper,
     provider: new Web3ProviderDecorator(provider),
     gasReporter,
   };
@@ -146,6 +154,7 @@ export async function startSuite(
     mc,
     shortEmergency,
     longEmergency,
+    keeper,
   };
   const sut = await initializeTestSystem(provider, suitName, initialAccounts);
 
