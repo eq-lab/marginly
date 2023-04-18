@@ -23,6 +23,7 @@ import {
 import * as fs from 'fs';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
+import { formatEther, formatUnits } from 'ethers/lib/utils';
 
 interface EthOptions {
   gasLimit?: number;
@@ -285,19 +286,29 @@ const watchMarginlyPoolsCommand = new Command()
         for (const liquidationParam of liquidateioParams) {
           const refferalCode = 0;
 
+          const debtTokenContract = new ethers.Contract(
+            liquidationParam.asset,
+            contractDescriptions.token.abi,
+            signer.provider
+          );
+
           try {
-            console.log(`Send tx to liquidate position with params ${liquidationParam}`);
-            await keeperContract
-              .connect(signer)
-              .flashLoan(
-                liquidationParam.asset,
-                liquidationParam.amount,
-                refferalCode,
-                liquidationParam.pool,
-                liquidationParam.position,
-                liquidationParam.minProfit,
-                config.connection.ethOptions
-              );
+            console.log(`Send tx to liquidate position with params`);
+            console.log(liquidationParam);
+
+            await logBalanceChange(signer, debtTokenContract, async () => {
+              await keeperContract
+                .connect(signer)
+                .flashLoan(
+                  liquidationParam.asset,
+                  liquidationParam.amount,
+                  refferalCode,
+                  liquidationParam.pool,
+                  liquidationParam.position,
+                  liquidationParam.minProfit,
+                  config.connection.ethOptions
+                );
+            });
           } catch (error) {
             console.error(`Liquidation failed with error: ${error}}`);
           }
@@ -308,9 +319,37 @@ const watchMarginlyPoolsCommand = new Command()
     }
   });
 
-const registerReadOnlyEthParameters = (command: Command): Command => {
+async function logBalanceChange(signer: ethers.Signer, token: ethers.Contract, action: () => Promise<void>) {
+  const signerAddress = await signer.getAddress();
+  const [, balanceBefore, ethBalanceBefore] = await Promise.all([
+    ,
+    token.balanceOf(signerAddress),
+    signer.getBalance(),
+  ]);
+
+  await action();
+
+  const [balanceAfter, symbol, decimals, ethBalanceAfter]: [BigNumber, string, number, BigNumber] = await Promise.all([
+    token.balanceOf(signerAddress),
+    token.symbol(),
+    token.decimals(),
+    signer.getBalance(),
+  ]);
+
+  console.log(
+    `Liquidation profit = ${balanceAfter} - ${balanceBefore} = ${formatUnits(
+      balanceAfter.sub(balanceBefore),
+      decimals
+    )} ${symbol}`
+  );
+  console.log(
+    `Tx fee = ${ethBalanceBefore} - ${ethBalanceAfter} = ${formatEther(ethBalanceBefore.sub(ethBalanceAfter))} ETH`
+  );
+}
+
+function registerReadOnlyEthParameters(command: Command): Command {
   return registerEthSignerParameters(command.option(getCommanderForm(nodeUriParameter), nodeUriParameter.description));
-};
+}
 
 const main = async () => {
   const program = registerReadOnlyEthParameters(watchMarginlyPoolsCommand);

@@ -3,9 +3,7 @@
     "ethNodeUri": "https://ganache-node.equilab.io"
   },
   "connection": {
-    "ethOptions": {
-      "gasPrice": 700000
-    }
+    "ethOptions": {}
   },
   "marginlyKeeperAddress": "0x13d1bD42884585d0D00121E596b3733B47152FeB",
   "marginlyPools": [
