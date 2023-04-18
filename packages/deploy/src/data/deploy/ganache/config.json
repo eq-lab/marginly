@@ -1,9 +1,9 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://rpc.ankr.com/eth_goerli"
+    "ethNodeUri": "https://ganache-node.equilab.io"
   },
   "connection": {
-    "assertChainId": 5,
+    "assertChainId": 1337,
     "ethOptions": {}
   },
   "uniswap": {
@@ -16,13 +16,15 @@
   "tokens": [
     {
       "id": "usdc",
-      "address": "0xfF9Bc7A03e47c1d5EDA0cDa7e1A769AF83967210",
-      "assertSymbol": "USDC1"
+      "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
     },
     {
       "id": "weth",
-      "address": "0x36F769E0d8CceAde6ed5f5a7841643bD92c4Ca12",
-      "assertSymbol": "WETH1"
+      "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
     }
   ],
   "uniswapPools": [
@@ -31,7 +33,8 @@
       "token0Id": "usdc",
       "token1Id": "weth",
       "fee": "0.05%",
-      "allowCreate": false
+      "allowCreate": false,
+      "assertAddress": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
     }
   ],
   "marginlyPools": [
@@ -45,9 +48,9 @@
         "maxLeverage": "20",
         "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
-        "priceAgo": "15 min",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
         "positionMinAmount": "0.001",
         "baseLimit": "10000",
         "quoteLimit": "20000000"
@@ -59,8 +62,7 @@
   },
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
-      "address": "0xC911B590248d127aD18546B186cC6B324e99F02c",
-      "allowCreateMock": false
+      "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e"
     }
   }
 }
