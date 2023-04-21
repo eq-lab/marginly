@@ -56,6 +56,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'short(uint256)': utils.FunctionFragment;
     'shutDown()': utils.FunctionFragment;
     'systemLeverage()': utils.FunctionFragment;
+    'transferPosition(address)': utils.FunctionFragment;
     'uniswapFee()': utils.FunctionFragment;
     'uniswapPool()': utils.FunctionFragment;
     'unlocked()': utils.FunctionFragment;
@@ -102,6 +103,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'short'
       | 'shutDown'
       | 'systemLeverage'
+      | 'transferPosition'
       | 'uniswapFee'
       | 'uniswapPool'
       | 'unlocked'
@@ -240,6 +242,10 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<ContractTransaction>;
   shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumberish; longX96: BigNumberish }>;
+  transferPosition(
+    newOwner: PromiseOrValue<string>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   uniswapFee(override?: CallOverrides): Promise<BigNumberish>;
   uniswapPool(override?: CallOverrides): Promise<string>;
   unlocked(override?: CallOverrides): Promise<boolean>;
@@ -381,6 +387,10 @@ export interface MarginlyPoolContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
+    transferPosition(
+      newOwner: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
     withdrawBase(
       realAmount: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -464,6 +474,10 @@ export interface MarginlyPoolContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+    transferPosition(
+      newOwner: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
     withdrawBase(
       realAmount: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -547,6 +561,10 @@ export interface MarginlyPoolContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
+    transferPosition(
+      newOwner: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
     withdrawBase(
       realAmount: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }

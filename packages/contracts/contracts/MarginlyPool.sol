@@ -1035,7 +1035,7 @@ contract MarginlyPool is IMarginlyPool {
       badPosition.discountedQuoteAmount += discountedQuoteAmount;
 
       uint32 heapIndex = badPosition.heapPosition - 1;
-      if (discountedBaseAmount > badPosition.discountedBaseAmount) {
+      if (discountedBaseAmount >= badPosition.discountedBaseAmount) {
         discountedBaseDebt -= badPosition.discountedBaseAmount;
 
         badPosition._type = PositionType.Lend;
@@ -1062,7 +1062,7 @@ contract MarginlyPool is IMarginlyPool {
       badPosition.discountedBaseAmount += discountedBaseAmount;
 
       uint32 heapIndex = badPosition.heapPosition - 1;
-      if (discountedQuoteAmount > badPosition.discountedQuoteAmount) {
+      if (discountedQuoteAmount >= badPosition.discountedQuoteAmount) {
         discountedQuoteDebt -= badPosition.discountedQuoteAmount;
 
         badPosition._type = PositionType.Lend;

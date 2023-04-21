@@ -7,6 +7,12 @@
   "references": [
     {
       "path": "../deploy"
+    },
+    {
+      "path": "../common"
+    },
+    {
+      "path": "../cli-common"
     }
   ]
 }

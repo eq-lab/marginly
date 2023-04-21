@@ -14,6 +14,7 @@ contract MockMarginlyPool is IMarginlyPool {
   address private badPositionAddress;
   uint256 private quoteAmount;
   uint256 private baseAmount;
+  uint256 private dust = 1000; // some sweep
   PositionType private positionType;
 
   constructor(address _factory, address _quoteToken, address _baseToken) {
@@ -62,11 +63,19 @@ contract MockMarginlyPool is IMarginlyPool {
   function depositQuote(uint256 amount) external {}
 
   function withdrawBase(uint256 amount) external {
-    IERC20(baseToken).transfer(msg.sender, baseAmount);
+    if (positionType == PositionType.Short) {
+      IERC20(baseToken).transfer(msg.sender, dust);
+    } else {
+      IERC20(baseToken).transfer(msg.sender, baseAmount);
+    }
   }
 
   function withdrawQuote(uint256 amount) external {
-    IERC20(quoteToken).transfer(msg.sender, quoteAmount);
+    if (positionType == PositionType.Short) {
+      IERC20(quoteToken).transfer(msg.sender, quoteAmount);
+    } else {
+      IERC20(quoteToken).transfer(msg.sender, dust);
+    }
   }
 
   function short(uint256 baseAmount) external {}
@@ -83,13 +92,9 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function receivePosition(address _badPositionAddress, uint256 _quoteAmount, uint256 _baseAmount) external {
     require(_badPositionAddress == badPositionAddress);
-    if (_quoteAmount != 0) {
-      IERC20(quoteToken).transferFrom(msg.sender, address(this), quoteAmount);
-    }
 
-    if (_baseAmount != 0) {
-      IERC20(baseToken).transferFrom(msg.sender, address(this), baseAmount);
-    }
+    IERC20(quoteToken).transferFrom(msg.sender, address(this), _quoteAmount);
+    IERC20(baseToken).transferFrom(msg.sender, address(this), _baseAmount);
   }
 
   function emergencyWithdraw() external {}
