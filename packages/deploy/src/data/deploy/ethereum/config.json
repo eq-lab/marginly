@@ -76,7 +76,7 @@
       "token1Id": "weth",
       "fee": "0.3%",
       "allowCreate": false,
-      "assertAddress": "0x92ab871abB9d567AA276b2CE58d0203d84E0181E"
+      "assertAddress": "0xa3f558aebAecAf0e11cA4b2199cC5Ed341edfd74"
     }
   ],
   "marginlyPools": [
