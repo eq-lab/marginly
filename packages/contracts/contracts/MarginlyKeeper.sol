@@ -98,26 +98,25 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
       IERC20(quoteToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, amount, 0);
       collateralToken = baseToken;
-    } else {
+    } else if (baseToken == asset) {
       IERC20(baseToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, 0, amount);
       collateralToken = quoteToken;
+    } else {
+      revert('Wrong asset');
     }
 
-    marginlyPool.closePosition();
-    if (collateralToken == baseToken) {
-      marginlyPool.withdrawBase(type(uint256).max);
-    } else {
-      marginlyPool.withdrawQuote(type(uint256).max);
-    }
+    marginlyPool.withdrawBase(type(uint256).max);
+    marginlyPool.withdrawQuote(type(uint256).max);
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 
+    uint256 dust = IERC20(asset).balanceOf(address(this));
     uint256 amountOut = exactInputSwap(marginlyFactory.swapRouter(), collateralToken, asset, marginlyPool.uniswapFee());
     uint256 paybackAmount = amount + premium;
-    uint256 resultingBalance = amountOut - paybackAmount;
+    require(amountOut + dust > paybackAmount, 'Insufficient funds to cover flashloan');
 
-    require(amountOut > paybackAmount, 'Insufficient funds to cover flashloan');
+    uint256 resultingBalance = dust + amountOut - paybackAmount;
     require(resultingBalance >= params.minProfit, 'Less than minimum profit');
 
     IERC20(asset).safeApprove(address(POOL), paybackAmount);

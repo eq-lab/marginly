@@ -21,7 +21,10 @@
   ],
   "references": [
     {
-      "path": "../deploy"
+      "path": "../deploy",
+    },
+    {
+      "path": "../common"
     }
   ]
 }
