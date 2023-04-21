@@ -3,7 +3,9 @@ pragma solidity ^0.8.0;
 
 import './IMarginlyPoolOwnerActions.sol';
 import '../dataTypes/Mode.sol';
+import '../dataTypes/DiscountedDelta.sol';
 import '../libraries/FP96.sol';
+import '../dataTypes/Position.sol';
 
 interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when margin call took place
@@ -14,41 +16,68 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when user deposited base token
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  event DepositBase(address indexed user, uint256 amount);
+  /// @param discountedDelta Discounted delta amount of base tokens user deposited
+  event DepositBase(address indexed user, uint256 amount, DiscountedDelta discountedDelta);
 
   /// @dev Emitted when user deposited quote token
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  event DepositQuote(address indexed user, uint256 amount);
+  /// @param discountedDelta Discounted delta amount of quote tokens user deposited
+  event DepositQuote(address indexed user, uint256 amount, DiscountedDelta discountedDelta);
 
   /// @dev Emitted when user withdrew base token
   /// @param user User
   /// @param amount Amount of token user withdrew
-  event WithdrawBase(address indexed user, uint256 amount);
+  /// @param baseDiscountedDelta Discounted delta amount of base tokens user withdrew
+  event WithdrawBase(address indexed user, uint256 amount, uint256 baseDiscountedDelta);
 
   /// @dev Emitted when user withdrew quote token
   /// @param user User
   /// @param amount Amount of token user withdrew
-  event WithdrawQuote(address indexed user, uint256 amount);
+  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens user withdrew
+  event WithdrawQuote(address indexed user, uint256 amount, uint256 quoteDiscountedDelta);
 
   /// @dev Emitted when user shorted
   /// @param user Depositor
   /// @param amount Amount of token user deposited
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
-  event Short(address indexed user, uint256 amount, uint256 swapPriceX96);
+  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens
+  /// @param baseDiscountedDelta Discounted delta amount of base tokens
+  event Short(
+    address indexed user,
+    uint256 amount,
+    uint256 swapPriceX96,
+    uint256 quoteDiscountedDelta,
+    uint256 baseDiscountedDelta
+  );
 
   /// @dev Emitted when user made long position
   /// @param user User
   /// @param amount Amount of token user use in long position
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
-  event Long(address indexed user, uint256 amount, uint256 swapPriceX96);
+  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens
+  /// @param baseDiscountedDelta Discounted delta amount of base tokens
+  event Long(
+    address indexed user,
+    uint256 amount,
+    uint256 swapPriceX96,
+    uint256 quoteDiscountedDelta,
+    uint256 baseDiscountedDelta
+  );
 
   /// @dev Emitted when user closed position
   /// @param user User
   /// @param token Collateral token
   /// @param collateralDelta Amount of collateral reduction
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
-  event ClosePosition(address indexed user, address indexed token, uint256 collateralDelta, uint256 swapPriceX96);
+  /// @param collateralDiscountedDelta Amount of discounted collateral reduction
+  event ClosePosition(
+    address indexed user,
+    address indexed token,
+    uint256 collateralDelta,
+    uint256 swapPriceX96,
+    uint256 collateralDiscountedDelta
+  );
 
   /// @dev Emitted when user deposited base token to increase base collateral coeff
   /// @param baseAmount Amount of base token
@@ -61,7 +90,16 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when position liquidation happened
   /// @param liquidator Liquidator
   /// @param position Liquidated position
-  event ReceivePosition(address indexed liquidator, address indexed position);
+  /// @param newPositionType Type of tx sender position
+  /// @param newPositionQuoteDiscounted Discounted delta amount of quote tokens
+  /// @param newPositionBaseDiscountedDelta Discounted delta amount of base tokens
+  event ReceivePosition(
+    address indexed liquidator,
+    address indexed position,
+    PositionType newPositionType,
+    uint256 newPositionQuoteDiscounted,
+    uint256 newPositionBaseDiscountedDelta
+  );
 
   /// @dev When system switched to emergency mode
   /// @param mode Emergency mode
