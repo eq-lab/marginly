@@ -143,7 +143,8 @@ describe('UniswapV3PoolMock', () => {
                 const observations = (await pool.observe(secondsAgos));
                 const tickCumulatives: [bigint, bigint] = [observations.tickCumulatives[0].toBigInt(), observations.tickCumulatives[1].toBigInt()];
 
-                const actualPrice = twapFromTickCumulatives(tickCumulatives, [BigInt(secondsAgos[0]), BigInt(secondsAgos[1])], 18, 18);
+                const [token0Decimals, token1Decimals] = sortUniswapPoolTokens([baseToken.address as `0x${string}`, quoteToken.address as `0x${string}`], [(await baseToken.decimals()), (await quoteToken.decimals())]);
+                const actualPrice = twapFromTickCumulatives(tickCumulatives, [BigInt(secondsAgos[0]), BigInt(secondsAgos[1])], token0Decimals, token1Decimals);
 
                 const expectedError = 0.0001;
                 const actualError = Math.abs(actualPrice / expectedPrice - 1);
