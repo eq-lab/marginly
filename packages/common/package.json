@@ -1,0 +1,41 @@
+{
+  "name": "@marginly/common",
+  "version": "0.1.0",
+  "description": "Marginly common code",
+  "author": "EqLab",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "lint": "eslint src --ext .ts",
+    "prettify": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "16",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.6.0",
+    "prettier": "^2.8.2",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+  },
+  "exports": {
+    "./resource": "./dist/resource.js",
+    "./error": "./dist/error.js",
+    "./logger": "./dist/logger.js",
+    "./execution": "./dist/execution.js",
+    "./lifecycle": "./dist/lifecycle.js",
+    "./math": "./dist/math.js"
+  },
+  "typesVersions": {
+    "*": {
+      "resource": ["dist/resource.d.ts"],
+      "error": ["dist/error.d.ts"],
+      "logger": ["dist/logger.d.ts"],
+      "execution": ["dist/execution.d.ts"],
+      "lifecycle": ["dist/lifecycle.d.ts"],
+      "math": ["dist/math.d.ts"]
+    }
+  }
+}
