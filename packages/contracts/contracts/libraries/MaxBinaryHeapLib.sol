@@ -10,7 +10,7 @@ library MaxBinaryHeapLib {
   struct Node {
     /// @dev Stored as FixedPoint value with 10 bits for decimals
     uint96 key;
-    /// @dev Accound address
+    /// @dev Account address
     address account;
   }
 

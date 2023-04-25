@@ -16,7 +16,16 @@ const config = {
     timeout: 200_000,
   },
   gasReporter: {
-    excludeContracts: ['TestERC20', 'TestUniswapFactory', 'TestUniswapPool', 'ERC20'],
+    excludeContracts: [
+      'TestERC20',
+      'TestUniswapFactory',
+      'TestUniswapPool',
+      'ERC20',
+      'MockAavePool',
+      'MockAavePoolAddressesProvider',
+      'MockMarginlyPool',
+      'MockSwapRouter',
+    ],
   },
   contractSizer: {
     alphaSort: true,
@@ -24,6 +33,7 @@ const config = {
     runOnCompile: true,
     strict: false,
     only: ['Marginly'],
+    except: ['Mock', 'Test'],
   },
 };
 

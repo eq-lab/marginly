@@ -53,4 +53,10 @@ export interface MarginlyDeployConfig {
       quoteLimit: string;
     };
   }[];
+  marginlyKeeper: {
+    aavePoolAddressesProvider: {
+      address?: string;
+      allowCreateMock?: boolean;
+    };
+  };
 }

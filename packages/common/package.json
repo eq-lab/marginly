@@ -2,6 +2,8 @@
   "name": "@marginly/common",
   "version": "0.1.0",
   "description": "Marginly common code",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "EqLab",
   "license": "MIT",
   "scripts": {
@@ -19,6 +21,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "ethers": "^5.7.2"
   },
   "exports": {
     "./resource": "./dist/resource.js",

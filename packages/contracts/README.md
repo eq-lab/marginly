@@ -1,8 +1,6 @@
 # Marginly smart contracts
 
-##
-
-Install dependencies before start
+## Install dependencies
 
 ```
 yarn install

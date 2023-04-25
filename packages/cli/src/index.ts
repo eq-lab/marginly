@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { deployCommand } from './command/deploy';
-import { ethereumKeyringCommand } from './command/keyring';
+import { ethereumKeyringCommand } from '@marginly/cli-common';
 
 const main = async () => {
   const program = new Command();

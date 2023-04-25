@@ -43,7 +43,7 @@ describe.skip('TestSwapRouter', () => {
     expect(quoteBalance).to.be.equal(25);
   });
 
-  it('swap qote to base exact input', async () => {
+  it('swap quote to base exact input', async () => {
     const { swapRouter, baseContract, quoteContract } = await loadFixture(createMarginlyPool);
     const [owner] = await ethers.getSigners();
     const [signer] = await generateWallets(1);

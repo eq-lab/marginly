@@ -107,7 +107,7 @@ This method is the simplest one but insecure.
 ```shell
 node ../../../../../cli/dist/index.js \
   deploy \
-    --eth-key <yout private key> \
+    --eth-key <your private key> \
     marginly \
       --state-mode new
 ```

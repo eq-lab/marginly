@@ -4,18 +4,18 @@ pragma solidity ^0.8.17;
 import '@aave/core-v3/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol';
 import '@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol';
 import '@aave/core-v3/contracts/interfaces/IPool.sol';
-import '@marginly/contracts/contracts/interfaces/IMarginlyPool.sol';
-import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import './interfaces/IMarginlyPool.sol';
+import './interfaces/IMarginlyFactory.sol';
 
 /// @notice Contract helper for Marginly position liquidators.
 /// @dev It make liquidation with help of AAVE flashloan
 contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   using SafeERC20 for IERC20;
 
-  /// @dev Emited when liquidation occurs
+  /// @dev Emitted when liquidation occurs
   /// @param liquidatedPosition liquidated position
   /// @param token profit token
   /// @param amount profit amount
@@ -36,12 +36,12 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     POOL = IPool(ADDRESSES_PROVIDER.getPool());
   }
 
-  /// @notice Takes simpe flashloan in AAVE v3 protocol to liquidate position in Marginly
+  /// @notice Takes simple flashloan in AAVE v3 protocol to liquidate position in Marginly
   /// @param asset borrow asset
   /// @param amount borrow amount
-  /// @param referralCode refferal code to get rewards in AAVE
+  /// @param referralCode referral code to get rewards in AAVE
   /// @param marginlyPool address of marginly pool
-  /// @param positionToLiquidate addres of liquidatable position in Marginly pool
+  /// @param positionToLiquidate address of liquidatable position in Marginly pool
   /// @param minProfit amount of minimum profit worth in borrow asset
   function flashLoan(
     address asset,
@@ -98,26 +98,25 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
       IERC20(quoteToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, amount, 0);
       collateralToken = baseToken;
-    } else {
+    } else if (baseToken == asset) {
       IERC20(baseToken).approve(params.marginlyPool, amount);
       marginlyPool.receivePosition(params.positionToLiquidate, 0, amount);
       collateralToken = quoteToken;
+    } else {
+      revert('Wrong asset');
     }
 
-    marginlyPool.closePosition();
-    if (collateralToken == baseToken) {
-      marginlyPool.withdrawBase(type(uint256).max);
-    } else {
-      marginlyPool.withdrawQuote(type(uint256).max);
-    }
+    marginlyPool.withdrawBase(type(uint256).max);
+    marginlyPool.withdrawQuote(type(uint256).max);
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 
+    uint256 dust = IERC20(asset).balanceOf(address(this));
     uint256 amountOut = exactInputSwap(marginlyFactory.swapRouter(), collateralToken, asset, marginlyPool.uniswapFee());
     uint256 paybackAmount = amount + premium;
-    uint256 resultingBalance = amountOut - paybackAmount;
+    require(amountOut + dust > paybackAmount, 'Insufficient funds to cover flashloan');
 
-    require(amountOut > paybackAmount, 'Insufficient funds to cover flashloan');
+    uint256 resultingBalance = dust + amountOut - paybackAmount;
     require(resultingBalance >= params.minProfit, 'Less than minimum profit');
 
     IERC20(asset).safeApprove(address(POOL), paybackAmount);

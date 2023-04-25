@@ -21,16 +21,28 @@
       "assertDecimals": 6
     },
     {
+      "id": "usdt",
+      "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "assertSymbol": "USDT",
+      "assertDecimals": 6
+    },
+    {
       "id": "weth",
       "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
       "assertSymbol": "WETH",
       "assertDecimals": 18
     },
     {
-      "id": "wbtc",
-      "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-      "assertSymbol": "WBTC",
-      "assertDecimals": 8
+      "id": "blur",
+      "address": "0x5283D291DBCF85356A21bA090E6db59121208b44",
+      "assertSymbol": "BLUR",
+      "assertDecimals": 18
+    },
+    {
+      "id": "ldo",
+      "address": "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32",
+      "assertSymbol": "LDO",
+      "assertDecimals": 18
     }
   ],
   "uniswapPools": [
@@ -43,12 +55,28 @@
       "assertAddress": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
     },
     {
-      "id": "wbtc-usdc",
-      "token0Id": "wbtc",
+      "id": "usdc-usdt",
+      "token0Id": "usdc",
+      "token1Id": "usdt",
+      "fee": "0.01%",
+      "allowCreate": false,
+      "assertAddress": "0x3416cF6C708Da44DB2624D63ea0AAef7113527C6"
+    },
+    {
+      "id": "blur-usdc",
+      "token0Id": "blur",
       "token1Id": "usdc",
       "fee": "0.3%",
       "allowCreate": false,
-      "assertAddress": "0x99ac8ca7087fa4a2a1fb6357269965a2014abc35"
+      "assertAddress": "0x92ab871abB9d567AA276b2CE58d0203d84E0181E"
+    },
+    {
+      "id": "ldo-weth",
+      "token0Id": "ldo",
+      "token1Id": "weth",
+      "fee": "0.3%",
+      "allowCreate": false,
+      "assertAddress": "0xa3f558aebAecAf0e11cA4b2199cC5Ed341edfd74"
     }
   ],
   "marginlyPools": [
@@ -71,8 +99,26 @@
       }
     },
     {
-      "id": "wbtc-usdc",
-      "uniswapPoolId": "wbtc-usdc",
+      "id": "usdc-usdt",
+      "uniswapPoolId": "usdc-usdt",
+      "baseToken": "token1",
+      "quoteToken": "token0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "10000000",
+        "quoteLimit": "10000000"
+      }
+    },
+    {
+      "id": "usdc-blur",
+      "uniswapPoolId": "blur-usdc",
       "baseToken": "token0",
       "quoteToken": "token1",
       "params": {
@@ -84,12 +130,36 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "10000",
-        "quoteLimit": "20000000"
+        "baseLimit": "1000000",
+        "quoteLimit": "1500000"
+      }
+    },
+    {
+      "id": "ldo-weth",
+      "uniswapPoolId": "ldo-weth",
+      "baseToken": "token1",
+      "quoteToken": "token0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "500",
+        "quoteLimit": "400000"
       }
     }
   ],
   "marginlyWrapper": {
-    "pools": ["usdc-weth", "wbtc-usdc"]
+    "pools": ["usdc-weth", "usdc-usdt", "usdc-blur", "ldo-weth"]
+  },
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "allowCreateMock": false
+    }
   }
 }

@@ -56,5 +56,11 @@
   ],
   "marginlyWrapper": {
     "pools": ["usdc-weth"]
+  },
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0xC911B590248d127aD18546B186cC6B324e99F02c",
+      "allowCreateMock": false
+    }
   }
 }
