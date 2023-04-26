@@ -412,6 +412,17 @@ export const readReadWriteEthFromContext = async (
 
   const signer = (await readEthSignerFromContext(systemContext)).connect(provider);
 
+  // TODO: introduce new cli key `--dry-run-fund`
+  if (dryRun) {
+    const treasurySigner = provider.getSigner();
+    await treasurySigner.sendTransaction({
+      to: await signer.getAddress(),
+      value: ethers.utils.parseEther('100')
+    });
+    const signerBalance = (await signer.getBalance()).toBigInt();
+    signerBalance.toString();
+  }
+
   return {
     signer,
     dryRun,

@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {loadFixture} from '@nomicfoundation/hardhat-network-helpers';
 import {ethers} from 'hardhat';
-import {TestUniswapV3PoolMock, Token, UniswapV3PoolMock, WETH9} from "../typechain-types";
+import {TestUniswapV3PoolMock, MintableToken, UniswapV3PoolMock, WETH9} from "../typechain-types";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {
     priceToPriceFp18,
@@ -9,8 +9,8 @@ import {
     sortUniswapPoolTokens, twapFromTickCumulatives
 } from '@marginly/common/math';
 
-async function createToken(name: string, symbol: string, decimals: number = 18): Promise<Token> {
-    const factory = await ethers.getContractFactory('Token');
+async function createToken(name: string, symbol: string, decimals: number = 18): Promise<MintableToken> {
+    const factory = await ethers.getContractFactory('MintableToken');
     return await factory.deploy(name, symbol, decimals);
 }
 
@@ -25,7 +25,7 @@ async function createTestUniswapV3PoolMock(oracle: string, tokenA: string, token
 }
 
 interface CreateContractResultTokens {
-    arb: Token,
+    arb: MintableToken,
     weth: WETH9
 }
 
@@ -57,7 +57,7 @@ async function createContracts(): Promise<CreateContractsResult> {
     };
 }
 
-async function setPrice(pool: UniswapV3PoolMock, oracle: SignerWithAddress, tokens: [Token | WETH9, Token | WETH9], price: number) {
+async function setPrice(pool: UniswapV3PoolMock, oracle: SignerWithAddress, tokens: [MintableToken | WETH9, MintableToken | WETH9], price: number) {
     const [tokenA, tokenB] = tokens;
     const [token0, token1] = sortUniswapPoolTokens(
         [tokenA.address as `0x${string}`, tokenB.address as `0x${string}`],

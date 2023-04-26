@@ -22,6 +22,7 @@
   "dependencies": {
     "@aave/core-v3": "1.17.2",
     "@marginly/contracts": "0.1.0",
+    "@marginly/contracts-uniswap-mock": "0.1.0",
     "@marginly/common": "0.1.0",
     "@uniswap/v3-core": "^1.0.1",
     "@openzeppelin/contracts": "^4.8.0",

@@ -2,7 +2,6 @@
   "name": "@marginly/common",
   "version": "0.1.0",
   "description": "Marginly common code",
-  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "EqLab",
   "license": "MIT",
@@ -24,6 +23,7 @@
     "ethers": "^5.7.2"
   },
   "exports": {
+    ".": "./dist/index.js",
     "./resource": "./dist/resource.js",
     "./error": "./dist/error.js",
     "./logger": "./dist/logger.js",

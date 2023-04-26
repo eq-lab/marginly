@@ -6,13 +6,6 @@
     "assertChainId": 5,
     "ethOptions": {}
   },
-  "uniswap": {
-    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-  },
-  "marginlyFactory": {
-    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
-  },
   "tokens": [
     {
       "id": "usdc",
@@ -25,15 +18,22 @@
       "assertSymbol": "WETH1"
     }
   ],
-  "uniswapPools": [
-    {
-      "id": "usdc-weth",
-      "token0Id": "usdc",
-      "token1Id": "weth",
-      "fee": "0.05%",
-      "allowCreate": false
-    }
-  ],
+  "uniswap": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "pools": [
+      {
+        "id": "usdc-weth",
+        "token0Id": "usdc",
+        "token1Id": "weth",
+        "fee": "0.05%",
+        "allowCreate": false
+      }
+    ]
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
+  },
   "marginlyPools": [
     {
       "id": "usdc-weth",
