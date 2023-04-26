@@ -15,7 +15,6 @@ import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
 import './dataTypes/Position.sol';
 import './dataTypes/Mode.sol';
-import './dataTypes/DiscountedDelta.sol';
 import './libraries/MaxBinaryHeapLib.sol';
 import './libraries/OracleLib.sol';
 import './libraries/FP48.sol';
@@ -323,7 +322,7 @@ contract MarginlyPool is IMarginlyPool {
       }
     }
 
-    DiscountedDelta memory eventDiscountedDelta;
+    uint256 eventBaseDiscountedDelta;
 
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff;
     FP96.FixedPoint memory _baseDebtCoeff = baseDebtCoeff;
@@ -345,7 +344,7 @@ contract MarginlyPool is IMarginlyPool {
         uint256 discountedBaseDebtDelta = position.discountedBaseAmount;
 
         // update event data
-        eventDiscountedDelta.amount = position.discountedBaseAmount + discountedBaseCollateralDelta;
+        eventBaseDiscountedDelta = position.discountedBaseAmount + discountedBaseCollateralDelta;
 
         position._type = PositionType.Lend;
         position.discountedBaseAmount = discountedBaseCollateralDelta;
@@ -360,7 +359,7 @@ contract MarginlyPool is IMarginlyPool {
         position.discountedBaseAmount = position.discountedBaseAmount.sub(discountedBaseDebtDelta);
 
         // update event data
-        eventDiscountedDelta.amount = discountedBaseDebtDelta;
+        eventBaseDiscountedDelta = discountedBaseDebtDelta;
 
         // update aggregates
         discountedBaseDebt = _discountedBaseDebt.sub(discountedBaseDebtDelta);
@@ -372,8 +371,7 @@ contract MarginlyPool is IMarginlyPool {
       position.discountedBaseAmount = position.discountedBaseAmount.add(discountedCollateralDelta);
 
       // update event data
-      eventDiscountedDelta.amount = discountedCollateralDelta;
-      eventDiscountedDelta.isPositive = true;
+      eventBaseDiscountedDelta = discountedCollateralDelta;
 
       // update aggregates
       discountedBaseCollateral = _discountedBaseCollateral.add(discountedCollateralDelta);
@@ -385,7 +383,7 @@ contract MarginlyPool is IMarginlyPool {
     require(!marginCallHappened, 'MC'); // Margin call
 
     TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), amount);
-    emit DepositBase(msg.sender, amount, eventDiscountedDelta);
+    emit DepositBase(msg.sender, amount, eventBaseDiscountedDelta);
   }
 
   /// @inheritdoc IMarginlyPool
@@ -408,7 +406,7 @@ contract MarginlyPool is IMarginlyPool {
       }
     }
 
-    DiscountedDelta memory eventDiscountedDelta;
+    uint256 eventQuoteDiscountedDelta;
 
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff;
     FP96.FixedPoint memory _quoteDebtCoeff = quoteDebtCoeff;
@@ -430,7 +428,7 @@ contract MarginlyPool is IMarginlyPool {
         uint256 discountedQuoteDebtDelta = position.discountedQuoteAmount;
 
         // update event data
-        eventDiscountedDelta.amount = position.discountedQuoteAmount + discountedQuoteCollateralDelta;
+        eventQuoteDiscountedDelta = position.discountedQuoteAmount + discountedQuoteCollateralDelta;
 
         position._type = PositionType.Lend;
         position.discountedQuoteAmount = discountedQuoteCollateralDelta;
@@ -445,7 +443,7 @@ contract MarginlyPool is IMarginlyPool {
         position.discountedQuoteAmount = position.discountedQuoteAmount.sub(discountedQuoteDebtDelta);
 
         // update event data
-        eventDiscountedDelta.amount = discountedQuoteDebtDelta;
+        eventQuoteDiscountedDelta = discountedQuoteDebtDelta;
 
         // update aggregates
         discountedQuoteDebt = _discountedQuoteDebt.sub(discountedQuoteDebtDelta);
@@ -457,8 +455,7 @@ contract MarginlyPool is IMarginlyPool {
       position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteCollateralDelta);
 
       // update event data
-      eventDiscountedDelta.amount = discountedQuoteCollateralDelta;
-      eventDiscountedDelta.isPositive = true;
+      eventQuoteDiscountedDelta = discountedQuoteCollateralDelta;
 
       // update aggregates
       discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
@@ -470,7 +467,7 @@ contract MarginlyPool is IMarginlyPool {
     require(!marginCallHappened, 'MC'); // Margin call
 
     TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), amount);
-    emit DepositQuote(msg.sender, amount, eventDiscountedDelta);
+    emit DepositQuote(msg.sender, amount, eventQuoteDiscountedDelta);
   }
 
   /// @inheritdoc IMarginlyPool

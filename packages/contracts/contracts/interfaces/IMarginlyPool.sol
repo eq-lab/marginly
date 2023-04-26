@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import './IMarginlyPoolOwnerActions.sol';
 import '../dataTypes/Mode.sol';
-import '../dataTypes/DiscountedDelta.sol';
 import '../libraries/FP96.sol';
 import '../dataTypes/Position.sol';
 
@@ -16,14 +15,14 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when user deposited base token
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  /// @param discountedDelta Discounted delta amount of base tokens user deposited
-  event DepositBase(address indexed user, uint256 amount, DiscountedDelta discountedDelta);
+  /// @param baseDiscountedDelta Discounted delta amount of base tokens user deposited
+  event DepositBase(address indexed user, uint256 amount, uint256 baseDiscountedDelta);
 
   /// @dev Emitted when user deposited quote token
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  /// @param discountedDelta Discounted delta amount of quote tokens user deposited
-  event DepositQuote(address indexed user, uint256 amount, DiscountedDelta discountedDelta);
+  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens user deposited
+  event DepositQuote(address indexed user, uint256 amount, uint256 quoteDiscountedDelta);
 
   /// @dev Emitted when user withdrew base token
   /// @param user User
@@ -90,15 +89,15 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when position liquidation happened
   /// @param liquidator Liquidator
   /// @param position Liquidated position
-  /// @param newPositionType Type of tx sender position
-  /// @param newPositionQuoteDiscounted Discounted delta amount of quote tokens
-  /// @param newPositionBaseDiscountedDelta Discounted delta amount of base tokens
+  /// @param newPositionType Type of tx sender new position
+  /// @param newPositionQuoteDiscounted Discounted amount of quote tokens for new position
+  /// @param newPositionBaseDiscounted Discounted amount of base tokens for new position
   event ReceivePosition(
     address indexed liquidator,
     address indexed position,
     PositionType newPositionType,
     uint256 newPositionQuoteDiscounted,
-    uint256 newPositionBaseDiscountedDelta
+    uint256 newPositionBaseDiscounted
   );
 
   /// @dev When system switched to emergency mode
