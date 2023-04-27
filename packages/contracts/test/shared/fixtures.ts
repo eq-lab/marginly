@@ -17,7 +17,7 @@ import {
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { generateWallets } from './utils';
-import { Wallet } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseUnits } from 'ethers/lib/utils';
 
@@ -114,6 +114,7 @@ export async function createMarginlyPool(): Promise<{
   quoteContract: TestERC20;
   baseContract: TestERC20;
   swapRouter: TestSwapRouter;
+  marginlyFactory: MarginlyFactory;
 }> {
   const { factory, owner, uniswapPoolInfo, swapRouter } = await createMarginlyFactory();
 
@@ -154,7 +155,15 @@ export async function createMarginlyPool(): Promise<{
 
   const [quoteContract, baseContract] = [uniswapPoolInfo.token0, uniswapPoolInfo.token1];
 
-  return { marginlyPool: pool, factoryOwner: owner, uniswapPoolInfo, quoteContract, baseContract, swapRouter };
+  return {
+    marginlyPool: pool,
+    factoryOwner: owner,
+    uniswapPoolInfo,
+    quoteContract,
+    baseContract,
+    swapRouter,
+    marginlyFactory: factory,
+  };
 }
 
 /**
@@ -219,7 +228,13 @@ export async function getInitializedPool(): Promise<{
   return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: additionalWallets };
 }
 
-export async function createMarginlyPoolWithWrapper(): Promise<{
+enum WrapperWETHMode {
+  Default,
+  BaseIsWETH,
+  QuoteIsWETH,
+}
+
+async function createMarginlyPoolWithWrapperInternal(wethMode: WrapperWETHMode): Promise<{
   marginlyPool: MarginlyPool;
   marginlyPoolWrapper: MarginlyPoolWrapper;
   factoryOwner: SignerWithAddress;
@@ -227,12 +242,26 @@ export async function createMarginlyPoolWithWrapper(): Promise<{
   quoteContract: TestERC20;
   baseContract: TestERC20;
   swapRouter: TestSwapRouter;
+  marginlyFactory: MarginlyFactory;
 }> {
-  const { marginlyPool, factoryOwner, uniswapPoolInfo, quoteContract, baseContract, swapRouter } =
+  const { marginlyPool, factoryOwner, uniswapPoolInfo, quoteContract, baseContract, swapRouter, marginlyFactory } =
     await createMarginlyPool();
   const wrapperFactory = await ethers.getContractFactory('MarginlyPoolWrapper');
 
-  const marginlyPoolWrapper = await wrapperFactory.deploy([marginlyPool.address], factoryOwner.address);
+  let wethAddress;
+  switch (wethMode) {
+    case WrapperWETHMode.Default:
+      wethAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'; // WETH9 address
+      break;
+    case WrapperWETHMode.BaseIsWETH:
+      wethAddress = baseContract.address;
+      break;
+    case WrapperWETHMode.QuoteIsWETH:
+      wethAddress = quoteContract.address;
+      break;
+  }
+
+  const marginlyPoolWrapper = await wrapperFactory.deploy([marginlyPool.address], factoryOwner.address, wethAddress);
 
   const amountToDeposit = 5000n * 10n ** BigInt(await uniswapPoolInfo.token0.decimals());
 
@@ -256,7 +285,47 @@ export async function createMarginlyPoolWithWrapper(): Promise<{
     quoteContract,
     baseContract,
     swapRouter,
+    marginlyFactory,
   };
+}
+
+export async function createMarginlyPoolWithWrapper(): Promise<{
+  marginlyPool: MarginlyPool;
+  marginlyPoolWrapper: MarginlyPoolWrapper;
+  factoryOwner: SignerWithAddress;
+  uniswapPoolInfo: UniswapPoolInfo;
+  quoteContract: TestERC20;
+  baseContract: TestERC20;
+  swapRouter: TestSwapRouter;
+  marginlyFactory: MarginlyFactory;
+}> {
+  return createMarginlyPoolWithWrapperInternal(WrapperWETHMode.Default);
+}
+
+export async function createMarginlyPoolWrapperQuoteIsWETH(): Promise<{
+  marginlyPool: MarginlyPool;
+  marginlyPoolWrapper: MarginlyPoolWrapper;
+  factoryOwner: SignerWithAddress;
+  uniswapPoolInfo: UniswapPoolInfo;
+  quoteContract: TestERC20;
+  baseContract: TestERC20;
+  swapRouter: TestSwapRouter;
+  marginlyFactory: MarginlyFactory;
+}> {
+  return createMarginlyPoolWithWrapperInternal(WrapperWETHMode.QuoteIsWETH);
+}
+
+export async function createMarginlyPoolWrapperBaseIsWETH(): Promise<{
+  marginlyPool: MarginlyPool;
+  marginlyPoolWrapper: MarginlyPoolWrapper;
+  factoryOwner: SignerWithAddress;
+  uniswapPoolInfo: UniswapPoolInfo;
+  quoteContract: TestERC20;
+  baseContract: TestERC20;
+  swapRouter: TestSwapRouter;
+  marginlyFactory: MarginlyFactory;
+}> {
+  return createMarginlyPoolWithWrapperInternal(WrapperWETHMode.BaseIsWETH);
 }
 
 export async function createAavePool(): Promise<MockAavePool> {

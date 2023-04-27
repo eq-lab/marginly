@@ -10,7 +10,7 @@ contract TestUniswapPool is IUniswapV3PoolImmutables, IUniswapV3PoolState {
   address public override token1;
 
   uint160 public token1ToToken0SqrtPriceX96 = 0x02000000000000000000000000;
-  int56 tickCumulativesSecond = 13863 * 900;
+  int56 tickCumulativesSecond = 12477240; //13863.6 * 900;
 
   constructor(address _token0, address _token1) {
     token0 = _token0;
@@ -43,7 +43,7 @@ contract TestUniswapPool is IUniswapV3PoolImmutables, IUniswapV3PoolState {
   /// token1ToToken1Price = 1/4
   function setPriceQuoteLowerThanBase() external {
     token1ToToken0SqrtPriceX96 = 39614081257132168796771975168; // 0.5 * 2^96
-    tickCumulativesSecond = -13863 * 900;
+    tickCumulativesSecond = -12477240; //13863.6 * 900;
   }
 
   /// @notice The contract that deployed the pool, which must adhere to the IUniswapV3Factory interface
