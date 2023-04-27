@@ -229,14 +229,14 @@ class MarginlyDeployer {
   public deployMarginlyWrapper(
     marginlyPools: MarginlyDeploymentMarginlyPool[],
     wrapperAdminAddress: string,
-    wethToken: MarginlyConfigToken
+    weth9Token: MarginlyConfigToken
   ): Promise<DeployResult> {
     const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
       return marginlyPool.address;
     });
     return this.deploy(
       'MarginlyPoolWrapper',
-      [marginlyPoolsString, wrapperAdminAddress, wethToken.address],
+      [marginlyPoolsString, wrapperAdminAddress, weth9Token.address.toString()],
       'MarginlyPoolWrapper'
     );
   }
@@ -671,7 +671,7 @@ interface MarginlyConfigMarginlyPool {
 
 interface MarginlyConfigMarginlyWrapper {
   ids: string[];
-  wethToken: MarginlyConfigToken;
+  weth9Token: MarginlyConfigToken;
 }
 
 interface MarginlyConfigMarginlyKeeper {
@@ -802,14 +802,14 @@ class StrictMarginlyDeployConfig {
       });
     }
 
-    const wethToken = tokens.get(config.marginlyWrapper.wethTokenId);
-    if (wethToken === undefined) {
-      throw new Error(`wethToken with id '${config.marginlyWrapper.wethTokenId}' is not found for marginlyWrapper`);
+    const weth9Token = tokens.get(config.marginlyWrapper.weth9TokenId);
+    if (weth9Token === undefined) {
+      throw new Error(`wethToken with id '${config.marginlyWrapper.weth9TokenId}' is not found for marginlyWrapper`);
     }
 
     const marginlyWrapper: MarginlyConfigMarginlyWrapper = {
       ids,
-      wethToken,
+      weth9Token,
     };
 
     if (
@@ -1051,7 +1051,7 @@ export async function deployMarginly(
       const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
         deployedMarginlyPools,
         await signer.getAddress(),
-        config.marginlyWrapper.wethToken
+        config.marginlyWrapper.weth9Token
       );
       printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
 

@@ -59,7 +59,7 @@
   ],
   "marginlyWrapper": {
     "pools": ["usdc-weth"],
-    "wethTokenId": "weth"
+    "weth9TokenId": "weth"
   },
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
