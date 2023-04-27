@@ -53,6 +53,9 @@ export interface MarginlyDeployConfig {
       quoteLimit: string;
     };
   }[];
+  marginlyWrapper: {
+    wethTokenId: string;
+  };
   marginlyKeeper: {
     aavePoolAddressesProvider: {
       address?: string;

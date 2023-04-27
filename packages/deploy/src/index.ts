@@ -228,12 +228,17 @@ class MarginlyDeployer {
 
   public deployMarginlyWrapper(
     marginlyPools: MarginlyDeploymentMarginlyPool[],
-    wrapperAdminAddress: string
+    wrapperAdminAddress: string,
+    wethToken: MarginlyConfigToken
   ): Promise<DeployResult> {
     const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
       return marginlyPool.address;
     });
-    return this.deploy('MarginlyPoolWrapper', [marginlyPoolsString, wrapperAdminAddress], 'MarginlyPoolWrapper');
+    return this.deploy(
+      'MarginlyPoolWrapper',
+      [marginlyPoolsString, wrapperAdminAddress, wethToken.address],
+      'MarginlyPoolWrapper'
+    );
   }
 
   public deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
@@ -666,6 +671,7 @@ interface MarginlyConfigMarginlyPool {
 
 interface MarginlyConfigMarginlyWrapper {
   ids: string[];
+  wethToken: MarginlyConfigToken;
 }
 
 interface MarginlyConfigMarginlyKeeper {
@@ -796,7 +802,15 @@ class StrictMarginlyDeployConfig {
       });
     }
 
-    const marginlyWrapper: MarginlyConfigMarginlyWrapper = { ids };
+    const wethToken = tokens.get(config.marginlyWrapper.wethTokenId);
+    if (wethToken === undefined) {
+      throw new Error(`wethToken with id '${config.marginlyWrapper.wethTokenId}' is not found for marginlyWrapper`);
+    }
+
+    const marginlyWrapper: MarginlyConfigMarginlyWrapper = {
+      ids,
+      wethToken,
+    };
 
     if (
       (config.marginlyKeeper.aavePoolAddressesProvider.address &&
@@ -1036,7 +1050,8 @@ export async function deployMarginly(
     const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
       const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
         deployedMarginlyPools,
-        await signer.getAddress()
+        await signer.getAddress(),
+        config.marginlyWrapper.wethToken
       );
       printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
 

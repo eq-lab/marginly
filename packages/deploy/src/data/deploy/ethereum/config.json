@@ -154,7 +154,8 @@
     }
   ],
   "marginlyWrapper": {
-    "pools": ["usdc-weth", "usdc-usdt", "usdc-blur", "ldo-weth"]
+    "pools": ["usdc-weth", "usdc-usdt", "usdc-blur", "ldo-weth"],
+    "wethTokenId": "weth"
   },
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
