@@ -64,6 +64,7 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
 
     constructor(address oracle, address tokenA, address tokenB, uint24 _fee) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(ORACLE_ROLE, msg.sender);
         _setupRole(ORACLE_ROLE, oracle);
 
         (token0, token1) = sortTokens(tokenA, tokenB);

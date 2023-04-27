@@ -1,3 +1,5 @@
+import { RootPriceConfig } from '@marginly/common/dist/price';
+
 export interface EthOptions {
   gasLimit?: number;
   gasPrice?: number;
@@ -38,29 +40,58 @@ export function isMarginlyDeployConfigMintableToken(token: MarginlyDeployConfigT
   return token.type === 'mintable';
 }
 
+interface MarginlyDeployConfigUniswapGenuine {
+  type: 'genuine' | undefined;
+  factory: string;
+  swapRouter: string;
+  pools: {
+    id: string;
+    tokenAId: string;
+    tokenBId: string;
+    fee: string;
+    allowCreate: boolean;
+    assertAddress?: string;
+  }[];
+}
+
+interface MarginlyDeployConfigUniswapMock {
+  type: 'mock';
+  oracle: string;
+  weth9TokenId: string;
+  priceLogSize: number;
+  pools: {
+    id: string;
+    tokenAId: string;
+    tokenBId: string;
+    fee: string;
+    tokenABalance?: string;
+    tokenBBalance?: string;
+    priceId: string;
+    priceBaseTokenId: string;
+  }[];
+}
+
+type MarginlyDeployConfigUniswap = MarginlyDeployConfigUniswapGenuine | MarginlyDeployConfigUniswapMock;
+export function isMarginlyDeployConfigUniswapGenuine(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapGenuine {
+  return uniswap.type === 'genuine' || uniswap.type === undefined;
+}
+
+export function isMarginlyDeployConfigUniswapMock(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapMock {
+  return uniswap.type === 'mock';
+}
+
 export interface MarginlyDeployConfig {
   connection: EthConnectionConfig;
   tokens: MarginlyDeployConfigToken[];
-  uniswap: {
-    factory: string;
-    swapRouter: string;
-    pools: {
-      id: string;
-      token0Id: string;
-      token1Id: string;
-      fee: string;
-      allowCreate: boolean;
-      assertAddress?: string;
-    }[];
-  };
+  prices: RootPriceConfig[];
+  uniswap: MarginlyDeployConfigUniswap;
   marginlyFactory: {
     feeHolder: string;
   };
   marginlyPools: {
     id: string;
     uniswapPoolId: string;
-    baseToken: string;
-    quoteToken: string;
+    baseTokenId: string;
     params: {
       interestRate: string;
       maxLeverage: string;

@@ -1,7 +1,5 @@
-import * as os from 'os';
 import * as util from 'util';
-import {ErrorAware, onError, Resource} from '@marginly/common/resource';
-import {CriticalError} from '@marginly/common/error';
+import { onError, Resource} from '@marginly/common/resource';
 import {Logger} from '@marginly/common/logger';
 
 export enum LogLevel {
@@ -340,11 +338,10 @@ export function textFormatter(logRecord: {
     return logRecord.eql.message ?? '';
 }
 
-export const stdOutWriter =
+export const consoleWriter =
     (format: LogFormatter) =>
         (logRecord: { eql: LogRecordBase & Record<string, unknown> }): void => {
-            process.stdout.write(format(logRecord));
-            process.stdout.write(os.EOL);
+            console.log(format(logRecord));
         };
 
 export function emptyLogRecordWriter(logRecord: {

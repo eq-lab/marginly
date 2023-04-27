@@ -49,7 +49,7 @@ contract SwapRouterMock is
     token1 = tokenB;
   }
 
-  function getPool(address tokenA, address tokenB, uint24 fee) private view returns (IUniswapV3Pool) {
+  function getPool(address tokenA, address tokenB, uint24 fee) public view returns (IUniswapV3Pool) {
     (address token0, address token1) = sortTokens(tokenA, tokenB);
     address pool = pools[token0][token1][fee];
     return IUniswapV3Pool(pool);

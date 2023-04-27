@@ -31,7 +31,7 @@ const retryDefaults = {
     retryDelayMultiplier: 1.5,
 };
 
-const retry =
+export const retry =
     (options: RetryOptions) =>
         async <T>(call: () => Promise<T>): Promise<T> => {
             return await using(options.logger.scope('retry'), async logger => {
@@ -97,11 +97,28 @@ export const timeout =
             const ErrorClass = options?.errorClass ?? TimeoutError;
             const watchdogTimeoutMs =
                 options?.watchdogTimeoutMs ?? timeoutDefaults.watchdogTimeoutMs;
+
+            let cancelWatchdog = false;
+            const watchdogStepMs = 1000;
             const watchdog = async () => {
-                await sleep(watchdogTimeoutMs);
+                let elapsed = 0;
+                while (elapsed < watchdogTimeoutMs && !cancelWatchdog) {
+                    await sleep(watchdogStepMs);
+                    elapsed += watchdogStepMs;
+                }
+
+                if (cancelWatchdog) {
+                    await sleep(watchdogStepMs);
+                }
                 throw new ErrorClass('Waiting is timed out');
             };
-            return Promise.race([promise, watchdog()]);
+            return Promise.race([promise.then(x => {
+                cancelWatchdog = true;
+                return x;
+            }, e => {
+                cancelWatchdog = true;
+                throw e;
+            }), watchdog()]);
         };
 
 export interface TimeoutRetryOptions {

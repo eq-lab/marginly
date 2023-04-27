@@ -4,17 +4,17 @@ import * as ethers from 'ethers';
 export class EthAddress {
   private static zeroRegex = /^0x0{40}$/;
 
-  private readonly address: string;
+  private readonly address: `0x${string}`;
 
-  private constructor(address: string) {
+  private constructor(address: `0x${string}`) {
     this.address = address;
   }
 
   public static parse(str: string): EthAddress {
-    return new EthAddress(ethers.utils.getAddress(str));
+    return new EthAddress(ethers.utils.getAddress(str) as `0x${string}`);
   }
 
-  public toString(): string {
+  public toString(): `0x${string}` {
     return this.address;
   }
 
@@ -49,7 +49,7 @@ export interface Fp96 {
 export const Fp96One = BigNumber.from(2).pow(96);
 
 export class RationalNumber {
-  private static readonly regex: RegExp = /^(-)?(\d+)(\.\d+)?$/;
+  private static readonly regex: RegExp = /^(-)?(\d[0-9_]*)(\.\d+)?$/;
   public readonly nom: BigNumber;
   public readonly denom: BigNumber;
 
@@ -83,7 +83,7 @@ export class RationalNumber {
     }
 
     const sign = match[1] === '-' ? -1 : 1;
-    const integerStr = this.trimLeftZeros(match[2]);
+    const integerStr = this.trimLeftZeros(match[2]).replace(/_/g, '');
 
     let fractionalStr = match[3];
     if (fractionalStr === undefined) {

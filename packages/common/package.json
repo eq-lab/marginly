@@ -14,13 +14,15 @@
     "@types/node": "16",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
+    "@types/node-fetch": "^2.6.3",
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "prettier": "^2.8.2",
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "node-fetch": "^2.6.9"
   },
   "exports": {
     ".": "./dist/index.js",
@@ -29,7 +31,8 @@
     "./logger": "./dist/logger.js",
     "./execution": "./dist/execution.js",
     "./lifecycle": "./dist/lifecycle.js",
-    "./math": "./dist/math.js"
+    "./math": "./dist/math.js",
+    "./price": "./dist/price.js"
   },
   "typesVersions": {
     "*": {
@@ -38,7 +41,8 @@
       "logger": ["dist/logger.d.ts"],
       "execution": ["dist/execution.d.ts"],
       "lifecycle": ["dist/lifecycle.d.ts"],
-      "math": ["dist/math.d.ts"]
+      "math": ["dist/math.d.ts"],
+      "price": ["dist/price.d.ts"]
     }
   }
 }
