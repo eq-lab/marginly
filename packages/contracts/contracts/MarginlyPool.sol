@@ -613,7 +613,7 @@ contract MarginlyPool is IMarginlyPool {
       realCollateralDelta = swappedQuoteCollateral;
       collateralToken = quoteToken;
     } else if (position._type == PositionType.Long) {
-      uint256 realBaseCollateral = quoteCollateralCoeff.mul(position.discountedBaseAmount);
+      uint256 realBaseCollateral = baseCollateralCoeff.mul(position.discountedBaseAmount);
       uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
