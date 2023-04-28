@@ -15,14 +15,16 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when user deposited base token
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  /// @param baseDiscountedDelta Discounted delta amount of base tokens user deposited
-  event DepositBase(address indexed user, uint256 amount, uint256 baseDiscountedDelta);
+  /// @param newPositionType User position type after deposit
+  /// @param baseDiscountedAmount Discounted amount of base tokens after deposit
+  event DepositBase(address indexed user, uint256 amount, PositionType newPositionType, uint256 baseDiscountedAmount);
 
   /// @dev Emitted when user deposited quote token
   /// @param user Depositor
   /// @param amount Amount of token user deposited
-  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens user deposited
-  event DepositQuote(address indexed user, uint256 amount, uint256 quoteDiscountedDelta);
+  /// @param newPositionType User position type after deposit
+  /// @param quoteDiscountedAmount Discounted amount of quote tokens after deposit
+  event DepositQuote(address indexed user, uint256 amount, PositionType newPositionType, uint256 quoteDiscountedAmount);
 
   /// @dev Emitted when user withdrew base token
   /// @param user User
