@@ -680,17 +680,15 @@ class MarginlyDeployer {
 
   public async deployUniswapPoolMock(
     oracle: EthAddress,
-    tokenA: MarginlyConfigToken,
-    tokenB: MarginlyConfigToken,
-    fee: RationalNumber,
+    poolConfig: MarginlyConfigUniswapPoolMock,
     tokenRepository: TokenRepository,
   ): Promise<DeployResult> {
-    const { address: tokenAAddress } = tokenRepository.getTokenInfo(tokenA.id);
-    const { address: tokenBAddress } = tokenRepository.getTokenInfo(tokenB.id);
+    const { address: tokenAAddress } = tokenRepository.getTokenInfo(poolConfig.tokenA.id);
+    const { address: tokenBAddress } = tokenRepository.getTokenInfo(poolConfig.tokenB.id);
     return this.deploy(
       'UniswapV3PoolMock',
-      [oracle.toString(), tokenAAddress.toString(), tokenBAddress.toString(), MarginlyDeployer.toUniswapFee(fee)],
-      'uniswapV3PoolMock', readUniswapMockContract,
+      [oracle.toString(), tokenAAddress.toString(), tokenBAddress.toString(), MarginlyDeployer.toUniswapFee(poolConfig.fee)],
+      `uniswapV3PoolMock_${poolConfig.id}`, readUniswapMockContract,
     );
   }
 
@@ -950,6 +948,7 @@ class StrictMarginlyDeployConfig {
       const priceGetter = createPriceGetter(executor, rawPrice);
       const price = await priceGetter.getPrice(priceLogger);
       prices.set(rawPrice.id, price);
+      logger.log(`Price for ${rawPrice.id} is ${price}`);
     }
 
     let uniswap: MarginlyConfigUniswap;
@@ -1273,197 +1272,207 @@ export async function deployMarginly(
     return { config, provider, marginlyDeployer };
   });
 
-  const tokenRepository = await using(logger.beginScope('Process tokens'), async () => {
-    const tokenRepository = new TokenRepository(provider, marginlyDeployer);
+  const balanceBefore = await signer.getBalance();
 
-    for (const token of config.tokens) {
-      await tokenRepository.materializeToken(token);
-    }
+  try {
+    const tokenRepository = await using(logger.beginScope('Process tokens'), async () => {
+      const tokenRepository = new TokenRepository(provider, marginlyDeployer);
 
-    return tokenRepository;
-  });
+      for (const token of config.tokens) {
+        await tokenRepository.materializeToken(token);
+      }
 
-  const { uniswapFactoryAddress, uniswapSwapRouterAddress } =
-    await using(logger.beginScope('Process unsiwap'), async () => {
-        if (isMarginlyConfigUniswapGenuine(config.uniswap)) {
-          const uniswapConfig = config.uniswap;
-          await using(logger.beginScope('Create uniswap pools'), async () => {
-            for (const pool of uniswapConfig.pools) {
-              const uniswapPoolDeploymentResult = await marginlyDeployer.getOrCreateUniswapPoolGenuine(uniswapConfig.factory, pool, tokenRepository);
-              printDeployState(`Uniswap Pool '${pool.id}'`, uniswapPoolDeploymentResult, logger);
-            }
-          });
-          return {
-            uniswapFactoryAddress: config.uniswap.factory,
-            uniswapSwapRouterAddress: config.uniswap.swapRouter,
-          };
-        } else if (isMarginlyConfigUniswapMock(config.uniswap)) {
-          const uniswapConfig = config.uniswap;
-          const uniswapRouterDeploymentResult = await marginlyDeployer.deployUniswapRouterMock(
-            uniswapConfig.weth9Token,
-            tokenRepository,
-          );
-          const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
-          for (const pool of uniswapConfig.pools) {
-            const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
-              uniswapConfig.oracle,
-              pool.tokenA,
-              pool.tokenB,
-              pool.fee,
+      return tokenRepository;
+    });
+
+    const { uniswapFactoryAddress, uniswapSwapRouterAddress } =
+      await using(logger.beginScope('Process unsiwap'), async () => {
+          if (isMarginlyConfigUniswapGenuine(config.uniswap)) {
+            const uniswapConfig = config.uniswap;
+            await using(logger.beginScope('Create uniswap pools'), async () => {
+              for (const pool of uniswapConfig.pools) {
+                const uniswapPoolDeploymentResult = await marginlyDeployer.getOrCreateUniswapPoolGenuine(uniswapConfig.factory, pool, tokenRepository);
+                printDeployState(`Uniswap Pool '${pool.id}'`, uniswapPoolDeploymentResult, logger);
+              }
+            });
+            return {
+              uniswapFactoryAddress: config.uniswap.factory,
+              uniswapSwapRouterAddress: config.uniswap.swapRouter,
+            };
+          } else if (isMarginlyConfigUniswapMock(config.uniswap)) {
+            const uniswapConfig = config.uniswap;
+            const uniswapRouterDeploymentResult = await marginlyDeployer.deployUniswapRouterMock(
+              uniswapConfig.weth9Token,
               tokenRepository,
             );
-            const { address: tokenAAddress } = tokenRepository.getTokenInfo(pool.tokenA.id);
-            const { address: tokenBAddress } = tokenRepository.getTokenInfo(pool.tokenB.id);
-            const uniswapFee = MarginlyDeployer.toUniswapFee(pool.fee);
-            await uniswapRouterContract.setPool(tokenAAddress.toString(), tokenBAddress.toString(), uniswapFee, uniswapPoolDeploymentResult.address);
+            const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
+            for (const pool of uniswapConfig.pools) {
+              const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
+                uniswapConfig.oracle,
+                pool,
+                tokenRepository,
+              );
+              const { address: tokenAAddress } = tokenRepository.getTokenInfo(pool.tokenA.id);
+              const { address: tokenBAddress } = tokenRepository.getTokenInfo(pool.tokenB.id);
+              const uniswapFee = MarginlyDeployer.toUniswapFee(pool.fee);
+              await uniswapRouterContract.setPool(tokenAAddress.toString(), tokenBAddress.toString(), uniswapFee, uniswapPoolDeploymentResult.address);
 
-            const [token0, token1] = sortUniswapPoolTokens(
-              [tokenAAddress.toString(), tokenBAddress.toString()],
-              [pool.tokenA, pool.tokenB],
-            );
+              const [token0, token1] = sortUniswapPoolTokens(
+                [tokenAAddress.toString(), tokenBAddress.toString()],
+                [pool.tokenA, pool.tokenB],
+              );
 
-            const priceToken = pool[pool.priceBaseTokenKey];
-            let price: number;
-            if (token0.id === priceToken.id) {
-              price = pool.price;
-            } else {
-              price = 1 / pool.price;
+              const priceToken = pool[pool.priceBaseTokenKey];
+              let price: number;
+              if (token0.id === priceToken.id) {
+                price = pool.price;
+              } else {
+                price = 1 / pool.price;
+              }
+
+              const { decimals: token0Decimals } = tokenRepository.getTokenInfo(token0.id);
+              const { decimals: token1Decimals } = tokenRepository.getTokenInfo(token1.id);
+
+              const priceFp18 = priceToPriceFp18(price, token0Decimals, token1Decimals);
+              const sqrtPriceX96 = priceToSqrtPriceX96(price, token0Decimals, token1Decimals);
+
+              const uniswapPoolContract = uniswapPoolDeploymentResult.contract;
+
+              await uniswapPoolContract.setPrice(priceFp18, sqrtPriceX96);
+              await uniswapPoolContract.increaseObservationCardinalityNext(config.uniswap.priceLogSize);
+
+              const uniswapPoolAddress = EthAddress.parse(uniswapPoolDeploymentResult.address);
+
+              if (pool.tokenABalance !== undefined) {
+                await marginlyDeployer.ensureTokenAmount(pool.tokenA, uniswapPoolAddress, pool.tokenABalance, tokenRepository);
+              }
+              if (pool.tokenBBalance !== undefined) {
+                await marginlyDeployer.ensureTokenAmount(pool.tokenB, uniswapPoolAddress, pool.tokenBBalance, tokenRepository);
+              }
+              const ownerAddress = EthAddress.parse(await signer.getAddress());
+              await marginlyDeployer.ensureTokenAmount(pool.tokenA, ownerAddress, RationalNumber.parse('1_000_000'), tokenRepository);
+              await marginlyDeployer.ensureTokenAmount(pool.tokenB, ownerAddress, RationalNumber.parse('1_000_000'), tokenRepository);
             }
 
-            const { decimals: token0Decimals } = tokenRepository.getTokenInfo(token0.id);
-            const { decimals: token1Decimals } = tokenRepository.getTokenInfo(token1.id);
-
-            const priceFp18 = priceToPriceFp18(price, token0Decimals, token1Decimals);
-            const sqrtPriceX96 = priceToSqrtPriceX96(price, token0Decimals, token1Decimals);
-
-            const uniswapPoolContract = uniswapPoolDeploymentResult.contract;
-
-            await uniswapPoolContract.setPrice(priceFp18, sqrtPriceX96);
-            await uniswapPoolContract.increaseObservationCardinalityNext(config.uniswap.priceLogSize);
-
-            const uniswapPoolAddress = EthAddress.parse(uniswapPoolDeploymentResult.address);
-
-            if (pool.tokenABalance !== undefined) {
-              await marginlyDeployer.ensureTokenAmount(pool.tokenA, uniswapPoolAddress, pool.tokenABalance, tokenRepository);
-            }
-            if (pool.tokenBBalance !== undefined) {
-              await marginlyDeployer.ensureTokenAmount(pool.tokenB, uniswapPoolAddress, pool.tokenBBalance, tokenRepository);
-            }
+            return {
+              uniswapFactoryAddress: EthAddress.parse(uniswapRouterDeploymentResult.address),
+              uniswapSwapRouterAddress: EthAddress.parse(uniswapRouterDeploymentResult.address),
+            };
+          } else {
+            throw new Error('Unknown Uniswap type');
           }
+        },
+      );
 
-          return {
-            uniswapFactoryAddress: EthAddress.parse(uniswapRouterDeploymentResult.address),
-            uniswapSwapRouterAddress: EthAddress.parse(uniswapRouterDeploymentResult.address),
-          };
-        } else {
-          throw new Error('Unknown Uniswap type');
-        }
+    const marginlyPoolImplDeployResult = await using(
+      logger.beginScope('Deploy marginly pool implementation'),
+      async () => {
+        const marginlyPoolImplDeployResult = await marginlyDeployer.deployMarginlyPoolImplementation();
+        printDeployState('Marginly pool implementation', marginlyPoolImplDeployResult, logger);
+
+        return marginlyPoolImplDeployResult;
       },
     );
 
-  const marginlyPoolImplDeployResult = await using(
-    logger.beginScope('Deploy marginly pool implementation'),
-    async () => {
-      const marginlyPoolImplDeployResult = await marginlyDeployer.deployMarginlyPoolImplementation();
-      printDeployState('Marginly pool implementation', marginlyPoolImplDeployResult, logger);
-
-      return marginlyPoolImplDeployResult;
-    },
-  );
-
-  const marginlyFactoryDeployResult = await using(logger.beginScope('Deploy marginly factory'), async () => {
-    const marginlyFactoryDeployResult = await marginlyDeployer.deployMarginlyFactory(
-      EthAddress.parse(marginlyPoolImplDeployResult.contract.address),
-      uniswapFactoryAddress,
-      uniswapSwapRouterAddress,
-      config.marginlyFactory.feeHolder,
-    );
-    printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
-
-    return marginlyFactoryDeployResult;
-  });
-
-  const deployedMarginlyPools = await using(logger.beginScope('Create marginly pools'), async () => {
-    const deployedMarginlyPools: MarginlyDeploymentMarginlyPool[] = [];
-    for (const pool of config.marginlyPools) {
-      const marginlyPoolDeploymentResult = await marginlyDeployer.getOrCreateMarginlyPool(
-        marginlyFactoryDeployResult.contract,
-        pool,
-        tokenRepository,
+    const marginlyFactoryDeployResult = await using(logger.beginScope('Deploy marginly factory'), async () => {
+      const marginlyFactoryDeployResult = await marginlyDeployer.deployMarginlyFactory(
+        EthAddress.parse(marginlyPoolImplDeployResult.contract.address),
+        uniswapFactoryAddress,
+        uniswapSwapRouterAddress,
+        config.marginlyFactory.feeHolder,
       );
-      deployedMarginlyPools.push({
-        id: pool.id,
-        address: marginlyPoolDeploymentResult.address,
-      });
-      printDeployState(`Marginly Pool '${pool.id}'`, marginlyPoolDeploymentResult, logger);
-    }
-    return deployedMarginlyPools;
-  });
+      printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 
-  let marginlyWrapperAddress = getMarginlyWrapperAddress(stateStore);
-
-  if (marginlyWrapperAddress === undefined) {
-    const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
-      const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
-        deployedMarginlyPools,
-        await signer.getAddress(),
-      );
-      printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
-
-      return marginlyWrapperDeployResult;
+      return marginlyFactoryDeployResult;
     });
-    marginlyWrapperAddress = marginlyWrapperDeployResult.address;
-  } else {
-    const marginlyWrapperContract = (await marginlyDeployer.getMarginlyWrapper(marginlyWrapperAddress)).contract;
-    for (const marginlyPoolAddress of deployedMarginlyPools) {
-      if (!(await marginlyWrapperContract.whitelistedMarginlyPools(marginlyPoolAddress))) {
-        await marginlyWrapperContract.connect(signer).addPoolAddress(marginlyPoolAddress);
+
+    const deployedMarginlyPools = await using(logger.beginScope('Create marginly pools'), async () => {
+      const deployedMarginlyPools: MarginlyDeploymentMarginlyPool[] = [];
+      for (const pool of config.marginlyPools) {
+        const marginlyPoolDeploymentResult = await marginlyDeployer.getOrCreateMarginlyPool(
+          marginlyFactoryDeployResult.contract,
+          pool,
+          tokenRepository,
+        );
+        deployedMarginlyPools.push({
+          id: pool.id,
+          address: marginlyPoolDeploymentResult.address,
+        });
+        printDeployState(`Marginly Pool '${pool.id}'`, marginlyPoolDeploymentResult, logger);
+      }
+      return deployedMarginlyPools;
+    });
+
+    let marginlyWrapperAddress = getMarginlyWrapperAddress(stateStore);
+
+    if (marginlyWrapperAddress === undefined) {
+      const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
+        const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
+          deployedMarginlyPools,
+          await signer.getAddress(),
+        );
+        printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
+
+        return marginlyWrapperDeployResult;
+      });
+      marginlyWrapperAddress = marginlyWrapperDeployResult.address;
+    } else {
+      const marginlyWrapperContract = (await marginlyDeployer.getMarginlyWrapper(marginlyWrapperAddress)).contract;
+      for (const marginlyPoolAddress of deployedMarginlyPools) {
+        if (!(await marginlyWrapperContract.whitelistedMarginlyPools(marginlyPoolAddress))) {
+          await marginlyWrapperContract.connect(signer).addPoolAddress(marginlyPoolAddress);
+        }
       }
     }
-  }
 
-  let marginlyKeeperAddress = getMarginlyKeeperAddress(stateStore);
-  if (!marginlyKeeperAddress) {
-    let aavePoolAddressesProviderAddress: EthAddress;
+    let marginlyKeeperAddress = getMarginlyKeeperAddress(stateStore);
+    if (!marginlyKeeperAddress) {
+      let aavePoolAddressesProviderAddress: EthAddress;
 
-    if (config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) {
-      const deployedMockAavePool = await using(logger.beginScope('Deploy MockAavePool'), async () => {
-        const deploymentResult = await marginlyDeployer.getOrCreateMockAavePool();
-        printDeployState(`Mock AAVE pool`, deploymentResult, logger);
+      if (config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) {
+        const deployedMockAavePool = await using(logger.beginScope('Deploy MockAavePool'), async () => {
+          const deploymentResult = await marginlyDeployer.getOrCreateMockAavePool();
+          printDeployState(`Mock AAVE pool`, deploymentResult, logger);
+          return deploymentResult;
+        });
+
+        const deployedMockAavePoolAddressesProvider = await using(
+          logger.beginScope('Deploy MockAavePoolAddressesProvider'),
+          async () => {
+            const deploymentResult = await marginlyDeployer.getOrCreateMockAavePoolAddressesProvider(
+              EthAddress.parse(deployedMockAavePool.address),
+            );
+            printDeployState(`MockAavePoolAddressesProvider`, deploymentResult, logger);
+            return deploymentResult;
+          },
+        );
+        aavePoolAddressesProviderAddress = EthAddress.parse(deployedMockAavePoolAddressesProvider.address);
+      } else if (config.marginlyKeeper.aavePoolAddressesProvider.address) {
+        const aavePoolAddressesProvider = marginlyDeployer.getAavePoolAddressesProvider(
+          config.marginlyKeeper.aavePoolAddressesProvider.address,
+        );
+
+        aavePoolAddressesProviderAddress = EthAddress.parse(aavePoolAddressesProvider.address);
+      }
+
+      const deployedMarginlyKeeper = await using(logger.beginScope('Deploy MarginlyKeeper'), async () => {
+        const deploymentResult = await marginlyDeployer.deployMarginlyKeeper(aavePoolAddressesProviderAddress);
+        printDeployState(`Marginly keeper`, deploymentResult, logger);
         return deploymentResult;
       });
 
-      const deployedMockAavePoolAddressesProvider = await using(
-        logger.beginScope('Deploy MockAavePoolAddressesProvider'),
-        async () => {
-          const deploymentResult = await marginlyDeployer.getOrCreateMockAavePoolAddressesProvider(
-            EthAddress.parse(deployedMockAavePool.address),
-          );
-          printDeployState(`MockAavePoolAddressesProvider`, deploymentResult, logger);
-          return deploymentResult;
-        },
-      );
-      aavePoolAddressesProviderAddress = EthAddress.parse(deployedMockAavePoolAddressesProvider.address);
-    } else if (config.marginlyKeeper.aavePoolAddressesProvider.address) {
-      const aavePoolAddressesProvider = marginlyDeployer.getAavePoolAddressesProvider(
-        config.marginlyKeeper.aavePoolAddressesProvider.address,
-      );
-
-      aavePoolAddressesProviderAddress = EthAddress.parse(aavePoolAddressesProvider.address);
+      marginlyKeeperAddress = deployedMarginlyKeeper.address;
     }
 
-    const deployedMarginlyKeeper = await using(logger.beginScope('Deploy MarginlyKeeper'), async () => {
-      const deploymentResult = await marginlyDeployer.deployMarginlyKeeper(aavePoolAddressesProviderAddress);
-      printDeployState(`Marginly keeper`, deploymentResult, logger);
-      return deploymentResult;
-    });
+    return {
+      marginlyPools: deployedMarginlyPools,
+      marginlyWrapper: { address: marginlyWrapperAddress },
+      marginlyKeeper: { address: marginlyKeeperAddress },
+    };
+  } finally {
+    const balanceAfter = await signer.getBalance();
+    const ethSpent = balanceBefore.sub(balanceAfter);
 
-    marginlyKeeperAddress = deployedMarginlyKeeper.address;
+    logger.log(`ETH spent: ${ethers.utils.formatEther(ethSpent)}`);
   }
-
-  return {
-    marginlyPools: deployedMarginlyPools,
-    marginlyWrapper: { address: marginlyWrapperAddress },
-    marginlyKeeper: { address: marginlyKeeperAddress },
-  };
 }

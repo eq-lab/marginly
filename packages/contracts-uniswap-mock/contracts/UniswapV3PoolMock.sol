@@ -53,7 +53,7 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
 
     Oracle.Observation[65535] public observations;
 
-    uint256 latestPrice;
+    uint256 public latestPrice;
 
     modifier lock() {
         require(slot0.unlocked, 'LOK');

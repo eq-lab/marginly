@@ -1,0 +1,104 @@
+{
+  "log": {
+    "level": 3,
+    "format": "text"
+  },
+  "ethereum": {
+    "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
+  },
+  "oracleWorker": {
+  },
+  "tokens": [
+    {
+      "id": "fweth",
+      "address": "0x4AA54b32b964D2a768bc2659c4C86cCFEEf9561A",
+      "assertSymbol": "FWETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc",
+      "address": "0x7ed484327b2E27464790c8a0882452B05D41E9D5",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
+    },
+    {
+      "id": "arb",
+      "address": "0x429366dC3ccaBf97Cf71A73152f622C3587C524b",
+      "assertSymbol": "ARB",
+      "assertDecimals": 18
+    },
+    {
+      "id": "gmx",
+      "address": "0xFC5E87626b1dc26ed7780E6885975c958478fefe",
+      "assertSymbol": "GMX",
+      "assertDecimals": 18
+    }
+  ],
+  "prices": [
+    {
+      "id": "eth-usdc",
+      "label": "eth/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+    },
+    {
+      "id": "arb-eth",
+      "label": "arb/eth",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "arb/usdt",
+          "direction": "forward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/eth",
+          "direction": "backward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+        }
+      ]
+    },
+    {
+      "id": "gmx-eth",
+      "label": "gmx/eth",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "gmx/usdt",
+          "direction": "forward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/eth",
+          "direction": "backward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+        }
+      ]
+    }
+  ],
+  "uniswapV3PoolMocks": [
+    {
+      "id": "fweth-usdc",
+      "address": "0x4bfD0f17025ed16014b3165c56F5dd09A73Cb490",
+      "priceId": "eth-usdc",
+      "priceBaseTokenId": "fweth"
+    },
+    {
+      "id": "arb-fweth",
+      "address": "0xc745D5B682E9597001ba291dB61F84846104deE1",
+      "priceId": "arb-eth",
+      "priceBaseTokenId": "arb"
+    },
+    {
+      "id": "gmx-fweth",
+      "address": "0x9d733DCdD69a72FAA5Fa87611d384605D2cfedF4",
+      "priceId": "gmx-eth",
+      "priceBaseTokenId": "gmx"
+    }
+  ]
+}

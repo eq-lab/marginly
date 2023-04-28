@@ -27,7 +27,10 @@
     "@marginly/logger": "^1.0.0",
     "@marginly/logger-node": "^1.0.0",
     "@marginly/common": "^0.1.0",
+    "@marginly/contracts-uniswap-mock": "^0.1.0",
+    "@openzeppelin/contracts": "^4.8.0",
     "yargs": "^13.3.2",
-    "node-fetch": "^2.6.9"
+    "node-fetch": "^2.6.9",
+    "ethers": "^5.7.2"
   }
 }
