@@ -467,35 +467,26 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    uint256 eventBaseDiscountedDelta;
-
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff;
     uint256 positionBaseAmount = position.discountedBaseAmount;
 
     uint256 realBaseAmount = _baseCollateralCoeff.mul(positionBaseAmount);
     uint256 realAmountToWithdraw;
-    bool isFullWithdraw = false;
+    bool needToDeletePosition = false;
     uint256 discountedBaseCollateralDelta;
     if (realAmount >= realBaseAmount) {
-      // full withdraw, all dust remains on pool balance
+      // full withdraw
       realAmountToWithdraw = realBaseAmount;
-      isFullWithdraw = true;
-      discountedBaseCollateralDelta = _baseCollateralCoeff.recipMul(realAmountToWithdraw);
+      discountedBaseCollateralDelta = positionBaseAmount;
 
-      // update event data
-      eventBaseDiscountedDelta = position.discountedBaseAmount;
-
-      position.discountedBaseAmount = 0;
+      needToDeletePosition = position.discountedQuoteAmount == 0;
     } else {
       // partial withdraw
       realAmountToWithdraw = realAmount;
       discountedBaseCollateralDelta = _baseCollateralCoeff.recipMul(realAmountToWithdraw);
-      position.discountedBaseAmount = positionBaseAmount.sub(discountedBaseCollateralDelta);
-
-      // update event data
-      eventBaseDiscountedDelta = discountedBaseCollateralDelta;
     }
 
+    position.discountedBaseAmount = positionBaseAmount.sub(discountedBaseCollateralDelta);
     discountedBaseCollateral = discountedBaseCollateral.sub(discountedBaseCollateralDelta);
 
     updateSystemLeverageLong(basePrice);
@@ -503,15 +494,13 @@ contract MarginlyPool is IMarginlyPool {
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    if (isFullWithdraw) {
-      if (position.discountedBaseAmount == 0 && position.discountedQuoteAmount == 0) {
-        delete positions[msg.sender];
-      }
+    if (needToDeletePosition) {
+      delete positions[msg.sender];
     }
 
     TransferHelper.safeTransfer(baseToken, msg.sender, realAmountToWithdraw);
 
-    emit WithdrawBase(msg.sender, realAmountToWithdraw, eventBaseDiscountedDelta);
+    emit WithdrawBase(msg.sender, realAmountToWithdraw, discountedBaseCollateralDelta);
   }
 
   /// @inheritdoc IMarginlyPool
@@ -533,35 +522,26 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    uint256 eventQuoteDiscountedDelta;
-
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff;
     uint256 positionQuoteAmount = position.discountedQuoteAmount;
 
     uint256 realQuoteAmount = _quoteCollateralCoeff.mul(positionQuoteAmount);
     uint256 realAmountToWithdraw;
-    bool isFullWithdraw = false;
+    bool needToDeletePosition = false;
     uint256 discountedQuoteCollateralDelta;
     if (realAmount >= realQuoteAmount) {
-      // full withdraw, all dust remains on pool balance
+      // full withdraw
       realAmountToWithdraw = realQuoteAmount;
-      isFullWithdraw = true;
-      discountedQuoteCollateralDelta = _quoteCollateralCoeff.recipMul(realAmountToWithdraw);
+      discountedQuoteCollateralDelta = positionQuoteAmount;
 
-      // update event data
-      eventQuoteDiscountedDelta = position.discountedQuoteAmount;
-
-      position.discountedQuoteAmount = 0;
+      needToDeletePosition = position.discountedBaseAmount == 0;
     } else {
       // partial withdraw
       realAmountToWithdraw = realAmount;
       discountedQuoteCollateralDelta = _quoteCollateralCoeff.recipMul(realAmountToWithdraw);
-      position.discountedQuoteAmount = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
-
-      // update event data
-      eventQuoteDiscountedDelta = discountedQuoteCollateralDelta;
     }
 
+    position.discountedQuoteAmount = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
     discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedQuoteCollateralDelta);
 
     updateSystemLeverageShort(basePrice);
@@ -569,15 +549,13 @@ contract MarginlyPool is IMarginlyPool {
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    if (isFullWithdraw) {
-      if (position.discountedBaseAmount == 0 && position.discountedQuoteAmount == 0) {
-        delete positions[msg.sender];
-      }
+    if (needToDeletePosition) {
+      delete positions[msg.sender];
     }
 
     TransferHelper.safeTransfer(quoteToken, msg.sender, realAmountToWithdraw);
 
-    emit WithdrawQuote(msg.sender, realAmountToWithdraw, eventQuoteDiscountedDelta);
+    emit WithdrawQuote(msg.sender, realAmountToWithdraw, discountedQuoteCollateralDelta);
   }
 
   /// @inheritdoc IMarginlyPool
