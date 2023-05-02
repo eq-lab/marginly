@@ -38,6 +38,6 @@ Object {
 exports[`MarginlyPoolWrapper short gas cost snapshot 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 436920,
+  "gasUsed": 436630,
 }
 `;
