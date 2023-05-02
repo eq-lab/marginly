@@ -3,41 +3,41 @@
 exports[`MarginlyPoolWrapper long gas cost snapshot 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 439989,
+  "gasUsed": 441141,
 }
 `;
 
 exports[`MarginlyPoolWrapper owner MarginlyPoolWrapper deposit depositBase with wrap ETH to WETH 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 268011,
+  "gasUsed": 268716,
 }
 `;
 
 exports[`MarginlyPoolWrapper owner MarginlyPoolWrapper deposit depositBase without wrap 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 269558,
+  "gasUsed": 270263,
 }
 `;
 
 exports[`MarginlyPoolWrapper owner MarginlyPoolWrapper deposit depositQuote with wrap EHT to WETH 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 268050,
+  "gasUsed": 268746,
 }
 `;
 
 exports[`MarginlyPoolWrapper owner MarginlyPoolWrapper deposit depositQuote without wrap 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 269597,
+  "gasUsed": 270293,
 }
 `;
 
 exports[`MarginlyPoolWrapper short gas cost snapshot 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 436630,
+  "gasUsed": 438061,
 }
 `;
