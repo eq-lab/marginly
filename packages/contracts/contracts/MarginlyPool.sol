@@ -36,11 +36,8 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPool
   address public override factory;
 
-  /// @inheritdoc IMarginlyPool
-  address public override quoteToken;
-  /// @inheritdoc IMarginlyPool
-  address public override baseToken;
-  /// @inheritdoc IMarginlyPool
+  address[2] public tokens;
+
   uint24 public override uniswapFee;
   /// @inheritdoc IMarginlyPool
   address public override uniswapPool;
@@ -110,8 +107,9 @@ contract MarginlyPool is IMarginlyPool {
     require(factory == address(0), 'FB'); // Forbidden
 
     factory = msg.sender;
-    quoteToken = _quoteToken;
-    baseToken = _baseToken;
+    tokens = [_quoteToken, _baseToken];
+    // quoteToken = _quoteToken;
+    // baseToken = _baseToken;
     uniswapFee = _uniswapFee;
     quoteTokenIsToken0 = _quoteTokenIsToken0;
     uniswapPool = _uniswapPool;
@@ -158,7 +156,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amountOut
   ) private returns (uint256 amountInActual) {
     address swapRouter = getSwapRouter();
-    (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
+    (address tokenIn, address tokenOut) = quoteIn ? (quoteToken(), baseToken()) : (baseToken(), quoteToken());
 
     TransferHelper.safeApprove(tokenIn, swapRouter, amountInMaximum);
 
@@ -185,7 +183,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amountOutMinimum
   ) private returns (uint256 amountOutActual) {
     address swapRouter = getSwapRouter();
-    (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
+    (address tokenIn, address tokenOut) = quoteIn ? (quoteToken(), baseToken()) : (baseToken(), quoteToken());
 
     TransferHelper.safeApprove(tokenIn, swapRouter, amountIn);
 
@@ -371,7 +369,7 @@ contract MarginlyPool is IMarginlyPool {
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), amount);
+    TransferHelper.safeTransferFrom(baseToken(), msg.sender, address(this), amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
   }
 
@@ -444,7 +442,7 @@ contract MarginlyPool is IMarginlyPool {
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), amount);
+    TransferHelper.safeTransferFrom(quoteToken(), msg.sender, address(this), amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
   }
 
@@ -498,7 +496,7 @@ contract MarginlyPool is IMarginlyPool {
       delete positions[msg.sender];
     }
 
-    TransferHelper.safeTransfer(baseToken, msg.sender, realAmountToWithdraw);
+    TransferHelper.safeTransfer(baseToken(), msg.sender, realAmountToWithdraw);
 
     emit WithdrawBase(msg.sender, realAmountToWithdraw, discountedBaseCollateralDelta);
   }
@@ -553,7 +551,7 @@ contract MarginlyPool is IMarginlyPool {
       delete positions[msg.sender];
     }
 
-    TransferHelper.safeTransfer(quoteToken, msg.sender, realAmountToWithdraw);
+    TransferHelper.safeTransfer(quoteToken(), msg.sender, realAmountToWithdraw);
 
     emit WithdrawQuote(msg.sender, realAmountToWithdraw, discountedQuoteCollateralDelta);
   }
@@ -613,7 +611,7 @@ contract MarginlyPool is IMarginlyPool {
       updateSystemLeverageShort(basePrice);
 
       realCollateralDelta = swappedQuoteCollateral;
-      collateralToken = quoteToken;
+      collateralToken = quoteToken();
     } else if (position._type == PositionType.Long) {
       uint256 realBaseCollateral = baseCollateralCoeff.mul(position.discountedBaseAmount);
       uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
@@ -649,7 +647,7 @@ contract MarginlyPool is IMarginlyPool {
       updateSystemLeverageLong(basePrice);
 
       realCollateralDelta = swappedBaseCollateral;
-      collateralToken = baseToken;
+      collateralToken = baseToken();
     }
 
     emit ClosePosition(msg.sender, collateralToken, realCollateralDelta, swapPriceX96, discountedCollateralDelta);
@@ -657,7 +655,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Charge swap fee in quote token
   function chargeFee(uint256 feeAmount) private {
-    TransferHelper.safeTransfer(quoteToken, IMarginlyFactory(factory).feeHolder(), feeAmount);
+    TransferHelper.safeTransfer(quoteToken(), IMarginlyFactory(factory).feeHolder(), feeAmount);
   }
 
   /// @notice Get oracle price baseToken / quoteToken
@@ -945,7 +943,7 @@ contract MarginlyPool is IMarginlyPool {
     require(discountedBaseCollateral != 0, 'ZC'); // Zero collateral
     baseCollateralCoeff = baseCollateralCoeff.add(FP96.fromRatio(realBaseAmount, discountedBaseCollateral));
 
-    TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), realBaseAmount);
+    TransferHelper.safeTransferFrom(baseToken(), msg.sender, address(this), realBaseAmount);
     emit IncreaseBaseCollateralCoeff(realBaseAmount);
   }
 
@@ -954,7 +952,7 @@ contract MarginlyPool is IMarginlyPool {
     require(discountedQuoteCollateral != 0, 'ZC'); // Zero collateral
     quoteCollateralCoeff = quoteCollateralCoeff.add(FP96.fromRatio(realQuoteAmount, discountedQuoteCollateral));
 
-    TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), realQuoteAmount);
+    TransferHelper.safeTransferFrom(quoteToken(), msg.sender, address(this), realQuoteAmount);
     emit IncreaseQuoteCollateralCoeff(realQuoteAmount);
   }
 
@@ -1045,8 +1043,8 @@ contract MarginlyPool is IMarginlyPool {
     bool marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), baseAmount);
-    TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), quoteAmount);
+    TransferHelper.safeTransferFrom(baseToken(), msg.sender, address(this), baseAmount);
+    TransferHelper.safeTransferFrom(quoteToken(), msg.sender, address(this), quoteAmount);
 
     emit ReceivePosition(
       msg.sender,
@@ -1161,12 +1159,12 @@ contract MarginlyPool is IMarginlyPool {
       require(position._type != PositionType.Short, 'SE'); // Short positions in emergency mode
 
       transferAmount = emergencyWithdrawCoeff.mul(position.discountedBaseAmount);
-      token = baseToken;
+      token = baseToken();
     } else {
       require(position._type != PositionType.Long, 'LE'); // Long positions in emergency mode
 
       transferAmount = emergencyWithdrawCoeff.mul(position.discountedQuoteAmount);
-      token = quoteToken;
+      token = quoteToken();
     }
 
     delete positions[msg.sender];
@@ -1249,5 +1247,15 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Calculate swap price in Q96
   function getSwapPrice(uint256 quoteAmount, uint256 baseAmount) private pure returns (uint256) {
     return Math.mulDiv(quoteAmount, FP96.Q96, baseAmount);
+  }
+
+  /// @inheritdoc IMarginlyPool
+  function quoteToken() public view override returns (address) {
+    return tokens[0];
+  }
+
+  /// @inheritdoc IMarginlyPool
+  function baseToken() public view override returns (address) {
+    return tokens[1];
   }
 }
