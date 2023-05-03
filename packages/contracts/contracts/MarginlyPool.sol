@@ -36,8 +36,10 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPool
   address public override factory;
 
+  /// @dev [0] - quote token, [1] - base token
   address[2] public tokens;
 
+  /// @inheritdoc IMarginlyPool
   uint24 public override uniswapFee;
   /// @inheritdoc IMarginlyPool
   address public override uniswapPool;
@@ -78,10 +80,10 @@ contract MarginlyPool is IMarginlyPool {
 
   Leverage public systemLeverage;
 
-  ///@dev Heap of short positions, root - the worst short position. Sort key - leverage calculated with discounted collateral, debt
-  MaxBinaryHeapLib.Heap private shortHeap;
-  ///@dev Heap of long positions, root - the worst long position. Sort key - leverage calculated with discounted collateral, debt
-  MaxBinaryHeapLib.Heap private longHeap;
+  /// @dev [0] - shortHeap -  heap of short positions, root - the worst short position
+  /// [1] - longHeap - heap of long positions, root - the worst long position
+  /// Sort key - leverage calculated with discounted collateral, debt
+  MaxBinaryHeapLib.Heap[2] private heaps;
 
   /// @notice users positions
   mapping(address => Position) public positions;
@@ -226,7 +228,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedDebts[1] = discountedBaseDebt().sub(position.discountedBaseAmount);
 
       //remove position
-      shortHeap.remove(positions, 0);
+      heaps[0].remove(positions, 0);
     } else if (position._type == PositionType.Long) {
       uint256 realBaseCollateral = baseCollateralCoeff().mul(position.discountedBaseAmount);
       uint256 realQuoteDebt = quoteDebtCoeff().mul(position.discountedQuoteAmount);
@@ -252,7 +254,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedDebts[0] = discountedQuoteDebt().sub(position.discountedQuoteAmount);
 
       //remove position
-      longHeap.remove(positions, 0);
+      heaps[1].remove(positions, 0);
     } else {
       revert('WPT'); // Wrong position type to MC
     }
@@ -603,7 +605,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedCollateralDelta = discountedQuoteCollateralDelta;
 
       uint32 heapIndex = position.heapPosition - 1;
-      shortHeap.remove(positions, heapIndex);
+      heaps[0].remove(positions, heapIndex);
 
       updateSystemLeverageShort(basePrice);
 
@@ -639,7 +641,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedCollateralDelta = discountedBaseCollateralDelta;
 
       uint32 heapIndex = position.heapPosition - 1;
-      longHeap.remove(positions, heapIndex);
+      heaps[1].remove(positions, heapIndex);
 
       updateSystemLeverageLong(basePrice);
 
@@ -733,7 +735,7 @@ contract MarginlyPool is IMarginlyPool {
     if (position._type == PositionType.Lend) {
       //init heap with default value 1.0
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
-      shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
+      heaps[0].insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
     }
 
     position._type = PositionType.Short;
@@ -799,7 +801,7 @@ contract MarginlyPool is IMarginlyPool {
     if (position._type == PositionType.Lend) {
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
       //init heap with default value 1.0
-      longHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
+      heaps[1].insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
     }
 
     position._type = PositionType.Long;
@@ -873,13 +875,13 @@ contract MarginlyPool is IMarginlyPool {
     updateSystemLeverageLong(basePrice);
     updateSystemLeverageShort(basePrice);
 
-    (bool success, MaxBinaryHeapLib.Node memory root) = shortHeap.getNodeByIndex(0);
+    (bool success, MaxBinaryHeapLib.Node memory root) = heaps[0].getNodeByIndex(0);
     if (success) {
       bool marginCallHappened = reinitAccount(root.account, basePrice);
       callerMarginCalled = marginCallHappened && root.account == msg.sender;
     }
 
-    (success, root) = longHeap.getNodeByIndex(0);
+    (success, root) = heaps[1].getNodeByIndex(0);
     if (success) {
       bool marginCallHappened = reinitAccount(root.account, basePrice);
       callerMarginCalled = callerMarginCalled || (marginCallHappened && root.account == msg.sender); // since caller can be in short or long position
@@ -915,7 +917,7 @@ contract MarginlyPool is IMarginlyPool {
       uint96 sortKey = calcSortKey(collateral, initialPrice.mul(debt));
 
       uint32 heapIndex = position.heapPosition - 1;
-      shortHeap.update(positions, heapIndex, sortKey);
+      heaps[0].update(positions, heapIndex, sortKey);
     } else if (position._type == PositionType.Long) {
       uint256 collateral = position.discountedBaseAmount;
       uint256 debt = position.discountedQuoteAmount;
@@ -931,7 +933,7 @@ contract MarginlyPool is IMarginlyPool {
 
       uint96 sortKey = calcSortKey(initialPrice.mul(collateral), debt);
       uint32 heapIndex = position.heapPosition - 1;
-      longHeap.update(positions, heapIndex, sortKey);
+      heaps[1].update(positions, heapIndex, sortKey);
     }
   }
 
@@ -992,12 +994,12 @@ contract MarginlyPool is IMarginlyPool {
 
         discountedCollaterals[1] += badPosition.discountedBaseAmount;
 
-        shortHeap.remove(positions, heapIndex);
+        heaps[0].remove(positions, heapIndex);
       } else {
         badPosition.discountedBaseAmount = badPosition.discountedBaseAmount - discountedBaseAmount;
         discountedDebts[1] -= discountedBaseAmount;
 
-        shortHeap.updateAccount(heapIndex, msg.sender);
+        heaps[0].updateAccount(heapIndex, msg.sender);
       }
     } else if (badPosition._type == PositionType.Long) {
       uint256 realCollateral = _baseCollateralCoeff.mul(basePrice.mul(badPosition.discountedBaseAmount));
@@ -1019,12 +1021,12 @@ contract MarginlyPool is IMarginlyPool {
 
         discountedCollaterals[0] += badPosition.discountedQuoteAmount;
 
-        longHeap.remove(positions, heapIndex);
+        heaps[1].remove(positions, heapIndex);
       } else {
         badPosition.discountedQuoteAmount = badPosition.discountedQuoteAmount - discountedQuoteAmount;
         discountedDebts[0] -= discountedQuoteAmount;
 
-        longHeap.updateAccount(heapIndex, msg.sender);
+        heaps[1].updateAccount(heapIndex, msg.sender);
       }
     } else {
       revert('WPT'); // Wrong position type
@@ -1191,9 +1193,9 @@ contract MarginlyPool is IMarginlyPool {
     require(positions[newOwner]._type == PositionType.Uninitialized, 'PI'); // Position initialized
 
     if (positionToTransfer._type == PositionType.Long) {
-      longHeap.updateAccount(positionToTransfer.heapPosition - 1, newOwner);
+      heaps[1].updateAccount(positionToTransfer.heapPosition - 1, newOwner);
     } else if (positionToTransfer._type == PositionType.Short) {
-      shortHeap.updateAccount(positionToTransfer.heapPosition - 1, newOwner);
+      heaps[0].updateAccount(positionToTransfer.heapPosition - 1, newOwner);
     }
 
     positions[newOwner] = positionToTransfer;
@@ -1228,12 +1230,12 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev for testing purposes
   function getShortHeapPosition(uint32 index) external view returns (bool success, MaxBinaryHeapLib.Node memory) {
-    return shortHeap.getNodeByIndex(index);
+    return heaps[0].getNodeByIndex(index);
   }
 
   /// @dev for testing purposes
   function getLongHeapPosition(uint32 index) external view returns (bool success, MaxBinaryHeapLib.Node memory) {
-    return longHeap.getNodeByIndex(index);
+    return heaps[1].getNodeByIndex(index);
   }
 
   /// @dev Returns Uniswap SwapRouter address
