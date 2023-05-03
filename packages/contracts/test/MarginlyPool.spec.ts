@@ -496,9 +496,8 @@ describe('MarginlyPool.Base', () => {
 
       const baseDebtCoeffBefore = (await marginlyPool.baseDebtCoeff()).inner;
       const quoteDebtCoeffBefore = (await marginlyPool.quoteDebtCoeff()).inner;
-      const systemLeverage = await marginlyPool.systemLeverage();
-      const leverageShort = systemLeverage.shortX96;
-      const leverageLong = systemLeverage.longX96;
+      const leverageShort = await marginlyPool.leverageShortX96();
+      const leverageLong = await marginlyPool.leverageLongX96();
       const lastReinitTimestampBefore = await marginlyPool.lastReinitTimestampSeconds();
 
       await time.increase(timeShift);
@@ -705,7 +704,7 @@ describe('MarginlyPool.Base', () => {
 
       expect(shortHeapPositionKey).to.be.equal(expectedShortKey);
 
-      const leverageShort = (await marginlyPool.systemLeverage()).shortX96;
+      const leverageShort = await marginlyPool.leverageShortX96();
       const expectedLeverageShort = calcLeverageShort(
         basePrice.inner,
         (await marginlyPool.quoteCollateralCoeff()).inner,
@@ -766,7 +765,7 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
-      expect((await marginlyPool.systemLeverage()).shortX96).to.be.equal(expectedLeverageShort);
+      expect(await marginlyPool.leverageShortX96()).to.be.equal(expectedLeverageShort);
 
       const shorterPositionAfter = await marginlyPool.positions(shorter.address);
       expect(shorterPositionAfter._type).to.be.equal(PositionType.Short);
@@ -821,7 +820,7 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
-      expect((await marginlyPool.systemLeverage()).shortX96).to.be.equal(expectedLeverageShort1);
+      expect(await marginlyPool.leverageShortX96()).to.be.equal(expectedLeverageShort1);
 
       const shorterPositionAfter = await marginlyPool.positions(shorter.address);
       expect(shorterPositionAfter._type).to.be.equal(PositionType.Short);
@@ -855,7 +854,7 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
-      expect((await marginlyPool.systemLeverage()).shortX96).to.be.equal(expectedLeverageShort2);
+      expect(await marginlyPool.leverageShortX96()).to.be.equal(expectedLeverageShort2);
 
       const shorterPositionAfterUpdate = await marginlyPool.positions(shorter.address);
       expect(shorterPositionAfterUpdate._type).to.be.equal(PositionType.Short);
@@ -926,7 +925,7 @@ describe('MarginlyPool.Base', () => {
       );
 
       expect(longHeapPositionKey).to.be.equal(expectedSortKey);
-      const leverageLong = (await marginlyPool.systemLeverage()).longX96;
+      const leverageLong = await marginlyPool.leverageLongX96();
       const expectedLeverageLong = calcLeverageLong(
         basePrice.inner,
         (await marginlyPool.quoteCollateralCoeff()).inner,
@@ -989,7 +988,7 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
-      expect((await marginlyPool.systemLeverage()).longX96).to.be.equal(expectedLeverageLong);
+      expect(await marginlyPool.leverageLongX96()).to.be.equal(expectedLeverageLong);
 
       const longerPositionAfter = await marginlyPool.positions(longer.address);
       expect(longerPositionAfter._type).to.be.equal(PositionType.Long);
@@ -1047,7 +1046,7 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
-      expect((await marginlyPool.systemLeverage()).longX96).to.be.equal(expectedLeverageLong1);
+      expect(await marginlyPool.leverageLongX96()).to.be.equal(expectedLeverageLong1);
 
       const longerPositionAfter = await marginlyPool.positions(longer.address);
       expect(longerPositionAfter._type).to.be.equal(PositionType.Long);
@@ -1080,7 +1079,7 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
-      expect((await marginlyPool.systemLeverage()).longX96).to.be.equal(expectedLeverageLong2);
+      expect(await marginlyPool.leverageLongX96()).to.be.equal(expectedLeverageLong2);
 
       const longerPositionAfterUpdate = await marginlyPool.positions(longer.address);
       expect(longerPositionAfterUpdate._type).to.be.equal(PositionType.Long);

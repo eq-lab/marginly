@@ -71,14 +71,17 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Ratio of best side collaterals before and after margin call of opposite side in shutdown mode
   FP96.FixedPoint public emergencyWithdrawCoeff;
 
-  struct Leverage {
-    /// @dev This is a leverage of all long positions in the system
-    uint128 shortX96;
-    /// @dev This is a leverage of all short positions in the system
-    uint128 longX96;
-  }
+  // struct Leverage {
+  //   /// @dev This is a leverage of all long positions in the system
+  //   uint128 shortX96;
+  //   /// @dev This is a leverage of all short positions in the system
+  //   uint128 longX96;
+  // }
 
-  Leverage public systemLeverage;
+  // Leverage public systemLeverage;
+
+  /// @dev [0] - shortLeverageX96, [1] - longLeverageX96
+  uint128[2] leveragesX96;
 
   /// @dev [0] - shortHeap -  heap of short positions, root - the worst short position
   /// [1] - longHeap - heap of long positions, root - the worst long position
@@ -828,7 +831,7 @@ contract MarginlyPool is IMarginlyPool {
     });
     if (discountedBaseCollateral() != 0) {
       FP96.FixedPoint memory baseDebtCoeffMul = FP96.powTaylor(
-        interestRate.mul(FP96.FixedPoint({inner: systemLeverage.shortX96})).div(secondsInYear).add(FP96.one()),
+        interestRate.mul(FP96.FixedPoint({inner: leveragesX96[0]})).div(secondsInYear).add(FP96.one()),
         secondsPassed
       );
 
@@ -841,7 +844,7 @@ contract MarginlyPool is IMarginlyPool {
 
     if (discountedQuoteCollateral() != 0) {
       FP96.FixedPoint memory quoteDebtCoeffMul = FP96.powTaylor(
-        interestRate.mul(FP96.FixedPoint({inner: systemLeverage.longX96})).div(secondsInYear).add(FP96.one()),
+        interestRate.mul(FP96.FixedPoint({inner: leveragesX96[1]})).div(secondsInYear).add(FP96.one()),
         secondsPassed
       );
 
@@ -1206,26 +1209,44 @@ contract MarginlyPool is IMarginlyPool {
 
   function updateSystemLeverageLong(FP96.FixedPoint memory basePrice) private {
     if (discountedBaseCollateral() == 0) {
-      systemLeverage.longX96 = uint128(FP96.Q96);
+      leveragesX96[1] = uint128(FP96.Q96);
       return;
     }
 
     uint256 realBaseCollateral = baseCollateralCoeff().mul(basePrice).mul(discountedBaseCollateral());
     uint256 realQuoteDebt = quoteDebtCoeff().mul(discountedQuoteDebt());
-    systemLeverage.longX96 = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
+    leveragesX96[1] = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
   }
 
   function updateSystemLeverageShort(FP96.FixedPoint memory basePrice) private {
     if (discountedQuoteCollateral() == 0) {
-      systemLeverage.shortX96 = uint128(FP96.Q96);
+      leveragesX96[0] = uint128(FP96.Q96);
       return;
     }
 
     uint256 realQuoteCollateral = quoteCollateralCoeff().mul(discountedQuoteCollateral());
     uint256 realBaseDebt = baseDebtCoeff().mul(basePrice).mul(discountedBaseDebt());
-    systemLeverage.shortX96 = uint128(
-      Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt))
-    );
+    leveragesX96[0] = uint128(Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt)));
+  }
+
+  function updateSystemLeverage(bool isShortLeverageUpdate, FP96.FixedPoint memory basePrice) private {
+    (uint256 collateralTokenIndex, uint256 debtTokenIndex) = isShortLeverageUpdate ? (0, 1) : (1, 0);
+
+    if (discountedCollaterals[collateralTokenIndex] == 0) {
+      leveragesX96[collateralTokenIndex] = uint128(FP96.Q96);
+      return;
+    }
+
+    uint256 realCollateral = collateralCoeffs[collateralTokenIndex].mul(discountedCollaterals[collateralTokenIndex]);
+    uint256 realDebt = debtCoeffs[debtTokenIndex].mul(discountedDebts[debtTokenIndex]);
+
+    if (isShortLeverageUpdate) {
+      realDebt = basePrice.mul(realDebt);
+    } else {
+      realCollateral = basePrice.mul(realCollateral);
+    }
+
+    leveragesX96[collateralTokenIndex] = uint128(Math.mulDiv(FP96.Q96, realCollateral, realCollateral.sub(realDebt)));
   }
 
   /// @dev for testing purposes
@@ -1291,5 +1312,13 @@ contract MarginlyPool is IMarginlyPool {
 
   function baseDebtCoeff() public view returns (FP96.FixedPoint memory) {
     return debtCoeffs[1];
+  }
+
+  function leverageShortX96() public view returns (uint128) {
+    return leveragesX96[0];
+  }
+
+  function leverageLongX96() public view returns (uint128) {
+    return leveragesX96[1];
   }
 }
