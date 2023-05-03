@@ -19,7 +19,7 @@ describe('MarginlyPoolWrapper long', () => {
 
     await marginlyPoolWrapper.connect(signer).long(marginlyPool.address, depositBaseAmount, longAmount);
 
-    const baseCollCoeff = await marginlyPool.baseCollateralCoeff();
+    const baseCollCoeff = (await marginlyPool.baseCollateralCoeff()).inner;
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Long);
@@ -30,7 +30,6 @@ describe('MarginlyPoolWrapper long', () => {
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
-
   });
 
   it('fail', async () => {
@@ -58,10 +57,9 @@ describe('MarginlyPoolWrapper long', () => {
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
-
   });
 
-  it('pool address isn\'t whitelisted', async () => {
+  it("pool address isn't whitelisted", async () => {
     const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
     const [_, signer, lender] = await ethers.getSigners();
 
@@ -108,12 +106,15 @@ describe('MarginlyPoolWrapper short', () => {
 
     await marginlyPoolWrapper.connect(signer).short(marginlyPool.address, depositQuoteAmount, shortAmount);
 
-    const quoteCollCoeff = await marginlyPool.quoteCollateralCoeff();
+    const quoteCollCoeff = (await marginlyPool.quoteCollateralCoeff()).inner;
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const position = await marginlyPool.positions(signer.address);
     expect(position._type).to.be.equal(PositionType.Short);
-    const expected = price.mul(shortAmount).add(depositQuoteAmount * FP96.one).div(FP96.one);
+    const expected = price
+      .mul(shortAmount)
+      .add(depositQuoteAmount * FP96.one)
+      .div(FP96.one);
     expect(position.discountedQuoteAmount.mul(quoteCollCoeff).div(FP96.one)).to.be.equal(expected);
 
     // Must not exist
@@ -148,10 +149,9 @@ describe('MarginlyPoolWrapper short', () => {
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
-
   });
 
-  it('pool address isn\'t whitelisted', async () => {
+  it("pool address isn't whitelisted", async () => {
     const { marginlyPoolWrapper, marginlyPool } = await loadFixture(createMarginlyPoolWithWrapper);
     const [_, signer, lender] = await ethers.getSigners();
 
@@ -215,8 +215,8 @@ describe('MarginlyPoolWrapper owner', () => {
     const { marginlyPool, marginlyPoolWrapper } = await loadFixture(createMarginlyPoolWithWrapper);
     const [_, notOwner] = await ethers.getSigners();
 
-    await expect(
-      marginlyPoolWrapper.connect(notOwner).deletePoolAddress(marginlyPool.address)
-    ).to.be.revertedWith('AD');
+    await expect(marginlyPoolWrapper.connect(notOwner).deletePoolAddress(marginlyPool.address)).to.be.revertedWith(
+      'AD'
+    );
   });
 });

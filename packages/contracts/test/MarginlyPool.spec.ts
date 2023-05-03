@@ -119,7 +119,7 @@ describe('MarginlyPool.Base', () => {
       expect(depositBaseEvent.args?.user).to.be.equal(signer.address);
       expect(depositBaseEvent.args?.amount).to.be.equal(depositAmount);
 
-      const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * depositAmount;
+      const expectedDBC = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * depositAmount;
 
       // check aggregates
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC);
@@ -145,8 +145,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(signer1).depositBase(firstDeposit);
       await marginlyPool.connect(signer2).depositBase(secondDeposit);
 
-      const expectedDBC1 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * firstDeposit;
-      const expectedDBC2 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * secondDeposit;
+      const expectedDBC1 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * firstDeposit;
+      const expectedDBC2 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * secondDeposit;
 
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC1 + expectedDBC2);
       const positionFirst = await marginlyPool.positions(signer1.address);
@@ -166,7 +166,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(signer).depositBase(firstDeposit);
       await marginlyPool.connect(signer).depositBase(secondDeposit);
 
-      const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * total;
+      const expectedDBC = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * total;
 
       // check aggregates
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC);
@@ -276,7 +276,7 @@ describe('MarginlyPool.Base', () => {
       expect(depositQuoteEvent.args?.user).to.be.equal(signer.address);
       expect(depositQuoteEvent.args?.amount).to.be.equal(depositAmount);
 
-      const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * depositAmount;
+      const expectedDQC = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * depositAmount;
 
       // check aggregates
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC);
@@ -301,7 +301,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(signer).depositQuote(firstDeposit);
       await marginlyPool.connect(signer).depositQuote(secondDeposit);
 
-      const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * total;
+      const expectedDQC = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * total;
 
       // check aggregates
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC);
@@ -388,8 +388,8 @@ describe('MarginlyPool.Base', () => {
       expect(withdrawBaseEvent.args?.amount).to.be.equal(amountToWithdraw);
 
       const expectedRBC = amountToDeposit - amountToWithdraw;
-      const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * expectedRBC;
-      const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
+      const expectedDBC = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * expectedRBC;
+      const expectedDQC = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
 
       // check aggregates
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC);
@@ -455,8 +455,8 @@ describe('MarginlyPool.Base', () => {
       expect(withdrawQuoteEvent.args?.amount).to.be.equal(amountToWithdraw);
 
       const expectedRQC = amountToDeposit - amountToWithdraw;
-      const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * expectedRQC;
-      const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
+      const expectedDQC = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * expectedRQC;
+      const expectedDBC = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
 
       // check aggregates
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC);
@@ -494,8 +494,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(user1).long(user1LongAmount);
       await marginlyPool.connect(user2).short(user2ShortAmount);
 
-      const baseDebtCoeffBefore = await marginlyPool.baseDebtCoeff();
-      const quoteDebtCoeffBefore = await marginlyPool.quoteDebtCoeff();
+      const baseDebtCoeffBefore = (await marginlyPool.baseDebtCoeff()).inner;
+      const quoteDebtCoeffBefore = (await marginlyPool.quoteDebtCoeff()).inner;
       const systemLeverage = await marginlyPool.systemLeverage();
       const leverageShort = systemLeverage.shortX96;
       const leverageLong = systemLeverage.longX96;
@@ -510,8 +510,8 @@ describe('MarginlyPool.Base', () => {
       const baseDebtCoeffMul = powTaylor(leverageShort.mul(interestRateX96).div(year).add(one), +secondsPassed);
       const quoteDebtCoeffMul = powTaylor(leverageLong.mul(interestRateX96).div(year).add(one), +secondsPassed);
 
-      const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
-      const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
+      const baseDebtCoeff = (await marginlyPool.baseDebtCoeff()).inner;
+      const quoteDebtCoeff = (await marginlyPool.quoteDebtCoeff()).inner;
 
       expect(baseDebtCoeffBefore.mul(baseDebtCoeffMul).div(one)).to.be.eq(baseDebtCoeff);
       expect(quoteDebtCoeffBefore.mul(quoteDebtCoeffMul).div(one)).to.be.eq(quoteDebtCoeff);
@@ -617,7 +617,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(signer).increaseBaseCollateralCoeff(increaseValue);
 
       const expectedCoeff = (11n * FP96.one) / 10n; //1.1
-      expect(await marginlyPool.baseCollateralCoeff()).to.be.equal(expectedCoeff);
+      expect((await marginlyPool.baseCollateralCoeff()).inner).to.be.equal(expectedCoeff);
       expect(await baseContract.balanceOf(marginlyPool.address)).to.be.equal(amountToDeposit + increaseValue);
     });
 
@@ -632,7 +632,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(signer).increaseQuoteCollateralCoeff(increaseValue);
 
       const expectedCoeff = (12n * FP96.one) / 10n; //1.2
-      expect(await marginlyPool.quoteCollateralCoeff()).to.be.equal(expectedCoeff);
+      expect((await marginlyPool.quoteCollateralCoeff()).inner).to.be.equal(expectedCoeff);
       expect(await quoteContract.balanceOf(marginlyPool.address)).to.be.equal(amountToDeposit + increaseValue);
     });
   });
@@ -708,8 +708,8 @@ describe('MarginlyPool.Base', () => {
       const leverageShort = (await marginlyPool.systemLeverage()).shortX96;
       const expectedLeverageShort = calcLeverageShort(
         basePrice.inner,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
@@ -728,8 +728,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(depositor).depositBase(amountToDeposit);
       await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
 
-      const expectedDBC0 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
-      const expectedDQC0 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
+      const expectedDBC0 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
+      const expectedDQC0 = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC0);
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC0);
 
@@ -742,14 +742,14 @@ describe('MarginlyPool.Base', () => {
       const shortAmount = 1000;
       await marginlyPool.connect(shorter).short(shortAmount);
 
-      const expectedDBC1 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
+      const expectedDBC1 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
       const expectedRQC1 = BigNumber.from(amountToDeposit).add(
         BigNumber.from((1 - swapFee) * shortAmount)
           .mul(price)
           .div(one)
       );
-      const expectedDQC1 = (await marginlyPool.quoteCollateralCoeff()).mul(expectedRQC1).div(one);
-      const debtCoeff = BigNumber.from(await marginlyPool.baseDebtCoeff());
+      const expectedDQC1 = (await marginlyPool.quoteCollateralCoeff()).inner.mul(expectedRQC1).div(one);
+      const debtCoeff = (await marginlyPool.baseDebtCoeff()).inner;
       const expectedRBD1 = BigNumber.from(shortAmount);
       const expectedDBD1 = expectedRBD1.mul(one).div(debtCoeff);
       const leverageShortDenom = expectedRQC1.sub(expectedRBD1.mul(price).div(one));
@@ -761,8 +761,8 @@ describe('MarginlyPool.Base', () => {
 
       const expectedLeverageShort = calcLeverageShort(
         price,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
@@ -785,8 +785,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(depositor).depositBase(amountToDeposit);
       await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
 
-      const expectedDBC0 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
-      const expectedDQC0 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
+      const expectedDBC0 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
+      const expectedDQC0 = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC0);
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC0);
 
@@ -799,14 +799,14 @@ describe('MarginlyPool.Base', () => {
       const shortAmount = 1000;
       await marginlyPool.connect(shorter).short(shortAmount);
 
-      const expectedDBC1 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
+      const expectedDBC1 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
       const expectedRQC1 =
         amountToDeposit +
         +BigNumber.from((1 - swapFee) * shortAmount)
           .mul(price)
           .div(one);
-      const expectedDQC1 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * expectedRQC1;
-      const debtCoeff1 = BigNumber.from(await marginlyPool.baseDebtCoeff());
+      const expectedDQC1 = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * expectedRQC1;
+      const debtCoeff1 = (await marginlyPool.baseDebtCoeff()).inner;
       const expectedDBD1 = BigNumber.from(shortAmount).mul(one).div(debtCoeff1);
 
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC1);
@@ -816,8 +816,8 @@ describe('MarginlyPool.Base', () => {
 
       const expectedLeverageShort1 = calcLeverageShort(
         price,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
@@ -832,14 +832,14 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(shorter).short(shortAmount2);
 
       const totalShortAmount = shortAmount + shortAmount2;
-      const expectedDBC2 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
+      const expectedDBC2 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
       const expectedRQC2 =
         amountToDeposit +
         +BigNumber.from((1 - swapFee) * totalShortAmount)
           .mul(price)
           .div(one);
-      const expectedDQC2 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * expectedRQC2;
-      const debtCoeff2 = BigNumber.from(await marginlyPool.baseDebtCoeff());
+      const expectedDQC2 = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * expectedRQC2;
+      const debtCoeff2 = (await marginlyPool.baseDebtCoeff()).inner;
 
       const expectedDBD2 = BigNumber.from(totalShortAmount).mul(one).div(debtCoeff2);
       const epsilon = BigNumber.from(1); // floating point with calculation error
@@ -850,8 +850,8 @@ describe('MarginlyPool.Base', () => {
 
       const expectedLeverageShort2 = calcLeverageShort(
         price,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteCollateral(),
         await marginlyPool.discountedBaseDebt()
       );
@@ -929,8 +929,8 @@ describe('MarginlyPool.Base', () => {
       const leverageLong = (await marginlyPool.systemLeverage()).longX96;
       const expectedLeverageLong = calcLeverageLong(
         basePrice.inner,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
@@ -949,8 +949,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
       await marginlyPool.connect(longer).depositBase(amountToDeposit);
 
-      const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
-      const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
+      const expectedDBC = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
+      const expectedDQC = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
 
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC);
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC);
@@ -968,9 +968,11 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(longer).long(longAmount);
 
       const expectedRBC1 = BigNumber.from(amountToDeposit + longAmount);
-      const expectedDBC1 = (await marginlyPool.baseCollateralCoeff()).mul(expectedRBC1).div(one);
-      const expectedDQC1 = (await marginlyPool.quoteCollateralCoeff()).mul(BigNumber.from(amountToDeposit)).div(one);
-      const debtCoeff = await marginlyPool.quoteDebtCoeff();
+      const expectedDBC1 = (await marginlyPool.baseCollateralCoeff()).inner.mul(expectedRBC1).div(one);
+      const expectedDQC1 = (await marginlyPool.quoteCollateralCoeff()).inner
+        .mul(BigNumber.from(amountToDeposit))
+        .div(one);
+      const debtCoeff = (await marginlyPool.quoteDebtCoeff()).inner;
       const expectedDQD1 = quoteAmount.mul(one).div(debtCoeff);
       const leverageLongDenom = expectedRBC1.sub(quoteAmount.mul(price).div(one));
 
@@ -982,8 +984,8 @@ describe('MarginlyPool.Base', () => {
 
       const expectedLeverageLong = calcLeverageLong(
         price,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
@@ -1008,8 +1010,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
       await marginlyPool.connect(longer).depositBase(amountToDeposit);
 
-      const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
-      const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
+      const expectedDBC = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * amountToDeposit;
+      const expectedDQC = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
 
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC);
       expect(await marginlyPool.discountedQuoteCollateral()).to.be.equal(expectedDQC);
@@ -1027,9 +1029,9 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(longer).long(longAmount);
 
       const expectedRBC1 = amountToDeposit + longAmount;
-      const expectedDBC1 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * expectedRBC1;
-      const expectedDQC1 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
-      const debtCoeff = BigNumber.from(await marginlyPool.quoteDebtCoeff());
+      const expectedDBC1 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * expectedRBC1;
+      const expectedDQC1 = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
+      const debtCoeff = (await marginlyPool.quoteDebtCoeff()).inner;
       const expectedDQD1 = quoteAmount.mul(FP96.one).div(debtCoeff);
 
       const epsilon = BigNumber.from(2); // floating point with calculation error
@@ -1040,8 +1042,8 @@ describe('MarginlyPool.Base', () => {
 
       const expectedLeverageLong1 = calcLeverageLong(
         price,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
@@ -1061,9 +1063,9 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(longer).long(longAmount2);
 
       const expectedRBC2 = amountToDeposit + longAmount + longAmount2;
-      const expectedDBC2 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * expectedRBC2;
-      const expectedDQC2 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
-      const debtCoeff2 = BigNumber.from(await marginlyPool.quoteDebtCoeff());
+      const expectedDBC2 = convertFP96ToNumber((await marginlyPool.baseCollateralCoeff()).inner) * expectedRBC2;
+      const expectedDQC2 = convertFP96ToNumber((await marginlyPool.quoteCollateralCoeff()).inner) * amountToDeposit;
+      const debtCoeff2 = (await marginlyPool.quoteDebtCoeff()).inner;
       const expectedDQD2 = BigNumber.from(totalQuoteAmount).mul(one).div(debtCoeff2);
 
       expect(await marginlyPool.discountedBaseCollateral()).to.be.equal(expectedDBC2);
@@ -1073,8 +1075,8 @@ describe('MarginlyPool.Base', () => {
 
       const expectedLeverageLong2 = calcLeverageLong(
         price,
-        await marginlyPool.quoteCollateralCoeff(),
-        await marginlyPool.baseDebtCoeff(),
+        (await marginlyPool.quoteCollateralCoeff()).inner,
+        (await marginlyPool.baseDebtCoeff()).inner,
         await marginlyPool.discountedQuoteDebt(),
         await marginlyPool.discountedBaseCollateral()
       );
@@ -1232,7 +1234,7 @@ describe('MarginlyPool.Base', () => {
     it('null address', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, from] = await ethers.getSigners();
-      const nullAddress = "0x0000000000000000000000000000000000000000";
+      const nullAddress = '0x0000000000000000000000000000000000000000';
 
       await expect(marginlyPool.connect(from).transferPosition(nullAddress)).to.be.revertedWith('WA');
     });
@@ -1253,5 +1255,5 @@ describe('MarginlyPool.Base', () => {
 
       await expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('PI');
     });
-  })
+  });
 });

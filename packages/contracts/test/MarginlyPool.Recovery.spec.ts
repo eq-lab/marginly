@@ -88,8 +88,8 @@ describe('MarginlyPool.Recovery', () => {
 
     const leverage = calcLeverageShort(
       (await marginlyPool.getBasePrice()).inner,
-      await marginlyPool.quoteCollateralCoeff(),
-      await marginlyPool.baseDebtCoeff(),
+      (await marginlyPool.quoteCollateralCoeff()).inner,
+      (await marginlyPool.baseDebtCoeff()).inner,
       shortPosition.discountedQuoteAmount,
       shortPosition.discountedBaseAmount
     );
@@ -124,8 +124,8 @@ describe('MarginlyPool.Recovery', () => {
 
     const leverage = calcLeverageLong(
       (await marginlyPool.getBasePrice()).inner,
-      await marginlyPool.quoteCollateralCoeff(),
-      await marginlyPool.baseDebtCoeff(),
+      (await marginlyPool.quoteCollateralCoeff()).inner,
+      (await marginlyPool.baseDebtCoeff()).inner,
       longPosition.discountedQuoteAmount,
       longPosition.discountedBaseAmount
     );
