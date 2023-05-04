@@ -388,14 +388,16 @@ contract MarginlyPool is IMarginlyPool {
     deposit(true, amount);
   }
 
-  /// @inheritdoc IMarginlyPool
-  function withdrawBase(uint256 realAmount) external override lock {
+  function withdraw(bool isQuote, uint256 realAmount) internal{
     require(realAmount != 0, 'ZA'); // Zero amount
 
     Position storage position = positions[msg.sender];
-    PositionType _type = position._type;
-    require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
-    require(_type != PositionType.Short);
+
+    {
+      PositionType _type = position._type;
+      require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
+      require(_type != (isQuote ? PositionType.Long : PositionType.Short));
+    }
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
     if (callerMarginCalled) {
@@ -407,29 +409,32 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff();
-    uint256 positionBaseAmount = position.discountedAmount[1];
+    (uint256 tokenIndex, uint256 otherTokenIndex) = isQuote ? (0,1) : (1,0);
 
-    uint256 realBaseAmount = _baseCollateralCoeff.mul(positionBaseAmount);
+    FP96.FixedPoint memory _collateralCoeff = collateralCoeffs[tokenIndex];
+    uint256 positionAmount = position.discountedAmount[tokenIndex];
+
+    uint256 realPositionAmount = _collateralCoeff.mul(positionAmount);
     uint256 realAmountToWithdraw;
     bool needToDeletePosition = false;
-    uint256 discountedBaseCollateralDelta;
-    if (realAmount >= realBaseAmount) {
-      // full withdraw
-      realAmountToWithdraw = realBaseAmount;
-      discountedBaseCollateralDelta = positionBaseAmount;
+    uint256 discountedCollateralDelta;
 
-      needToDeletePosition = position.discountedAmount[0] == 0;
+    if (realAmount >= realPositionAmount) {
+      // full withdraw
+      realAmountToWithdraw = realPositionAmount;
+      discountedCollateralDelta = positionAmount;
+
+      needToDeletePosition = position.discountedAmount[otherTokenIndex] == 0;
     } else {
       // partial withdraw
       realAmountToWithdraw = realAmount;
-      discountedBaseCollateralDelta = _baseCollateralCoeff.recipMul(realAmountToWithdraw);
+      discountedCollateralDelta = _collateralCoeff.recipMul(realAmountToWithdraw);
     }
 
-    position.discountedAmount[1] = positionBaseAmount.sub(discountedBaseCollateralDelta);
-    discountedCollaterals[1] = discountedBaseCollateral().sub(discountedBaseCollateralDelta);
+    position.discountedAmount[tokenIndex] = positionAmount.sub(discountedCollateralDelta);
+    discountedCollaterals[tokenIndex] = discountedCollaterals[tokenIndex].sub(discountedCollateralDelta);
 
-    updateSystemLeverage(false, basePrice);
+    updateSystemLeverage(isQuote, basePrice);
 
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
@@ -438,64 +443,19 @@ contract MarginlyPool is IMarginlyPool {
       delete positions[msg.sender];
     }
 
-    TransferHelper.safeTransfer(baseToken(), msg.sender, realAmountToWithdraw);
+    TransferHelper.safeTransfer(tokens[tokenIndex], msg.sender, realAmountToWithdraw);
 
-    emit WithdrawBase(msg.sender, realAmountToWithdraw, discountedBaseCollateralDelta);
+    emit Withdraw(msg.sender, isQuote, realAmountToWithdraw, discountedCollateralDelta);
+  }
+
+  /// @inheritdoc IMarginlyPool
+  function withdrawBase(uint256 realAmount) external override lock {
+    withdraw(false, realAmount);
   }
 
   /// @inheritdoc IMarginlyPool
   function withdrawQuote(uint256 realAmount) external override lock {
-    require(realAmount != 0, 'ZA'); // Zero amount
-
-    Position storage position = positions[msg.sender];
-    PositionType _type = position._type;
-    require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
-    require(_type != PositionType.Long);
-
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
-    if (callerMarginCalled) {
-      return;
-    }
-
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    if (marginCallHappened) {
-      return;
-    }
-
-    FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff();
-    uint256 positionQuoteAmount = position.discountedAmount[0];
-
-    uint256 realQuoteAmount = _quoteCollateralCoeff.mul(positionQuoteAmount);
-    uint256 realAmountToWithdraw;
-    bool needToDeletePosition = false;
-    uint256 discountedQuoteCollateralDelta;
-    if (realAmount >= realQuoteAmount) {
-      // full withdraw
-      realAmountToWithdraw = realQuoteAmount;
-      discountedQuoteCollateralDelta = positionQuoteAmount;
-
-      needToDeletePosition = position.discountedAmount[1] == 0;
-    } else {
-      // partial withdraw
-      realAmountToWithdraw = realAmount;
-      discountedQuoteCollateralDelta = _quoteCollateralCoeff.recipMul(realAmountToWithdraw);
-    }
-
-    position.discountedAmount[0] = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
-    discountedCollaterals[0] = discountedQuoteCollateral().sub(discountedQuoteCollateralDelta);
-
-    updateSystemLeverage(true, basePrice);
-
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
-
-    if (needToDeletePosition) {
-      delete positions[msg.sender];
-    }
-
-    TransferHelper.safeTransfer(quoteToken(), msg.sender, realAmountToWithdraw);
-
-    emit WithdrawQuote(msg.sender, realAmountToWithdraw, discountedQuoteCollateralDelta);
+    withdraw(true, realAmount);
   }
 
   /// @inheritdoc IMarginlyPool

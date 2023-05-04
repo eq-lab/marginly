@@ -22,15 +22,16 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @dev Emitted when user withdrew base token
   /// @param user User
+  /// @param isQuoteWithdraw flag of quote or base withdraw
   /// @param amount Amount of token user withdrew
   /// @param baseDiscountedDelta Discounted delta amount of base tokens user withdrew
-  event WithdrawBase(address indexed user, uint256 amount, uint256 baseDiscountedDelta);
-
-  /// @dev Emitted when user withdrew quote token
-  /// @param user User
-  /// @param amount Amount of token user withdrew
-  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens user withdrew
-  event WithdrawQuote(address indexed user, uint256 amount, uint256 quoteDiscountedDelta);
+  event Withdraw(address indexed user, bool isQuoteWithdraw, uint256 amount, uint256 baseDiscountedDelta);
+//
+//  /// @dev Emitted when user withdrew quote token
+//  /// @param user User
+//  /// @param amount Amount of token user withdrew
+//  /// @param quoteDiscountedDelta Discounted delta amount of quote tokens user withdrew
+//  event WithdrawQuote(address indexed user, uint256 amount, uint256 quoteDiscountedDelta);
 
   /// @dev Emitted when user shorted
   /// @param user Depositor

@@ -94,14 +94,14 @@ Object {
 exports[`System initialized: withdrawBase 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 181294,
+  "gasUsed": 181703,
 }
 `;
 
 exports[`System initialized: withdrawQuote 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 194094,
+  "gasUsed": 194516,
 }
 `;
 

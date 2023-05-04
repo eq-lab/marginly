@@ -115,7 +115,7 @@ describe('MarginlyPool.Base', () => {
       const depositAmount = 1000;
 
       const tx = await marginlyPool.connect(signer).depositBase(depositAmount);
-      const depositBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'DepositBase')!;
+      const depositBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'Deposit')!;
       expect(depositBaseEvent.args?.user).to.be.equal(signer.address);
       expect(depositBaseEvent.args?.amount).to.be.equal(depositAmount);
 
@@ -384,7 +384,7 @@ describe('MarginlyPool.Base', () => {
 
       const amountToWithdraw = 374;
       const tx = await marginlyPool.connect(signer).withdrawBase(amountToWithdraw);
-      const withdrawBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'WithdrawBase')!;
+      const withdrawBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'Withdraw')!;
       expect(withdrawBaseEvent.args?.user).to.be.equal(signer.address);
       expect(withdrawBaseEvent.args?.amount).to.be.equal(amountToWithdraw);
 
@@ -451,7 +451,7 @@ describe('MarginlyPool.Base', () => {
 
       const amountToWithdraw = 589;
       const tx = await marginlyPool.connect(signer).withdrawQuote(amountToWithdraw);
-      const withdrawQuoteEvent = (await tx.wait()).events?.find((x) => x.event === 'WithdrawQuote')!;
+      const withdrawQuoteEvent = (await tx.wait()).events?.find((x) => x.event === 'Withdraw')!;
       expect(withdrawQuoteEvent.args?.user).to.be.equal(signer.address);
       expect(withdrawQuoteEvent.args?.amount).to.be.equal(amountToWithdraw);
 
