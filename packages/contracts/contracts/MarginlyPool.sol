@@ -220,9 +220,10 @@ contract MarginlyPool is IMarginlyPool {
     uint256 realDebt = debtCoeffs[debtTokenIndex].mul(position.discountedAmount[debtTokenIndex]);
 
     // short position mc
-    uint outputMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-      getCurrentBasePrice().recipMul(realCollateral)
-    );
+    uint outputMinimum = collateralTokenIndex == 0
+    ? FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(getCurrentBasePrice().recipMul(realCollateral))
+    : FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(getCurrentBasePrice().mul(realCollateral));
+
     uint256 swappedDebt = swapExactInput(collateralTokenIndex == 0, realCollateral, outputMinimum);
     swapPriceX96 = getSwapPrice(realCollateral, swappedDebt);
     // collateralCoeff += rcd * (rqc - sqc) / sqc
