@@ -75,14 +75,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     uint256 collateralDiscountedDelta
   );
 
-  /// @dev Emitted when user deposited base token to increase base collateral coeff
-  /// @param baseAmount Amount of base token
-  event IncreaseBaseCollateralCoeff(uint256 baseAmount);
-
-  /// @dev Emitted when user deposited base token to increase quote collateral coeff
-  /// @param quoteAmount Amount of quote token
-  event IncreaseQuoteCollateralCoeff(uint256 quoteAmount);
-
   /// @dev Emitted when position liquidation happened
   /// @param liquidator Liquidator
   /// @param position Liquidated position
@@ -171,14 +163,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @notice Accrue interest, check and run margin call for riskiest positions
   function reinit() external;
-
-  /// @notice Increase base balance and baseCollateralCoeff
-  /// @param realBaseAmount Amount of base token
-  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external;
-
-  /// @notice Increase quote balance and quoteCollateralCoeff
-  /// @param realQuoteAmount Amount of quote token
-  function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external;
 
   /// @notice Liquidate bad position and receive position collateral and debt
   /// @param badPositionAddress address of position to liquidate

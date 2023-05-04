@@ -3,7 +3,7 @@
 exports[`Deposit into existing position: depositBase 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 123568,
+  "gasUsed": 123590,
 }
 `;
 
@@ -45,7 +45,7 @@ Object {
 exports[`Open position: depositBase 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 205650,
+  "gasUsed": 205672,
 }
 `;
 
@@ -66,7 +66,7 @@ Object {
 exports[`System initialized: depositBase 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 213304,
+  "gasUsed": 213326,
 }
 `;
 
@@ -80,7 +80,7 @@ Object {
 exports[`System initialized: long 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 309151,
+  "gasUsed": 309129,
 }
 `;
 
@@ -115,14 +115,14 @@ Object {
 exports[`mc happens: depositBase with one mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 242994,
+  "gasUsed": 243016,
 }
 `;
 
 exports[`mc happens: depositBase with two mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 304149,
+  "gasUsed": 304167,
 }
 `;
 
@@ -150,21 +150,21 @@ Object {
 exports[`mc happens: long initialized heap with one mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 274353,
+  "gasUsed": 274331,
 }
 `;
 
 exports[`mc happens: long with one mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 325102,
+  "gasUsed": 325080,
 }
 `;
 
 exports[`mc happens: long with two mc 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 334202,
+  "gasUsed": 334184,
 }
 `;
 

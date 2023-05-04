@@ -843,24 +843,6 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPool
-  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external override lock {
-    require(discountedBaseCollateral() != 0, 'ZC'); // Zero collateral
-    collateralCoeffs[1] = baseCollateralCoeff().add(FP96.fromRatio(realBaseAmount, discountedBaseCollateral()));
-
-    TransferHelper.safeTransferFrom(baseToken(), msg.sender, address(this), realBaseAmount);
-    emit IncreaseBaseCollateralCoeff(realBaseAmount);
-  }
-
-  /// @inheritdoc IMarginlyPool
-  function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external override lock {
-    require(discountedQuoteCollateral() != 0, 'ZC'); // Zero collateral
-    collateralCoeffs[0] = quoteCollateralCoeff().add(FP96.fromRatio(realQuoteAmount, discountedQuoteCollateral()));
-
-    TransferHelper.safeTransferFrom(quoteToken(), msg.sender, address(this), realQuoteAmount);
-    emit IncreaseQuoteCollateralCoeff(realQuoteAmount);
-  }
-
-  /// @inheritdoc IMarginlyPool
   function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) external override lock {
     require(positions[msg.sender]._type == PositionType.Uninitialized, 'PI'); // Position initialized
 

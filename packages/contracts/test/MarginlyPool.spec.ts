@@ -597,46 +597,6 @@ describe('MarginlyPool.Base', () => {
     });
   });
 
-  describe('Increase collateral coeff', () => {
-    it('should raise error when zero collateral', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, signer] = await ethers.getSigners();
-
-      await expect(marginlyPool.connect(signer).increaseBaseCollateralCoeff(1)).to.be.revertedWith('ZC');
-      await expect(marginlyPool.connect(signer).increaseQuoteCollateralCoeff(1)).to.be.revertedWith('ZC');
-    });
-
-    it('should increase base collateral coeff', async () => {
-      const { marginlyPool, baseContract } = await loadFixture(createMarginlyPool);
-      const [_, signer] = await ethers.getSigners();
-
-      const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
-
-      const increaseValue = 100;
-      await marginlyPool.connect(signer).increaseBaseCollateralCoeff(increaseValue);
-
-      const expectedCoeff = (11n * FP96.one) / 10n; //1.1
-      expect((await marginlyPool.baseCollateralCoeff()).inner).to.be.equal(expectedCoeff);
-      expect(await baseContract.balanceOf(marginlyPool.address)).to.be.equal(amountToDeposit + increaseValue);
-    });
-
-    it('should increase quote collateral coeff', async () => {
-      const { marginlyPool, quoteContract } = await loadFixture(createMarginlyPool);
-      const [_, signer] = await ethers.getSigners();
-
-      const amountToDeposit = 1500;
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
-
-      const increaseValue = 300;
-      await marginlyPool.connect(signer).increaseQuoteCollateralCoeff(increaseValue);
-
-      const expectedCoeff = (12n * FP96.one) / 10n; //1.2
-      expect((await marginlyPool.quoteCollateralCoeff()).inner).to.be.equal(expectedCoeff);
-      expect(await quoteContract.balanceOf(marginlyPool.address)).to.be.equal(amountToDeposit + increaseValue);
-    });
-  });
-
   describe('Short', () => {
     it('short, wrong user type', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
