@@ -204,61 +204,43 @@ contract MarginlyPool is IMarginlyPool {
   /// @param position User's position to reinit
   function enactMarginCall(address user, Position storage position) private {
     uint256 swapPriceX96;
+    uint8 collateralTokenIndex;
+    uint8 debtTokenIndex;
     if (position._type == PositionType.Short) {
-      uint256 realQuoteCollateral = quoteCollateralCoeff().mul(position.discountedAmount[0]);
-      uint256 realBaseDebt = baseDebtCoeff().mul(position.discountedAmount[1]);
-
-      // short position mc
-      uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-        getCurrentBasePrice().recipMul(realQuoteCollateral)
-      );
-      uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum);
-      swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
-      // baseCollateralCoeff += rcd * (rqc - sqc) / sqc
-      if (swappedBaseDebt >= realBaseDebt) {
-        // Position has enough collateral to repay debt
-        uint256 baseDebtDelta = swappedBaseDebt.sub(realBaseDebt);
-        collateralCoeffs[1] = baseCollateralCoeff().add(FP96.fromRatio(baseDebtDelta, discountedBaseCollateral()));
-      } else {
-        // Position's debt has been repaid by pool
-        uint256 baseDebtDelta = realBaseDebt.sub(swappedBaseDebt);
-        collateralCoeffs[1] = baseCollateralCoeff().sub(FP96.fromRatio(baseDebtDelta, discountedBaseCollateral()));
-      }
-
-      discountedCollaterals[0] = discountedQuoteCollateral().sub(position.discountedAmount[0]);
-      discountedDebts[1] = discountedBaseDebt().sub(position.discountedAmount[1]);
-
-      //remove position
-      heaps[0].remove(positions, 0);
+      collateralTokenIndex = 0;
+      debtTokenIndex = 1;
     } else if (position._type == PositionType.Long) {
-      uint256 realBaseCollateral = baseCollateralCoeff().mul(position.discountedAmount[1]);
-      uint256 realQuoteDebt = quoteDebtCoeff().mul(position.discountedAmount[0]);
-
-      // long position mc
-      uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-        getCurrentBasePrice().mul(realBaseCollateral)
-      );
-      uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum);
-      swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
-      // quoteCollateralCoef += rqd * (rbc - sbc) / sbc
-      if (swappedQuoteDebt >= realQuoteDebt) {
-        // Position has enough collateral to repay debt
-        uint256 quoteDebtDelta = swappedQuoteDebt.sub(realQuoteDebt);
-        collateralCoeffs[0] = quoteCollateralCoeff().add(FP96.fromRatio(quoteDebtDelta, discountedQuoteCollateral()));
-      } else {
-        // Position's debt has been repaid by pool
-        uint256 quoteDebtDelta = realQuoteDebt.sub(swappedQuoteDebt);
-        collateralCoeffs[0] = quoteCollateralCoeff().sub(FP96.fromRatio(quoteDebtDelta, discountedQuoteCollateral()));
-      }
-
-      discountedCollaterals[1] = discountedBaseCollateral().sub(position.discountedAmount[1]);
-      discountedDebts[0] = discountedQuoteDebt().sub(position.discountedAmount[0]);
-
-      //remove position
-      heaps[1].remove(positions, 0);
+      collateralTokenIndex = 1;
+      debtTokenIndex = 0;
     } else {
       revert('WPT'); // Wrong position type to MC
     }
+
+    uint256 realCollateral = collateralCoeffs[collateralTokenIndex].mul(position.discountedAmount[collateralTokenIndex]);
+    uint256 realDebt = debtCoeffs[debtTokenIndex].mul(position.discountedAmount[debtTokenIndex]);
+
+    // short position mc
+    uint outputMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
+      getCurrentBasePrice().recipMul(realCollateral)
+    );
+    uint256 swappedDebt = swapExactInput(collateralTokenIndex == 0, realCollateral, outputMinimum);
+    swapPriceX96 = getSwapPrice(realCollateral, swappedDebt);
+    // collateralCoeff += rcd * (rqc - sqc) / sqc
+    if (swappedDebt >= realDebt) {
+      // Position has enough collateral to repay debt
+      uint256 debtDelta = swappedDebt.sub(realDebt);
+      collateralCoeffs[debtTokenIndex] = collateralCoeffs[debtTokenIndex].add(FP96.fromRatio(debtDelta, discountedCollaterals[debtTokenIndex]));
+    } else {
+      // Position's debt has been repaid by pool
+      uint256 debtDelta = realDebt.sub(swappedDebt);
+      collateralCoeffs[debtTokenIndex] = collateralCoeffs[debtTokenIndex].sub(FP96.fromRatio(debtDelta, discountedCollaterals[debtTokenIndex]));
+    }
+
+    discountedCollaterals[collateralTokenIndex] = discountedCollaterals[collateralTokenIndex].sub(position.discountedAmount[collateralTokenIndex]);
+    discountedDebts[debtTokenIndex] = discountedDebts[debtTokenIndex].sub(position.discountedAmount[debtTokenIndex]);
+
+    //remove position
+    heaps[collateralTokenIndex].remove(positions, 0);
 
     delete positions[user];
     emit EnactMarginCall(user, swapPriceX96);
@@ -480,7 +462,7 @@ contract MarginlyPool is IMarginlyPool {
     address collateralToken;
     uint256 swapPriceX96;
     if (position._type == PositionType.Short) {
-      uint256 realQuoteCollateral = quoteCollateralCoeff().mul(position.discountedAmount[0]);
+      uint256 realQuoteCollateral = collateralCoeffs[0].mul(position.discountedAmount[0]);
       uint256 realBaseDebt = baseDebtCoeff().mul(position.discountedAmount[1]);
 
       uint256 swappedQuoteCollateral = swapExactOutput(true, realQuoteCollateral, realBaseDebt);
@@ -495,7 +477,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, swappedQuoteCollateral, WHOLE_ONE);
       chargeFee(realFeeAmount);
 
-      uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff().recipMul(
+      uint256 discountedQuoteCollateralDelta = collateralCoeffs[0].recipMul(
         swappedQuoteCollateral.add(realFeeAmount)
       );
 
@@ -714,7 +696,7 @@ contract MarginlyPool is IMarginlyPool {
 //    uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteCollateralChangeWithFee, WHOLE_ONE);
 //    uint256 realQuoteCollateralChange = realQuoteCollateralChangeWithFee.sub(realSwapFee);
 //
-//    FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff();
+//    FP96.FixedPoint memory _quoteCollateralCoeff = collateralCoeffs[0];
 //    uint256 _discountedQuoteCollateral = discountedQuoteCollateral();
 //
 //    // use scope here to avoid "Stack too deep error"
@@ -851,7 +833,7 @@ contract MarginlyPool is IMarginlyPool {
 
       FP96.FixedPoint memory quoteDebtCoeffOld = quoteDebtCoeff();
       debtCoeffs[0] = quoteDebtCoeff().mul(quoteDebtCoeffMul);
-      collateralCoeffs[0] = quoteCollateralCoeff().add(
+      collateralCoeffs[0] = collateralCoeffs[0].add(
         FP96.fromRatio(quoteDebtCoeff().sub(quoteDebtCoeffOld).mul(discountedQuoteDebt()), discountedQuoteCollateral())
       );
     }
@@ -909,7 +891,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 collateral = position.discountedAmount[0];
       uint256 debt = position.discountedAmount[1];
 
-      uint256 realTotalCollateral = quoteCollateralCoeff().mul(collateral);
+      uint256 realTotalCollateral = collateralCoeffs[0].mul(collateral);
       uint256 realTotalDebt = baseDebtCoeff().mul(basePrice.mul(debt));
 
       uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
@@ -948,7 +930,7 @@ contract MarginlyPool is IMarginlyPool {
     accrueInterest();
 
     //cache to avoid extra reading
-    FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff();
+    FP96.FixedPoint memory _quoteCollateralCoeff = collateralCoeffs[0];
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff();
 
     uint256 discountedQuoteAmount = _quoteCollateralCoeff.recipMul(quoteAmount);
@@ -1056,7 +1038,7 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 baseDebt = baseDebtCoeff().mul(discountedBaseDebt(), Math.Rounding.Up);
     uint256 baseDebtInQuoteUnits = basePrice.mul(baseDebt);
-    uint256 quoteCollateral = quoteCollateralCoeff().mul(_discountedQuoteCollateral);
+    uint256 quoteCollateral = collateralCoeffs[0].mul(_discountedQuoteCollateral);
 
     uint256 quoteDebt = quoteDebtCoeff().mul(discountedQuoteDebt(), Math.Rounding.Up);
     uint256 baseCollateral = baseCollateralCoeff().mul(_discountedBaseCollateral);
