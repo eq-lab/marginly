@@ -84,7 +84,7 @@ describe('MarginlyPool.Recovery', () => {
     const shortAmount = 6500; // leverage 17.24
     await marginlyPool.connect(shorter).short(shortAmount);
 
-    let shortPosition = await marginlyPool.positions(shorter.address);
+    let shortPosition = await marginlyPool.getPosition(shorter.address);
 
     const leverage = calcLeverageShort(
       (await marginlyPool.getBasePrice()).inner,
@@ -96,13 +96,13 @@ describe('MarginlyPool.Recovery', () => {
     console.log(toHumanString(leverage));
 
     await marginlyPool.connect(depositor).reinit();
-    shortPosition = await marginlyPool.positions(shorter.address);
+    shortPosition = await marginlyPool.getPosition(shorter.address);
     expect(shortPosition._type).to.be.equal(PositionType.Short);
 
     await marginlyPool.connect(owner).setRecoveryMode(true);
     await marginlyPool.connect(depositor).reinit();
 
-    shortPosition = await marginlyPool.positions(shorter.address);
+    shortPosition = await marginlyPool.getPosition(shorter.address);
     expect(shortPosition._type).to.be.equal(PositionType.Uninitialized);
   });
 
@@ -120,7 +120,7 @@ describe('MarginlyPool.Recovery', () => {
     const longAmount = 1700; // leverage 17.3
     await marginlyPool.connect(longer).long(longAmount);
 
-    let longPosition = await marginlyPool.positions(longer.address);
+    let longPosition = await marginlyPool.getPosition(longer.address);
 
     const leverage = calcLeverageLong(
       (await marginlyPool.getBasePrice()).inner,
@@ -132,13 +132,13 @@ describe('MarginlyPool.Recovery', () => {
     console.log(toHumanString(leverage));
 
     await marginlyPool.connect(depositor).reinit();
-    longPosition = await marginlyPool.positions(longer.address);
+    longPosition = await marginlyPool.getPosition(longer.address);
     expect(longPosition._type).to.be.equal(PositionType.Long);
 
     await marginlyPool.connect(owner).setRecoveryMode(true);
     await marginlyPool.connect(depositor).reinit();
 
-    longPosition = await marginlyPool.positions(longer.address);
+    longPosition = await marginlyPool.getPosition(longer.address);
     expect(longPosition._type).to.be.equal(PositionType.Uninitialized);
   });
 
@@ -156,17 +156,17 @@ describe('MarginlyPool.Recovery', () => {
     const shortAmount = 6500; // leverage 17.24
     await marginlyPool.connect(shorter).short(shortAmount);
 
-    let shortPosition = await marginlyPool.positions(shorter.address);
+    let shortPosition = await marginlyPool.getPosition(shorter.address);
 
     await expect(marginlyPool.connect(receiver).receivePosition(shorter.address, 0, 500)).to.be.rejectedWith('NL');
 
     await marginlyPool.connect(owner).setRecoveryMode(true);
     await marginlyPool.connect(receiver).receivePosition(shorter.address, 0, 500);
 
-    shortPosition = await marginlyPool.positions(shorter.address);
+    shortPosition = await marginlyPool.getPosition(shorter.address);
     expect(shortPosition._type).to.be.equal(PositionType.Uninitialized);
 
-    const receiverPosition = await marginlyPool.positions(receiver.address);
+    const receiverPosition = await marginlyPool.getPosition(receiver.address);
     expect(receiverPosition._type).to.be.equal(PositionType.Short);
   });
 
@@ -189,10 +189,10 @@ describe('MarginlyPool.Recovery', () => {
     await marginlyPool.connect(owner).setRecoveryMode(true);
     await marginlyPool.connect(receiver).receivePosition(longer.address, 0, 200);
 
-    const longPosition = await marginlyPool.positions(longer.address);
+    const longPosition = await marginlyPool.getPosition(longer.address);
     expect(longPosition._type).to.be.equal(PositionType.Uninitialized);
 
-    const receiverPosition = await marginlyPool.positions(receiver.address);
+    const receiverPosition = await marginlyPool.getPosition(receiver.address);
     expect(receiverPosition._type).to.be.equal(PositionType.Long);
   });
 });

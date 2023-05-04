@@ -21,12 +21,12 @@ describe('MarginlyPoolWrapper long', () => {
 
     const baseCollCoeff = (await marginlyPool.baseCollateralCoeff()).inner;
 
-    const position = await marginlyPool.positions(signer.address);
+    const position = await marginlyPool.getPosition(signer.address);
     expect(position._type).to.be.equal(PositionType.Long);
     expect(position.discountedBaseAmount.mul(baseCollCoeff)).to.be.equal((depositBaseAmount + longAmount) * FP96.one);
 
     // Must not exist
-    const wrapperContractPosition = await marginlyPool.positions(marginlyPoolWrapper.address);
+    const wrapperContractPosition = await marginlyPool.getPosition(marginlyPoolWrapper.address);
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
@@ -47,13 +47,13 @@ describe('MarginlyPoolWrapper long', () => {
       marginlyPoolWrapper.connect(signer).long(marginlyPool.address, depositBaseAmount, longAmount)
     ).to.be.revertedWith('MA');
 
-    const position = await marginlyPool.positions(signer.address);
+    const position = await marginlyPool.getPosition(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
     expect(position.discountedBaseAmount).to.be.equal(0);
     expect(position.discountedQuoteAmount).to.be.equal(0);
 
     // Must not exist
-    const wrapperContractPosition = await marginlyPool.positions(marginlyPoolWrapper.address);
+    const wrapperContractPosition = await marginlyPool.getPosition(marginlyPoolWrapper.address);
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
@@ -109,7 +109,7 @@ describe('MarginlyPoolWrapper short', () => {
     const quoteCollCoeff = (await marginlyPool.quoteCollateralCoeff()).inner;
     const price = (await marginlyPool.getBasePrice()).inner;
 
-    const position = await marginlyPool.positions(signer.address);
+    const position = await marginlyPool.getPosition(signer.address);
     expect(position._type).to.be.equal(PositionType.Short);
     const expected = price
       .mul(shortAmount)
@@ -118,7 +118,7 @@ describe('MarginlyPoolWrapper short', () => {
     expect(position.discountedQuoteAmount.mul(quoteCollCoeff).div(FP96.one)).to.be.equal(expected);
 
     // Must not exist
-    const wrapperContractPosition = await marginlyPool.positions(marginlyPoolWrapper.address);
+    const wrapperContractPosition = await marginlyPool.getPosition(marginlyPoolWrapper.address);
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);
@@ -139,13 +139,13 @@ describe('MarginlyPoolWrapper short', () => {
       marginlyPoolWrapper.connect(signer).short(marginlyPool.address, depositQuoteAmount, shortAmount)
     ).to.be.revertedWith('MA');
 
-    const position = await marginlyPool.positions(signer.address);
+    const position = await marginlyPool.getPosition(signer.address);
     expect(position._type).to.be.equal(PositionType.Uninitialized);
     expect(position.discountedBaseAmount).to.be.equal(0);
     expect(position.discountedQuoteAmount).to.be.equal(0);
 
     // Must not exist
-    const wrapperContractPosition = await marginlyPool.positions(marginlyPoolWrapper.address);
+    const wrapperContractPosition = await marginlyPool.getPosition(marginlyPoolWrapper.address);
     expect(wrapperContractPosition._type).to.be.equal(PositionType.Uninitialized);
     expect(wrapperContractPosition.discountedBaseAmount).to.be.equal(0);
     expect(wrapperContractPosition.discountedQuoteAmount).to.be.equal(0);

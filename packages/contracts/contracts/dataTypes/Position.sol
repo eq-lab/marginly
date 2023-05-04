@@ -14,8 +14,6 @@ struct Position {
   uint32 heapPosition;
   /// @dev Type of a given position
   PositionType _type;
-  /// @dev negative value if _type == Short, positive value otherwise in base asset (e.g. WETH)
-  uint256 discountedBaseAmount;
-  /// @dev negative value if _type == Long, positive value otherwise in quote asset (e.g. USDC)
-  uint256 discountedQuoteAmount;
+  /// @dev [0] - discountedQuoteAmount, [1] - discountedBaseAmount
+  uint256[2] discountedAmount;
 }

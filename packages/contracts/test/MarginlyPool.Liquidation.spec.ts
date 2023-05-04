@@ -132,7 +132,7 @@ describe('MarginlyPool.Liquidation', () => {
     const shortAmount = 7600; // leverage 19.9
     await marginlyPool.connect(shorter).short(shortAmount);
 
-    const beforeLiquidationPosition = await marginlyPool.positions(shorter.address);
+    const beforeLiquidationPosition = await marginlyPool.getPosition(shorter.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
     const beforeDiscountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
     const basePrice = await marginlyPool.getBasePrice();
@@ -147,12 +147,12 @@ describe('MarginlyPool.Liquidation', () => {
     const baseAmount = 7700; // the sum is enough to cover debt + accruedInterest
     await marginlyPool.connect(receiver).receivePosition(shorter.address, quoteAmount, baseAmount);
 
-    const liquidatedPosition = await marginlyPool.positions(shorter.address);
+    const liquidatedPosition = await marginlyPool.getPosition(shorter.address);
     expect(liquidatedPosition._type).to.be.equal(0);
     expect(liquidatedPosition.discountedBaseAmount).to.be.equal(0);
     expect(liquidatedPosition.discountedQuoteAmount).to.be.equal(0);
 
-    const newPosition = await marginlyPool.positions(receiver.address);
+    const newPosition = await marginlyPool.getPosition(receiver.address);
     const baseCollateralCoeff = (await marginlyPool.baseCollateralCoeff()).inner;
     const quoteCollateralCoeff = (await marginlyPool.quoteCollateralCoeff()).inner;
 
@@ -220,7 +220,7 @@ describe('MarginlyPool.Liquidation', () => {
     const longAmount = 1980; // leverage 19.8
     await marginlyPool.connect(longer).long(longAmount);
 
-    const beforeLiquidationPosition = await marginlyPool.positions(longer.address);
+    const beforeLiquidationPosition = await marginlyPool.getPosition(longer.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
     const beforeDiscountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
     const basePrice = await marginlyPool.getBasePrice();
@@ -235,12 +235,12 @@ describe('MarginlyPool.Liquidation', () => {
     const baseAmount = 10;
     await marginlyPool.connect(receiver).receivePosition(longer.address, quoteAmount, baseAmount);
 
-    const liquidatedPosition = await marginlyPool.positions(longer.address);
+    const liquidatedPosition = await marginlyPool.getPosition(longer.address);
     expect(liquidatedPosition._type).to.be.equal(0);
     expect(liquidatedPosition.discountedBaseAmount).to.be.equal(0);
     expect(liquidatedPosition.discountedQuoteAmount).to.be.equal(0);
 
-    const newPosition = await marginlyPool.positions(receiver.address);
+    const newPosition = await marginlyPool.getPosition(receiver.address);
     const quoteCollateralCoeff = (await marginlyPool.quoteCollateralCoeff()).inner;
     const baseCollateralCoeff = (await marginlyPool.baseCollateralCoeff()).inner;
 
@@ -304,7 +304,7 @@ describe('MarginlyPool.Liquidation', () => {
     const shortAmount = 7600; // leverage 19.9
     await marginlyPool.connect(shorter).short(shortAmount);
 
-    const beforeLiquidationPosition = await marginlyPool.positions(shorter.address);
+    const beforeLiquidationPosition = await marginlyPool.getPosition(shorter.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
     const basePrice = await marginlyPool.getBasePrice();
     const token0BalanceBefore = await token0.balanceOf(marginlyPool.address);
@@ -318,12 +318,12 @@ describe('MarginlyPool.Liquidation', () => {
     const baseAmount = 100; // the sum is not enough to cover debt + accruedInterest
     await marginlyPool.connect(receiver).receivePosition(shorter.address, quoteAmount, baseAmount);
 
-    const liquidatedPosition = await marginlyPool.positions(shorter.address);
+    const liquidatedPosition = await marginlyPool.getPosition(shorter.address);
     expect(liquidatedPosition._type).to.be.equal(0);
     expect(liquidatedPosition.discountedBaseAmount).to.be.equal(0);
     expect(liquidatedPosition.discountedQuoteAmount).to.be.equal(0);
 
-    const newPosition = await marginlyPool.positions(receiver.address);
+    const newPosition = await marginlyPool.getPosition(receiver.address);
     const quoteCollateralCoeff = (await marginlyPool.quoteCollateralCoeff()).inner;
 
     expect(newPosition._type).to.be.equal(2); // Short position
@@ -384,7 +384,7 @@ describe('MarginlyPool.Liquidation', () => {
     const longAmount = 1980; // leverage 19.8
     await marginlyPool.connect(longer).long(longAmount);
 
-    const beforeLiquidationPosition = await marginlyPool.positions(longer.address);
+    const beforeLiquidationPosition = await marginlyPool.getPosition(longer.address);
     const beforeDiscountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
     const basePrice = await marginlyPool.getBasePrice();
     const token0BalanceBefore = await token0.balanceOf(marginlyPool.address);
@@ -398,12 +398,12 @@ describe('MarginlyPool.Liquidation', () => {
     const baseAmount = 10;
     await marginlyPool.connect(receiver).receivePosition(longer.address, quoteAmount, baseAmount);
 
-    const liquidatedPosition = await marginlyPool.positions(longer.address);
+    const liquidatedPosition = await marginlyPool.getPosition(longer.address);
     expect(liquidatedPosition._type).to.be.equal(0);
     expect(liquidatedPosition.discountedBaseAmount).to.be.equal(0);
     expect(liquidatedPosition.discountedQuoteAmount).to.be.equal(0);
 
-    const newPosition = await marginlyPool.positions(receiver.address);
+    const newPosition = await marginlyPool.getPosition(receiver.address);
     const quoteCollateralCoeff = (await marginlyPool.quoteCollateralCoeff()).inner;
     const baseCollateralCoeff = (await marginlyPool.baseCollateralCoeff()).inner;
 

@@ -207,8 +207,8 @@ describe('mc happens:', async () => {
     await marginlyPool.connect(longer).long(longAmount);
     await time.increase(180 * 24 * 60 * 60);
     await snapshotGasCost(await marginlyPool.connect(depositor).depositBase(1000));
-    expect((await marginlyPool.positions(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
-    expect((await marginlyPool.positions(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
   });
 
   it('depositQuote with two mc', async () => {
@@ -226,8 +226,8 @@ describe('mc happens:', async () => {
     await marginlyPool.connect(longer).long(longAmount);
     await time.increase(180 * 24 * 60 * 60);
     await snapshotGasCost(await marginlyPool.connect(depositor).depositQuote(1000));
-    expect((await marginlyPool.positions(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
-    expect((await marginlyPool.positions(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
   });
 
   it('short with two mc', async () => {
@@ -246,8 +246,8 @@ describe('mc happens:', async () => {
     await marginlyPool.connect(longer).long(longAmount);
     await time.increase(180 * 24 * 60 * 60);
     await snapshotGasCost(await marginlyPool.connect(shorter2).short(10));
-    expect((await marginlyPool.positions(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
-    expect((await marginlyPool.positions(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
   });
 
   it('long with two mc', async () => {
@@ -266,8 +266,8 @@ describe('mc happens:', async () => {
     await marginlyPool.connect(longer).long(longAmount);
     await time.increase(180 * 24 * 60 * 60);
     await snapshotGasCost(await marginlyPool.connect(longer2).long(10));
-    expect((await marginlyPool.positions(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
-    expect((await marginlyPool.positions(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
   });
 
   it('closePosition with two mc', async () => {
@@ -292,8 +292,8 @@ describe('mc happens:', async () => {
     await marginlyPool.connect(longer).long(longAmount);
     await time.increase(180 * 24 * 60 * 60);
     await snapshotGasCost(await marginlyPool.connect(longer2).closePosition());
-    expect((await marginlyPool.positions(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
-    expect((await marginlyPool.positions(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
+    expect((await marginlyPool.getPosition(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
   });
 });
 

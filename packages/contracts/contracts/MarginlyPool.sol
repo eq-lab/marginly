@@ -108,8 +108,6 @@ contract MarginlyPool is IMarginlyPool {
 
     factory = msg.sender;
     tokens = [_quoteToken, _baseToken];
-    // quoteToken = _quoteToken;
-    // baseToken = _baseToken;
     uniswapFee = _uniswapFee;
     quoteTokenIsToken0 = _quoteTokenIsToken0;
     uniswapPool = _uniswapPool;
@@ -207,8 +205,8 @@ contract MarginlyPool is IMarginlyPool {
   function enactMarginCall(address user, Position storage position) private {
     uint256 swapPriceX96;
     if (position._type == PositionType.Short) {
-      uint256 realQuoteCollateral = quoteCollateralCoeff().mul(position.discountedQuoteAmount);
-      uint256 realBaseDebt = baseDebtCoeff().mul(position.discountedBaseAmount);
+      uint256 realQuoteCollateral = quoteCollateralCoeff().mul(position.discountedAmount[0]);
+      uint256 realBaseDebt = baseDebtCoeff().mul(position.discountedAmount[1]);
 
       // short position mc
       uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
@@ -227,14 +225,14 @@ contract MarginlyPool is IMarginlyPool {
         collateralCoeffs[1] = baseCollateralCoeff().sub(FP96.fromRatio(baseDebtDelta, discountedBaseCollateral()));
       }
 
-      discountedCollaterals[0] = discountedQuoteCollateral().sub(position.discountedQuoteAmount);
-      discountedDebts[1] = discountedBaseDebt().sub(position.discountedBaseAmount);
+      discountedCollaterals[0] = discountedQuoteCollateral().sub(position.discountedAmount[0]);
+      discountedDebts[1] = discountedBaseDebt().sub(position.discountedAmount[1]);
 
       //remove position
       heaps[0].remove(positions, 0);
     } else if (position._type == PositionType.Long) {
-      uint256 realBaseCollateral = baseCollateralCoeff().mul(position.discountedBaseAmount);
-      uint256 realQuoteDebt = quoteDebtCoeff().mul(position.discountedQuoteAmount);
+      uint256 realBaseCollateral = baseCollateralCoeff().mul(position.discountedAmount[1]);
+      uint256 realQuoteDebt = quoteDebtCoeff().mul(position.discountedAmount[0]);
 
       // long position mc
       uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
@@ -253,8 +251,8 @@ contract MarginlyPool is IMarginlyPool {
         collateralCoeffs[0] = quoteCollateralCoeff().sub(FP96.fromRatio(quoteDebtDelta, discountedQuoteCollateral()));
       }
 
-      discountedCollaterals[1] = discountedBaseCollateral().sub(position.discountedBaseAmount);
-      discountedDebts[0] = discountedQuoteDebt().sub(position.discountedQuoteAmount);
+      discountedCollaterals[1] = discountedBaseCollateral().sub(position.discountedAmount[1]);
+      discountedDebts[0] = discountedQuoteDebt().sub(position.discountedAmount[0]);
 
       //remove position
       heaps[1].remove(positions, 0);
@@ -292,16 +290,7 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @dev Initialize user position
-  function initPosition(Position storage position) private {
-    require(position._type == PositionType.Uninitialized, 'PI'); // Position initialized
-    require(position.heapPosition == 0, 'HPE'); // Heap position exists
-
-    position._type = PositionType.Lend;
-  }
-
-  /// @inheritdoc IMarginlyPool
-  function depositBase(uint256 amount) external override lock {
+  function deposit(bool isQuoteDeposit, uint256 amount) internal {
     require(amount != 0, 'ZA'); // Zero amount
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
@@ -312,7 +301,7 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position = positions[msg.sender];
     bool marginCallHappened;
     if (position._type == PositionType.Uninitialized) {
-      initPosition(position);
+      position._type = PositionType.Lend;
     } else {
       marginCallHappened = reinitAccount(msg.sender, basePrice);
       if (marginCallHappened) {
@@ -320,130 +309,83 @@ contract MarginlyPool is IMarginlyPool {
       }
     }
 
-    FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff();
-    FP96.FixedPoint memory _baseDebtCoeff = baseDebtCoeff();
-    uint256 _discountedBaseCollateral = discountedBaseCollateral();
-    uint256 _discountedBaseDebt = discountedBaseDebt();
+    uint256 tokenIndex = isQuoteDeposit ? 0 : 1;
+    PositionType depositTokenInDebtPositionType = isQuoteDeposit ? PositionType.Long : PositionType.Short;
 
-    uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(
-      _baseDebtCoeff.mul(_discountedBaseDebt)
-    );
-    require(poolBaseBalance.add(amount) <= params.baseLimit, 'EL'); // exceeds limit
+    FP96.FixedPoint memory _collateralCoeff = collateralCoeffs[tokenIndex];
+    FP96.FixedPoint memory _debtCoeff = debtCoeffs[tokenIndex];
+    uint256 _discountedCollateral = discountedCollaterals[tokenIndex];
+    uint256 _discountedDebt = discountedDebts[tokenIndex];
 
-    if (position._type == PositionType.Short) {
-      uint256 realBaseDebt = _baseDebtCoeff.mul(position.discountedBaseAmount);
+    {
+      uint256 poolBalance = _collateralCoeff.mul(_discountedCollateral).sub(_debtCoeff.mul(_discountedDebt));
+      uint256 limit = isQuoteDeposit ? params.quoteLimit : params.baseLimit;
+      require(poolBalance.add(amount) <= limit, 'EL');  // exceeds limit
+    }
 
-      if (amount >= realBaseDebt) {
+    if (position._type == depositTokenInDebtPositionType) {
+      // Deposit token is debt token
+      uint256 realDebt = _debtCoeff.mul(position.discountedAmount[tokenIndex]);
+
+      if (amount >= realDebt) {
         // Short position debt <= depositAmount, increase collateral on delta, change position to Lend
         // discountedBaseCollateralDelta = (amount - realDebt)/ baseCollateralCoeff
-        uint256 discountedBaseCollateralDelta = _baseCollateralCoeff.recipMul(amount.sub(realBaseDebt));
-        uint256 discountedBaseDebtDelta = position.discountedBaseAmount;
+        uint256 discountedCollateralDelta = _collateralCoeff.recipMul(amount.sub(realDebt));
+        uint256 discountedDebtDelta = position.discountedAmount[tokenIndex];
 
         position._type = PositionType.Lend;
-        position.discountedBaseAmount = discountedBaseCollateralDelta;
+        position.discountedAmount[tokenIndex] = discountedCollateralDelta;
 
         // update aggregates
-        discountedCollaterals[1] = _discountedBaseCollateral.add(discountedBaseCollateralDelta);
-        discountedDebts[1] = _discountedBaseDebt.sub(discountedBaseDebtDelta);
+        discountedCollaterals[tokenIndex] = _discountedCollateral.add(discountedCollateralDelta);
+        discountedDebts[tokenIndex] = _discountedDebt.sub(discountedDebtDelta);
       } else {
         // Short position, debt > depositAmount, decrease debt
         // discountedBaseDebtDelta = (realDebt - amount) / coeff
-        uint256 discountedBaseDebtDelta = _baseDebtCoeff.recipMul(realBaseDebt.sub(amount));
-        position.discountedBaseAmount = position.discountedBaseAmount.sub(discountedBaseDebtDelta);
+        uint256 discountedDebtDelta = _debtCoeff.recipMul(realDebt.sub(amount));
+        position.discountedAmount[tokenIndex] = position.discountedAmount[tokenIndex].sub(discountedDebtDelta); // FIXME: position.disountedAmount to array
 
         // update aggregates
-        discountedDebts[1] = _discountedBaseDebt.sub(discountedBaseDebtDelta);
+        discountedDebts[tokenIndex] = _discountedDebt.sub(discountedDebtDelta);
       }
     } else {
+      // Deposit token is collateral token
+
       // Lend position, increase collateral on amount
       // discountedCollateralDelta = amount / baseCollateralCoeff
-      uint256 discountedCollateralDelta = _baseCollateralCoeff.recipMul(amount);
-      position.discountedBaseAmount = position.discountedBaseAmount.add(discountedCollateralDelta);
+      uint256 discountedCollateralDelta = _collateralCoeff.recipMul(amount);
+      position.discountedAmount[tokenIndex] = position.discountedAmount[tokenIndex].add(
+        discountedCollateralDelta
+      );
 
       // update aggregates
-      discountedCollaterals[1] = _discountedBaseCollateral.add(discountedCollateralDelta);
+      discountedCollaterals[tokenIndex] = _discountedCollateral.add(discountedCollateralDelta);
     }
 
-    updateSystemLeverageLong(basePrice);
+    updateSystemLeverage(isQuoteDeposit, basePrice);
 
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    TransferHelper.safeTransferFrom(baseToken(), msg.sender, address(this), amount);
-    emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
+    address depositToken = tokens[tokenIndex];
+    TransferHelper.safeTransferFrom(depositToken, msg.sender, address(this), amount);
+
+    //FIXME: create Deposit event
+    emit Deposit(
+      msg.sender,
+      isQuoteDeposit,
+      amount,
+      position._type,
+      position.discountedAmount[tokenIndex]
+    );
   }
 
-  /// @inheritdoc IMarginlyPool
+  function depositBase(uint256 amount) external override lock{
+    deposit(false, amount);
+  }
+
   function depositQuote(uint256 amount) external override lock {
-    require(amount != 0, 'ZA'); //Zero amount
-
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
-    if (callerMarginCalled) {
-      return;
-    }
-
-    Position storage position = positions[msg.sender];
-    bool marginCallHappened;
-    if (position._type == PositionType.Uninitialized) {
-      initPosition(position);
-    } else {
-      marginCallHappened = reinitAccount(msg.sender, basePrice);
-      if (marginCallHappened) {
-        return;
-      }
-    }
-
-    FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff();
-    FP96.FixedPoint memory _quoteDebtCoeff = quoteDebtCoeff();
-    uint256 _discountedQuoteCollateral = discountedQuoteCollateral();
-    uint256 _discountedQuoteDebt = discountedQuoteDebt();
-
-    uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
-      _quoteDebtCoeff.mul(_discountedQuoteDebt)
-    );
-    require(poolQuoteBalance.add(amount) <= params.quoteLimit, 'EL'); // exceeds limit
-
-    if (position._type == PositionType.Long) {
-      uint256 realQuoteDebt = _quoteDebtCoeff.mul(position.discountedQuoteAmount);
-
-      if (amount >= realQuoteDebt) {
-        // Long position, debt <= depositAmount, increase collateral on delta, move position to Lend
-        // quoteCollateralChange = (amount - discountedDebt)/ quoteCollateralCoef
-        uint256 discountedQuoteCollateralDelta = _quoteCollateralCoeff.recipMul(amount.sub(realQuoteDebt));
-        uint256 discountedQuoteDebtDelta = position.discountedQuoteAmount;
-
-        position._type = PositionType.Lend;
-        position.discountedQuoteAmount = discountedQuoteCollateralDelta;
-
-        // update aggregates
-        discountedCollaterals[0] = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
-        discountedDebts[0] = _discountedQuoteDebt.sub(discountedQuoteDebtDelta);
-      } else {
-        // Long position, debt > depositAmount, decrease debt on delta
-        // discountedQuoteDebtDelta -= (realDebt - amount) / coeff
-        uint256 discountedQuoteDebtDelta = _quoteDebtCoeff.recipMul(realQuoteDebt.sub(amount));
-        position.discountedQuoteAmount = position.discountedQuoteAmount.sub(discountedQuoteDebtDelta);
-
-        // update aggregates
-        discountedDebts[0] = _discountedQuoteDebt.sub(discountedQuoteDebtDelta);
-      }
-    } else {
-      // Lend position, increase collateral on amount
-      // discountedQuoteCollateralDelta = amount / quoteCollateralCoeff
-      uint256 discountedQuoteCollateralDelta = _quoteCollateralCoeff.recipMul(amount);
-      position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteCollateralDelta);
-
-      // update aggregates
-      discountedCollaterals[0] = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
-    }
-
-    updateSystemLeverageShort(basePrice);
-
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
-
-    TransferHelper.safeTransferFrom(quoteToken(), msg.sender, address(this), amount);
-    emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
+    deposit(true, amount);
   }
 
   /// @inheritdoc IMarginlyPool
@@ -466,7 +408,7 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff();
-    uint256 positionBaseAmount = position.discountedBaseAmount;
+    uint256 positionBaseAmount = position.discountedAmount[1];
 
     uint256 realBaseAmount = _baseCollateralCoeff.mul(positionBaseAmount);
     uint256 realAmountToWithdraw;
@@ -477,17 +419,17 @@ contract MarginlyPool is IMarginlyPool {
       realAmountToWithdraw = realBaseAmount;
       discountedBaseCollateralDelta = positionBaseAmount;
 
-      needToDeletePosition = position.discountedQuoteAmount == 0;
+      needToDeletePosition = position.discountedAmount[0] == 0;
     } else {
       // partial withdraw
       realAmountToWithdraw = realAmount;
       discountedBaseCollateralDelta = _baseCollateralCoeff.recipMul(realAmountToWithdraw);
     }
 
-    position.discountedBaseAmount = positionBaseAmount.sub(discountedBaseCollateralDelta);
+    position.discountedAmount[1] = positionBaseAmount.sub(discountedBaseCollateralDelta);
     discountedCollaterals[1] = discountedBaseCollateral().sub(discountedBaseCollateralDelta);
 
-    updateSystemLeverageLong(basePrice);
+    updateSystemLeverage(false, basePrice);
 
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
@@ -521,7 +463,7 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff();
-    uint256 positionQuoteAmount = position.discountedQuoteAmount;
+    uint256 positionQuoteAmount = position.discountedAmount[0];
 
     uint256 realQuoteAmount = _quoteCollateralCoeff.mul(positionQuoteAmount);
     uint256 realAmountToWithdraw;
@@ -532,17 +474,17 @@ contract MarginlyPool is IMarginlyPool {
       realAmountToWithdraw = realQuoteAmount;
       discountedQuoteCollateralDelta = positionQuoteAmount;
 
-      needToDeletePosition = position.discountedBaseAmount == 0;
+      needToDeletePosition = position.discountedAmount[1] == 0;
     } else {
       // partial withdraw
       realAmountToWithdraw = realAmount;
       discountedQuoteCollateralDelta = _quoteCollateralCoeff.recipMul(realAmountToWithdraw);
     }
 
-    position.discountedQuoteAmount = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
+    position.discountedAmount[0] = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
     discountedCollaterals[0] = discountedQuoteCollateral().sub(discountedQuoteCollateralDelta);
 
-    updateSystemLeverageShort(basePrice);
+    updateSystemLeverage(true, basePrice);
 
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
@@ -578,8 +520,8 @@ contract MarginlyPool is IMarginlyPool {
     address collateralToken;
     uint256 swapPriceX96;
     if (position._type == PositionType.Short) {
-      uint256 realQuoteCollateral = quoteCollateralCoeff().mul(position.discountedQuoteAmount);
-      uint256 realBaseDebt = baseDebtCoeff().mul(position.discountedBaseAmount);
+      uint256 realQuoteCollateral = quoteCollateralCoeff().mul(position.discountedAmount[0]);
+      uint256 realBaseDebt = baseDebtCoeff().mul(position.discountedAmount[1]);
 
       uint256 swappedQuoteCollateral = swapExactOutput(true, realQuoteCollateral, realBaseDebt);
       swapPriceX96 = getSwapPrice(swappedQuoteCollateral, realBaseDebt);
@@ -598,10 +540,10 @@ contract MarginlyPool is IMarginlyPool {
       );
 
       discountedCollaterals[0] = discountedQuoteCollateral().sub(discountedQuoteCollateralDelta);
-      discountedDebts[1] = discountedBaseDebt().sub(position.discountedBaseAmount);
+      discountedDebts[1] = discountedBaseDebt().sub(position.discountedAmount[1]);
 
-      position.discountedQuoteAmount = position.discountedQuoteAmount.sub(discountedQuoteCollateralDelta);
-      position.discountedBaseAmount = 0;
+      position.discountedAmount[0] = position.discountedAmount[0].sub(discountedQuoteCollateralDelta);
+      position.discountedAmount[1] = 0;
       position._type = PositionType.Lend;
 
       // update event data
@@ -610,13 +552,13 @@ contract MarginlyPool is IMarginlyPool {
       uint32 heapIndex = position.heapPosition - 1;
       heaps[0].remove(positions, heapIndex);
 
-      updateSystemLeverageShort(basePrice);
+      updateSystemLeverage(true, basePrice);
 
       realCollateralDelta = swappedQuoteCollateral;
       collateralToken = quoteToken();
     } else if (position._type == PositionType.Long) {
-      uint256 realBaseCollateral = baseCollateralCoeff().mul(position.discountedBaseAmount);
-      uint256 realQuoteDebt = quoteDebtCoeff().mul(position.discountedQuoteAmount);
+      uint256 realBaseCollateral = baseCollateralCoeff().mul(position.discountedAmount[1]);
+      uint256 realQuoteDebt = quoteDebtCoeff().mul(position.discountedAmount[0]);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
@@ -634,10 +576,10 @@ contract MarginlyPool is IMarginlyPool {
       uint256 discountedBaseCollateralDelta = baseCollateralCoeff().recipMul(swappedBaseCollateral);
 
       discountedCollaterals[1] = discountedBaseCollateral().sub(discountedBaseCollateralDelta);
-      discountedDebts[0] = discountedQuoteDebt().sub(position.discountedQuoteAmount);
+      discountedDebts[0] = discountedQuoteDebt().sub(position.discountedAmount[0]);
 
-      position.discountedBaseAmount = position.discountedBaseAmount.sub(discountedBaseCollateralDelta);
-      position.discountedQuoteAmount = 0;
+      position.discountedAmount[1] = position.discountedAmount[1].sub(discountedBaseCollateralDelta);
+      position.discountedAmount[0] = 0;
       position._type = PositionType.Lend;
 
       // update event data
@@ -646,7 +588,7 @@ contract MarginlyPool is IMarginlyPool {
       uint32 heapIndex = position.heapPosition - 1;
       heaps[1].remove(positions, heapIndex);
 
-      updateSystemLeverageLong(basePrice);
+      updateSystemLeverage(false, basePrice);
 
       realCollateralDelta = swappedBaseCollateral;
       collateralToken = baseToken();
@@ -700,7 +642,7 @@ contract MarginlyPool is IMarginlyPool {
 
     require(
       position._type == PositionType.Short ||
-        (position._type == PositionType.Lend && position.discountedBaseAmount == 0),
+        (position._type == PositionType.Lend && position.discountedAmount[1] == 0),
       'WPT'
     ); // Wrong position type
 
@@ -727,12 +669,12 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 discountedQuoteChange = _quoteCollateralCoeff.recipMul(realQuoteCollateralChange);
 
-    position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteChange);
+    position.discountedAmount[0] = position.discountedAmount[0].add(discountedQuoteChange);
     discountedCollaterals[0] = _discountedQuoteCollateral.add(discountedQuoteChange);
     chargeFee(realSwapFee);
 
     uint256 discountedBaseDebtChange = baseDebtCoeff().recipMul(realBaseAmount);
-    position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseDebtChange);
+    position.discountedAmount[1] = position.discountedAmount[1].add(discountedBaseDebtChange);
     discountedDebts[1] = discountedBaseDebt().add(discountedBaseDebtChange);
 
     if (position._type == PositionType.Lend) {
@@ -743,7 +685,7 @@ contract MarginlyPool is IMarginlyPool {
 
     position._type = PositionType.Short;
 
-    updateSystemLeverageShort(basePrice);
+    updateSystemLeverage(true, basePrice);
 
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
@@ -778,7 +720,7 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position = positions[msg.sender];
     require(
       position._type == PositionType.Long ||
-        (position._type == PositionType.Lend && position.discountedQuoteAmount == 0),
+        (position._type == PositionType.Lend && position.discountedAmount[0] == 0),
       'WPT'
     ); // Wrong position type
 
@@ -794,11 +736,11 @@ contract MarginlyPool is IMarginlyPool {
     chargeFee(realSwapFee);
 
     uint256 discountedBaseCollateralChange = _baseCollateralCoeff.recipMul(realBaseAmount);
-    position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseCollateralChange);
+    position.discountedAmount[1] = position.discountedAmount[1].add(discountedBaseCollateralChange);
     discountedCollaterals[1] = _discountedBaseCollateral.add(discountedBaseCollateralChange);
 
     uint256 discountedQuoteDebtChange = quoteDebtCoeff().recipMul(realQuoteAmount);
-    position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteDebtChange);
+    position.discountedAmount[0] = position.discountedAmount[0].add(discountedQuoteDebtChange);
     discountedDebts[0] = discountedQuoteDebt().add(discountedQuoteDebtChange);
 
     if (position._type == PositionType.Lend) {
@@ -809,7 +751,7 @@ contract MarginlyPool is IMarginlyPool {
 
     position._type = PositionType.Long;
 
-    updateSystemLeverageLong(basePrice);
+    updateSystemLeverage(false, basePrice);
 
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); //Margin call
@@ -875,8 +817,8 @@ contract MarginlyPool is IMarginlyPool {
       return (callerMarginCalled, basePrice); // (false, basePrice)
     }
 
-    updateSystemLeverageLong(basePrice);
-    updateSystemLeverageShort(basePrice);
+    updateSystemLeverage(false, basePrice);
+    updateSystemLeverage(true, basePrice);
 
     (bool success, MaxBinaryHeapLib.Node memory root) = heaps[0].getNodeByIndex(0);
     if (success) {
@@ -905,8 +847,8 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 maxLeverageX96 = getMaxLeverageX96();
     if (position._type == PositionType.Short) {
-      uint256 collateral = position.discountedQuoteAmount;
-      uint256 debt = position.discountedBaseAmount;
+      uint256 collateral = position.discountedAmount[0];
+      uint256 debt = position.discountedAmount[1];
 
       uint256 realTotalCollateral = quoteCollateralCoeff().mul(collateral);
       uint256 realTotalDebt = baseDebtCoeff().mul(basePrice.mul(debt));
@@ -922,8 +864,8 @@ contract MarginlyPool is IMarginlyPool {
       uint32 heapIndex = position.heapPosition - 1;
       heaps[0].update(positions, heapIndex, sortKey);
     } else if (position._type == PositionType.Long) {
-      uint256 collateral = position.discountedBaseAmount;
-      uint256 debt = position.discountedQuoteAmount;
+      uint256 collateral = position.discountedAmount[1];
+      uint256 debt = position.discountedAmount[0];
 
       uint256 realTotalCollateral = baseCollateralCoeff().mul(basePrice.mul(collateral));
       uint256 realTotalDebt = quoteDebtCoeff().mul(debt);
@@ -978,55 +920,55 @@ contract MarginlyPool is IMarginlyPool {
     FP96.FixedPoint memory basePrice = getBasePrice();
 
     if (badPosition._type == PositionType.Short) {
-      uint256 realCollateral = _quoteCollateralCoeff.mul(badPosition.discountedQuoteAmount);
-      uint256 realDebt = baseDebtCoeff().mul(basePrice.mul(badPosition.discountedBaseAmount));
+      uint256 realCollateral = _quoteCollateralCoeff.mul(badPosition.discountedAmount[0]);
+      uint256 realDebt = baseDebtCoeff().mul(basePrice.mul(badPosition.discountedAmount[1]));
 
       uint256 leverageX96 = calcLeverage(realCollateral, realDebt);
       require(leverageX96 > maxLeverageX96, 'NL'); // Not liquidatable position
 
       discountedCollaterals[0] += discountedQuoteAmount;
-      badPosition.discountedQuoteAmount += discountedQuoteAmount;
+      badPosition.discountedAmount[0] += discountedQuoteAmount;
 
       uint32 heapIndex = badPosition.heapPosition - 1;
-      if (discountedBaseAmount >= badPosition.discountedBaseAmount) {
-        discountedDebts[1] -= badPosition.discountedBaseAmount;
+      if (discountedBaseAmount >= badPosition.discountedAmount[1]) {
+        discountedDebts[1] -= badPosition.discountedAmount[1];
 
         badPosition._type = PositionType.Lend;
         badPosition.heapPosition = 0;
-        badPosition.discountedBaseAmount = discountedBaseAmount - badPosition.discountedBaseAmount;
+        badPosition.discountedAmount[1] = discountedBaseAmount - badPosition.discountedAmount[1];
 
-        discountedCollaterals[1] += badPosition.discountedBaseAmount;
+        discountedCollaterals[1] += badPosition.discountedAmount[1];
 
         heaps[0].remove(positions, heapIndex);
       } else {
-        badPosition.discountedBaseAmount = badPosition.discountedBaseAmount - discountedBaseAmount;
+        badPosition.discountedAmount[1] = badPosition.discountedAmount[1] - discountedBaseAmount;
         discountedDebts[1] -= discountedBaseAmount;
 
         heaps[0].updateAccount(heapIndex, msg.sender);
       }
     } else if (badPosition._type == PositionType.Long) {
-      uint256 realCollateral = _baseCollateralCoeff.mul(basePrice.mul(badPosition.discountedBaseAmount));
-      uint256 realDebt = quoteDebtCoeff().mul(badPosition.discountedQuoteAmount);
+      uint256 realCollateral = _baseCollateralCoeff.mul(basePrice.mul(badPosition.discountedAmount[1]));
+      uint256 realDebt = quoteDebtCoeff().mul(badPosition.discountedAmount[0]);
 
       uint256 leverageX96 = calcLeverage(realCollateral, realDebt);
       require(leverageX96 > maxLeverageX96, 'NL'); // Not liquidatable position
 
       discountedCollaterals[1] += discountedBaseAmount;
-      badPosition.discountedBaseAmount += discountedBaseAmount;
+      badPosition.discountedAmount[1] += discountedBaseAmount;
 
       uint32 heapIndex = badPosition.heapPosition - 1;
-      if (discountedQuoteAmount >= badPosition.discountedQuoteAmount) {
-        discountedDebts[0] -= badPosition.discountedQuoteAmount;
+      if (discountedQuoteAmount >= badPosition.discountedAmount[0]) {
+        discountedDebts[0] -= badPosition.discountedAmount[0];
 
         badPosition._type = PositionType.Lend;
         badPosition.heapPosition = 0;
-        badPosition.discountedQuoteAmount = discountedQuoteAmount - badPosition.discountedQuoteAmount;
+        badPosition.discountedAmount[0] = discountedQuoteAmount - badPosition.discountedAmount[0];
 
-        discountedCollaterals[0] += badPosition.discountedQuoteAmount;
+        discountedCollaterals[0] += badPosition.discountedAmount[0];
 
         heaps[1].remove(positions, heapIndex);
       } else {
-        badPosition.discountedQuoteAmount = badPosition.discountedQuoteAmount - discountedQuoteAmount;
+        badPosition.discountedAmount[0] = badPosition.discountedAmount[0] - discountedQuoteAmount;
         discountedDebts[0] -= discountedQuoteAmount;
 
         heaps[1].updateAccount(heapIndex, msg.sender);
@@ -1035,8 +977,8 @@ contract MarginlyPool is IMarginlyPool {
       revert('WPT'); // Wrong position type
     }
 
-    updateSystemLeverageShort(basePrice);
-    updateSystemLeverageLong(basePrice);
+    updateSystemLeverage(true, basePrice);
+    updateSystemLeverage(false, basePrice);
 
     // save new position under new key, remove old position
     positions[msg.sender] = badPosition;
@@ -1052,8 +994,8 @@ contract MarginlyPool is IMarginlyPool {
       msg.sender,
       badPositionAddress,
       badPosition._type,
-      badPosition.discountedQuoteAmount,
-      badPosition.discountedBaseAmount
+      badPosition.discountedAmount[0],
+      badPosition.discountedAmount[1]
     );
   }
 
@@ -1160,12 +1102,12 @@ contract MarginlyPool is IMarginlyPool {
     if (mode == Mode.ShortEmergency) {
       require(position._type != PositionType.Short, 'SE'); // Short positions in emergency mode
 
-      transferAmount = emergencyWithdrawCoeff.mul(position.discountedBaseAmount);
+      transferAmount = emergencyWithdrawCoeff.mul(position.discountedAmount[1]);
       token = baseToken();
     } else {
       require(position._type != PositionType.Long, 'LE'); // Long positions in emergency mode
 
-      transferAmount = emergencyWithdrawCoeff.mul(position.discountedQuoteAmount);
+      transferAmount = emergencyWithdrawCoeff.mul(position.discountedAmount[0]);
       token = quoteToken();
     }
 
@@ -1205,28 +1147,6 @@ contract MarginlyPool is IMarginlyPool {
     delete positions[msg.sender];
 
     emit PositionTransfer(msg.sender, newOwner);
-  }
-
-  function updateSystemLeverageLong(FP96.FixedPoint memory basePrice) private {
-    if (discountedBaseCollateral() == 0) {
-      leveragesX96[1] = uint128(FP96.Q96);
-      return;
-    }
-
-    uint256 realBaseCollateral = baseCollateralCoeff().mul(basePrice).mul(discountedBaseCollateral());
-    uint256 realQuoteDebt = quoteDebtCoeff().mul(discountedQuoteDebt());
-    leveragesX96[1] = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
-  }
-
-  function updateSystemLeverageShort(FP96.FixedPoint memory basePrice) private {
-    if (discountedQuoteCollateral() == 0) {
-      leveragesX96[0] = uint128(FP96.Q96);
-      return;
-    }
-
-    uint256 realQuoteCollateral = quoteCollateralCoeff().mul(discountedQuoteCollateral());
-    uint256 realBaseDebt = baseDebtCoeff().mul(basePrice).mul(discountedBaseDebt());
-    leveragesX96[0] = uint128(Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt)));
   }
 
   function updateSystemLeverage(bool isShortLeverageUpdate, FP96.FixedPoint memory basePrice) private {
@@ -1320,5 +1240,13 @@ contract MarginlyPool is IMarginlyPool {
 
   function leverageLongX96() public view returns (uint128) {
     return leveragesX96[1];
+  }
+
+  function getPosition(address owner) public view returns (PositionType _type, uint32 heapPosition, uint256 discountedQuoteAmount, uint256 discountedBaseAmount){
+    Position memory position = positions[owner];
+    _type = position._type;
+    heapPosition = position.heapPosition;
+    discountedQuoteAmount = position.discountedAmount[0];
+    discountedBaseAmount = position.discountedAmount[1];
   }
 }

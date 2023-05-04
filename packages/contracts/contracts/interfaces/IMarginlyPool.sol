@@ -12,19 +12,13 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
   event EnactMarginCall(address indexed user, uint256 swapPriceX96);
 
-  /// @dev Emitted when user deposited base token
-  /// @param user Depositor
-  /// @param amount Amount of token user deposited
-  /// @param newPositionType User position type after deposit
-  /// @param baseDiscountedAmount Discounted amount of base tokens after deposit
-  event DepositBase(address indexed user, uint256 amount, PositionType newPositionType, uint256 baseDiscountedAmount);
-
-  /// @dev Emitted when user deposited quote token
-  /// @param user Depositor
-  /// @param amount Amount of token user deposited
-  /// @param newPositionType User position type after deposit
-  /// @param quoteDiscountedAmount Discounted amount of quote tokens after deposit
-  event DepositQuote(address indexed user, uint256 amount, PositionType newPositionType, uint256 quoteDiscountedAmount);
+    /// @dev Emitted when user deposited base token
+    /// @param user Depositor
+    /// @param isQuoteDeposit flag of quote or base deposit
+    /// @param amount Amount of token user deposited
+    /// @param newPositionType User position type after deposit
+    /// @param baseDiscountedAmount Discounted amount of base tokens after deposit
+    event Deposit(address indexed user, bool isQuoteDeposit, uint256 amount, PositionType newPositionType, uint256 baseDiscountedAmount);
 
   /// @dev Emitted when user withdrew base token
   /// @param user User
@@ -144,6 +138,8 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);
+
+//  function deposit(bool isQuoteDeposit, uint256 amount) external;
 
   /// @notice Deposit base token
   /// @param amount Amount of base token

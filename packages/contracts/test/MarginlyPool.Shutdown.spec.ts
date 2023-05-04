@@ -116,9 +116,9 @@ describe('MarginlyPool.Shutdown', () => {
     const longerBalanceBefore = await baseContract.balanceOf(longer.address);
     const depositorBalanceBefore = await baseContract.balanceOf(depositor.address);
 
-    const depositorPosition = await marginlyPool.positions(depositor.address);
+    const depositorPosition = await marginlyPool.getPosition(depositor.address);
 
-    const longerPosition = await marginlyPool.positions(longer.address);
+    const longerPosition = await marginlyPool.getPosition(longer.address);
 
     await marginlyPool.connect(depositor).emergencyWithdraw();
     await marginlyPool.connect(longer).emergencyWithdraw();
@@ -136,12 +136,12 @@ describe('MarginlyPool.Shutdown', () => {
     expect(actualLongerBaseAmount).to.be.equal(expectedLongerBaseAmount);
     expect(actualDepositorBaseAmount).to.be.equal(expectedDepositorBaseAmount);
 
-    const longerPositionAfter = await marginlyPool.positions(longer.address);
+    const longerPositionAfter = await marginlyPool.getPosition(longer.address);
     expect(longerPositionAfter._type).to.be.equal(0);
     expect(longerPositionAfter.discountedBaseAmount).to.be.equal(0);
     expect(longerPositionAfter.discountedQuoteAmount).to.be.equal(0);
 
-    const depositorPositionAfter = await marginlyPool.positions(depositor.address);
+    const depositorPositionAfter = await marginlyPool.getPosition(depositor.address);
     expect(depositorPositionAfter._type).to.be.equal(0);
     expect(depositorPositionAfter.discountedBaseAmount).to.be.equal(0);
     expect(depositorPositionAfter.discountedQuoteAmount).to.be.equal(0);
@@ -193,9 +193,9 @@ describe('MarginlyPool.Shutdown', () => {
     const shorterBalanceBefore = await quoteContract.balanceOf(shorter.address);
     const depositorBalanceBefore = await quoteContract.balanceOf(depositor.address);
 
-    const depositorPosition = await marginlyPool.positions(depositor.address);
+    const depositorPosition = await marginlyPool.getPosition(depositor.address);
 
-    const shorterPosition = await marginlyPool.positions(shorter.address);
+    const shorterPosition = await marginlyPool.getPosition(shorter.address);
 
     await marginlyPool.connect(depositor).emergencyWithdraw();
     await marginlyPool.connect(shorter).emergencyWithdraw();
@@ -214,12 +214,12 @@ describe('MarginlyPool.Shutdown', () => {
     expect(actualShorterQuoteAmount).to.be.equal(expectedShorterQuoteAmount);
     expect(actualDepositorQuoteAmount).to.be.equal(expectedDepositorQuoteAmount);
 
-    const shorterPositionAfter = await marginlyPool.positions(shorter.address);
+    const shorterPositionAfter = await marginlyPool.getPosition(shorter.address);
     expect(shorterPositionAfter._type).to.be.equal(0);
     expect(shorterPositionAfter.discountedBaseAmount).to.be.equal(0);
     expect(shorterPositionAfter.discountedQuoteAmount).to.be.equal(0);
 
-    const depositorPositionAfter = await marginlyPool.positions(depositor.address);
+    const depositorPositionAfter = await marginlyPool.getPosition(depositor.address);
     expect(depositorPositionAfter._type).to.be.equal(0);
     expect(depositorPositionAfter.discountedBaseAmount).to.be.equal(0);
     expect(depositorPositionAfter.discountedQuoteAmount).to.be.equal(0);

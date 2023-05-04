@@ -58,6 +58,8 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function quoteTokenIsToken0() external pure returns (bool) {}
 
+  function deposit(bool isQuote, uint256 amount) external {}
+
   function depositBase(uint256 amount) external {}
 
   function depositQuote(uint256 amount) external {}
