@@ -654,7 +654,7 @@ contract MarginlyPool is IMarginlyPool {
     FP96.FixedPoint memory interestRate = FP96.FixedPoint({
       inner: Math.mulDiv(params.interestRate, FP96.Q96, WHOLE_ONE)
     });
-    if (discountedBaseCollateral() != 0) {
+    if (discountedCollaterals[1] != 0) {
       FP96.FixedPoint memory baseDebtCoeffMul = FP96.powTaylor(
         interestRate.mul(FP96.FixedPoint({inner: leveragesX96[0]})).div(secondsInYear).add(FP96.one()),
         secondsPassed
@@ -663,20 +663,20 @@ contract MarginlyPool is IMarginlyPool {
       FP96.FixedPoint memory baseDebtCoeffOld = debtCoeffs[1];
       debtCoeffs[1] = debtCoeffs[1].mul(baseDebtCoeffMul);
       collateralCoeffs[1] = collateralCoeffs[1].add(
-        FP96.fromRatio(debtCoeffs[1].sub(baseDebtCoeffOld).mul(discountedBaseDebt()), discountedBaseCollateral())
+        FP96.fromRatio(debtCoeffs[1].sub(baseDebtCoeffOld).mul(discountedDebts[1]), discountedCollaterals[1])
       );
     }
 
-    if (discountedQuoteCollateral() != 0) {
+    if (discountedCollaterals[0] != 0) {
       FP96.FixedPoint memory quoteDebtCoeffMul = FP96.powTaylor(
         interestRate.mul(FP96.FixedPoint({inner: leveragesX96[1]})).div(secondsInYear).add(FP96.one()),
         secondsPassed
       );
 
-      FP96.FixedPoint memory quoteDebtCoeffOld = quoteDebtCoeff();
-      debtCoeffs[0] = quoteDebtCoeff().mul(quoteDebtCoeffMul);
+      FP96.FixedPoint memory quoteDebtCoeffOld = debtCoeffs[0];
+      debtCoeffs[0] = quoteDebtCoeffOld.mul(quoteDebtCoeffMul);
       collateralCoeffs[0] = collateralCoeffs[0].add(
-        FP96.fromRatio(quoteDebtCoeff().sub(quoteDebtCoeffOld).mul(discountedQuoteDebt()), discountedQuoteCollateral())
+        FP96.fromRatio(debtCoeffs[0].sub(quoteDebtCoeffOld).mul(discountedDebts[0]), discountedCollaterals[0])
       );
     }
 
@@ -751,7 +751,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 debt = position.discountedAmount[0];
 
       uint256 realTotalCollateral = collateralCoeffs[1].mul(basePrice.mul(collateral));
-      uint256 realTotalDebt = quoteDebtCoeff().mul(debt);
+      uint256 realTotalDebt = debtCoeffs[0].mul(debt);
 
       uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
       if (leverageX96 > maxLeverageX96) {
@@ -862,19 +862,19 @@ contract MarginlyPool is IMarginlyPool {
     accrueInterest();
 
     FP96.FixedPoint memory basePrice = getBasePrice();
-    uint256 _discountedQuoteCollateral = discountedQuoteCollateral();
-    uint256 _discountedBaseCollateral = discountedBaseCollateral();
+    uint256 _discountedQuoteCollateral = discountedCollaterals[0];
+    uint256 _discountedBaseCollateral = discountedCollaterals[1];
 
     /* We use Rounding.Up in baseDebt/quoteDebt calculation 
        to avoid case when "surplus = quoteCollateral - quoteDebt"
        a bit more than IERC20(quoteToken).balanceOf(address(this))
      */
 
-    uint256 baseDebt = debtCoeffs[1].mul(discountedBaseDebt(), Math.Rounding.Up);
+    uint256 baseDebt = debtCoeffs[1].mul(discountedDebts[1], Math.Rounding.Up);
     uint256 baseDebtInQuoteUnits = basePrice.mul(baseDebt);
     uint256 quoteCollateral = collateralCoeffs[0].mul(_discountedQuoteCollateral);
 
-    uint256 quoteDebt = quoteDebtCoeff().mul(discountedQuoteDebt(), Math.Rounding.Up);
+    uint256 quoteDebt = debtCoeffs[0].mul(discountedDebts[0], Math.Rounding.Up);
     uint256 baseCollateral = collateralCoeffs[1].mul(_discountedBaseCollateral);
     uint256 baseCollateralInQuoteUnits = basePrice.mul(baseCollateral);
 
@@ -1099,10 +1099,9 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function getPosition(address owner) public view returns (PositionType _type, uint32 heapPosition, uint256 discountedQuoteAmount, uint256 discountedBaseAmount){
-    Position memory position = positions[owner];
-    _type = position._type;
-    heapPosition = position.heapPosition;
-    discountedQuoteAmount = position.discountedAmount[0];
-    discountedBaseAmount = position.discountedAmount[1];
+    _type = positions[owner]._type;
+    heapPosition = positions[owner].heapPosition;
+    discountedQuoteAmount = positions[owner].discountedAmount[0];
+    discountedBaseAmount = positions[owner].discountedAmount[1];
   }
 }
