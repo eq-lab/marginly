@@ -204,8 +204,8 @@ contract MarginlyPool is IMarginlyPool {
   /// @param position User's position to reinit
   function enactMarginCall(address user, Position storage position) private {
     uint256 swapPriceX96;
-    uint8 collateralTokenIndex;
-    uint8 debtTokenIndex;
+    uint256 collateralTokenIndex;
+    uint256 debtTokenIndex;
     if (position._type == PositionType.Short) {
       collateralTokenIndex = 0;
       debtTokenIndex = 1;
@@ -455,8 +455,8 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    uint8 collateralTokenIndex;
-    uint8 debtTokenIndex;
+    uint256 collateralTokenIndex;
+    uint256 debtTokenIndex;
     if (position._type == PositionType.Short) {
       collateralTokenIndex = 0;
       debtTokenIndex = 1;
@@ -550,7 +550,7 @@ contract MarginlyPool is IMarginlyPool {
 
 
     Position storage position = positions[msg.sender];
-    (uint8 collateralTokenIndex, uint8 debtTokenIndex) = isShort ? (0,1): (1,0);
+    (uint256 collateralTokenIndex, uint256 debtTokenIndex) = isShort ? (0,1): (1,0);
     FP96.FixedPoint memory _collateralCoeff = collateralCoeffs[collateralTokenIndex];
 
 
@@ -777,8 +777,8 @@ contract MarginlyPool is IMarginlyPool {
     Position memory badPosition = positions[badPositionAddress];
     FP96.FixedPoint memory basePrice = getBasePrice();
 
-    uint8 collateralTokenIndex;
-    uint8 debtTokenIndex;
+    uint256 collateralTokenIndex;
+    uint256 debtTokenIndex;
     uint256 discountedCollateralAdd;
     uint256 discountedDebtAdd;
 
