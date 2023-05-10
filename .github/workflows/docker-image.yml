@@ -55,7 +55,6 @@ jobs:
       with:
         version: 'latest' # default is latest (stable)
         token: ${{ secrets.GITHUB_TOKEN }} # only needed if version is 'latest'
-      id: install
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
