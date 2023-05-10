@@ -58,11 +58,11 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function quoteTokenIsToken0() external pure returns (bool) {}
 
-  function depositBase(uint256 amount) external {}
+  function depositBase(uint256 amount, uint256 longAmount) external payable {}
 
-  function depositQuote(uint256 amount) external {}
+  function depositQuote(uint256 amount, uint256 shortAmount) external payable {}
 
-  function withdrawBase(uint256 amount) external {
+  function withdrawBase(uint256 amount, bool) external {
     if (positionType == PositionType.Short) {
       IERC20(baseToken).transfer(msg.sender, dust);
     } else {
@@ -70,7 +70,7 @@ contract MockMarginlyPool is IMarginlyPool {
     }
   }
 
-  function withdrawQuote(uint256 amount) external {
+  function withdrawQuote(uint256 amount, bool) external {
     if (positionType == PositionType.Short) {
       IERC20(quoteToken).transfer(msg.sender, quoteAmount);
     } else {
@@ -97,7 +97,9 @@ contract MockMarginlyPool is IMarginlyPool {
     IERC20(baseToken).transferFrom(msg.sender, address(this), _baseAmount);
   }
 
-  function emergencyWithdraw() external {}
+  function emergencyWithdraw(bool unwrapWETH) external {}
 
   function transferPosition(address newOwner) external {}
+
+  function sweepETH() external {}
 }

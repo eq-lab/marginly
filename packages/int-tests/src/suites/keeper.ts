@@ -63,8 +63,8 @@ export async function keeper(sut: SystemUnderTest) {
     await (await weth.connect(treasury).transfer(lender.address, baseAmount)).wait();
     await (await weth.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
 
-    await marginlyPool.connect(lender).depositBase(baseAmount, ethArgs);
-    await marginlyPool.connect(lender).depositQuote(quoteAmount, ethArgs);
+    await marginlyPool.connect(lender).depositBase(baseAmount,0, ethArgs);
+    await marginlyPool.connect(lender).depositQuote(quoteAmount,0, ethArgs);
   }
 
   const longer = accounts[1];
@@ -76,7 +76,7 @@ export async function keeper(sut: SystemUnderTest) {
     await (await weth.connect(treasury).transfer(longer.address, baseAmount)).wait();
     await (await weth.connect(longer).approve(marginlyPool.address, baseAmount)).wait();
 
-    await (await marginlyPool.connect(longer).depositBase(baseAmount, ethArgs)).wait();
+    await (await marginlyPool.connect(longer).depositBase(baseAmount,0, ethArgs)).wait();
     await (await marginlyPool.connect(longer).long(longAmount, ethArgs)).wait();
   }
 
@@ -88,12 +88,15 @@ export async function keeper(sut: SystemUnderTest) {
     await (await usdc.connect(treasury).transfer(shorter.address, quoteAmount)).wait();
     await (await usdc.connect(shorter).approve(marginlyPool.address, quoteAmount)).wait();
 
-    await (await marginlyPool.connect(shorter).depositQuote(quoteAmount, ethArgs)).wait();
+    await (await marginlyPool.connect(shorter).depositQuote(quoteAmount,0, ethArgs)).wait();
     await (await marginlyPool.connect(shorter).short(shortAmount, ethArgs)).wait();
   }
 
-  // Set recovery mode
-  await (await marginlyPool.connect(treasury).setRecoveryMode(true)).wait();
+  // Set parameters to leverage 17
+  {
+    const params = await marginlyPool.params();
+    await (await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 17 })).wait();
+  }
 
   const [basePrice, params, baseCollateralCoeff, baseDebtCoeff, quoteCollateralCoeff, quoteDebtCoeff]: [
     any,

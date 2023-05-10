@@ -80,14 +80,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     uint256 collateralDiscountedDelta
   );
 
-  /// @dev Emitted when user deposited base token to increase base collateral coeff
-  /// @param baseAmount Amount of base token
-  event IncreaseBaseCollateralCoeff(uint256 baseAmount);
-
-  /// @dev Emitted when user deposited base token to increase quote collateral coeff
-  /// @param quoteAmount Amount of quote token
-  event IncreaseQuoteCollateralCoeff(uint256 quoteAmount);
-
   /// @dev Emitted when position liquidation happened
   /// @param liquidator Liquidator
   /// @param position Liquidated position
@@ -146,20 +138,24 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   function factory() external view returns (address);
 
   /// @notice Deposit base token
-  /// @param amount Amount of base token
-  function depositBase(uint256 amount) external;
+  /// @param amount Amount of base token to deposit
+  /// @param longAmount Amount of base token to open long position
+  function depositBase(uint256 amount, uint256 longAmount) external payable;
 
   /// @notice Deposit quote token
   /// @param amount Amount of quote token
-  function depositQuote(uint256 amount) external;
+  /// @param shortAmount Amount of base token to open short position
+  function depositQuote(uint256 amount, uint256 shortAmount) external payable;
 
   /// @notice Withdraw base token
   /// @param amount Amount of base token
-  function withdrawBase(uint256 amount) external;
+  /// @param unwrapWETH flag to unwrap WETH to ETH
+  function withdrawBase(uint256 amount, bool unwrapWETH) external;
 
   /// @notice Withdraw quote token
   /// @param amount Amount of quote token
-  function withdrawQuote(uint256 amount) external;
+  /// @param unwrapWETH flag to unwrap WETH to ETH
+  function withdrawQuote(uint256 amount, bool unwrapWETH) external;
 
   /// @notice Short with leverage
   /// @param baseAmount Amount of base token
@@ -175,14 +171,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Accrue interest, check and run margin call for riskiest positions
   function reinit() external;
 
-  /// @notice Increase base balance and baseCollateralCoeff
-  /// @param realBaseAmount Amount of base token
-  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external;
-
-  /// @notice Increase quote balance and quoteCollateralCoeff
-  /// @param realQuoteAmount Amount of quote token
-  function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external;
-
   /// @notice Liquidate bad position and receive position collateral and debt
   /// @param badPositionAddress address of position to liquidate
   /// @param quoteAmount amount of quote token to be deposited
@@ -190,9 +178,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) external;
 
   /// @notice Withdraw position collateral in emergency mode
-  function emergencyWithdraw() external;
-
-  /// @notice Transfer position to a new owner
-  /// @param newOwner address of a new position owner
-  function transferPosition(address newOwner) external;
+  /// @param unwrapWETH flag to unwrap WETH to ETH
+  function emergencyWithdraw(bool unwrapWETH) external;
 }

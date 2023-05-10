@@ -23,21 +23,19 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'baseDebtCoeff()': utils.FunctionFragment;
     'baseToken()': utils.FunctionFragment;
     'closePosition()': utils.FunctionFragment;
-    'depositBase(uint256)': utils.FunctionFragment;
-    'depositQuote(uint256)': utils.FunctionFragment;
+    'depositBase(uint256,uint256)': utils.FunctionFragment;
+    'depositQuote(uint256,uint256)': utils.FunctionFragment;
     'discountedBaseCollateral()': utils.FunctionFragment;
     'discountedBaseDebt()': utils.FunctionFragment;
     'discountedQuoteCollateral()': utils.FunctionFragment;
     'discountedQuoteDebt()': utils.FunctionFragment;
-    'emergencyWithdraw()': utils.FunctionFragment;
+    'emergencyWithdraw(bool)': utils.FunctionFragment;
     'emergencyWithdrawCoeff()': utils.FunctionFragment;
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getCurrentBasePrice()': utils.FunctionFragment;
     'getLongHeapPosition(uint32)': utils.FunctionFragment;
     'getShortHeapPosition(uint32)': utils.FunctionFragment;
-    'increaseBaseCollateralCoeff(uint256)': utils.FunctionFragment;
-    'increaseQuoteCollateralCoeff(uint256)': utils.FunctionFragment;
     'initialize(address,address,uint24,bool,address,tuple)': utils.FunctionFragment;
     'initialPrice()': utils.FunctionFragment;
     'lastReinitTimestampSeconds()': utils.FunctionFragment;
@@ -52,16 +50,15 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'receivePosition(address,uint256,uint256)': utils.FunctionFragment;
     'reinit()': utils.FunctionFragment;
     'setParameters(tuple)': utils.FunctionFragment;
-    'setRecoveryMode(bool)': utils.FunctionFragment;
     'short(uint256)': utils.FunctionFragment;
     'shutDown()': utils.FunctionFragment;
+    'sweepETH()': utils.FunctionFragment;
     'systemLeverage()': utils.FunctionFragment;
-    'transferPosition(address)': utils.FunctionFragment;
     'uniswapFee()': utils.FunctionFragment;
     'uniswapPool()': utils.FunctionFragment;
     'unlocked()': utils.FunctionFragment;
-    'withdrawBase(uint256)': utils.FunctionFragment;
-    'withdrawQuote(uint256)': utils.FunctionFragment;
+    'withdrawBase(uint256,bool)': utils.FunctionFragment;
+    'withdrawQuote(uint256,bool)': utils.FunctionFragment;
   };
 
   getFunction(
@@ -83,8 +80,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'getCurrentBasePrice'
       | 'getLongHeapPosition'
       | 'getShortHeapPosition'
-      | 'increaseBaseCollateralCoeff'
-      | 'increaseQuoteCollateralCoeff'
       | 'initialize'
       | 'initialPrice'
       | 'lastReinitTimestampSeconds'
@@ -99,11 +94,10 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'receivePosition'
       | 'reinit'
       | 'setParameters'
-      | 'setRecoveryMode'
       | 'short'
       | 'shutDown'
+      | 'sweepETH'
       | 'systemLeverage'
-      | 'transferPosition'
       | 'uniswapFee'
       | 'uniswapPool'
       | 'unlocked'
@@ -124,18 +118,23 @@ export interface MarginlyPoolContract extends BaseContract {
   baseToken(override?: CallOverrides): Promise<string>;
   closePosition(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   depositBase(
-    amount: PromiseOrValue<BigNumberish>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
+    amount: BigNumberish,
+    longAmount: BigNumberish,
+    override?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   depositQuote(
-    amount: PromiseOrValue<BigNumberish>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
+    amount: BigNumberish,
+    shortAmount: BigNumberish,
+    override?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   discountedBaseCollateral(override?: CallOverrides): Promise<BigNumberish>;
   discountedBaseDebt(override?: CallOverrides): Promise<BigNumberish>;
   discountedQuoteCollateral(override?: CallOverrides): Promise<BigNumberish>;
   discountedQuoteDebt(override?: CallOverrides): Promise<BigNumberish>;
-  emergencyWithdraw(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+  emergencyWithdraw(
+    unwrapWETH: PromiseOrValue<boolean>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   emergencyWithdrawCoeff(override?: CallOverrides): Promise<BigNumberish>;
   factory(override?: CallOverrides): Promise<string>;
   getBasePrice(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
@@ -148,14 +147,6 @@ export interface MarginlyPoolContract extends BaseContract {
     index: PromiseOrValue<BigNumberish>,
     override?: CallOverrides
   ): Promise<[boolean, { key: BigNumberish; account: string }]>;
-  increaseBaseCollateralCoeff(
-    realBaseAmount: PromiseOrValue<BigNumberish>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-  increaseQuoteCollateralCoeff(
-    realQuoteAmount: PromiseOrValue<BigNumberish>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
   initialize(
     _quoteToken: PromiseOrValue<string>,
     _baseToken: PromiseOrValue<string>,
@@ -164,7 +155,6 @@ export interface MarginlyPoolContract extends BaseContract {
     _uniswapPool: PromiseOrValue<string>,
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
-      recoveryMaxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
       swapFee: BigNumberish;
@@ -187,7 +177,6 @@ export interface MarginlyPoolContract extends BaseContract {
     override?: CallOverrides
   ): Promise<{
     maxLeverage: BigNumberish;
-    recoveryMaxLeverage: BigNumberish;
     priceSecondsAgo: BigNumberish;
     interestRate: BigNumberish;
     swapFee: BigNumberish;
@@ -220,7 +209,6 @@ export interface MarginlyPoolContract extends BaseContract {
   setParameters(
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
-      recoveryMaxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
       swapFee: BigNumberish;
@@ -232,29 +220,24 @@ export interface MarginlyPoolContract extends BaseContract {
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  setRecoveryMode(
-    set: PromiseOrValue<boolean>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
   short(
     realBaseAmount: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+  sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumberish; longX96: BigNumberish }>;
-  transferPosition(
-    newOwner: PromiseOrValue<string>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
   uniswapFee(override?: CallOverrides): Promise<BigNumberish>;
   uniswapPool(override?: CallOverrides): Promise<string>;
   unlocked(override?: CallOverrides): Promise<boolean>;
   withdrawBase(
     realAmount: PromiseOrValue<BigNumberish>,
+    unwrapWETH: PromiseOrValue<boolean>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   withdrawQuote(
     realAmount: PromiseOrValue<BigNumberish>,
+    unwrapWETH: PromiseOrValue<boolean>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -285,7 +268,6 @@ export interface MarginlyPoolContract extends BaseContract {
       override?: CallOverrides
     ): Promise<{
       maxLeverage: BigNumberish;
-      recoveryMaxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
       swapFee: BigNumberish;
@@ -316,20 +298,17 @@ export interface MarginlyPoolContract extends BaseContract {
   estimateGas: {
     closePosition(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     depositBase(
-      amount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      longAmount: BigNumberish,
+      override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     depositQuote(
-      amount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      shortAmount: BigNumberish,
+      override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    emergencyWithdraw(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-    increaseBaseCollateralCoeff(
-      realBaseAmount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-    increaseQuoteCollateralCoeff(
-      realQuoteAmount: PromiseOrValue<BigNumberish>,
+    emergencyWithdraw(
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     initialize(
@@ -340,7 +319,6 @@ export interface MarginlyPoolContract extends BaseContract {
       _uniswapPool: PromiseOrValue<string>,
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -366,7 +344,6 @@ export interface MarginlyPoolContract extends BaseContract {
     setParameters(
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -378,45 +355,37 @@ export interface MarginlyPoolContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    setRecoveryMode(
-      set: PromiseOrValue<boolean>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
     short(
       realBaseAmount: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-    transferPosition(
-      newOwner: PromiseOrValue<string>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     withdrawBase(
       realAmount: PromiseOrValue<BigNumberish>,
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     withdrawQuote(
       realAmount: PromiseOrValue<BigNumberish>,
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
   populateTransaction: {
     closePosition(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     depositBase(
-      amount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      longAmount: BigNumberish,
+      override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     depositQuote(
-      amount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      shortAmount: BigNumberish,
+      override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    emergencyWithdraw(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-    increaseBaseCollateralCoeff(
-      realBaseAmount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-    increaseQuoteCollateralCoeff(
-      realQuoteAmount: PromiseOrValue<BigNumberish>,
+    emergencyWithdraw(
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     initialize(
@@ -427,7 +396,6 @@ export interface MarginlyPoolContract extends BaseContract {
       _uniswapPool: PromiseOrValue<string>,
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -453,7 +421,6 @@ export interface MarginlyPoolContract extends BaseContract {
     setParameters(
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -465,45 +432,37 @@ export interface MarginlyPoolContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    setRecoveryMode(
-      set: PromiseOrValue<boolean>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
     short(
       realBaseAmount: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-    transferPosition(
-      newOwner: PromiseOrValue<string>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     withdrawBase(
       realAmount: PromiseOrValue<BigNumberish>,
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     withdrawQuote(
       realAmount: PromiseOrValue<BigNumberish>,
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
     closePosition(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     depositBase(
-      amount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      longAmount: BigNumberish,
+      override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     depositQuote(
-      amount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
+      amount: BigNumberish,
+      shortAmount: BigNumberish,
+      override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
-    emergencyWithdraw(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
-    increaseBaseCollateralCoeff(
-      realBaseAmount: PromiseOrValue<BigNumberish>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<void>;
-    increaseQuoteCollateralCoeff(
-      realQuoteAmount: PromiseOrValue<BigNumberish>,
+    emergencyWithdraw(
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     initialize(
@@ -514,7 +473,6 @@ export interface MarginlyPoolContract extends BaseContract {
       _uniswapPool: PromiseOrValue<string>,
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -540,7 +498,6 @@ export interface MarginlyPoolContract extends BaseContract {
     setParameters(
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -552,25 +509,20 @@ export interface MarginlyPoolContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
-    setRecoveryMode(
-      set: PromiseOrValue<boolean>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<void>;
     short(
       realBaseAmount: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
-    transferPosition(
-      newOwner: PromiseOrValue<string>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<void>;
+    sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     withdrawBase(
       realAmount: PromiseOrValue<BigNumberish>,
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     withdrawQuote(
       realAmount: PromiseOrValue<BigNumberish>,
+      unwrapWETH: PromiseOrValue<boolean>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
   };

@@ -35,4 +35,6 @@ contract MockMarginlyFactory is IMarginlyFactory {
   function owner() external view override returns (address) {}
 
   function setOwner(address _owner) external {}
+
+  function WETH9() external view override returns(address) {}
 }
