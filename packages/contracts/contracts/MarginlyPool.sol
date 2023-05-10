@@ -142,17 +142,17 @@ contract MarginlyPool is IMarginlyPool {
     unlocked = true;
   }
 
-  function _onlyAdminOrManager() private view {
+  function _onlyFactoryOwner() private view {
     require(msg.sender == IMarginlyFactory(factory).owner(), 'AD'); // Access denied
   }
 
-  modifier onlyAdminOrManager() {
-    _onlyAdminOrManager();
+  modifier onlyFactoryOwner() {
+    _onlyFactoryOwner();
     _;
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function setParameters(MarginlyParams calldata _params) external override onlyAdminOrManager {
+  function setParameters(MarginlyParams calldata _params) external override onlyFactoryOwner {
     params = _params;
   }
 
@@ -1055,7 +1055,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function shutDown() external onlyAdminOrManager lock {
+  function shutDown() external onlyFactoryOwner lock {
     require(mode == Mode.Regular, 'EM'); // Emergency mode activated
     accrueInterest();
 
@@ -1212,7 +1212,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function sweepETH() external override onlyAdminOrManager {
+  function sweepETH() external override onlyFactoryOwner {
     if (address(this).balance > 0) {
       TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
