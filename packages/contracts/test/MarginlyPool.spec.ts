@@ -28,7 +28,6 @@ describe('MarginlyPool.Base', () => {
     const marginlyParams = {
       interestRate: 54,
       maxLeverage: 15,
-      recoveryMaxLeverage: 13,
       swapFee: 1000,
       priceSecondsAgo: 1000,
       positionMinAmount: 100,

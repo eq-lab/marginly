@@ -217,23 +217,20 @@ class MarginlyDeployer {
     marginlyPoolImplementation: EthAddress,
     uniswapFactory: EthAddress,
     swapRouter: EthAddress,
-    feeHolder: EthAddress
+    feeHolder: EthAddress,
+    wethAddress: EthAddress
   ): Promise<DeployResult> {
     return this.deploy(
       'MarginlyFactory',
-      [marginlyPoolImplementation.toString(), uniswapFactory.toString(), swapRouter.toString(), feeHolder.toString()],
+      [
+        marginlyPoolImplementation.toString(),
+        uniswapFactory.toString(),
+        swapRouter.toString(),
+        feeHolder.toString(),
+        wethAddress.toString(),
+      ],
       'marginlyFactory'
     );
-  }
-
-  public deployMarginlyWrapper(
-    marginlyPools: MarginlyDeploymentMarginlyPool[],
-    wrapperAdminAddress: string
-  ): Promise<DeployResult> {
-    const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
-      return marginlyPool.address;
-    });
-    return this.deploy('MarginlyPoolWrapper', [marginlyPoolsString, wrapperAdminAddress], 'MarginlyPoolWrapper');
   }
 
   public deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
@@ -439,7 +436,6 @@ class MarginlyDeployer {
       const params = {
         interestRate: config.params.interestRate.mul(one).toInteger(),
         maxLeverage: config.params.maxLeverage.toInteger(),
-        recoveryMaxLeverage: config.params.recoveryMaxLeverage.toInteger(),
         swapFee: config.params.swapFee.mul(one).toInteger(),
         priceSecondsAgo: config.params.priceAgo.toSeconds(),
         positionSlippage: config.params.positionSlippage.mul(one).toInteger(),
@@ -479,20 +475,6 @@ class MarginlyDeployer {
     return {
       address: marginlyPoolAddress.toString(),
       txHash: creationTxHash,
-      contract: marginlyPoolContract,
-    };
-  }
-
-  public async getMarginlyWrapper(marginlyWrapperAddress: string): Promise<LimitedDeployResult> {
-    const marginlyWrapperContractDescription = this.readMarginlyContract('MarginlyPoolWrapper');
-    const marginlyPoolContract = new ethers.Contract(
-      marginlyWrapperAddress,
-      marginlyWrapperContractDescription.abi,
-      this.provider
-    );
-
-    return {
-      address: marginlyWrapperAddress,
       contract: marginlyPoolContract,
     };
   }
@@ -641,12 +623,12 @@ interface MarginlyConfigUniswap {
 
 interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
+  wethAddress: EthAddress;
 }
 
 interface MarginlyPoolParams {
   interestRate: RationalNumber;
   maxLeverage: RationalNumber;
-  recoveryMaxLeverage: RationalNumber;
   swapFee: RationalNumber;
   priceAgo: TimeSpan;
   positionSlippage: RationalNumber;
@@ -664,10 +646,6 @@ interface MarginlyConfigMarginlyPool {
   params: MarginlyPoolParams;
 }
 
-interface MarginlyConfigMarginlyWrapper {
-  ids: string[];
-}
-
 interface MarginlyConfigMarginlyKeeper {
   aavePoolAddressesProvider: {
     address?: EthAddress;
@@ -682,7 +660,6 @@ class StrictMarginlyDeployConfig {
   public readonly tokens: MarginlyConfigToken[];
   public readonly uniswapPools: MarginlyConfigUniswapPool[];
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
-  public readonly marginlyWrapper: MarginlyConfigMarginlyWrapper;
   public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
 
   private constructor(
@@ -692,7 +669,6 @@ class StrictMarginlyDeployConfig {
     tokens: MarginlyConfigToken[],
     uniswapPools: MarginlyConfigUniswapPool[],
     marginlyPools: MarginlyConfigMarginlyPool[],
-    marginlyWrapper: MarginlyConfigMarginlyWrapper,
     marginlyKeeper: MarginlyConfigMarginlyKeeper
   ) {
     this.connection = connection;
@@ -701,7 +677,6 @@ class StrictMarginlyDeployConfig {
     this.tokens = tokens;
     this.uniswapPools = uniswapPools;
     this.marginlyPools = marginlyPools;
-    this.marginlyWrapper = marginlyWrapper;
     this.marginlyKeeper = marginlyKeeper;
   }
 
@@ -777,7 +752,6 @@ class StrictMarginlyDeployConfig {
       const params: MarginlyPoolParams = {
         interestRate: RationalNumber.parsePercent(rawPool.params.interestRate),
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
-        recoveryMaxLeverage: RationalNumber.parse(rawPool.params.recoveryMaxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
         priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
         positionSlippage: RationalNumber.parsePercent(rawPool.params.positionSlippage),
@@ -795,8 +769,6 @@ class StrictMarginlyDeployConfig {
         params,
       });
     }
-
-    const marginlyWrapper: MarginlyConfigMarginlyWrapper = { ids };
 
     if (
       (config.marginlyKeeper.aavePoolAddressesProvider.address &&
@@ -818,6 +790,11 @@ class StrictMarginlyDeployConfig {
       },
     };
 
+    const wethToken = tokens.get(config.marginlyFactory.wethTokenId);
+    if (wethToken === undefined) {
+      throw new Error(`Can not find WETH token by tokenId'${config.marginlyFactory.wethTokenId} for marginly factory`);
+    }
+
     return new StrictMarginlyDeployConfig(
       config.connection,
       {
@@ -826,11 +803,11 @@ class StrictMarginlyDeployConfig {
       },
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
+        wethAddress: wethToken.address,
       },
       Array.from(tokens.values()),
       Array.from(uniswapPools.values()),
       marginlyPools,
-      marginlyWrapper,
       marginlyKeeper
     );
   }
@@ -843,7 +820,6 @@ interface MarginlyDeploymentMarginlyPool {
 
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
-  marginlyWrapper?: { address: string };
   marginlyKeeper?: { address: string };
 }
 
@@ -866,7 +842,6 @@ export function mergeMarginlyDeployments(
 
   const mergedDeployment = {
     marginlyPools: [...oldDeployment.marginlyPools],
-    marginlyWrapper: newDeployment.marginlyWrapper,
     marginlyKeeper: newDeployment.marginlyKeeper,
   };
 
@@ -920,11 +895,6 @@ export async function getMarginlyDeployBundles(logger: Logger): Promise<Marginly
   }
 
   return result;
-}
-
-function getMarginlyWrapperAddress(stateStore: StateStore): string | undefined {
-  const deployState = stateStore.getById('MarginlyPoolWrapper');
-  return deployState ? deployState.address : undefined;
 }
 
 function getMarginlyKeeperAddress(stateStore: StateStore): string | undefined {
@@ -998,7 +968,8 @@ export async function deployMarginly(
       EthAddress.parse(marginlyPoolImplDeployResult.contract.address),
       config.uniswap.factory,
       config.uniswap.swapRouter,
-      config.marginlyFactory.feeHolder
+      config.marginlyFactory.feeHolder,
+      config.marginlyFactory.wethAddress
     );
     printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 
@@ -1029,28 +1000,6 @@ export async function deployMarginly(
     }
     return deployedMarginlyPools;
   });
-
-  let marginlyWrapperAddress = getMarginlyWrapperAddress(stateStore);
-
-  if (marginlyWrapperAddress === undefined) {
-    const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
-      const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
-        deployedMarginlyPools,
-        await signer.getAddress()
-      );
-      printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
-
-      return marginlyWrapperDeployResult;
-    });
-    marginlyWrapperAddress = marginlyWrapperDeployResult.address;
-  } else {
-    const marginlyWrapperContract = (await marginlyDeployer.getMarginlyWrapper(marginlyWrapperAddress)).contract;
-    for (const marginlyPoolAddress of deployedMarginlyPools) {
-      if (!(await marginlyWrapperContract.whitelistedMarginlyPools(marginlyPoolAddress))) {
-        await marginlyWrapperContract.connect(signer).addPoolAddress(marginlyPoolAddress);
-      }
-    }
-  }
 
   let marginlyKeeperAddress = getMarginlyKeeperAddress(stateStore);
   if (!marginlyKeeperAddress) {
@@ -1093,7 +1042,6 @@ export async function deployMarginly(
 
   return {
     marginlyPools: deployedMarginlyPools,
-    marginlyWrapper: { address: marginlyWrapperAddress },
     marginlyKeeper: { address: marginlyKeeperAddress },
   };
 }

@@ -63,8 +63,8 @@ export async function keeper(sut: SystemUnderTest) {
     await (await weth.connect(treasury).transfer(lender.address, baseAmount)).wait();
     await (await weth.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
 
-    await marginlyPool.connect(lender).depositBase(baseAmount,0, ethArgs);
-    await marginlyPool.connect(lender).depositQuote(quoteAmount,0, ethArgs);
+    await marginlyPool.connect(lender).depositBase(baseAmount, 0, ethArgs);
+    await marginlyPool.connect(lender).depositQuote(quoteAmount, 0, ethArgs);
   }
 
   const longer = accounts[1];
@@ -76,7 +76,7 @@ export async function keeper(sut: SystemUnderTest) {
     await (await weth.connect(treasury).transfer(longer.address, baseAmount)).wait();
     await (await weth.connect(longer).approve(marginlyPool.address, baseAmount)).wait();
 
-    await (await marginlyPool.connect(longer).depositBase(baseAmount,0, ethArgs)).wait();
+    await (await marginlyPool.connect(longer).depositBase(baseAmount, 0, ethArgs)).wait();
     await (await marginlyPool.connect(longer).long(longAmount, ethArgs)).wait();
   }
 
@@ -88,7 +88,7 @@ export async function keeper(sut: SystemUnderTest) {
     await (await usdc.connect(treasury).transfer(shorter.address, quoteAmount)).wait();
     await (await usdc.connect(shorter).approve(marginlyPool.address, quoteAmount)).wait();
 
-    await (await marginlyPool.connect(shorter).depositQuote(quoteAmount,0, ethArgs)).wait();
+    await (await marginlyPool.connect(shorter).depositQuote(quoteAmount, 0, ethArgs)).wait();
     await (await marginlyPool.connect(shorter).short(shortAmount, ethArgs)).wait();
   }
 
@@ -115,7 +115,7 @@ export async function keeper(sut: SystemUnderTest) {
   ]);
 
   const basePriceX96 = BigNumber.from(basePrice.inner);
-  const maxLeverage = BigNumber.from(params.recoveryMaxLeverage);
+  const maxLeverage = BigNumber.from(params.maxLeverage);
 
   console.log(`Max leverage is ${maxLeverage}`);
 

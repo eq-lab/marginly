@@ -150,12 +150,12 @@ class PoolWatcher {
       quoteDebtCoeffX96: quoteDebtCoeff,
     };
 
-    if (mode > MarginlyMode.Recovery) {
+    if (mode != MarginlyMode.Regular) {
       console.log('System in emergency mode. Liquidation not available');
       return [];
     }
-    const maxLeverage: BigNumber = mode == MarginlyMode.Regular ? params.maxLeverage : params.recoveryMaxLeverage;
 
+    const maxLeverage = params.maxLeverage;
     const riskiestPositions = await Promise.all([this.getRiskiestShortPosition(), this.getRiskiestLongPosition()]);
 
     const result: LiquidationParams[] = [];
