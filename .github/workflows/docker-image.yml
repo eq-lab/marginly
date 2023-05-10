@@ -9,6 +9,15 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  SERVICE_NAME: marginly-minifront
+  CLUSTER: kube
+  NAMESPACE: eth-backend-test
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  LIMIT_CPU: "500m"
+  LIMIT_MEMORY: "512Mi"
+  HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
+
+
 
 jobs:
   docker:
@@ -33,3 +42,55 @@ jobs:
         with:
           push: true
           tags:  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+  
+
+  deployment:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest' # default is latest stable
+      id: install
+    - uses: azure/setup-helm@v3
+      with:
+        version: 'latest' # default is latest (stable)
+        token: ${{ secrets.GITHUB_TOKEN }} # only needed if version is 'latest'
+      id: install
+    - name: 'Prep extraEnv'
+      run: |
+          cat <<EOF >extraEnv.yml
+          imagePullSecrets:
+            - name: gitlab
+          EOF \
+    - name: Set Kubernetes Context
+      uses: azure/k8s-set-context@v3
+      with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          context: ${{ env.CLUSTER }}
+    - name: 'use-context'
+      run: kubectl config use-context $CLUSTER
+    - name: 'set-context'
+      run: kubectl config set-context --current --namespace=$NAMESPACE
+    - name: 'FULL_IMAGE_NAME'
+      run: export FULL_IMAGE_NAME=$REGISTRY/$IMAGE_NAME:latest
+    - name: 'Add Helm repo'
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ env.HELM_REPOSITORY }}
+    - name: 'deploy'
+      run: |
+        helm upgrade -i $SERVICE_NAME \
+          --set fullnameOverride=$SERVICE_NAME \
+          --set service.enabled=true \
+          --set service.port=80 \
+          --set service.targetport=80 \
+          --set image.repository=$DOCKER_REGISTRY \
+          --set image.name=$FULL_IMAGE_NAME \
+          --set image.tag=$IMAGE_TAG \
+          --set resources.limits.cpu=$LIMIT_CPU \
+          --set resources.limits.memory=$LIMIT_MEMORY \
+          -f extraEnv.yml \
+          ./devops-helm-charts-deploy
+    
+
