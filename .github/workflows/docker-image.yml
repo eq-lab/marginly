@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -20,7 +24,7 @@ jobs:
         name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
@@ -28,4 +32,4 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags:  ${{ github.repository }}:latest
+          tags:  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
