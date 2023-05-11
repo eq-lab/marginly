@@ -13,6 +13,7 @@ env:
   CLUSTER: kube
   NAMESPACE: eth-backend-test
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
@@ -61,12 +62,20 @@ jobs:
       with:
         repository: ${{ env.HELM_REPOSITORY }}
         ref: 'main'
-        token: ${{ secrets.PAT }}
+        token: ${{ secrets.PAT }}  
+    - name: Set imagePullSecret
+      uses: azure/k8s-create-secret@v4
+      with:
+        namespace: $NAMESPACE
+        secret-name: 'github-marg'
+        container-registry-url: ${{ env.REGISTRY }}
+        container-registry-username: ${{ github.actor }}
+        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+      id: create-secret
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets:
-            - name: gitlab
+          imagePullSecrets: [name: github-marg]
           EOF \
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
