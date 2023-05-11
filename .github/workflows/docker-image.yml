@@ -21,32 +21,32 @@ env:
 
 
 jobs:
-  build-image:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      -
-        name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags:  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+  # build-image:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     -
+  #       name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v2
+  #     -
+  #       name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
+  #     -
+  #       name: Login to GitHub Container Registry
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #     -
+  #       name: Build and push
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         push: true
+  #         tags:  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
   
 
   deployment:
-    needs: build-image
+    # needs: build-image
     runs-on: 'ubuntu-latest'
     steps:
     - uses: azure/setup-kubectl@v3
@@ -63,15 +63,6 @@ jobs:
         repository: ${{ env.HELM_REPOSITORY }}
         ref: 'main'
         token: ${{ secrets.PAT }}  
-    - name: Set imagePullSecret
-      uses: azure/k8s-create-secret@v4
-      with:
-        namespace: $NAMESPACE
-        secret-name: 'github-marg'
-        container-registry-url: ${{ env.REGISTRY }}
-        container-registry-username: ${{ github.actor }}
-        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-      id: create-secret
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
@@ -87,6 +78,15 @@ jobs:
       run: kubectl config use-context $CLUSTER
     - name: 'set-context'
       run: kubectl config set-context --current --namespace=$NAMESPACE
+    - name: Set imagePullSecret
+      uses: azure/k8s-create-secret@v4
+      with:
+        namespace: $NAMESPACE
+        secret-name: 'github-marg'
+        container-registry-url: ${{ env.REGISTRY }}
+        container-registry-username: ${{ github.actor }}
+        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+      id: create-secret
     - name: 'FULL_IMAGE_NAME'
       run: export FULL_IMAGE_NAME=$REGISTRY/$IMAGE_NAME:latest
     - name: 'deploy'
