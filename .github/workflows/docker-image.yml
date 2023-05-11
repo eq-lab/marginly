@@ -92,5 +92,3 @@ jobs:
           --set resources.limits.memory=$LIMIT_MEMORY \
           -f extraEnv.yml \
           ./devops-helm-charts-deploy
-    
-
