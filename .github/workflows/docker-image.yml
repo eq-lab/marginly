@@ -67,7 +67,7 @@ jobs:
       run: |
           cat <<EOF >extraEnv.yml
           imagePullSecrets: [name: github-marg]
-          EOF \
+          EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
       with:
