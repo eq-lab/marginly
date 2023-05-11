@@ -81,7 +81,7 @@ jobs:
     - name: Set imagePullSecret
       uses: azure/k8s-create-secret@v4
       with:
-        namespace: $NAMESPACE
+        namespace: ${{ env.NAMESPACE }}
         secret-name: 'github-marg'
         container-registry-url: ${{ env.REGISTRY }}
         container-registry-username: ${{ github.actor }}
