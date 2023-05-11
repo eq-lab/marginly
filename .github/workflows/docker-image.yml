@@ -20,7 +20,7 @@ env:
 
 
 jobs:
-  docker:
+  build-image:
     runs-on: ubuntu-latest
     steps:
       -
@@ -45,6 +45,7 @@ jobs:
   
 
   deployment:
+    needs: build-image
     runs-on: 'ubuntu-latest'
     steps:
     - uses: azure/setup-kubectl@v3
@@ -81,6 +82,7 @@ jobs:
         token: ${{ secrets.PAT }}
     - name: 'deploy'
       run: |
+        ls -la
         helm upgrade -i $SERVICE_NAME \
           --set fullnameOverride=$SERVICE_NAME \
           --set service.enabled=true \
