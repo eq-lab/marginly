@@ -83,7 +83,7 @@ jobs:
     - name: 'deploy'
       run: |
         ls -la
-        helm install -i $SERVICE_NAME \
+        helm upgrade -i $SERVICE_NAME \
           --set fullnameOverride=$SERVICE_NAME \
           --set service.enabled=true \
           --set service.port=80 \
