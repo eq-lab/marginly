@@ -78,6 +78,7 @@ jobs:
       with:
         repository: ${{ env.HELM_REPOSITORY }}
         ref: 'main'
+        token: ${{ secrets.PAT }}
     - name: 'deploy'
       run: |
         helm upgrade -i $SERVICE_NAME \
