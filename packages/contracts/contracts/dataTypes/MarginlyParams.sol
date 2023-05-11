@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 struct MarginlyParams {
   /// @dev Maximum allowable leverage in the Regular mode.
   uint8 maxLeverage;
-  /// @dev Maximum allowable leverage in the Recovery mode.
-  uint8 recoveryMaxLeverage;
   /// @dev Number of seconds in the past from which to calculate the time-weighted-average-price
   uint16 priceSecondsAgo;
   /// @dev Interest rate. Example 1% = 10000

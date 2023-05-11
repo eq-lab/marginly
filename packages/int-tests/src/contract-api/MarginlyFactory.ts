@@ -27,6 +27,7 @@ export interface MarginlyFactoryInterface extends utils.Interface {
     'setOwner(address)': utils.FunctionFragment;
     'swapRouter()': utils.FunctionFragment;
     'uniswapFactory()': utils.FunctionFragment;
+    'WETH9()': utils.FunctionFragment;
   };
 
   getFunction(
@@ -39,6 +40,7 @@ export interface MarginlyFactoryInterface extends utils.Interface {
       | 'setOwner'
       | 'swapRouter'
       | 'uniswapFactory'
+      | 'WETH9'
   ): utils.FunctionFragment;
 }
 
@@ -55,7 +57,6 @@ export interface MarginlyFactoryContract extends BaseContract {
     uniswapFee: PromiseOrValue<BigNumberish>,
     params: PromiseOrValue<{
       maxLeverage: BigNumberish;
-      recoveryMaxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
       swapFee: BigNumberish;
@@ -82,6 +83,7 @@ export interface MarginlyFactoryContract extends BaseContract {
   ): Promise<ContractTransaction>;
   swapRouter(override?: CallOverrides): Promise<string>;
   uniswapFactory(override?: CallOverrides): Promise<string>;
+  WETH9(override?: CallOverrides): Promise<string>;
 
   functions: {
     feeHolder(override?: CallOverrides): Promise<[string]>;
@@ -95,6 +97,7 @@ export interface MarginlyFactoryContract extends BaseContract {
     owner(override?: CallOverrides): Promise<[string]>;
     swapRouter(override?: CallOverrides): Promise<[string]>;
     uniswapFactory(override?: CallOverrides): Promise<[string]>;
+    WETH9(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
     createPool(
@@ -103,7 +106,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       uniswapFee: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -127,7 +129,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       uniswapFee: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -151,7 +152,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       uniswapFee: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        recoveryMaxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
         swapFee: BigNumberish;
@@ -172,10 +172,11 @@ export async function deploy(
   _uniswapFactory: string,
   _swapRouter: string,
   _feeHolder: string,
+  _WETH9: string,
   signer?: Signer
 ): Promise<MarginlyFactoryContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(_marginlyPoolImplementation, _uniswapFactory, _swapRouter, _feeHolder);
+  const contract = await factory.deploy(_marginlyPoolImplementation, _uniswapFactory, _swapRouter, _feeHolder, _WETH9);
   return (await contract.deployed()) as any;
 }
 

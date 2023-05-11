@@ -48,4 +48,7 @@ interface IMarginlyFactory is IOwnable {
 
   /// @notice Swap fee holder address
   function feeHolder() external view returns (address);
+
+  /// @notice Address of wrapper
+  function WETH9() external view returns (address);
 }

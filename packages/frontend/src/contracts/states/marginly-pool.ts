@@ -98,7 +98,6 @@ const feeHolderQuoteBalanceState: ContractStateDescription = {
 
 type MarginlyParams = {
   maxLeverage: number;
-  recoveryMaxLeverage: number;
   interestRate: BigNumber;
   swapFee: BigNumber;
   priceSecondsAgo: number;
@@ -108,19 +107,10 @@ type MarginlyParams = {
 };
 
 async function getMarginlyParams(poolContract: ethers.Contract): Promise<MarginlyParams> {
-  const [
-    maxLeverage,
-    recoveryMaxLeverage,
-    priceSecondsAgo,
-    interestRate,
-    swapFee,
-    positionSlippage,
-    mcSlippage,
-    positionMinAmount,
-  ] = await poolContract.params();
+  const [maxLeverage, priceSecondsAgo, interestRate, swapFee, positionSlippage, mcSlippage, positionMinAmount] =
+    await poolContract.params();
   return {
     maxLeverage,
-    recoveryMaxLeverage,
     interestRate,
     swapFee,
     priceSecondsAgo,
@@ -142,21 +132,6 @@ const paramsMaxLeverageState: ContractStateDescription = {
   ): Promise<string[]> => {
     const params = await getMarginlyParams(contract);
     return [params.maxLeverage.toString()];
-  },
-};
-
-const paramsRecoveryMaxLeverageState: ContractStateDescription = {
-  stateName: 'params.recoveryMaxLeverage',
-  valueUnits: '',
-  argsNames: [],
-  fetchValue: async (
-    contract: ethers.Contract,
-    _signer: ethers.Signer,
-    _args: string[],
-    _contractsContext: ContractsParams
-  ): Promise<string[]> => {
-    const params = await getMarginlyParams(contract);
-    return [params.recoveryMaxLeverage.toString()];
   },
 };
 
@@ -584,12 +559,9 @@ export const workingModeState: ContractStateDescription = {
         modeStr = 'Regular';
         break;
       case 1:
-        modeStr = 'Recovery';
-        break;
-      case 2:
         modeStr = 'ShortEmergency';
         break;
-      case 3:
+      case 2:
         modeStr = 'LongEmergency';
         break;
       default:
@@ -635,7 +607,6 @@ export const marginlyPoolStatesWithoutArgs = [
   systemLeverageLongState,
 
   paramsMaxLeverageState,
-  paramsRecoveryMaxLeverageState,
   paramsInterestRateState,
   paramsSwapFeeState,
   paramsPriceSecondsAgoState,

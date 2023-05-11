@@ -16,7 +16,7 @@ type Function = {
 type Functions = { [name: string]: Function & { type: `r` | `w` } };
 type AbiEntry = {
   name: string;
-  type: `constructor` | `event` | `function` | `fallback`;
+  type: `constructor` | `event` | `function` | `fallback` | `receive`;
   stateMutability: `view` | `pure` | `nonpayable` | `payable`;
   inputs: Arg[];
   outputs?: Arg[];
@@ -60,7 +60,7 @@ export function genDefinitions(
 
   contract.abi.sort((a, b) => (a.name || ``).localeCompare(b.name || ``));
   for (const entry of contract.abi) {
-    if (entry.type == `fallback`) continue;
+    if (entry.type == `fallback` || entry.type === `receive`) continue;
     logger.debug(`${contract.contractName}::${entry.name} => ${entry.type}`);
     const outputs = entry.outputs?.map(convertType);
     const inputs = entry.inputs.map(convertType);
