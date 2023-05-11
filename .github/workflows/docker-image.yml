@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  SERVICE_NAME: marginly-minifront
+  SERVICE_NAME: marginly-minifront-gitlab
   CLUSTER: kube
   NAMESPACE: eth-backend-test
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
@@ -94,4 +94,4 @@ jobs:
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           -f extraEnv.yml \
-          ./devops-helm-charts-deploy
+          ./
