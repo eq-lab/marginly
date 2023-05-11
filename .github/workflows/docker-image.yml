@@ -56,6 +56,12 @@ jobs:
       with:
         version: 'latest' # default is latest (stable)
         token: ${{ secrets.GITHUB_TOKEN }} # only needed if version is 'latest'
+    - name: 'Add Helm repo'
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ env.HELM_REPOSITORY }}
+        ref: 'main'
+        token: ${{ secrets.PAT }}
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
@@ -74,16 +80,10 @@ jobs:
       run: kubectl config set-context --current --namespace=$NAMESPACE
     - name: 'FULL_IMAGE_NAME'
       run: export FULL_IMAGE_NAME=$REGISTRY/$IMAGE_NAME:latest
-    - name: 'Add Helm repo'
-      uses: actions/checkout@v3
-      with:
-        repository: ${{ env.HELM_REPOSITORY }}
-        ref: 'main'
-        token: ${{ secrets.PAT }}
     - name: 'deploy'
       run: |
         ls -la
-        helm upgrade -i $SERVICE_NAME \
+        helm install -i $SERVICE_NAME \
           --set fullnameOverride=$SERVICE_NAME \
           --set service.enabled=true \
           --set service.port=80 \
