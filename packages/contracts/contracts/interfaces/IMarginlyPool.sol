@@ -104,10 +104,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param amount Amount of withdraw
   event EmergencyWithdraw(address indexed who, address indexed token, uint256 amount);
 
-  /// @dev Emitted when user transferred their position to a new owner
-  /// @param from address of previous position owner
-  /// @param to address of new position owner
-  event PositionTransfer(address indexed from, address indexed to);
+  /// @dev Emitted when reinit happened
+  /// @param reinitTimestamp timestamp when reinit happened
+  event Reinit(uint256 reinitTimestamp);
 
   /// @dev Initializes the pool
   function initialize(

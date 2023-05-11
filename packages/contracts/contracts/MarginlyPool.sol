@@ -875,6 +875,8 @@ contract MarginlyPool is IMarginlyPool {
       );
     }
 
+    emit Reinit(lastReinitTimestampSeconds);
+
     return true;
   }
 
