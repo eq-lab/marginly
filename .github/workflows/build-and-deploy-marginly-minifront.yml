@@ -42,7 +42,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event={{branch}}-{{date 'YYYYMMDD'}}-{{sha}}
+            type=ref,enable=true,priority=600,prefix=,suffix=-{{date 'YYYYMMDD'}}-{{sha}},event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
       - name: Build and push
