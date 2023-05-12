@@ -7,12 +7,12 @@ on:
     branches: [ "main" ]
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: https://ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   SERVICE_NAME: marginly-minifront-gitlab
   CLUSTER: kube
   NAMESPACE: eth-backend-test
-  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  IMAGE_TAG: latest
   GH_SECR: github-marginly
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
@@ -90,8 +90,8 @@ jobs:
           --set service.enabled=true \
           --set service.port=80 \
           --set service.targetport=80 \
-          --set image.repository=$DOCKER_REGISTRY \
-          --set image.name=$REGISTRY/$IMAGE_NAME:latest \
+          --set image.repository=$REGISTRY \
+          --set image.name=$REGISTRY/$IMAGE_NAME \
           --set image.tag=$IMAGE_TAG \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \

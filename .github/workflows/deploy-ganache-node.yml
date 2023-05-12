@@ -22,7 +22,7 @@ env:
 
     
 jobs:
-  test:
+  deployment:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
