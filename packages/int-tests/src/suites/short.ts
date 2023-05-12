@@ -39,7 +39,7 @@ export async function short(sut: SystemUnderTest) {
     await (await weth.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lender).depositBase(baseAmount, { gasLimit: 500_000 })
+      marginlyPool.connect(lender).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
     );
     logger.info(`lender depositBase call success`);
     baseAmountsLenders.push(baseAmount);
@@ -48,7 +48,7 @@ export async function short(sut: SystemUnderTest) {
     await (await usdc.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(lender).depositQuote(quoteAmount, { gasLimit: 500_000 })
+      marginlyPool.connect(lender).depositQuote(quoteAmount, 0,{ gasLimit: 500_000 })
     );
     logger.info(`lender depositQuote call success`);
   }
@@ -89,7 +89,7 @@ export async function short(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(shorter).depositQuote(initCollateral, { gasLimit: 700_000 })
+      marginlyPool.connect(shorter).depositQuote(initCollateral, 0,{ gasLimit: 700_000 })
     );
     logger.info(`depositQuote call success`);
 

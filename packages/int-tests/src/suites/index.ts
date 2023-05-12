@@ -85,6 +85,7 @@ async function initializeTestSystem(
     uniswapFactory.address,
     swapRouter.address,
     feeHolder,
+    weth.address,
     treasury
   );
   logger.info(`marginlyFactory: ${marginlyFactory.address}`);
@@ -96,7 +97,6 @@ async function initializeTestSystem(
   const initialParams = {
     interestRate: 54000, // 5.4%
     maxLeverage: 20n,
-    recoveryMaxLeverage: 17n,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900n, // 15 min
     positionSlippage: 20000, // 2%

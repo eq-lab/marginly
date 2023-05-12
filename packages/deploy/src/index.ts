@@ -234,13 +234,13 @@ const deployTemplate = (
   ethArgs: EthOptions,
   contractReader: (name: string) => ContractDescription,
   stateStore: StateStore,
-  logger: Logger,
+  logger: Logger
 ) => {
   return async (
     name: string,
     args: unknown[],
     id: string,
-    contractReaderOverride: (name: string) => ContractDescription = contractReader,
+    contractReaderOverride: (name: string) => ContractDescription = contractReader
   ): Promise<DeployResult> => {
     const contractDescription = contractReaderOverride(name);
     const factory = new ethers.ContractFactory(contractDescription.abi, contractDescription.bytecode, signer);
@@ -317,22 +317,19 @@ class MarginlyDeployer {
     uniswapFactory: EthAddress,
     swapRouter: EthAddress,
     feeHolder: EthAddress,
+    wethAddress: EthAddress
   ): Promise<DeployResult> {
     return this.deploy(
       'MarginlyFactory',
-      [marginlyPoolImplementation.toString(), uniswapFactory.toString(), swapRouter.toString(), feeHolder.toString()],
-      'marginlyFactory',
+      [
+        marginlyPoolImplementation.toString(),
+        uniswapFactory.toString(),
+        swapRouter.toString(),
+        feeHolder.toString(),
+        wethAddress.toString(),
+      ],
+      'marginlyFactory'
     );
-  }
-
-  public deployMarginlyWrapper(
-    marginlyPools: MarginlyDeploymentMarginlyPool[],
-    wrapperAdminAddress: string,
-  ): Promise<DeployResult> {
-    const marginlyPoolsString = marginlyPools.map((marginlyPool) => {
-      return marginlyPool.address;
-    });
-    return this.deploy('MarginlyPoolWrapper', [marginlyPoolsString, wrapperAdminAddress], 'MarginlyPoolWrapper');
   }
 
   public deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
@@ -349,7 +346,7 @@ class MarginlyDeployer {
     txHash: string,
     token0: EthAddress,
     token1: EthAddress,
-    fee: RationalNumber,
+    fee: RationalNumber
   ): Promise<EthAddress> {
     if (token1.compare(token0) < 0) {
       const tmp = token0;
@@ -361,7 +358,7 @@ class MarginlyDeployer {
     const eventFilter = uniswapFactoryContract.filters.PoolCreated(
       token0.toString(),
       token1.toString(),
-      MarginlyDeployer.toUniswapFee(fee),
+      MarginlyDeployer.toUniswapFee(fee)
     );
     const events = await uniswapFactoryContract.queryFilter(eventFilter, txReceipt.blockHash);
 
@@ -395,7 +392,7 @@ class MarginlyDeployer {
       const uniswapPoolContract = new ethers.Contract(
         stateFromFile.address,
         uniswapPoolContractDescription.abi,
-        this.provider,
+        this.provider
       );
       return {
         address: stateFromFile.address,
@@ -408,7 +405,7 @@ class MarginlyDeployer {
     const uniswapFactoryContract = new ethers.Contract(
       uniswapFactory.toString(),
       uniswapFactoryContractDescription.abi,
-      this.signer,
+      this.signer
     );
 
     const tokenAAddress = tokenRepository.getTokenInfo(config.tokenA.id).address;
@@ -438,7 +435,7 @@ class MarginlyDeployer {
         token0Address.toString(),
         token1Address.toString(),
         MarginlyDeployer.toUniswapFee(config.fee),
-        this.ethArgs,
+        this.ethArgs
       );
       await tx.wait();
       uniswapPoolAddress = await this.getCreatedUniswapPoolAddress(
@@ -548,7 +545,6 @@ class MarginlyDeployer {
       const params = {
         interestRate: config.params.interestRate.mul(one).toInteger(),
         maxLeverage: config.params.maxLeverage.toInteger(),
-        recoveryMaxLeverage: config.params.recoveryMaxLeverage.toInteger(),
         swapFee: config.params.swapFee.mul(one).toInteger(),
         priceSecondsAgo: config.params.priceAgo.toSeconds(),
         positionSlippage: config.params.positionSlippage.mul(one).toInteger(),
@@ -588,20 +584,6 @@ class MarginlyDeployer {
     return {
       address: marginlyPoolAddress.toString(),
       txHash: creationTxHash,
-      contract: marginlyPoolContract,
-    };
-  }
-
-  public async getMarginlyWrapper(marginlyWrapperAddress: string): Promise<LimitedDeployResult> {
-    const marginlyWrapperContractDescription = this.readMarginlyContract('MarginlyPoolWrapper');
-    const marginlyPoolContract = new ethers.Contract(
-      marginlyWrapperAddress,
-      marginlyWrapperContractDescription.abi,
-      this.provider,
-    );
-
-    return {
-      address: marginlyWrapperAddress,
       contract: marginlyPoolContract,
     };
   }
@@ -841,12 +823,12 @@ function isMarginlyConfigUniswapPoolMock(uniswapPool: MarginlyConfigUniswapPool)
 
 interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
+  wethAddress: EthAddress;
 }
 
 interface MarginlyPoolParams {
   interestRate: RationalNumber;
   maxLeverage: RationalNumber;
-  recoveryMaxLeverage: RationalNumber;
   swapFee: RationalNumber;
   priceAgo: TimeSpan;
   positionSlippage: RationalNumber;
@@ -864,10 +846,6 @@ interface MarginlyConfigMarginlyPool {
   params: MarginlyPoolParams;
 }
 
-interface MarginlyConfigMarginlyWrapper {
-  ids: string[];
-}
-
 interface MarginlyConfigMarginlyKeeper {
   aavePoolAddressesProvider: {
     address?: EthAddress;
@@ -881,7 +859,6 @@ class StrictMarginlyDeployConfig {
   public readonly uniswap: MarginlyConfigUniswap;
   public readonly marginlyFactory: MarginlyFactoryConfig;
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
-  public readonly marginlyWrapper: MarginlyConfigMarginlyWrapper;
   public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
 
   private constructor(
@@ -890,15 +867,13 @@ class StrictMarginlyDeployConfig {
     marginlyFactory: MarginlyFactoryConfig,
     tokens: MarginlyConfigToken[],
     marginlyPools: MarginlyConfigMarginlyPool[],
-    marginlyWrapper: MarginlyConfigMarginlyWrapper,
-    marginlyKeeper: MarginlyConfigMarginlyKeeper,
+    marginlyKeeper: MarginlyConfigMarginlyKeeper
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
     this.marginlyFactory = marginlyFactory;
     this.tokens = tokens;
     this.marginlyPools = marginlyPools;
-    this.marginlyWrapper = marginlyWrapper;
     this.marginlyKeeper = marginlyKeeper;
   }
 
@@ -1093,7 +1068,6 @@ class StrictMarginlyDeployConfig {
       const params: MarginlyPoolParams = {
         interestRate: RationalNumber.parsePercent(rawPool.params.interestRate),
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
-        recoveryMaxLeverage: RationalNumber.parse(rawPool.params.recoveryMaxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
         priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
         positionSlippage: RationalNumber.parsePercent(rawPool.params.positionSlippage),
@@ -1111,8 +1085,6 @@ class StrictMarginlyDeployConfig {
         params,
       });
     }
-
-    const marginlyWrapper: MarginlyConfigMarginlyWrapper = { ids };
 
     if (
       (config.marginlyKeeper.aavePoolAddressesProvider.address &&
@@ -1134,16 +1106,21 @@ class StrictMarginlyDeployConfig {
       },
     };
 
+    const wethToken = tokens.get(config.marginlyFactory.wethTokenId);
+    if (wethToken === undefined) {
+      throw new Error(`Can not find WETH token by tokenId'${config.marginlyFactory.wethTokenId} for marginly factory`);
+    }
+
     return new StrictMarginlyDeployConfig(
       config.connection,
       uniswap,
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
+        wethAddress: wethToken.address,
       },
       Array.from(tokens.values()),
       marginlyPools,
-      marginlyWrapper,
-      marginlyKeeper,
+      marginlyKeeper
     );
   }
 }
@@ -1155,7 +1132,6 @@ interface MarginlyDeploymentMarginlyPool {
 
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
-  marginlyWrapper?: { address: string };
   marginlyKeeper?: { address: string };
 }
 
@@ -1178,7 +1154,6 @@ export function mergeMarginlyDeployments(
 
   const mergedDeployment = {
     marginlyPools: [...oldDeployment.marginlyPools],
-    marginlyWrapper: newDeployment.marginlyWrapper,
     marginlyKeeper: newDeployment.marginlyKeeper,
   };
 
@@ -1232,11 +1207,6 @@ export async function getMarginlyDeployBundles(logger: Logger): Promise<Marginly
   }
 
   return result;
-}
-
-function getMarginlyWrapperAddress(stateStore: StateStore): string | undefined {
-  const deployState = stateStore.getById('MarginlyPoolWrapper');
-  return deployState ? deployState.address : undefined;
 }
 
 function getMarginlyKeeperAddress(stateStore: StateStore): string | undefined {
@@ -1380,6 +1350,7 @@ export async function deployMarginly(
         uniswapFactoryAddress,
         uniswapSwapRouterAddress,
         config.marginlyFactory.feeHolder,
+        config.marginlyFactory.wethAddress
       );
       printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 
@@ -1403,31 +1374,9 @@ export async function deployMarginly(
       return deployedMarginlyPools;
     });
 
-    let marginlyWrapperAddress = getMarginlyWrapperAddress(stateStore);
-
-    if (marginlyWrapperAddress === undefined) {
-      const marginlyWrapperDeployResult = await using(logger.beginScope('Deploy marginly wrapper'), async () => {
-        const marginlyWrapperDeployResult = await marginlyDeployer.deployMarginlyWrapper(
-          deployedMarginlyPools,
-          await signer.getAddress(),
-        );
-        printDeployState('Marginly Wrapper', marginlyWrapperDeployResult, logger);
-
-        return marginlyWrapperDeployResult;
-      });
-      marginlyWrapperAddress = marginlyWrapperDeployResult.address;
-    } else {
-      const marginlyWrapperContract = (await marginlyDeployer.getMarginlyWrapper(marginlyWrapperAddress)).contract;
-      for (const marginlyPoolAddress of deployedMarginlyPools) {
-        if (!(await marginlyWrapperContract.whitelistedMarginlyPools(marginlyPoolAddress))) {
-          await marginlyWrapperContract.connect(signer).addPoolAddress(marginlyPoolAddress);
-        }
-      }
-    }
-
-    let marginlyKeeperAddress = getMarginlyKeeperAddress(stateStore);
-    if (!marginlyKeeperAddress) {
-      let aavePoolAddressesProviderAddress: EthAddress;
+  let marginlyKeeperAddress = getMarginlyKeeperAddress(stateStore);
+  if (!marginlyKeeperAddress) {
+    let aavePoolAddressesProviderAddress: EthAddress;
 
       if (config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) {
         const deployedMockAavePool = await using(logger.beginScope('Deploy MockAavePool'), async () => {
@@ -1466,7 +1415,6 @@ export async function deployMarginly(
 
     return {
       marginlyPools: deployedMarginlyPools,
-      marginlyWrapper: { address: marginlyWrapperAddress },
       marginlyKeeper: { address: marginlyKeeperAddress },
     };
   } finally {

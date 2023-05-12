@@ -87,6 +87,7 @@ export interface MarginlyDeployConfig {
   uniswap: MarginlyDeployConfigUniswap;
   marginlyFactory: {
     feeHolder: string;
+    wethTokenId: string;
   };
   marginlyPools: {
     id: string;
@@ -95,7 +96,6 @@ export interface MarginlyDeployConfig {
     params: {
       interestRate: string;
       maxLeverage: string;
-      recoveryMaxLeverage: string;
       swapFee: string;
       priceAgo: string;
       positionSlippage: string;

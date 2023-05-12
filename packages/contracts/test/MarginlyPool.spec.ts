@@ -1,4 +1,4 @@
-import { createMarginlyPool } from './shared/fixtures';
+import { createMarginlyPool, createMarginlyPoolQuoteTokenIsWETH } from './shared/fixtures';
 import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
@@ -14,6 +14,7 @@ import {
   powTaylor,
 } from './shared/utils';
 import { BigNumber } from 'ethers';
+import { parseUnits } from 'ethers/lib/utils';
 
 describe('MarginlyPool.Base', () => {
   it('should revert when second try of initialization', async () => {
@@ -27,7 +28,6 @@ describe('MarginlyPool.Base', () => {
     const marginlyParams = {
       interestRate: 54,
       maxLeverage: 15,
-      recoveryMaxLeverage: 13,
       swapFee: 1000,
       priceSecondsAgo: 1000,
       positionMinAmount: 100,
@@ -42,13 +42,62 @@ describe('MarginlyPool.Base', () => {
     ).to.be.revertedWith('FB');
   });
 
+  it('should revert when somebody trying to send value', async () => {
+    const { marginlyPool } = await loadFixture(createMarginlyPool);
+    const [_, signer] = await ethers.getSigners();
+
+    const valueToSend = parseUnits('1', 18); // 1.0 ETH
+    await expect(
+      signer.sendTransaction({
+        to: marginlyPool.address,
+        value: valueToSend,
+      })
+    ).to.be.revertedWith('NW9');
+  });
+
+  it('sweepETH should revert when sender is not admin', async () => {
+    const { marginlyPool } = await loadFixture(createMarginlyPool);
+    const [_, signer] = await ethers.getSigners();
+
+    await expect(marginlyPool.connect(signer).sweepETH()).to.be.revertedWith('AD');
+  });
+
+  it('sweepETH should be called by admin', async () => {
+    const { marginlyPool } = await loadFixture(createMarginlyPool);
+    const [owner, signer, lender] = await ethers.getSigners();
+
+    const params = await marginlyPool.params();
+    await marginlyPool.connect(owner).setParameters({
+      ...params,
+      baseLimit: 10000n * 10n ** 18n,
+      quoteLimit: 10000n * 10n ** 18n,
+    });
+
+    const quoteDeposit = 1000;
+    await marginlyPool.connect(lender).depositQuote(quoteDeposit, 0);
+
+    const baseDeposit = parseUnits('0.0000000001', 18);
+    const valueDeposit = parseUnits('1.2000000001', 18);
+    const rest = valueDeposit.sub(baseDeposit);
+
+    await marginlyPool.connect(signer).depositBase(baseDeposit, 0, { value: valueDeposit });
+
+    const balanceBefore = await owner.getBalance();
+
+    const txReceipt = await (await marginlyPool.connect(owner).sweepETH()).wait();
+    const txFee = txReceipt.gasUsed.mul(txReceipt.effectiveGasPrice);
+
+    const balanceAfter = await owner.getBalance();
+
+    expect(balanceBefore.sub(txFee).add(rest)).to.be.equal(balanceAfter);
+  });
+
   it('should set Marginly parameters by factory owner', async () => {
     const { marginlyPool: pool, factoryOwner } = await loadFixture(createMarginlyPool);
 
     await pool.connect(factoryOwner).setParameters({
       interestRate: 54,
       maxLeverage: 15,
-      recoveryMaxLeverage: 13,
       swapFee: 1000,
       priceSecondsAgo: 1000,
       positionMinAmount: 100,
@@ -62,7 +111,6 @@ describe('MarginlyPool.Base', () => {
 
     expect(params.interestRate).to.equal(54);
     expect(params.maxLeverage).to.equal(15);
-    expect(params.recoveryMaxLeverage).to.equal(13);
     expect(params.swapFee).to.equal(1000);
     expect(params.priceSecondsAgo).to.equal(1000);
     expect(params.positionMinAmount).to.equal(100);
@@ -82,7 +130,6 @@ describe('MarginlyPool.Base', () => {
       pool.connect(otherSigner).setParameters({
         interestRate: 54,
         maxLeverage: 15,
-        recoveryMaxLeverage: 13,
         swapFee: 1000,
         priceSecondsAgo: 1000,
         positionMinAmount: 100,
@@ -99,14 +146,14 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, otherSigner] = await ethers.getSigners();
 
-      await expect(marginlyPool.connect(otherSigner).depositBase(0)).to.be.revertedWith('ZA');
+      await expect(marginlyPool.connect(otherSigner).depositBase(0, 0)).to.be.revertedWith('ZA');
     });
 
     it('exceeds limit', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, otherSigner] = await ethers.getSigners();
 
-      await expect(marginlyPool.connect(otherSigner).depositBase(2_000_000)).to.be.revertedWith('EL');
+      await expect(marginlyPool.connect(otherSigner).depositBase(2_000_000, 0)).to.be.revertedWith('EL');
     });
 
     it('first deposit should create position', async () => {
@@ -114,7 +161,7 @@ describe('MarginlyPool.Base', () => {
       const [_, signer] = await ethers.getSigners();
       const depositAmount = 1000;
 
-      const tx = await marginlyPool.connect(signer).depositBase(depositAmount);
+      const tx = await marginlyPool.connect(signer).depositBase(depositAmount, 0);
       const depositBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'DepositBase')!;
       expect(depositBaseEvent.args?.user).to.be.equal(signer.address);
       expect(depositBaseEvent.args?.amount).to.be.equal(depositAmount);
@@ -142,8 +189,8 @@ describe('MarginlyPool.Base', () => {
       const firstDeposit = 2468;
       const secondDeposit = 2837;
 
-      await marginlyPool.connect(signer1).depositBase(firstDeposit);
-      await marginlyPool.connect(signer2).depositBase(secondDeposit);
+      await marginlyPool.connect(signer1).depositBase(firstDeposit, 0);
+      await marginlyPool.connect(signer2).depositBase(secondDeposit, 0);
 
       const expectedDBC1 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * firstDeposit;
       const expectedDBC2 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * secondDeposit;
@@ -163,8 +210,8 @@ describe('MarginlyPool.Base', () => {
       const secondDeposit = 500;
       const total = firstDeposit + secondDeposit;
 
-      await marginlyPool.connect(signer).depositBase(firstDeposit);
-      await marginlyPool.connect(signer).depositBase(secondDeposit);
+      await marginlyPool.connect(signer).depositBase(firstDeposit, 0);
+      await marginlyPool.connect(signer).depositBase(secondDeposit, 0);
 
       const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * total;
 
@@ -183,16 +230,13 @@ describe('MarginlyPool.Base', () => {
     it('deposit into short position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositBase(10000);
+      await marginlyPool.connect(lender).depositBase(10000, 0);
 
       const firstDeposit = 1000;
-      await marginlyPool.connect(signer).depositQuote(firstDeposit);
-
       const shortAmount = 200;
-      await marginlyPool.connect(signer).short(shortAmount);
+      await marginlyPool.connect(signer).depositQuote(firstDeposit, shortAmount);
 
       const initialPrice = await marginlyPool.initialPrice();
-      let basePrice = await marginlyPool.getBasePrice();
       let position = await marginlyPool.positions(signer.address);
 
       const sortKeyBefore = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
@@ -204,7 +248,7 @@ describe('MarginlyPool.Base', () => {
       expect(sortKeyBefore).to.be.equal(expectedShortKeyBefore);
 
       const baseDepositFirst = 100;
-      await marginlyPool.connect(signer).depositBase(baseDepositFirst);
+      await marginlyPool.connect(signer).depositBase(baseDepositFirst, 0);
 
       position = await marginlyPool.positions(signer.address);
       expect(position._type).to.be.equal(PositionType.Short);
@@ -220,7 +264,7 @@ describe('MarginlyPool.Base', () => {
       expect(sortKeyAfter).to.be.lessThan(sortKeyBefore);
 
       const baseDepositSecond = 200;
-      await marginlyPool.connect(signer).depositBase(baseDepositSecond);
+      await marginlyPool.connect(signer).depositBase(baseDepositSecond, 0);
 
       {
         const position = await marginlyPool.positions(signer.address);
@@ -231,22 +275,68 @@ describe('MarginlyPool.Base', () => {
     it('deposit into long position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositQuote(10000);
+      await marginlyPool.connect(lender).depositQuote(10000, 0);
 
       const firstDeposit = 1000;
-
-      await marginlyPool.connect(signer).depositBase(firstDeposit);
       const longAmount = 63;
-      await marginlyPool.connect(signer).long(longAmount);
+
+      await marginlyPool.connect(signer).depositBase(firstDeposit, longAmount);
 
       const positionBefore = await marginlyPool.positions(signer.address);
       expect(positionBefore._type).to.be.equal(PositionType.Long);
 
       const depositBaseAmount = 100;
-      await marginlyPool.connect(signer).depositBase(depositBaseAmount);
+      await marginlyPool.connect(signer).depositBase(depositBaseAmount, 0);
 
       const positionAfter = await marginlyPool.positions(signer.address);
       expect(positionAfter._type).to.be.equal(PositionType.Long);
+    });
+
+    it('depositBase and open long position', async () => {
+      const { marginlyPool, baseContract } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+
+      const lenderDeposit = 10000;
+      await marginlyPool.connect(lender).depositQuote(lenderDeposit, 0);
+
+      const depositAmount = 1000;
+      const longAmount = 100;
+      await marginlyPool.connect(signer).depositBase(depositAmount, longAmount);
+
+      // check position
+      const position = await marginlyPool.positions(signer.address);
+      expect(position._type).to.be.equal(PositionType.Long);
+      expect(position.heapPosition).to.be.equal(1);
+    });
+
+    it('depositBase and long into short position should fail', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      await marginlyPool.connect(lender).depositBase(10000, 0);
+
+      const firstDeposit = 1000;
+      const shortAmount = 200;
+      await marginlyPool.connect(signer).depositQuote(firstDeposit, shortAmount);
+
+      const baseDepositFirst = 10;
+      const longAmount = 10;
+      await expect(marginlyPool.connect(signer).depositBase(baseDepositFirst, longAmount)).to.be.revertedWith('WPT');
+    });
+
+    it('depositBase should wrap ETH into WETH', async () => {
+      const { marginlyPool, baseContract } = await loadFixture(createMarginlyPool);
+      const [_, signer] = await ethers.getSigners();
+
+      const depositAmount = 1000;
+      await baseContract.connect(signer).approve(marginlyPool.address, 0);
+      await marginlyPool.connect(signer).depositBase(depositAmount, 0, { value: depositAmount });
+
+      // check position
+      const position = await marginlyPool.positions(signer.address);
+      expect(position._type).to.be.equal(PositionType.Lend);
+      expect(position.discountedBaseAmount).to.be.equal(depositAmount);
+      expect(position.discountedQuoteAmount).to.be.equal(0);
+      expect(position.heapPosition).to.be.equal(0);
     });
   });
 
@@ -255,14 +345,14 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, otherSigner] = await ethers.getSigners();
 
-      await expect(marginlyPool.connect(otherSigner).depositQuote(0)).to.be.revertedWith('ZA');
+      await expect(marginlyPool.connect(otherSigner).depositQuote(0, 0)).to.be.revertedWith('ZA');
     });
 
     it('exceeds limit', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, otherSigner] = await ethers.getSigners();
 
-      await expect(marginlyPool.connect(otherSigner).depositQuote(2_000_000)).to.be.revertedWith('EL');
+      await expect(marginlyPool.connect(otherSigner).depositQuote(2_000_000, 0)).to.be.revertedWith('EL');
     });
 
     it('first deposit should create position', async () => {
@@ -270,7 +360,7 @@ describe('MarginlyPool.Base', () => {
       const [_, signer] = await ethers.getSigners();
       const depositAmount = 1500;
 
-      const tx = await marginlyPool.connect(signer).depositQuote(depositAmount);
+      const tx = await marginlyPool.connect(signer).depositQuote(depositAmount, 0);
       const depositQuoteEvent = (await tx.wait()).events?.find((x) => x.event === 'DepositQuote')!;
 
       expect(depositQuoteEvent.args?.user).to.be.equal(signer.address);
@@ -298,8 +388,8 @@ describe('MarginlyPool.Base', () => {
       const secondDeposit = 500;
       const total = firstDeposit + secondDeposit;
 
-      await marginlyPool.connect(signer).depositQuote(firstDeposit);
-      await marginlyPool.connect(signer).depositQuote(secondDeposit);
+      await marginlyPool.connect(signer).depositQuote(firstDeposit, 0);
+      await marginlyPool.connect(signer).depositQuote(secondDeposit, 0);
 
       const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * total;
 
@@ -318,10 +408,10 @@ describe('MarginlyPool.Base', () => {
     it('deposit into short position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositBase(10000);
+      await marginlyPool.connect(lender).depositBase(10000, 0);
 
       const firstDeposit = 1000;
-      await marginlyPool.connect(signer).depositQuote(firstDeposit);
+      await marginlyPool.connect(signer).depositQuote(firstDeposit, 0);
       const shortAmount = 200;
       await marginlyPool.connect(signer).short(shortAmount);
 
@@ -329,7 +419,7 @@ describe('MarginlyPool.Base', () => {
       expect(positionBefore._type).to.be.equal(PositionType.Short);
 
       const quoteDeposit = 300;
-      await marginlyPool.connect(signer).depositQuote(quoteDeposit);
+      await marginlyPool.connect(signer).depositQuote(quoteDeposit, 0);
 
       const positionAfter = await marginlyPool.positions(signer.address);
       expect(positionAfter._type).to.be.equal(PositionType.Short);
@@ -338,10 +428,10 @@ describe('MarginlyPool.Base', () => {
     it('deposit into long position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositQuote(10000);
+      await marginlyPool.connect(lender).depositQuote(10000, 0);
       const firstDeposit = 1000;
 
-      await marginlyPool.connect(signer).depositBase(firstDeposit);
+      await marginlyPool.connect(signer).depositBase(firstDeposit, 0);
       const longAmount = 63;
       await marginlyPool.connect(signer).long(longAmount);
 
@@ -349,10 +439,78 @@ describe('MarginlyPool.Base', () => {
       expect(positionBefore._type).to.be.equal(PositionType.Long);
 
       const quoteDepositSecond = 300;
-      await marginlyPool.connect(signer).depositQuote(quoteDepositSecond);
+      await marginlyPool.connect(signer).depositQuote(quoteDepositSecond, 0);
 
       const positionAfter = await marginlyPool.positions(signer.address);
       expect(positionAfter._type).to.be.equal(PositionType.Lend);
+    });
+
+    it('depositQuote and open short position', async () => {
+      const { marginlyPool, quoteContract, baseContract } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+
+      const lenderDeposit = 10000;
+      await marginlyPool.connect(lender).depositBase(lenderDeposit, 0);
+
+      const depositAmount = 1500;
+      const shortAmount = 1000;
+      await marginlyPool.connect(signer).depositQuote(depositAmount, shortAmount);
+
+      // check position
+      const position = await marginlyPool.positions(signer.address);
+      expect(position._type).to.be.equal(PositionType.Short);
+      expect(position.heapPosition).to.be.equal(1);
+    });
+
+    it('depositQuote and short into long position', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      await marginlyPool.connect(lender).depositQuote(10000, 0);
+      const firstDeposit = 1000;
+      const longAmount = 63;
+      await marginlyPool.connect(signer).depositBase(firstDeposit, longAmount);
+
+      const positionBefore = await marginlyPool.positions(signer.address);
+      expect(positionBefore._type).to.be.equal(PositionType.Long);
+
+      const quoteDepositSecond = 300;
+      const shortAmount = 100;
+      await expect(marginlyPool.connect(signer).depositQuote(quoteDepositSecond, shortAmount)).to.be.revertedWith(
+        'WPT'
+      );
+    });
+
+    it('depositQuote and short into short position', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      await marginlyPool.connect(lender).depositBase(10000, 0);
+      const firstDeposit = 1000;
+      const shortAmount1 = 63;
+      await marginlyPool.connect(signer).depositQuote(firstDeposit, shortAmount1);
+
+      const positionBefore = await marginlyPool.positions(signer.address);
+      expect(positionBefore._type).to.be.equal(PositionType.Short);
+
+      const quoteDepositSecond = 300;
+      const shortAmount2 = 100;
+      await marginlyPool.connect(signer).depositQuote(quoteDepositSecond, shortAmount2);
+      expect(positionBefore._type).to.be.equal(PositionType.Short);
+    });
+
+    it('depositQuote should wrap ETH to WETH', async () => {
+      const { marginlyPool, quoteContract } = await loadFixture(createMarginlyPoolQuoteTokenIsWETH);
+      const [_, signer] = await ethers.getSigners();
+
+      const depositAmount = 1000;
+      await quoteContract.connect(signer).approve(marginlyPool.address, 0);
+      await marginlyPool.connect(signer).depositQuote(depositAmount, 0, { value: depositAmount });
+
+      // check position
+      const position = await marginlyPool.positions(signer.address);
+      expect(position._type).to.be.equal(PositionType.Lend);
+      expect(position.discountedBaseAmount).to.be.equal(0);
+      expect(position.discountedQuoteAmount).to.be.equal(depositAmount);
+      expect(position.heapPosition).to.be.equal(0);
     });
   });
 
@@ -361,28 +519,28 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
 
-      await expect(marginlyPool.connect(signer).withdrawBase(0)).to.be.revertedWith('ZA');
+      await expect(marginlyPool.connect(signer).withdrawBase(0, false)).to.be.revertedWith('ZA');
     });
 
     it('should raise error when position not initialized', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer1, signer2] = await ethers.getSigners();
       const amountToDeposit = 654;
-      await marginlyPool.connect(signer1).depositBase(amountToDeposit);
+      await marginlyPool.connect(signer1).depositBase(amountToDeposit, 0);
 
       const amountToWithdraw = 89;
-      await expect(marginlyPool.connect(signer2).withdrawBase(amountToWithdraw)).to.be.revertedWith('U');
+      await expect(marginlyPool.connect(signer2).withdrawBase(amountToWithdraw, false)).to.be.revertedWith('U');
     });
 
     it('should decrease base position', async () => {
       const { marginlyPool, baseContract } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
+      await marginlyPool.connect(signer).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, 0);
 
       const amountToWithdraw = 374;
-      const tx = await marginlyPool.connect(signer).withdrawBase(amountToWithdraw);
+      const tx = await marginlyPool.connect(signer).withdrawBase(amountToWithdraw, false);
       const withdrawBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'WithdrawBase')!;
       expect(withdrawBaseEvent.args?.user).to.be.equal(signer.address);
       expect(withdrawBaseEvent.args?.amount).to.be.equal(amountToWithdraw);
@@ -409,17 +567,36 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
+      await marginlyPool.connect(signer).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, 0);
 
-      await marginlyPool.connect(signer).withdrawQuote(amountToDeposit);
-      await marginlyPool.connect(signer).withdrawBase(amountToDeposit);
+      await marginlyPool.connect(signer).withdrawQuote(amountToDeposit, false);
+      await marginlyPool.connect(signer).withdrawBase(amountToDeposit, false);
 
       //check position
       const position = await marginlyPool.positions(signer.address);
       expect(position._type).to.be.equal(PositionType.Uninitialized);
       expect(position.discountedBaseAmount).to.be.eq(0);
       expect(position.discountedQuoteAmount).to.be.eq(0);
+    });
+
+    it('withdrawBase should unwrap WETH to ETH', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer] = await ethers.getSigners();
+
+      const params = await marginlyPool.params();
+      await marginlyPool.setParameters({ ...params, baseLimit: BigNumber.from(1000n * 10n ** 18n) });
+
+      const amountToDeposit = BigNumber.from(2n * 10n ** 18n); //2 ETH
+      await marginlyPool.connect(signer).depositBase(amountToDeposit, 0);
+
+      const balanceBefore = await signer.getBalance();
+      const amountToWithdraw = BigNumber.from(2n * 10n ** 18n); //1 ETH
+      const tx = await (await marginlyPool.connect(signer).withdrawBase(amountToWithdraw, true)).wait();
+      const balanceAfter = await signer.getBalance();
+      const txFee = await tx.gasUsed.mul(tx.effectiveGasPrice);
+
+      expect(balanceBefore.sub(txFee).add(amountToWithdraw)).to.be.equal(balanceAfter);
     });
   });
 
@@ -428,28 +605,28 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
 
-      await expect(marginlyPool.connect(signer).withdrawQuote(0)).to.be.revertedWith('ZA');
+      await expect(marginlyPool.connect(signer).withdrawQuote(0, false)).to.be.revertedWith('ZA');
     });
 
     it('should raise error when position not initialized', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer1, signer2] = await ethers.getSigners();
       const amountToDeposit = 543;
-      await marginlyPool.connect(signer1).depositQuote(amountToDeposit);
+      await marginlyPool.connect(signer1).depositQuote(amountToDeposit, 0);
 
       const amountToWithdraw = 125;
-      await expect(marginlyPool.connect(signer2).withdrawQuote(amountToWithdraw)).to.be.revertedWith('U');
+      await expect(marginlyPool.connect(signer2).withdrawQuote(amountToWithdraw, false)).to.be.revertedWith('U');
     });
 
     it('should decrease quote position', async () => {
       const { marginlyPool, quoteContract } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, 0);
+      await marginlyPool.connect(signer).depositBase(amountToDeposit, 0);
 
       const amountToWithdraw = 589;
-      const tx = await marginlyPool.connect(signer).withdrawQuote(amountToWithdraw);
+      const tx = await marginlyPool.connect(signer).withdrawQuote(amountToWithdraw, false);
       const withdrawQuoteEvent = (await tx.wait()).events?.find((x) => x.event === 'WithdrawQuote')!;
       expect(withdrawQuoteEvent.args?.user).to.be.equal(signer.address);
       expect(withdrawQuoteEvent.args?.amount).to.be.equal(amountToWithdraw);
@@ -483,13 +660,13 @@ describe('MarginlyPool.Base', () => {
       const year = BigNumber.from(365.25 * 24 * 60 * 60).mul(one);
 
       const user1BaseDeposit = 100;
-      const user2QuoteDeposit = 1000;
-
       const user1LongAmount = 6;
+
+      const user2QuoteDeposit = 1000;
       const user2ShortAmount = 20;
 
-      await marginlyPool.connect(user1).depositBase(user1BaseDeposit);
-      await marginlyPool.connect(user2).depositQuote(user2QuoteDeposit);
+      await marginlyPool.connect(user1).depositBase(user1BaseDeposit, 0);
+      await marginlyPool.connect(user2).depositQuote(user2QuoteDeposit, 0);
 
       await marginlyPool.connect(user1).long(user1LongAmount);
       await marginlyPool.connect(user2).short(user2ShortAmount);
@@ -521,17 +698,36 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
+      await marginlyPool.connect(signer).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, 0);
 
-      await marginlyPool.connect(signer).withdrawBase(amountToDeposit);
-      await marginlyPool.connect(signer).withdrawQuote(amountToDeposit);
+      await marginlyPool.connect(signer).withdrawBase(amountToDeposit, false);
+      await marginlyPool.connect(signer).withdrawQuote(amountToDeposit, false);
 
       //check position
       const position = await marginlyPool.positions(signer.address);
       expect(position._type).to.be.equal(PositionType.Uninitialized);
       expect(position.discountedBaseAmount).to.be.eq(0);
       expect(position.discountedQuoteAmount).to.be.eq(0);
+    });
+
+    it('withdrawQuote should unwrap WETH to ETH', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPoolQuoteTokenIsWETH);
+      const [_, signer] = await ethers.getSigners();
+
+      const params = await marginlyPool.params();
+      await marginlyPool.setParameters({ ...params, quoteLimit: BigNumber.from(1000n * 10n ** 18n) });
+
+      const amountToDeposit = BigNumber.from(2n * 10n ** 18n); //2 ETH
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, 0);
+
+      const balanceBefore = await signer.getBalance();
+      const amountToWithdraw = BigNumber.from(2n * 10n ** 18n); //1 ETH
+      const tx = await (await marginlyPool.connect(signer).withdrawQuote(amountToWithdraw, true)).wait();
+      const balanceAfter = await signer.getBalance();
+      const txFee = await tx.gasUsed.mul(tx.effectiveGasPrice);
+
+      expect(balanceBefore.sub(txFee).add(amountToWithdraw)).to.be.equal(balanceAfter);
     });
   });
 
@@ -542,20 +738,20 @@ describe('MarginlyPool.Base', () => {
       await expect(marginlyPool.closePosition()).to.be.revertedWith('U');
 
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, 0);
       await expect(marginlyPool.connect(signer).closePosition()).to.be.revertedWith('L');
     });
 
     it('should close short position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositBase(1000);
+      await marginlyPool.connect(lender).depositBase(1000, 0);
 
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
-
       const amountOfShort = 100;
-      await marginlyPool.connect(signer).short(amountOfShort);
+
+      await marginlyPool.connect(signer).depositQuote(amountToDeposit, amountOfShort);
+
       {
         const position = await marginlyPool.positions(signer.address);
         expect(position._type).to.be.equal(PositionType.Short);
@@ -576,13 +772,12 @@ describe('MarginlyPool.Base', () => {
     it('should close long position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositQuote(1000);
+      await marginlyPool.connect(lender).depositQuote(1000, 0);
 
       const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
-
       const amountOfLong = 63;
-      await marginlyPool.connect(signer).long(amountOfLong);
+
+      await marginlyPool.connect(signer).depositBase(amountToDeposit, amountOfLong);
 
       await marginlyPool.connect(signer).closePosition();
       {
@@ -597,61 +792,20 @@ describe('MarginlyPool.Base', () => {
     });
   });
 
-  describe('Increase collateral coeff', () => {
-    it('should raise error when zero collateral', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, signer] = await ethers.getSigners();
-
-      await expect(marginlyPool.connect(signer).increaseBaseCollateralCoeff(1)).to.be.revertedWith('ZC');
-      await expect(marginlyPool.connect(signer).increaseQuoteCollateralCoeff(1)).to.be.revertedWith('ZC');
-    });
-
-    it('should increase base collateral coeff', async () => {
-      const { marginlyPool, baseContract } = await loadFixture(createMarginlyPool);
-      const [_, signer] = await ethers.getSigners();
-
-      const amountToDeposit = 1000;
-      await marginlyPool.connect(signer).depositBase(amountToDeposit);
-
-      const increaseValue = 100;
-      await marginlyPool.connect(signer).increaseBaseCollateralCoeff(increaseValue);
-
-      const expectedCoeff = (11n * FP96.one) / 10n; //1.1
-      expect(await marginlyPool.baseCollateralCoeff()).to.be.equal(expectedCoeff);
-      expect(await baseContract.balanceOf(marginlyPool.address)).to.be.equal(amountToDeposit + increaseValue);
-    });
-
-    it('should increase quote collateral coeff', async () => {
-      const { marginlyPool, quoteContract } = await loadFixture(createMarginlyPool);
-      const [_, signer] = await ethers.getSigners();
-
-      const amountToDeposit = 1500;
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit);
-
-      const increaseValue = 300;
-      await marginlyPool.connect(signer).increaseQuoteCollateralCoeff(increaseValue);
-
-      const expectedCoeff = (12n * FP96.one) / 10n; //1.2
-      expect(await marginlyPool.quoteCollateralCoeff()).to.be.equal(expectedCoeff);
-      expect(await quoteContract.balanceOf(marginlyPool.address)).to.be.equal(amountToDeposit + increaseValue);
-    });
-  });
-
   describe('Short', () => {
     it('short, wrong user type', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, shorter, depositor] = await ethers.getSigners();
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const shortAmount = 1000;
       expect(marginlyPool.connect(shorter).short(shortAmount)).to.be.revertedWith('WPT');
 
-      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
-      await marginlyPool.connect(shorter).short(shortAmount);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit, shortAmount);
 
-      await marginlyPool.connect(shorter).depositBase(amountToDeposit);
+      await marginlyPool.connect(shorter).depositBase(amountToDeposit, 0);
       expect(marginlyPool.connect(shorter).short(shortAmount)).to.be.revertedWith('WPT');
     });
 
@@ -659,11 +813,11 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, shorter, depositor] = await ethers.getSigners();
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const shortAmount = 1;
-      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit, 0);
       await expect(marginlyPool.connect(shorter).short(shortAmount)).to.be.rejectedWith('MA');
     });
 
@@ -674,9 +828,9 @@ describe('MarginlyPool.Base', () => {
       const basePrice = (await marginlyPool.getBasePrice()).inner;
       const shortAmount = BigNumber.from(200_000).mul(FP96.one).div(basePrice);
 
-      await marginlyPool.connect(depositor).depositBase(shortAmount);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
-      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(shortAmount, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit, 0);
 
       // 450 + 450 + 200 > 1000
       await expect(marginlyPool.connect(shorter).short(shortAmount)).to.be.revertedWith('EL');
@@ -686,11 +840,11 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, shorter, depositor] = await ethers.getSigners();
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const shortAmount = 1000;
-      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit, 0);
       await marginlyPool.connect(shorter).short(shortAmount);
 
       const basePrice = await marginlyPool.getBasePrice();
@@ -725,8 +879,8 @@ describe('MarginlyPool.Base', () => {
       const params = await marginlyPool.params();
       await marginlyPool.setParameters({ ...params, swapFee: 500_000 });
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit, 0);
 
       const expectedDBC0 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
       const expectedDQC0 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
@@ -782,8 +936,8 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.setParameters({ ...params, swapFee: 500_000 });
       const one = BigNumber.from(FP96.one);
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(shorter).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(shorter).depositQuote(amountToDeposit, 0);
 
       const expectedDBC0 = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
       const expectedDQC0 = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
@@ -871,8 +1025,8 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, longer, depositor] = await ethers.getSigners();
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const longAmount = 1000;
       expect(marginlyPool.connect(longer).long(longAmount)).to.be.revertedWith('U');
@@ -882,11 +1036,11 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, longer, depositor] = await ethers.getSigners();
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const shortAmount = 1;
-      await marginlyPool.connect(longer).depositBase(amountToDeposit);
+      await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
       await expect(marginlyPool.connect(longer).long(shortAmount)).to.be.rejectedWith('MA');
     });
 
@@ -895,9 +1049,9 @@ describe('MarginlyPool.Base', () => {
       const [_, longer, depositor] = await ethers.getSigners();
       const amountToDeposit = 400_000;
 
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
-      await marginlyPool.connect(longer).depositBase(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+      await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
 
       await expect(marginlyPool.connect(longer).long(amountToDeposit)).to.be.revertedWith('EL');
     });
@@ -906,11 +1060,11 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, longer, depositor] = await ethers.getSigners();
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const shortAmount = 1000;
-      await marginlyPool.connect(longer).depositBase(amountToDeposit);
+      await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
       await marginlyPool.connect(longer).long(shortAmount);
 
       const position = await marginlyPool.positions(longer.address);
@@ -946,8 +1100,8 @@ describe('MarginlyPool.Base', () => {
       const params = await marginlyPool.params();
       await marginlyPool.setParameters({ ...params, swapFee: 100_000 });
       const amountToDeposit = 100000;
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
-      await marginlyPool.connect(longer).depositBase(amountToDeposit);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+      await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
 
       const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
       const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
@@ -1005,8 +1159,8 @@ describe('MarginlyPool.Base', () => {
       const params = await marginlyPool.params();
       await marginlyPool.setParameters({ ...params, swapFee: 100_000 });
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
-      await marginlyPool.connect(longer).depositBase(amountToDeposit);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+      await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
 
       const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * amountToDeposit;
       const expectedDQC = convertFP96ToNumber(await marginlyPool.quoteCollateralCoeff()) * amountToDeposit;
@@ -1093,8 +1247,8 @@ describe('MarginlyPool.Base', () => {
       const [_, longer1, depositor] = await ethers.getSigners();
 
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
-      await marginlyPool.connect(longer1).depositBase(amountToDeposit);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+      await marginlyPool.connect(longer1).depositBase(amountToDeposit, 0);
 
       const amountToLong = 250;
       await marginlyPool.connect(longer1).long(amountToLong);
@@ -1119,8 +1273,8 @@ describe('MarginlyPool.Base', () => {
       const [_, shorter1, depositor] = await ethers.getSigners();
 
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(shorter1).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+      await marginlyPool.connect(shorter1).depositQuote(amountToDeposit, 0);
 
       const amountToLong = 25;
       await marginlyPool.connect(shorter1).short(amountToLong);
@@ -1147,15 +1301,13 @@ describe('MarginlyPool.Base', () => {
       const [_, longer1, longer2, depositor] = await ethers.getSigners();
 
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositQuote(amountToDeposit);
-      await marginlyPool.connect(longer1).depositBase(amountToDeposit);
-      await marginlyPool.connect(longer2).depositBase(amountToDeposit);
+      await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
 
       const longAmount1 = 10;
-      await marginlyPool.connect(longer1).long(longAmount1);
+      await marginlyPool.connect(longer1).depositBase(amountToDeposit, longAmount1);
 
       const longAmount2 = 25;
-      await marginlyPool.connect(longer2).long(longAmount2);
+      await marginlyPool.connect(longer2).depositBase(amountToDeposit, longAmount2);
 
       const position1 = await marginlyPool.positions(longer1.address);
       const position2 = await marginlyPool.positions(longer2.address);
@@ -1168,16 +1320,14 @@ describe('MarginlyPool.Base', () => {
       const [_, shorter1, shorter2, shorter3, depositor] = await ethers.getSigners();
 
       const amountToDeposit = 10000;
-      await marginlyPool.connect(depositor).depositBase(amountToDeposit);
-      await marginlyPool.connect(shorter1).depositQuote(amountToDeposit);
-      await marginlyPool.connect(shorter2).depositQuote(amountToDeposit);
-      await marginlyPool.connect(shorter3).depositQuote(amountToDeposit);
+      await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
 
-      const longAmount1 = 10;
-      await marginlyPool.connect(shorter1).short(longAmount1);
+      const shortAmount1 = 10;
+      await marginlyPool.connect(shorter1).depositQuote(amountToDeposit, shortAmount1);
 
-      const longAmount2 = 25;
-      await marginlyPool.connect(shorter2).short(longAmount2);
+      const shortAmount2 = 25;
+      await marginlyPool.connect(shorter2).depositQuote(amountToDeposit, shortAmount2);
+      await marginlyPool.connect(shorter3).depositQuote(amountToDeposit, 0);
 
       let position1 = await marginlyPool.positions(shorter1.address);
       let position2 = await marginlyPool.positions(shorter2.address);
@@ -1196,62 +1346,4 @@ describe('MarginlyPool.Base', () => {
       expect(position3.heapPosition).to.be.equal(1);
     });
   });
-
-  describe('Transfer position', () => {
-    it('success', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, from, to] = await ethers.getSigners();
-
-      await marginlyPool.connect(from).depositBase(100);
-
-      const positionBefore = await marginlyPool.positions(from.address);
-
-      await marginlyPool.connect(from).transferPosition(to.address);
-
-      const positionAfter = await marginlyPool.positions(from.address);
-      const newPosition = await marginlyPool.positions(to.address);
-
-      expect(positionBefore._type).to.be.equal(newPosition._type);
-      expect(positionBefore.heapPosition).to.be.equal(newPosition.heapPosition);
-      expect(positionBefore.discountedBaseAmount).to.be.equal(newPosition.discountedBaseAmount);
-      expect(positionBefore.discountedQuoteAmount).to.be.equal(newPosition.discountedQuoteAmount);
-
-      expect(positionAfter._type).to.be.equal(0);
-      expect(positionAfter.heapPosition).to.be.equal(0);
-      expect(positionAfter.discountedBaseAmount).to.be.equal(0);
-      expect(positionAfter.discountedQuoteAmount).to.be.equal(0);
-    });
-
-    it('same owner', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, from] = await ethers.getSigners();
-
-      await expect(marginlyPool.connect(from).transferPosition(from.address)).to.be.revertedWith('SO');
-    });
-
-    it('null address', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, from] = await ethers.getSigners();
-      const nullAddress = "0x0000000000000000000000000000000000000000";
-
-      await expect(marginlyPool.connect(from).transferPosition(nullAddress)).to.be.revertedWith('WA');
-    });
-
-    it('uninitialized', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, from, to] = await ethers.getSigners();
-
-      await expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('U');
-    });
-
-    it('receiver already has position', async () => {
-      const { marginlyPool } = await loadFixture(createMarginlyPool);
-      const [_, from, to] = await ethers.getSigners();
-
-      await marginlyPool.connect(from).depositBase(100);
-      await marginlyPool.connect(to).depositBase(100);
-
-      await expect(marginlyPool.connect(from).transferPosition(to.address)).to.be.revertedWith('PI');
-    });
-  })
 });

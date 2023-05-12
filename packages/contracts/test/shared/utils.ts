@@ -23,9 +23,8 @@ export const PositionType = {
 
 export const MarginlyPoolMode = {
   Regular: 0,
-  Recovery: 1,
-  ShortEmergency: 2,
-  LongEmergency: 3,
+  ShortEmergency: 1,
+  LongEmergency: 2,
 };
 
 export const FP96 = {

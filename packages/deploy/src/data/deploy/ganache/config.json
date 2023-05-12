@@ -11,7 +11,8 @@
     "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
   },
   "marginlyFactory": {
-    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
+    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
+    "wethTokenId": "weth"
   },
   "tokens": [
     {
@@ -46,7 +47,6 @@
       "params": {
         "interestRate": "5.4%",
         "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
@@ -57,9 +57,6 @@
       }
     }
   ],
-  "marginlyWrapper": {
-    "pools": ["usdc-weth"]
-  },
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e"

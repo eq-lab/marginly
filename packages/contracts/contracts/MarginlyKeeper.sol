@@ -106,8 +106,8 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
       revert('Wrong asset');
     }
 
-    marginlyPool.withdrawBase(type(uint256).max);
-    marginlyPool.withdrawQuote(type(uint256).max);
+    marginlyPool.withdrawBase(type(uint256).max, false);
+    marginlyPool.withdrawQuote(type(uint256).max, false);
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 

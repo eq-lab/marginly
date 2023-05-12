@@ -27,7 +27,7 @@ export async function shortIncome(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).depositBase(baseAmount, { gasLimit: 500_000 })
+      marginlyPool.connect(lenders[i]).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
     );
   }
 
@@ -46,7 +46,7 @@ export async function shortIncome(sut: SystemUnderTest) {
 
   await gasReporter.saveGasUsage(
     'depositQuote',
-    marginlyPool.connect(borrower).depositQuote(initialBorrQuoteBalance, { gasLimit: 500_000 })
+    marginlyPool.connect(borrower).depositQuote(initialBorrQuoteBalance, 0,{ gasLimit: 500_000 })
   );
 
   // we are checking nothing here since it's basically short test with extra step

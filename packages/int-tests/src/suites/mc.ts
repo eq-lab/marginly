@@ -27,7 +27,7 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).depositBase(baseAmount, { gasLimit: 500_000 })
+      marginlyPool.connect(lenders[i]).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
     );
 
     await (await usdc.connect(treasury).transfer(lenders[i].address, quoteAmount)).wait();
@@ -35,7 +35,7 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(lenders[i]).depositQuote(quoteAmount, { gasLimit: 500_000 })
+      marginlyPool.connect(lenders[i]).depositQuote(quoteAmount, 0,{ gasLimit: 500_000 })
     );
   }
 
@@ -51,7 +51,7 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(longer).depositBase(initialLongerBalance, { gasLimit: 500_000 })
+      marginlyPool.connect(longer).depositBase(initialLongerBalance, 0,{ gasLimit: 500_000 })
     );
 
     const longAmount = parseUnits('18', 18).mul(i + 1);
@@ -75,7 +75,7 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(shorter).depositQuote(initialShorterBalance, { gasLimit: 500_000 })
+      marginlyPool.connect(shorter).depositQuote(initialShorterBalance, 0,{ gasLimit: 500_000 })
     );
 
     const shortAmount = parseUnits('18', 18).mul(i + 1);
@@ -97,7 +97,7 @@ export async function mc(sut: SystemUnderTest) {
 
   const txReceipt = await gasReporter.saveGasUsage(
     'depositBase',
-    marginlyPool.connect(depositor).depositBase(baseAmount, { gasLimit: 500_000 })
+    marginlyPool.connect(depositor).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
   );
 
   const mcEventsNumber = txReceipt.events?.filter((e) => e.event == 'EnactMarginCall').length;
