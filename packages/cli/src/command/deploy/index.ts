@@ -39,6 +39,11 @@ export const dryRunParameter = {
   description: 'Run command on chain fork',
 };
 
+export const dryRunOptsParameter = {
+  name: ['dry', 'run', 'opts'],
+  description: 'Dry run options. You can specify \'fund\' to fund deployer account'
+}
+
 const readEthDeploy = async (command: Command, config: DeployConfig) => {
   const ethDeployCommand = command?.parent;
 
@@ -390,6 +395,15 @@ export const readReadWriteEthFromContext = async (
   const nodeUri = await readReadOnlyEthFromContext(systemContext);
 
   const dryRun = readFlag(dryRunParameter, systemContext);
+  const dryRunOpts = readParameter(dryRunOptsParameter, systemContext);
+
+  if (!dryRun && dryRunOpts !== undefined) {
+    throw new Error('Dry run options can only be set while dry run mode is enabled');
+  }
+
+  if (dryRunOpts !== undefined && dryRunOpts !== 'fund') {
+    throw new Error(`Unknown dry run option '${dryRunOpts}'`);
+  }
 
   const realProvider = new ethers.providers.JsonRpcProvider(nodeUri.nodeUri.value);
   let provider;
@@ -412,8 +426,7 @@ export const readReadWriteEthFromContext = async (
 
   const signer = (await readEthSignerFromContext(systemContext)).connect(provider);
 
-  // TODO: introduce new cli key `--dry-run-fund`
-  if (dryRun) {
+  if (dryRun && dryRunOpts === 'fund') {
     const treasurySigner = provider.getSigner();
     await treasurySigner.sendTransaction({
       to: await signer.getAddress(),
