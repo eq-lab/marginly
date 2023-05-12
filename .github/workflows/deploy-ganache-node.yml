@@ -7,12 +7,12 @@ on:
     branches: [ "main" ]
 
 env:
-  # REGISTRY: ghcr.io
+  REGISTRY: trufflesuite/ganache
+  IMAGE_TAG: latest
   # IMAGE_NAME: ${{ github.repository }}
   SERVICE_NAME: marginly-ganache-gitlab
   CLUSTER: kube
   NAMESPACE: eth-backend-test
-  # IMAGE_TAG: $CI_COMMIT_SHORT_SHA
   # GH_SECR: github-marginly
   # LIMIT_CPU: "500m"
   # LIMIT_MEMORY: "512Mi"
@@ -54,5 +54,7 @@ jobs:
           --set service.enabled=true \
           --set service.port=8545 \
           --set service.targetport=8545 \
+          --set image.repository=$REGISTRY \
+          --set image.tag=$IMAGE_TAG \
           -f extraEnv.yml \
           ./charts/ganache/
