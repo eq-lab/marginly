@@ -3,8 +3,7 @@
     "code": "AD",
     "description": "Access denied",
     "fileNames": [
-      "MarginlyPool.sol",
-      "MarginlyPoolWrapper.sol"
+      "MarginlyPool.sol"
     ]
   },
   {
@@ -53,8 +52,7 @@
     "code": "LOK",
     "description": "Locked for reentrant call",
     "fileNames": [
-      "MarginlyPool.sol",
-      "MarginlyPoolWrapper.sol"
+      "MarginlyPool.sol"
     ]
   },
   {
@@ -72,13 +70,6 @@
     ]
   },
   {
-    "code": "NA",
-    "description": "Position opening is not allowed",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
     "code": "NL",
     "description": "Not liquidatable position",
     "fileNames": [
@@ -90,13 +81,6 @@
     "description": "Not an owner",
     "fileNames": [
       "MarginlyFactory.sol"
-    ]
-  },
-  {
-    "code": "NW",
-    "description": "not whitelisted",
-    "fileNames": [
-      "MarginlyPoolWrapper.sol"
     ]
   },
   {
@@ -135,13 +119,6 @@
     ]
   },
   {
-    "code": "SO",
-    "description": "same owner",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
     "code": "U",
     "description": "Uninitialized position",
     "fileNames": [
@@ -153,13 +130,6 @@
     "description": "Uniswap pool not found",
     "fileNames": [
       "MarginlyFactory.sol"
-    ]
-  },
-  {
-    "code": "WA",
-    "description": "wrong address",
-    "fileNames": [
-      "MarginlyPool.sol"
     ]
   },
   {
@@ -193,13 +163,6 @@
   {
     "code": "ZA",
     "description": "Zero amount",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
-    "code": "ZC",
-    "description": "Zero collateral",
     "fileNames": [
       "MarginlyPool.sol"
     ]

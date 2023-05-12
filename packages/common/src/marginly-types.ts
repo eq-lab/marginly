@@ -3,7 +3,6 @@ import { BigNumber } from 'ethers';
 export type MarginlyPoolParameters = {
   interestRate: BigNumber;
   maxLeverage: BigNumber;
-  recoveryMaxLeverage: BigNumber;
   swapFee: BigNumber;
   priceSecondsAgo: BigNumber;
   positionSlippage: BigNumber;
@@ -28,9 +27,8 @@ export type Position = {
 
 export const MarginlyMode = {
   Regular: 0,
-  Recovery: 1,
-  ShortEmergency: 2,
-  LongEmergency: 3,
+  ShortEmergency: 1,
+  LongEmergency: 2,
 };
 
 export type HeapNode = { account: string; key: BigNumber };

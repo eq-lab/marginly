@@ -12,6 +12,7 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
+import './interfaces/IWETH9.sol';
 import './dataTypes/MarginlyParams.sol';
 import './dataTypes/Position.sol';
 import './dataTypes/Mode.sol';
@@ -125,6 +126,10 @@ contract MarginlyPool is IMarginlyPool {
     unlocked = true;
   }
 
+  receive() external payable {
+    require(msg.sender == IMarginlyFactory(factory).WETH9(), 'NW9'); // Not WETH9
+  }
+
   function _lock() private view {
     require(unlocked, 'LOK'); // Locked for reentrant call
   }
@@ -137,17 +142,17 @@ contract MarginlyPool is IMarginlyPool {
     unlocked = true;
   }
 
-  function _onlyAdminOrManager() private view {
+  function _onlyFactoryOwner() private view {
     require(msg.sender == IMarginlyFactory(factory).owner(), 'AD'); // Access denied
   }
 
-  modifier onlyAdminOrManager() {
-    _onlyAdminOrManager();
+  modifier onlyFactoryOwner() {
+    _onlyFactoryOwner();
     _;
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function setParameters(MarginlyParams calldata _params) external override onlyAdminOrManager {
+  function setParameters(MarginlyParams calldata _params) external override onlyFactoryOwner {
     params = _params;
   }
 
@@ -303,7 +308,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPool
-  function depositBase(uint256 amount) external override lock {
+  function depositBase(uint256 amount, uint256 longAmount) external payable override lock {
     require(amount != 0, 'ZA'); // Zero amount
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
@@ -371,12 +376,16 @@ contract MarginlyPool is IMarginlyPool {
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), amount);
+    wrapAndTransferFrom(baseToken, msg.sender, amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
+
+    if (longAmount != 0) {
+      _long(longAmount);
+    }
   }
 
   /// @inheritdoc IMarginlyPool
-  function depositQuote(uint256 amount) external override lock {
+  function depositQuote(uint256 amount, uint256 shortAmount) external payable override lock {
     require(amount != 0, 'ZA'); //Zero amount
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
@@ -444,12 +453,16 @@ contract MarginlyPool is IMarginlyPool {
     marginCallHappened = reinitAccount(msg.sender, basePrice);
     require(!marginCallHappened, 'MC'); // Margin call
 
-    TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), amount);
+    wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
+
+    if (shortAmount != 0) {
+      _short(shortAmount);
+    }
   }
 
   /// @inheritdoc IMarginlyPool
-  function withdrawBase(uint256 realAmount) external override lock {
+  function withdrawBase(uint256 realAmount, bool unwrapWETH) external override lock {
     require(realAmount != 0, 'ZA'); // Zero amount
 
     Position storage position = positions[msg.sender];
@@ -498,13 +511,13 @@ contract MarginlyPool is IMarginlyPool {
       delete positions[msg.sender];
     }
 
-    TransferHelper.safeTransfer(baseToken, msg.sender, realAmountToWithdraw);
+    unwrapAndTransfer(unwrapWETH, baseToken, msg.sender, realAmountToWithdraw);
 
     emit WithdrawBase(msg.sender, realAmountToWithdraw, discountedBaseCollateralDelta);
   }
 
   /// @inheritdoc IMarginlyPool
-  function withdrawQuote(uint256 realAmount) external override lock {
+  function withdrawQuote(uint256 realAmount, bool unwrapWETH) external override lock {
     require(realAmount != 0, 'ZA'); // Zero amount
 
     Position storage position = positions[msg.sender];
@@ -553,7 +566,7 @@ contract MarginlyPool is IMarginlyPool {
       delete positions[msg.sender];
     }
 
-    TransferHelper.safeTransfer(quoteToken, msg.sender, realAmountToWithdraw);
+    unwrapAndTransfer(unwrapWETH, quoteToken, msg.sender, realAmountToWithdraw);
 
     emit WithdrawQuote(msg.sender, realAmountToWithdraw, discountedQuoteCollateralDelta);
   }
@@ -595,7 +608,8 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, swappedQuoteCollateral, WHOLE_ONE);
       chargeFee(realFeeAmount);
 
-      uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(swappedQuoteCollateral.add(realFeeAmount));
+      swappedQuoteCollateral = swappedQuoteCollateral.add(realFeeAmount);
+      uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(swappedQuoteCollateral);
 
       discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedQuoteCollateralDelta);
       discountedBaseDebt = discountedBaseDebt.sub(position.discountedBaseAmount);
@@ -683,7 +697,10 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @inheritdoc IMarginlyPool
   function short(uint256 realBaseAmount) external override lock {
-    require(mode == Mode.Regular, 'NA'); // Position opening is not allowed
+    _short(realBaseAmount);
+  }
+
+  function _short(uint256 realBaseAmount) private {
     require(realBaseAmount >= params.positionMinAmount, 'MA'); //Less than min amount
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
@@ -753,7 +770,10 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @inheritdoc IMarginlyPool
   function long(uint256 realBaseAmount) external override lock {
-    require(mode == Mode.Regular, 'NA'); // Position opening is not allowed
+    _long(realBaseAmount);
+  }
+
+  function _long(uint256 realBaseAmount) private {
     require(realBaseAmount >= params.positionMinAmount, 'MA'); //Less than min amount
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
@@ -836,7 +856,7 @@ contract MarginlyPool is IMarginlyPool {
       );
 
       FP96.FixedPoint memory baseDebtCoeffOld = baseDebtCoeff;
-      baseDebtCoeff = baseDebtCoeff.mul(baseDebtCoeffMul);
+      baseDebtCoeff = baseDebtCoeffOld.mul(baseDebtCoeffMul);
       baseCollateralCoeff = baseCollateralCoeff.add(
         FP96.fromRatio(baseDebtCoeff.sub(baseDebtCoeffOld).mul(discountedBaseDebt), discountedBaseCollateral)
       );
@@ -849,18 +869,15 @@ contract MarginlyPool is IMarginlyPool {
       );
 
       FP96.FixedPoint memory quoteDebtCoeffOld = quoteDebtCoeff;
-      quoteDebtCoeff = quoteDebtCoeff.mul(quoteDebtCoeffMul);
+      quoteDebtCoeff = quoteDebtCoeffOld.mul(quoteDebtCoeffMul);
       quoteCollateralCoeff = quoteCollateralCoeff.add(
         FP96.fromRatio(quoteDebtCoeff.sub(quoteDebtCoeffOld).mul(discountedQuoteDebt), discountedQuoteCollateral)
       );
     }
 
-    return true;
-  }
+    emit Reinit(lastReinitTimestampSeconds);
 
-  /// @dev Returns max allowable leverage as FP96 value
-  function getMaxLeverageX96() private view returns (uint256) {
-    return uint256((mode == Mode.Recovery ? params.recoveryMaxLeverage : params.maxLeverage)) << FP96.RESOLUTION;
+    return true;
   }
 
   /// @inheritdoc IMarginlyPool
@@ -903,7 +920,7 @@ contract MarginlyPool is IMarginlyPool {
       initialPrice = basePrice;
     }
 
-    uint256 maxLeverageX96 = getMaxLeverageX96();
+    uint256 maxLeverageX96 = uint256(params.maxLeverage) << FP96.RESOLUTION;
     if (position._type == PositionType.Short) {
       uint256 collateral = position.discountedQuoteAmount;
       uint256 debt = position.discountedBaseAmount;
@@ -941,24 +958,6 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPool
-  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external override lock {
-    require(discountedBaseCollateral != 0, 'ZC'); // Zero collateral
-    baseCollateralCoeff = baseCollateralCoeff.add(FP96.fromRatio(realBaseAmount, discountedBaseCollateral));
-
-    TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), realBaseAmount);
-    emit IncreaseBaseCollateralCoeff(realBaseAmount);
-  }
-
-  /// @inheritdoc IMarginlyPool
-  function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external override lock {
-    require(discountedQuoteCollateral != 0, 'ZC'); // Zero collateral
-    quoteCollateralCoeff = quoteCollateralCoeff.add(FP96.fromRatio(realQuoteAmount, discountedQuoteCollateral));
-
-    TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), realQuoteAmount);
-    emit IncreaseQuoteCollateralCoeff(realQuoteAmount);
-  }
-
-  /// @inheritdoc IMarginlyPool
   function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) external override lock {
     require(positions[msg.sender]._type == PositionType.Uninitialized, 'PI'); // Position initialized
 
@@ -973,7 +972,7 @@ contract MarginlyPool is IMarginlyPool {
 
     Position memory badPosition = positions[badPositionAddress];
 
-    uint256 maxLeverageX96 = getMaxLeverageX96();
+    uint256 maxLeverageX96 = uint256(params.maxLeverage) << FP96.RESOLUTION;
 
     FP96.FixedPoint memory basePrice = getBasePrice();
 
@@ -1058,7 +1057,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function shutDown() external onlyAdminOrManager lock {
+  function shutDown() external onlyFactoryOwner lock {
     require(mode == Mode.Regular, 'EM'); // Emergency mode activated
     accrueInterest();
 
@@ -1141,14 +1140,8 @@ contract MarginlyPool is IMarginlyPool {
     emit Emergency(_mode);
   }
 
-  /// @inheritdoc IMarginlyPoolOwnerActions
-  function setRecoveryMode(bool set) external override onlyAdminOrManager {
-    require(mode == Mode.Regular || mode == Mode.Recovery);
-    mode = set ? Mode.Recovery : Mode.Regular;
-  }
-
   /// @inheritdoc IMarginlyPool
-  function emergencyWithdraw() external override lock {
+  function emergencyWithdraw(bool unwrapWETH) external override lock {
     require(mode != Mode.Regular, 'SM'); // System should be in emergency mode
 
     Position memory position = positions[msg.sender];
@@ -1170,41 +1163,9 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     delete positions[msg.sender];
-    TransferHelper.safeTransfer(token, msg.sender, transferAmount);
+    unwrapAndTransfer(unwrapWETH, token, msg.sender, transferAmount);
 
     emit EmergencyWithdraw(msg.sender, token, transferAmount);
-  }
-
-  /// @inheritdoc IMarginlyPool
-  function transferPosition(address newOwner) external override lock {
-    require(msg.sender != newOwner, 'SO'); // same owner
-    require(newOwner != address(0), 'WA'); // wrong address
-
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
-    if (callerMarginCalled) {
-      return;
-    }
-
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    if (marginCallHappened) {
-      return;
-    }
-
-    Position memory positionToTransfer = positions[msg.sender];
-    require(positionToTransfer._type != PositionType.Uninitialized, 'U'); // Uninitialized position
-
-    require(positions[newOwner]._type == PositionType.Uninitialized, 'PI'); // Position initialized
-
-    if (positionToTransfer._type == PositionType.Long) {
-      longHeap.updateAccount(positionToTransfer.heapPosition - 1, newOwner);
-    } else if (positionToTransfer._type == PositionType.Short) {
-      shortHeap.updateAccount(positionToTransfer.heapPosition - 1, newOwner);
-    }
-
-    positions[newOwner] = positionToTransfer;
-    delete positions[msg.sender];
-
-    emit PositionTransfer(msg.sender, newOwner);
   }
 
   function updateSystemLeverageLong(FP96.FixedPoint memory basePrice) private {
@@ -1229,6 +1190,34 @@ contract MarginlyPool is IMarginlyPool {
     systemLeverage.shortX96 = uint128(
       Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt))
     );
+  }
+
+  /// @dev Wraps ETH into WETH if need and makes transfer from `payer`
+  function wrapAndTransferFrom(address token, address payer, uint256 value) private {
+    address WETH9 = IMarginlyFactory(factory).WETH9();
+    if (token == WETH9 && address(this).balance >= value) {
+      IWETH9(WETH9).deposit{value: value}();
+    } else {
+      TransferHelper.safeTransferFrom(token, payer, address(this), value);
+    }
+  }
+
+  /// @dev Unwraps WETH to ETH and makes transfer to `recipient`
+  function unwrapAndTransfer(bool unwrapWETH, address token, address recipient, uint256 value) private {
+    address WETH9 = IMarginlyFactory(factory).WETH9();
+    if (unwrapWETH && token == WETH9) {
+      IWETH9(WETH9).withdraw(value);
+      TransferHelper.safeTransferETH(recipient, value);
+    } else {
+      TransferHelper.safeTransfer(token, recipient, value);
+    }
+  }
+
+  /// @inheritdoc IMarginlyPoolOwnerActions
+  function sweepETH() external override onlyFactoryOwner {
+    if (address(this).balance > 0) {
+      TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+    }
   }
 
   /// @dev for testing purposes

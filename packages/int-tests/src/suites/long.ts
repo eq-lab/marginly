@@ -26,11 +26,11 @@ export async function long(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      await marginlyPool.connect(lenders[i]).depositQuote(quoteAmount, { gasLimit: 500_000 })
+      await marginlyPool.connect(lenders[i]).depositQuote(quoteAmount,0, { gasLimit: 500_000 })
     );
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).depositBase(baseAmount, { gasLimit: 500_000 })
+      marginlyPool.connect(lenders[i]).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
     );
   }
 
@@ -60,7 +60,7 @@ export async function long(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      await marginlyPool.connect(borrowers[i]).depositBase(initialBorrBaseBalance, { gasLimit: 500_000 })
+      await marginlyPool.connect(borrowers[i]).depositBase(initialBorrBaseBalance, 0,{ gasLimit: 500_000 })
     );
     const position = await marginlyPool.positions(borrowers[i].address);
     assert.deepEqual(initialBorrBaseBalance, position.discountedBaseAmount);

@@ -9,7 +9,6 @@ describe('MarginlyFactory', () => {
     const params: MarginlyParamsStruct = {
       interestRate: 54000, //5,4 %
       maxLeverage: 20,
-      recoveryMaxLeverage: 17,
       swapFee: 1000, // 0.1%
       positionSlippage: 20000, // 2%
       mcSlippage: 50000, //5%

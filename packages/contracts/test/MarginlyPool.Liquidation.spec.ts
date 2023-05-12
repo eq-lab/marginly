@@ -21,7 +21,7 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, shorter, depositor] = await ethers.getSigners();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit,0);
 
     const quoteAmount = 2000;
     const baseAmount = 1000;
@@ -35,7 +35,7 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, shorter, depositor, receiver] = await ethers.getSigners();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit);
+    await marginlyPool.connect(depositor).depositBase(amountToDeposit,0);
 
     const quoteAmount = 2000;
     const baseAmount = 1000;
@@ -49,14 +49,13 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, shorter, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 20000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const shorterCollateral = 100;
-    await marginlyPool.connect(shorter).depositQuote(shorterCollateral);
-
     const shortAmount = 5000; // leverage 19.9
-    await marginlyPool.connect(shorter).short(shortAmount);
+    await marginlyPool.connect(shorter).depositQuote(shorterCollateral,shortAmount);
+
 
     const quoteAmount = 0;
     const baseAmount = 7700; // the sum is enough to cover debt + accruedInterest
@@ -70,14 +69,12 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, shorter, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 40000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const shorterCollateral = 100;
-    await marginlyPool.connect(shorter).depositQuote(shorterCollateral);
-
     const shortAmount = 7600; // leverage 19.9
-    await marginlyPool.connect(shorter).short(shortAmount);
+    await marginlyPool.connect(shorter).depositQuote(shorterCollateral, shortAmount);
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -95,14 +92,12 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, longer, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 40000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const baseCollateral = 100;
-    await marginlyPool.connect(longer).depositBase(baseCollateral);
-
     const longAmount = 1980; // leverage 19.8
-    await marginlyPool.connect(longer).long(longAmount);
+    await marginlyPool.connect(longer).depositBase(baseCollateral, longAmount);
 
     //wait for accrue interest
     const timeShift = 60 * 24 * 60 * 60;
@@ -123,14 +118,12 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, shorter, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 20000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const shorterCollateral = 100;
-    await marginlyPool.connect(shorter).depositQuote(shorterCollateral);
-
     const shortAmount = 7600; // leverage 19.9
-    await marginlyPool.connect(shorter).short(shortAmount);
+    await marginlyPool.connect(shorter).depositQuote(shorterCollateral, shortAmount);
 
     const beforeLiquidationPosition = await marginlyPool.positions(shorter.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -211,14 +204,12 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, longer, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 40000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const baseCollateral = 100;
-    await marginlyPool.connect(longer).depositBase(baseCollateral);
-
     const longAmount = 1980; // leverage 19.8
-    await marginlyPool.connect(longer).long(longAmount);
+    await marginlyPool.connect(longer).depositBase(baseCollateral,longAmount);
 
     const beforeLiquidationPosition = await marginlyPool.positions(longer.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -295,14 +286,12 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, shorter, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 20000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const shorterCollateral = 100;
-    await marginlyPool.connect(shorter).depositQuote(shorterCollateral);
-
     const shortAmount = 7600; // leverage 19.9
-    await marginlyPool.connect(shorter).short(shortAmount);
+    await marginlyPool.connect(shorter).depositQuote(shorterCollateral,shortAmount);
 
     const beforeLiquidationPosition = await marginlyPool.positions(shorter.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -375,14 +364,12 @@ describe('MarginlyPool.Liquidation', () => {
     const [_, longer, depositor, receiver] = await ethers.getSigners();
 
     const depositAmount = 40000;
-    await marginlyPool.connect(depositor).depositBase(depositAmount);
-    await marginlyPool.connect(depositor).depositQuote(depositAmount);
+    await marginlyPool.connect(depositor).depositBase(depositAmount,0);
+    await marginlyPool.connect(depositor).depositQuote(depositAmount,0);
 
     const baseCollateral = 100;
-    await marginlyPool.connect(longer).depositBase(baseCollateral);
-
     const longAmount = 1980; // leverage 19.8
-    await marginlyPool.connect(longer).long(longAmount);
+    await marginlyPool.connect(longer).depositBase(baseCollateral, longAmount);
 
     const beforeLiquidationPosition = await marginlyPool.positions(longer.address);
     const beforeDiscountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();

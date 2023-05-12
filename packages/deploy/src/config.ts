@@ -20,6 +20,7 @@ export interface MarginlyDeployConfig {
   };
   marginlyFactory: {
     feeHolder: string;
+    wethTokenId: string;
   };
   tokens: {
     id: string;
@@ -43,7 +44,6 @@ export interface MarginlyDeployConfig {
     params: {
       interestRate: string;
       maxLeverage: string;
-      recoveryMaxLeverage: string;
       swapFee: string;
       priceAgo: string;
       positionSlippage: string;

@@ -10,6 +10,6 @@ interface IMarginlyPoolOwnerActions {
   /// @notice Switch to emergency mode when collateral of any side not enough to cover debt
   function shutDown() external;
 
-  /// @notice Set or unset recovery mode. In the Recovery mode new positions are prohibited
-  function setRecoveryMode(bool set) external;
+  /// @notice Sweep ETH balance of contract
+  function sweepETH() external;
 }
