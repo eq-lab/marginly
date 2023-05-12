@@ -52,3 +52,4 @@ jobs:
           --set image.tag=$IMAGE_TAG \
           -f extraEnv.yml \
           ./charts/ganache/
+          

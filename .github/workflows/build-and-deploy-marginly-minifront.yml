@@ -39,7 +39,7 @@ jobs:
       - run: |
           cd ./packages/int-tests/
           yarn 
-          pwd && ls -la && yarn gen 
+          yarn gen 
           yarn start --suite=short
       # - run: pwd && ls -la && yarn gen
       # - run: yarn start --suite=short
