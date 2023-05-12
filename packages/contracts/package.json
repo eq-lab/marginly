@@ -7,9 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "compile": "yarn hardhat compile && ts-node generate-error-codes.ts",
+    "compile": "hardhat compile && ts-node generate-error-codes.ts",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
-    "gas": "yarn hardhat test ./test/gas-costs/*.spec.ts",
+    "gas": "hardhat test ./test/gas-costs/*.spec.ts",
     "test:unit": "REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "test:bench": "REPORT_GAS=true hardhat test ./test/benchmarks/*.bench.ts",
     "test:benchFP": "REPORT_GAS=true hardhat test ./test/benchmarks/FixedPoint.bench.ts",
