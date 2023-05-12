@@ -128,7 +128,8 @@
     ]
   },
   "marginlyFactory": {
-    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa"
+    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
+    "wethTokenId": "weth"
   },
   "marginlyPools": [
     {
@@ -183,9 +184,6 @@
       }
     }
   ],
-  "marginlyWrapper": {
-    "pools": ["fweth-usdc", "arb-fweth", "gmx-fweth"]
-  },
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0x4EEE0BB72C2717310318f27628B3c8a708E4951C"

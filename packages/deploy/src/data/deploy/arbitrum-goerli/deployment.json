@@ -2,21 +2,18 @@
   "marginlyPools": [
     {
       "id": "arb-fweth",
-      "address": "0x72CB22F72e3197F897fB530c490bBf41a8aaF1E4"
+      "address": "0x6184Ef25d6BDA125D537E9cb71F18A6277D8f2a2"
     },
     {
       "id": "fweth-usdc",
-      "address": "0x13a7C7536777A74f49E5536C03b07072D8BEC27F"
+      "address": "0xb750084E3b4565F7f22C9E6614026755aFF6D4B3"
     },
     {
       "id": "gmx-fweth",
-      "address": "0xB534C1de86491720796d004C919D968eE2B14Af3"
+      "address": "0x197eed67e58Af9259FA6FD025A06d27fC9e2e948"
     }
   ],
-  "marginlyWrapper": {
-    "address": "0xD6861D35E46059AD5347C076AD52C8E9f474a2cF"
-  },
   "marginlyKeeper": {
-    "address": "0x15fE59452a5ad7824f6b75De49c0F575Ccc37552"
+    "address": "0xeCca7850E0B95Ca1BB1e8aCF4ECE84199d5F04ed"
   }
 }

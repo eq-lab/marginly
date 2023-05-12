@@ -41,8 +41,8 @@ export const dryRunParameter = {
 
 export const dryRunOptsParameter = {
   name: ['dry', 'run', 'opts'],
-  description: 'Dry run options. You can specify \'fund\' to fund deployer account'
-}
+  description: 'Dry run options. You can specify \'fund\' to fund deployer account',
+};
 
 const readEthDeploy = async (command: Command, config: DeployConfig) => {
   const ethDeployCommand = command?.parent;
@@ -104,8 +104,8 @@ async function deployCommandTemplate(
     signer: ethers.Signer,
     actualConfigFile: string,
     actualStateFile: string,
-    actualDeploymentFile: string
-  ) => Promise<void>
+    actualDeploymentFile: string,
+  ) => Promise<void>,
 ) {
   const statesDirName = 'states';
 
@@ -340,14 +340,14 @@ const deployMarginlyCommand = new Command('marginly')
           'Marginly',
           createDefaultBaseState,
           actualStateFile,
-          logger
+          logger,
         ).createStateStore();
         const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
 
         const marginlyDeployment = await deployMarginly(signer, rawConfig, stateStore, logger);
 
         updateDeploymentFile(actualDeploymentFile, marginlyDeployment, logger);
-      }
+      },
     );
   });
 
@@ -370,7 +370,7 @@ function updateDeploymentFile(deploymentFile: string, currentDeployment: Marginl
 }
 
 export const readReadOnlyEthFromContext = async (
-  systemContext: SystemContext
+  systemContext: SystemContext,
 ): Promise<{ nodeUri: { parameter: Parameter; value: string } }> => {
   const nodeUri = readParameter(nodeUriParameter, systemContext);
 
@@ -387,7 +387,7 @@ export const readReadOnlyEthFromContext = async (
 };
 
 export const readReadWriteEthFromContext = async (
-  systemContext: SystemContext
+  systemContext: SystemContext,
 ): Promise<{
   signer: ethers.Signer;
   dryRun: boolean;
@@ -418,7 +418,7 @@ export const readReadWriteEthFromContext = async (
       fork: { url: nodeUri.nodeUri.value },
     };
     provider = new ethers.providers.Web3Provider(
-      ganache.provider(options) as unknown as ethers.providers.ExternalProvider
+      ganache.provider(options) as unknown as ethers.providers.ExternalProvider,
     );
     const blockNumber = await provider.getBlockNumber();
     log(`Fork block number: ${blockNumber}`);
@@ -430,7 +430,7 @@ export const readReadWriteEthFromContext = async (
     const treasurySigner = provider.getSigner();
     await treasurySigner.sendTransaction({
       to: await signer.getAddress(),
-      value: ethers.utils.parseEther('100')
+      value: ethers.utils.parseEther('100'),
     });
     const signerBalance = (await signer.getBalance()).toBigInt();
     signerBalance.toString();
@@ -448,7 +448,10 @@ export const registerReadOnlyEthParameters = (command: Command): Command => {
 export const registerReadWriteEthParameters = (command: Command): Command => {
   return registerEthSignerParameters(registerReadOnlyEthParameters(command)).option(
     getCommanderFlagForm(dryRunParameter),
-    dryRunParameter.description
+    dryRunParameter.description,
+  ).option(
+    getCommanderForm(dryRunOptsParameter),
+    dryRunOptsParameter.description,
   );
 };
 

@@ -317,8 +317,10 @@ class MarginlyDeployer {
     uniswapFactory: EthAddress,
     swapRouter: EthAddress,
     feeHolder: EthAddress,
-    wethAddress: EthAddress
+    weth9: MarginlyConfigToken,
+    tokenRepository: TokenRepository
   ): Promise<DeployResult> {
+    const { address: weth9Address } = tokenRepository.getTokenInfo(weth9.id);
     return this.deploy(
       'MarginlyFactory',
       [
@@ -326,7 +328,7 @@ class MarginlyDeployer {
         uniswapFactory.toString(),
         swapRouter.toString(),
         feeHolder.toString(),
-        wethAddress.toString(),
+        weth9Address.toString(),
       ],
       'marginlyFactory'
     );
@@ -823,7 +825,7 @@ function isMarginlyConfigUniswapPoolMock(uniswapPool: MarginlyConfigUniswapPool)
 
 interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
-  wethAddress: EthAddress;
+  weth9Token: MarginlyConfigToken;
 }
 
 interface MarginlyPoolParams {
@@ -1116,7 +1118,7 @@ class StrictMarginlyDeployConfig {
       uniswap,
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
-        wethAddress: wethToken.address,
+        weth9Token: wethToken,
       },
       Array.from(tokens.values()),
       marginlyPools,
@@ -1350,7 +1352,8 @@ export async function deployMarginly(
         uniswapFactoryAddress,
         uniswapSwapRouterAddress,
         config.marginlyFactory.feeHolder,
-        config.marginlyFactory.wethAddress
+        config.marginlyFactory.weth9Token,
+        tokenRepository,
       );
       printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 

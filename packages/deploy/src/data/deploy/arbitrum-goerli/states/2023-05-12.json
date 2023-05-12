@@ -1,0 +1,60 @@
+{
+  "contracts": {
+    "token_FWETH": {
+      "address": "0x4AA54b32b964D2a768bc2659c4C86cCFEEf9561A",
+      "txHash": "0x7118aa0024812f43002a510365000a8a54a51128c04b6ecf9e803ca0e37bc236"
+    },
+    "token_USDC": {
+      "address": "0x7ed484327b2E27464790c8a0882452B05D41E9D5",
+      "txHash": "0x0fa993b284b0fa75ed09c50b25e28fbd859dcf988073c9b780454ccdd2eacf0d"
+    },
+    "token_ARB": {
+      "address": "0x429366dC3ccaBf97Cf71A73152f622C3587C524b",
+      "txHash": "0xbc391305ea4b0ec8768ddd1226d0194ed090cc7d21b2a1acb7c8851af05007e2"
+    },
+    "token_GMX": {
+      "address": "0xFC5E87626b1dc26ed7780E6885975c958478fefe",
+      "txHash": "0x2c8d485426da8c3239fae1dbc7a137568b09ba32304c44a18026bf0f70ff7418"
+    },
+    "swapRouterMock": {
+      "address": "0x5D22530D476c72c712defd5121f5924bbD159a8B",
+      "txHash": "0x01eeddf7cb329a20d1b148c8fa6b77c8cf6019b27ad73cfbe1b1d1ae6bd11594"
+    },
+    "uniswapV3PoolMock_arb-fweth": {
+      "address": "0xc745D5B682E9597001ba291dB61F84846104deE1",
+      "txHash": "0xb3ab273360b425516e6d05ba71fd8a19823fa18e41f4422abc10b7a1ae3fb261"
+    },
+    "uniswapV3PoolMock_gmx-fweth": {
+      "address": "0x9d733DCdD69a72FAA5Fa87611d384605D2cfedF4",
+      "txHash": "0x21bb1ef3de24a29834cce6ddc0708db3d00293c1eb5e5a7597586490889c20eb"
+    },
+    "uniswapV3PoolMock_fweth-usdc": {
+      "address": "0x3FF49b72F5c3B1E4d63b3DB4F2d8a729d4463E0E",
+      "txHash": "0xa19badda3db061a45c2b74f4279b77a99cc5908870a9398c002cf07b23ba8a11"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x8E044F6D7f82492334ed4215C39C5d89258dfCA2",
+      "txHash": "0x3ae21e92a599b118094158891ffcc099c8047b2cfbb7ddc0a6293fe45efd9994"
+    },
+    "marginlyFactory": {
+      "address": "0xff27081fb23D47520fa5dDC420E4Bdfa9a7BbD96",
+      "txHash": "0xa14b9237bf5d81289f9403a6f3afaed654d8e9761f13dbfa12118da02a41cbc6"
+    },
+    "marginlyPool_fweth-usdc": {
+      "address": "0xb750084E3b4565F7f22C9E6614026755aFF6D4B3",
+      "txHash": "0xc0fe736067e93c05dc6cbecae80e1a475bd1d587c6ea232b8c0054f8141d86a0"
+    },
+    "marginlyPool_arb-fweth": {
+      "address": "0x6184Ef25d6BDA125D537E9cb71F18A6277D8f2a2",
+      "txHash": "0x88d6b52b30d2efe769d5c6adbdec84c0a8ab41b0e575e2a1455f9a399ef1602c"
+    },
+    "marginlyPool_gmx-fweth": {
+      "address": "0x197eed67e58Af9259FA6FD025A06d27fC9e2e948",
+      "txHash": "0x01f4a4830cab504191df8817d41bfa07f16589b6d2141083b9eb15c6a0c099b4"
+    },
+    "marginlyKeeper": {
+      "address": "0xeCca7850E0B95Ca1BB1e8aCF4ECE84199d5F04ed",
+      "txHash": "0xb3c9f2bdbd9abfbda87f00c42adb818fc25ff0fa9684b4ddf011be5571dffb93"
+    }
+  }
+}
