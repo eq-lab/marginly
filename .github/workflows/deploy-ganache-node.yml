@@ -17,10 +17,7 @@ env:
   # LIMIT_CPU: "500m"
   # LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "ethpandaops/ethereum-helm-charts"
-
-
-
-    
+  
 jobs:
   deployment:
     runs-on: ubuntu-latest
