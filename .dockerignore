@@ -6,4 +6,4 @@
 **/typechain-types
 .coverage
 .coverage.*
-.tsbuildinfo
+packages/*/tsconfig.tsbuildinfo

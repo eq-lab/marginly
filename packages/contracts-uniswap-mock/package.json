@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "Uniswap Mock Contracts",
   "license": "GPL-2.0-or-later",
+  "files": [
+    "artifacts",
+    "contracts",
+    "typechain-types"
+  ],
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test ./test/*.spec.ts",

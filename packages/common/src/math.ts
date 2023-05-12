@@ -167,7 +167,7 @@ export function sqrtPriceX96toPrice(sqrtPriceX96: bigint, tokenDecimals0: number
 }
 
 export function priceToSqrtPriceX96(price: number, tokenDecimals0: number, tokenDecimals1: number): bigint {
-    const sqrtPrice = Math.sqrt(price) * (10 ** (tokenDecimals0 - tokenDecimals1));
+    const sqrtPrice = Math.sqrt(price * (10 ** (tokenDecimals1 - tokenDecimals0)));
     return numberToX(x96FracSize, sqrtPrice);
 }
 
@@ -178,7 +178,15 @@ export function twapFromTickCumulatives([tickCumulative0, tickCumulative1]: [big
 }
 
 export function priceToPriceFp18(price: number, token0Decimals: number, token1Decimals: number): bigint {
-    return BigInt(numberToFp(18, price) * (10n ** BigInt(token0Decimals) / (10n ** BigInt(token1Decimals))));
+    const deltaDecimals = BigInt(token1Decimals - token0Decimals);
+
+    const priceFp18 = numberToFp(18, price);
+
+    if (deltaDecimals >= 0n) {
+        return priceFp18 * (10n ** deltaDecimals);
+    } else {
+        return priceFp18 / (10n ** -deltaDecimals);
+    }
 }
 
 export function hexStringToBigInt(hexString: string) {

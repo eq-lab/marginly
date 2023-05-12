@@ -157,6 +157,7 @@ export class OracleWorker implements Worker {
           throw new Error(`Price base token ${priceBaseToken.id} is neither token0 nor token1`);
         }
 
+        this.logger.info(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
         const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
         const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
         this.logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
