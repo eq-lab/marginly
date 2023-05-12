@@ -50,6 +50,7 @@ jobs:
       - name: 'Deploy node'
         run: |
           helm upgrade -i $SERVICE_NAME \
+          -n $NAMESPACE \
           --set fullnameOverride=$SERVICE_NAME \
           --set service.enabled=true \
           --set service.port=8545 \
