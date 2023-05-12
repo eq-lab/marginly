@@ -1,4 +1,4 @@
-name: Deploy ganache node
+name: Deploy ganache node CI
 
 on:
   push:
@@ -9,13 +9,9 @@ on:
 env:
   REGISTRY: trufflesuite/ganache
   IMAGE_TAG: latest
-  # IMAGE_NAME: ${{ github.repository }}
   SERVICE_NAME: marginly-ganache-gitlab
   CLUSTER: kube
   NAMESPACE: eth-backend-test
-  # GH_SECR: github-marginly
-  # LIMIT_CPU: "500m"
-  # LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "ethpandaops/ethereum-helm-charts"
   
 jobs:
