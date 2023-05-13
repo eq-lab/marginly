@@ -44,7 +44,7 @@ jobs:
       #     yarn start --suite=short
       # - run: pwd && ls -la && yarn gen
       # - run: yarn start --suite=short
-      # - name: Test ${{ matrix.test-short }}
+      - name: Test ${{ matrix.test-short }}
         run: |
           cd ./packages/int-tests/
           yarn 
