@@ -37,14 +37,18 @@ jobs:
         with:
           node-version: 18.14.2
       - run: |
+          yarn
           cd ./packages/int-tests/
-          yarn 
           yarn gen 
           yarn start --suite=short
       # - run: pwd && ls -la && yarn gen
       # - run: yarn start --suite=short
       # - name: Test ${{ matrix.test-short }}
-      #   run: yarn start --suite=${{ matrix.test-short }}
+      #   run: |
+      #     yarn
+      #     cd ./packages/int-tests/ 
+      #     yarn gen 
+      #     yarn start --suite=${{ matrix.test-short }}
   build-image:
     needs: testing
     runs-on: ubuntu-latest
