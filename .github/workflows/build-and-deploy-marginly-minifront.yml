@@ -37,9 +37,9 @@ jobs:
         with:
           node-version: 18.14.2
       - run: |
-          cd ./packages/int-tests/
           yarn
           yarn build
+          cd ./packages/int-tests/
           yarn gen 
           yarn start --suite=short
       # - run: pwd && ls -la && yarn gen
