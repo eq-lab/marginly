@@ -1,5 +1,4 @@
 name: Marginly Image CI
-
 on:
   push:
     branches:
@@ -34,12 +33,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.14.2
-      # - run: |
-      #     cd ./packages/int-tests/
-      #     yarn
-      #     yarn compile
-      #     yarn gen 
-      #     yarn start --suite=short
       - name: Build for testing
         run: |
           cd ./packages/int-tests/
