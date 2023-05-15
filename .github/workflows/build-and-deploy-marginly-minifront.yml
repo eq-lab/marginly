@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency]
+        tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency, keeper]
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 18.14.2
