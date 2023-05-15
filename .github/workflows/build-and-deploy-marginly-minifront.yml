@@ -25,31 +25,31 @@ env:
 jobs:
   testing:
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     # test-short: [short, shortIncome, simulation1, simulation2, simulation3, mc, shortEmergency]
-    #     # test-long: [long, longIncome, simulation1, simulation2, simulation3, mc, longEmergency]
-    #     test-shortandlong: [longAndShort, simulation1, simulation2, mc]
+    strategy:
+      matrix:
+        tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency]
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 18.14.2
         uses: actions/setup-node@v3
         with:
           node-version: 18.14.2
-      - run: |
+      # - run: |
+      #     cd ./packages/int-tests/
+      #     yarn
+      #     yarn compile
+      #     yarn gen 
+      #     yarn start --suite=short
+      - name: Build for testing
+        run: |
           cd ./packages/int-tests/
           yarn
-          yarn compile
-          yarn gen 
-          yarn start --suite=short
-      # - run: pwd && ls -la && yarn gen
-      # - run: yarn start --suite=short
-      # - name: Test ${{ matrix.test-shortandlong }}
-      #   run: |
-      #     cd ./packages/int-tests/
-      #     yarn 
-      #     yarn gen 
-      #     yarn start --suite=${{ matrix.test-shortandlong }}
+          yarn compile 
+          yarn gen
+      - name: Test ${{ matrix.tests }}
+        run: |
+          cd ./packages/int-tests/
+          yarn start --suite=${{ matrix.tests }}
   build-image:
     needs: testing
     runs-on: ubuntu-latest
