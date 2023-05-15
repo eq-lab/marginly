@@ -39,7 +39,7 @@ export async function simulation1(sut: SystemUnderTest) {
   const receiver = accounts[3];
 
   // lender deposit 2.0 ETH
-  const lenderDepositBaseAmount = parseUnits('2', 18);
+  const lenderDepositBaseAmount = parseUnits('2.1', 18);
   logger.info(`Lender deposit ${formatUnits(lenderDepositBaseAmount, 18)} WETH`);
   await (await weth.connect(lender).approve(marginlyPool.address, lenderDepositBaseAmount)).wait();
   await (await marginlyPool.connect(lender).depositBase(lenderDepositBaseAmount, 0, { gasLimit: 400_000 })).wait();
