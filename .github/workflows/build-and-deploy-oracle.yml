@@ -2,12 +2,12 @@ name: Oracle Image CI
 on:
   push:
     branches:
-      - 'main'
+      - 'uniswap-mock '
     tags:
       - 'v*'
   pull_request:
     branches:
-      - 'main'
+      - 'uniswap-mock '
 
 env:
   REGISTRY: ghcr.io
