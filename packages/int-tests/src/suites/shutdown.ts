@@ -113,7 +113,7 @@ export async function longEmergency(sut: SystemUnderTest) {
   const longer = accounts[2];
 
   // lender deposit 3200 USDC
-  const lenderDepositQuoteAmount = parseUnits('3200', 6);
+  const lenderDepositQuoteAmount = parseUnits('3300', 6);
   logger.info(`Lender deposit ${formatUnits(lenderDepositQuoteAmount, 6)} UDSC`);
   await (await usdc.connect(lender).approve(marginlyPool.address, lenderDepositQuoteAmount)).wait();
   await (await marginlyPool.connect(lender).depositQuote(lenderDepositQuoteAmount, 0, { gasLimit: 400_000 })).wait();
