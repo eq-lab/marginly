@@ -1,0 +1,106 @@
+name: Oracle Image CI
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'main'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/oracle
+  SERVICE_NAME: ${{ secrets.SERVICE_NAME_ORACLE }}
+  NAMESPACE: ${{ secrets.NAMESPACE }}
+  GH_SECR: ${{ secrets.GH_SECR }}
+  CLUSTER: ${{ secrets.CLUSTER }}
+  PK: ${{ secrets.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY }}
+  IMAGE_TAG: latest
+  LIMIT_CPU: "500m"
+  LIMIT_MEMORY: "512Mi"
+  HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,enable=true,priority=600,prefix=,suffix=-{{date 'YYYYMMDD'}}-{{sha}},event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./packages/oracle
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  
+
+  deployment:
+    needs: build-image
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.27.1'
+      id: install
+    - uses: azure/setup-helm@v3
+      with:
+        version: 'v3.12.0'
+    - name: 'Clone Helm repository'
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ env.HELM_REPOSITORY }}
+        ref: 'main'
+        token: ${{ secrets.PAT }}  
+    - name: 'Prep extraEnv'
+      run: |
+          cat <<EOF >extraEnv.yml
+          imagePullSecrets: [name: $GH_SECR ]
+          EOF
+    - name: Set Kubernetes Context
+      uses: azure/k8s-set-context@v3
+      with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          context: ${{ env.CLUSTER }}
+    - name: Set imagePullSecret
+      uses: azure/k8s-create-secret@v4
+      with:
+        namespace: ${{ env.NAMESPACE }}
+        secret-name: ${{ env.GH_SECR }}
+        container-registry-url: ${{ env.REGISTRY }}
+        container-registry-username: ${{ github.actor }}
+        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+      id: create-secret
+    - name: 'deploy'
+      run: |
+        helm upgrade -i $SERVICE_NAME \
+          -n $NAMESPACE \
+          --set fullnameOverride=$SERVICE_NAME \
+          --set image.repository=$REGISTRY \
+          --set image.name=$REGISTRY/$IMAGE_NAME \
+          --set image.tag=$IMAGE_TAG \
+          --set resources.limits.cpu=$LIMIT_CPU \
+          --set resources.limits.memory=$LIMIT_MEMORY \
+          --set extraEnv.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY=$PK
+          -f extraEnv.yml \
+          ./
