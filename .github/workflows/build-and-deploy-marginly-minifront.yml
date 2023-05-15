@@ -12,11 +12,11 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  SERVICE_NAME: marginly-minifront-gitlab
-  CLUSTER: kube
-  NAMESPACE: eth-backend-test
+  SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
+  NAMESPACE: ${{ secrets.NAMESPACE }}
+  GH_SECR: ${{ secrets.GH_SECR }}
+  CLUSTER: ${{ secrets.CLUSTER }}
   IMAGE_TAG: latest
-  GH_SECR: github-marginly
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
@@ -94,7 +94,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: [name: github-marg]
+          imagePullSecrets: [name: $GH_SECR ]
           EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
