@@ -42,7 +42,6 @@ import { Web3Provider } from '@ethersproject/providers';
 
   try {
     await startSuite(provider, initialAccounts, suiteName);
-    return;
   } catch (err) {
     if (typeof err == 'object') {
       console.log(Math.floor(Date.now() / 1000));
@@ -51,7 +50,7 @@ import { Web3Provider } from '@ethersproject/providers';
       logger.error(`${err}`);
     }
 
-    throw err;
+    process.exit(1);
   } finally {
     await server.provider.disconnect();
     await server.close();
