@@ -92,10 +92,10 @@ export async function keeper(sut: SystemUnderTest) {
     await (await marginlyPool.connect(shorter).short(shortAmount, ethArgs)).wait();
   }
 
-  // Set parameters to leverage 17
+  // Set parameters to leverage 15
   {
     const params = await marginlyPool.params();
-    await (await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 17 })).wait();
+    await (await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 15 })).wait();
   }
 
   const [basePrice, params, baseCollateralCoeff, baseDebtCoeff, quoteCollateralCoeff, quoteDebtCoeff]: [
