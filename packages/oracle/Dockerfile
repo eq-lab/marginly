@@ -19,24 +19,22 @@ USER node
 COPY --chown=node:node ["package.json", "yarn.lock", "./"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/dist", "packages/oracle/dist/"]
-COPY --chown=node:node ["packages/oracle/package.json", "packages/oracle/config.json", "./packages/oracle/"]
+COPY --chown=node:node /usr/src/app/ ["/usr/src/app/packages/oracle/package.json", "packages/oracle/config.json", "./packages/oracle/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/dist", "packages/logger/dist/"]
-COPY --chown=node:node ["packages/logger/package.json", "./packages/logger/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/package.json", "./packages/logger/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger-node/dist", "packages/logger-node/dist/"]
-COPY --chown=node:node ["packages/logger-node/package.json", "./packages/logger-node/"]
+COPY --chown=node:node --from=build  ["/usr/src/app/packages/logger-node/package.json", "./packages/logger-node/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/common/dist", "packages/common/dist/"]
-COPY --chown=node:node ["packages/common/package.json", "./packages/common/"]
+COPY --chown=node:node --from=build  ["/usr/src/app/packages/common/package.json", "./packages/common/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts/artifacts", "packages/contracts/artifacts/"]
-COPY --chown=node:node ["packages/contracts/package.json", "./packages/contracts/"]
+COPY --chown=node:node --from=build  ["/usr/src/app/packages/contracts/package.json", "./packages/contracts/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts-uniswap-mock/artifacts", "packages/contracts-uniswap-mock/artifacts/"]
-RUN ls -la ./packages/contracts-uniswap-mock
-COPY ["packages/contracts-uniswap-mock/package.json", "./packages/contracts-uniswap-mock/"]
-#COPY --chown=node:node ["packages/contracts-uniswap-mock/package.json", "./packages/contracts-uniswap-mock/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts-uniswap-mock/package.json", "./packages/contracts-uniswap-mock/"]
 
 WORKDIR /app/packages/oracle
 RUN yarn install --frozen-lockfile
