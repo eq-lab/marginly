@@ -30,7 +30,7 @@ jobs:
       - run: |
           pwd
           ls -la
-          cd ./packages/
+          cd packages/contracts-uniswap-mock
           ls -la
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
