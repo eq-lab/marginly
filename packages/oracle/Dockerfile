@@ -34,6 +34,7 @@ COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts/artifacts"
 COPY --chown=node:node ["packages/contracts/package.json", "./packages/contracts/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts-uniswap-mock/artifacts", "packages/contracts-uniswap-mock/artifacts/"]
+RUN ls -la ./packages/contracts-uniswap-mock
 COPY ["packages/contracts-uniswap-mock/package.json", "./packages/contracts-uniswap-mock/"]
 #COPY --chown=node:node ["packages/contracts-uniswap-mock/package.json", "./packages/contracts-uniswap-mock/"]
 
