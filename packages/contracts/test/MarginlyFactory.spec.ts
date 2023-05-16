@@ -8,6 +8,7 @@ describe('MarginlyFactory', () => {
   function getPoolParams() {
     const params: MarginlyParamsStruct = {
       interestRate: 54000, //5,4 %
+      fee: 10000, //1%
       maxLeverage: 20,
       swapFee: 1000, // 0.1%
       positionSlippage: 20000, // 2%

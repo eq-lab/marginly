@@ -32,12 +32,12 @@ export interface UniswapPoolInfo {
 }
 
 export async function createToken(name: string, symbol: string): Promise<TestERC20> {
-  const [_,signer] = await ethers.getSigners();
+  const [_, signer] = await ethers.getSigners();
   const factory = await ethers.getContractFactory('TestERC20');
   const tokenContract = await factory.deploy(name, symbol);
   await signer.sendTransaction({
     to: tokenContract.address,
-    value: parseEther("100"),
+    value: parseEther('100'),
   });
 
   return tokenContract;
@@ -89,7 +89,7 @@ export async function createMarginlyPoolImplementation(): Promise<{ poolImplemen
   };
 }
 
-export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
+export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
   factory: MarginlyFactory;
   owner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
@@ -109,16 +109,16 @@ export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
     uniswapFactory.address,
     swapRouter.address,
     FeeHolder,
-    baseTokenIsWETH ? uniswapPoolInfo.token1.address :  uniswapPoolInfo.token0.address
+    baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address
   )) as MarginlyFactory;
   return { factory, owner, uniswapPoolInfo, swapRouter };
 }
 
-export function createMarginlyPool(){
+export function createMarginlyPool() {
   return createMarginlyPoolInternal(true);
 }
 
-export function createMarginlyPoolQuoteTokenIsWETH(){
+export function createMarginlyPoolQuoteTokenIsWETH() {
   return createMarginlyPoolInternal(false);
 }
 
@@ -139,6 +139,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
 
   const params: MarginlyParamsStruct = {
     interestRate: 54000, //5,4 %
+    fee: 10000, //1%
     maxLeverage: 20,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900, // 15 min
@@ -222,17 +223,17 @@ export async function getInitializedPool(): Promise<{
   const longers = accounts.slice(15, 20);
 
   for (let i = 0; i < lenders.length; i++) {
-    await marginlyPool.connect(lenders[i]).depositBase(1000,0);
-    await marginlyPool.connect(lenders[i]).depositQuote(5000,0);
+    await marginlyPool.connect(lenders[i]).depositBase(1000, 0);
+    await marginlyPool.connect(lenders[i]).depositQuote(5000, 0);
   }
 
   for (let i = 0; i < longers.length; i++) {
-    await marginlyPool.connect(longers[i]).depositBase(1000 + i * 100,0);
+    await marginlyPool.connect(longers[i]).depositBase(1000 + i * 100, 0);
     await marginlyPool.connect(longers[i]).long(500 + i * 20);
   }
 
   for (let i = 0; i < shorters.length; i++) {
-    await marginlyPool.connect(shorters[i]).depositQuote(1000 + i * 100,0);
+    await marginlyPool.connect(shorters[i]).depositQuote(1000 + i * 100, 0);
     await marginlyPool.connect(shorters[i]).short(500 + i * 20);
   }
 

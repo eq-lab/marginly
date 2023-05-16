@@ -67,16 +67,21 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Aggregate for base collateral time change calculations
   FP96.FixedPoint public baseCollateralCoeff;
-  /// @dev Aggregate for base debt time change calculations
+  /// @dev Accrued interest rate and fee for base debt
   FP96.FixedPoint public baseDebtCoeff;
   /// @dev Aggregate for quote collateral time change calculations
   FP96.FixedPoint public quoteCollateralCoeff;
-  /// @dev Aggregate for quote debt time change calculations
+  /// @dev Accrued interest rate and fee for quote debt
   FP96.FixedPoint public quoteDebtCoeff;
   /// @dev Initial price. Used to sort key calculation.
   FP96.FixedPoint public initialPrice;
   /// @dev Ratio of best side collaterals before and after margin call of opposite side in shutdown mode
   FP96.FixedPoint public emergencyWithdrawCoeff;
+
+  /// @dev Accrued interest rate for base debt
+  FP96.FixedPoint public baseAccruedRate;
+  /// @dev Accrued interest rate for quote debt
+  FP96.FixedPoint public quoteAccruedRate;
 
   struct Leverage {
     /// @dev This is a leverage of all long positions in the system
@@ -122,6 +127,8 @@ contract MarginlyPool is IMarginlyPool {
     baseDebtCoeff = FP96.one();
     quoteCollateralCoeff = FP96.one();
     quoteDebtCoeff = FP96.one();
+    baseAccruedRate = FP96.one();
+    quoteAccruedRate = FP96.one();
     lastReinitTimestampSeconds = block.timestamp;
     unlocked = true;
   }
@@ -361,6 +368,9 @@ contract MarginlyPool is IMarginlyPool {
         // update aggregates
         discountedBaseDebt = _discountedBaseDebt.sub(discountedBaseDebtDelta);
       }
+
+      uint256 baseDebtFee = _baseDebtCoeff.div(baseAccruedRate).sub(FP96.one()).mul(realBaseDebt);
+      chargeFee(baseToken, baseDebtFee);
     } else {
       // Lend position, increase collateral on amount
       // discountedCollateralDelta = amount / baseCollateralCoeff
@@ -438,6 +448,9 @@ contract MarginlyPool is IMarginlyPool {
         // update aggregates
         discountedQuoteDebt = _discountedQuoteDebt.sub(discountedQuoteDebtDelta);
       }
+
+      uint256 quoteDebtFee = _quoteDebtCoeff.div(quoteAccruedRate).sub(FP96.one()).mul(realQuoteDebt);
+      chargeFee(baseToken, quoteDebtFee);
     } else {
       // Lend position, increase collateral on amount
       // discountedQuoteCollateralDelta = amount / quoteCollateralCoeff
@@ -606,7 +619,10 @@ contract MarginlyPool is IMarginlyPool {
       require(swappedQuoteCollateral <= quoteInMaximum, 'SL'); // Slippage above maximum
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, swappedQuoteCollateral, WHOLE_ONE);
-      chargeFee(realFeeAmount);
+      chargeFee(quoteToken, realFeeAmount);
+
+      uint256 baseDebtFee = baseDebtCoeff.div(baseAccruedRate).sub(FP96.one()).mul(realBaseDebt);
+      chargeFee(baseToken, baseDebtFee);
 
       swappedQuoteCollateral = swappedQuoteCollateral.add(realFeeAmount);
       uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(swappedQuoteCollateral);
@@ -643,7 +659,10 @@ contract MarginlyPool is IMarginlyPool {
       );
       require(swappedBaseCollateral <= baseInMaximum, 'SL'); // Slippage above maximum
 
-      chargeFee(realFeeAmount);
+      {
+        uint256 quoteDebtFee = quoteDebtCoeff.div(quoteAccruedRate).sub(FP96.one()).mul(realQuoteDebt);
+        chargeFee(quoteToken, realFeeAmount.add(quoteDebtFee));
+      }
 
       uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(swappedBaseCollateral);
 
@@ -669,9 +688,9 @@ contract MarginlyPool is IMarginlyPool {
     emit ClosePosition(msg.sender, collateralToken, realCollateralDelta, swapPriceX96, discountedCollateralDelta);
   }
 
-  /// @dev Charge swap fee in quote token
-  function chargeFee(uint256 feeAmount) private {
-    TransferHelper.safeTransfer(quoteToken, IMarginlyFactory(factory).feeHolder(), feeAmount);
+  /// @dev Charge fee (swap or debt fee) in quote token
+  function chargeFee(address token, uint256 feeAmount) private {
+    TransferHelper.safeTransfer(token, IMarginlyFactory(factory).feeHolder(), feeAmount);
   }
 
   /// @notice Get oracle price baseToken / quoteToken
@@ -746,7 +765,7 @@ contract MarginlyPool is IMarginlyPool {
 
     position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteChange);
     discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteChange);
-    chargeFee(realSwapFee);
+    chargeFee(quoteToken, realSwapFee);
 
     uint256 discountedBaseDebtChange = baseDebtCoeff.recipMul(realBaseAmount);
     position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseDebtChange);
@@ -811,7 +830,7 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteAmount, WHOLE_ONE);
     realQuoteAmount = realQuoteAmount.add(realSwapFee); // we need to add this fee to position debt
-    chargeFee(realSwapFee);
+    chargeFee(quoteToken, realSwapFee);
 
     uint256 discountedBaseCollateralChange = _baseCollateralCoeff.recipMul(realBaseAmount);
     position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseCollateralChange);
@@ -846,33 +865,39 @@ contract MarginlyPool is IMarginlyPool {
     lastReinitTimestampSeconds = block.timestamp;
 
     FP96.FixedPoint memory secondsInYear = FP96.FixedPoint({inner: SECONDS_IN_YEAR_X96});
-    FP96.FixedPoint memory interestRate = FP96.FixedPoint({
-      inner: Math.mulDiv(params.interestRate, FP96.Q96, WHOLE_ONE)
-    });
+    FP96.FixedPoint memory interestRate = FP96.fromRatio(params.interestRate, WHOLE_ONE);
+    FP96.FixedPoint memory fee = FP96.fromRatio(params.fee, WHOLE_ONE);
+
     if (discountedBaseCollateral != 0) {
-      FP96.FixedPoint memory baseDebtCoeffMul = FP96.powTaylor(
-        interestRate.mul(FP96.FixedPoint({inner: systemLeverage.shortX96})).div(secondsInYear).add(FP96.one()),
-        secondsPassed
+      FP96.FixedPoint memory onePlusIR = interestRate
+        .mul(FP96.FixedPoint({inner: systemLeverage.shortX96}))
+        .div(secondsInYear)
+        .add(FP96.one());
+      FP96.FixedPoint memory onePlusFee = fee.div(secondsInYear).add(FP96.one());
+
+      FP96.FixedPoint memory baseAccruedRatePrev = baseAccruedRate;
+      baseAccruedRate = baseAccruedRatePrev.mul(FP96.powTaylor(onePlusIR, secondsPassed));
+      baseCollateralCoeff = baseCollateralCoeff.add(
+        FP96.fromRatio(baseAccruedRate.sub(baseAccruedRatePrev).mul(discountedBaseDebt), discountedBaseCollateral)
       );
 
-      FP96.FixedPoint memory baseDebtCoeffOld = baseDebtCoeff;
-      baseDebtCoeff = baseDebtCoeffOld.mul(baseDebtCoeffMul);
-      baseCollateralCoeff = baseCollateralCoeff.add(
-        FP96.fromRatio(baseDebtCoeff.sub(baseDebtCoeffOld).mul(discountedBaseDebt), discountedBaseCollateral)
-      );
+      baseDebtCoeff = baseDebtCoeff.mul(FP96.powTaylor(onePlusIR.mul(onePlusFee), secondsPassed));
     }
 
     if (discountedQuoteCollateral != 0) {
-      FP96.FixedPoint memory quoteDebtCoeffMul = FP96.powTaylor(
-        interestRate.mul(FP96.FixedPoint({inner: systemLeverage.longX96})).div(secondsInYear).add(FP96.one()),
-        secondsPassed
+      FP96.FixedPoint memory onePlusIR = interestRate
+        .mul(FP96.FixedPoint({inner: systemLeverage.longX96}))
+        .div(secondsInYear)
+        .add(FP96.one());
+      FP96.FixedPoint memory onePlusFee = fee.div(secondsInYear).add(FP96.one());
+
+      FP96.FixedPoint memory quoteAccruedRatePrev = quoteAccruedRate;
+      quoteAccruedRate = quoteAccruedRatePrev.mul(FP96.powTaylor(onePlusIR, secondsPassed));
+      quoteCollateralCoeff = quoteCollateralCoeff.add(
+        FP96.fromRatio(quoteAccruedRate.sub(quoteAccruedRatePrev).mul(discountedQuoteDebt), discountedQuoteCollateral)
       );
 
-      FP96.FixedPoint memory quoteDebtCoeffOld = quoteDebtCoeff;
-      quoteDebtCoeff = quoteDebtCoeffOld.mul(quoteDebtCoeffMul);
-      quoteCollateralCoeff = quoteCollateralCoeff.add(
-        FP96.fromRatio(quoteDebtCoeff.sub(quoteDebtCoeffOld).mul(discountedQuoteDebt), discountedQuoteCollateral)
-      );
+      quoteDebtCoeff = quoteDebtCoeff.mul(FP96.powTaylor(onePlusIR.mul(onePlusFee), secondsPassed));
     }
 
     emit Reinit(lastReinitTimestampSeconds);

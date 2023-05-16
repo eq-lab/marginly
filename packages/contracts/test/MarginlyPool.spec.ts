@@ -28,6 +28,7 @@ describe('MarginlyPool.Base', () => {
     const marginlyParams = {
       interestRate: 54,
       maxLeverage: 15,
+      fee: 1,
       swapFee: 1000,
       priceSecondsAgo: 1000,
       positionMinAmount: 100,
@@ -97,6 +98,7 @@ describe('MarginlyPool.Base', () => {
 
     await pool.connect(factoryOwner).setParameters({
       interestRate: 54,
+      fee: 1,
       maxLeverage: 15,
       swapFee: 1000,
       priceSecondsAgo: 1000,
@@ -118,6 +120,7 @@ describe('MarginlyPool.Base', () => {
     expect(params.mcSlippage).to.equal(400000);
     expect(params.baseLimit).to.equal(1_000_000_000);
     expect(params.quoteLimit).to.equal(1_000_000_000);
+    expect(params.fee).to.equal(1);
   });
 
   it('should raise error when not an owner trying to set parameters', async () => {
@@ -130,6 +133,7 @@ describe('MarginlyPool.Base', () => {
       pool.connect(otherSigner).setParameters({
         interestRate: 54,
         maxLeverage: 15,
+        fee: 1,
         swapFee: 1000,
         priceSecondsAgo: 1000,
         positionMinAmount: 100,
