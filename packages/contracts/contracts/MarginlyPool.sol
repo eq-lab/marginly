@@ -125,6 +125,7 @@ contract MarginlyPool is IMarginlyPool {
     quoteDebtCoeff = FP96.one();
     lastReinitTimestampSeconds = block.timestamp;
     unlocked = true;
+    initialPrice = getBasePrice();
   }
 
   receive() external payable {
@@ -300,14 +301,6 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @dev Initialize user position
-  function initPosition(Position storage position) private {
-    require(position._type == PositionType.Uninitialized, 'PI'); // Position initialized
-    require(position.heapPosition == 0, 'HPE'); // Heap position exists
-
-    position._type = PositionType.Lend;
-  }
-
   /// @notice Deposit base token
   /// @param amount Amount of base token to deposit
   /// @param longAmount Amount of base token to open long position
@@ -320,12 +313,11 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     Position storage position = positions[msg.sender];
-    bool marginCallHappened;
     if (position._type == PositionType.Uninitialized) {
-      initPosition(position);
+      position._type = PositionType.Lend;
     } else {
-      marginCallHappened = reinitAccount(msg.sender, basePrice);
-      if (marginCallHappened) {
+      if (positionHasBadLeverage(position, basePrice)) {
+        enactMarginCall(msg.sender, position);
         return;
       }
     }
@@ -376,8 +368,7 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageLong(basePrice);
 
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
+    updateHeap(position);
 
     wrapAndTransferFrom(baseToken, msg.sender, amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
@@ -399,12 +390,11 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     Position storage position = positions[msg.sender];
-    bool marginCallHappened;
     if (position._type == PositionType.Uninitialized) {
-      initPosition(position);
+      position._type = PositionType.Lend;
     } else {
-      marginCallHappened = reinitAccount(msg.sender, basePrice);
-      if (marginCallHappened) {
+      if (positionHasBadLeverage(position, basePrice)) {
+        enactMarginCall(msg.sender, position);
         return;
       }
     }
@@ -455,8 +445,7 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageShort(basePrice);
 
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
+    updateHeap(position);
 
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
@@ -482,8 +471,8 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    if (marginCallHappened) {
+    if (positionHasBadLeverage(position, basePrice)) {
+      enactMarginCall(msg.sender, position);
       return;
     }
 
@@ -511,8 +500,8 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageLong(basePrice);
 
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
+    require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
+    updateHeap(position);
 
     if (needToDeletePosition) {
       delete positions[msg.sender];
@@ -539,8 +528,8 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    if (marginCallHappened) {
+    if (positionHasBadLeverage(position, basePrice)) {
+      enactMarginCall(msg.sender, position);
       return;
     }
 
@@ -568,8 +557,8 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageShort(basePrice);
 
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
+    require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
+    updateHeap(position);
 
     if (needToDeletePosition) {
       delete positions[msg.sender];
@@ -591,11 +580,9 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    {
-      bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-      if (marginCallHappened) {
-        return;
-      }
+    if (positionHasBadLeverage(position, basePrice)) {
+      enactMarginCall(msg.sender, position);
+      return;
     }
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
@@ -714,12 +701,12 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    if (marginCallHappened) {
+    Position storage position = positions[msg.sender];
+
+    if (positionHasBadLeverage(position, basePrice)) {
+      enactMarginCall(msg.sender, position);
       return;
     }
-
-    Position storage position = positions[msg.sender];
 
     require(
       position._type == PositionType.Short ||
@@ -768,8 +755,8 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageShort(basePrice);
 
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
+    require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
+    updateHeap(position);
 
     emit Short(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteChange, discountedBaseDebtChange);
   }
@@ -783,9 +770,10 @@ contract MarginlyPool is IMarginlyPool {
     if (callerMarginCalled) {
       return;
     }
+    Position storage position = positions[msg.sender];
 
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    if (marginCallHappened) {
+    if (positionHasBadLeverage(position, basePrice)) {
+      enactMarginCall(msg.sender, position);
       return;
     }
 
@@ -798,7 +786,6 @@ contract MarginlyPool is IMarginlyPool {
       require(realBaseAmount.add(poolBaseBalance) <= params.baseLimit, 'EL'); // exceeds limit
     }
 
-    Position storage position = positions[msg.sender];
     require(
       position._type == PositionType.Long ||
         (position._type == PositionType.Lend && position.discountedQuoteAmount == 0),
@@ -834,8 +821,8 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageLong(basePrice);
 
-    marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); //Margin call
+    require(!positionHasBadLeverage(position, basePrice), 'MC'); //Margin call
+    updateHeap(position);
 
     emit Long(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteDebtChange, discountedBaseCollateralChange);
   }
@@ -910,48 +897,39 @@ contract MarginlyPool is IMarginlyPool {
   function reinitAccount(address user, FP96.FixedPoint memory basePrice) private returns (bool marginCallHappened) {
     Position storage position = positions[user];
 
-    if (position._type == PositionType.Lend) {
+    marginCallHappened = positionHasBadLeverage(position, basePrice);
+    if (marginCallHappened) {
+      enactMarginCall(user, position);
+    }
+  }
+
+  function positionHasBadLeverage(Position storage position, FP96.FixedPoint memory basePrice) private view returns (bool) {
+    uint256 realTotalCollateral;
+    uint256 realTotalDebt;
+    uint256 maxLeverageX96 = uint256(params.maxLeverage) << FP96.RESOLUTION;
+    if (position._type == PositionType.Short) {
+      realTotalCollateral = quoteCollateralCoeff.mul(position.discountedQuoteAmount);
+      realTotalDebt = baseDebtCoeff.mul(basePrice.mul(position.discountedBaseAmount));
+    } else if (position._type == PositionType.Long) {
+      realTotalCollateral = baseCollateralCoeff.mul(basePrice.mul(position.discountedBaseAmount));
+      realTotalDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
+    } else {
       return false;
     }
 
-    if (initialPrice.inner == 0) {
-      initialPrice = basePrice;
-    }
+    uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
+    return leverageX96 > maxLeverageX96;
+  }
 
-    uint256 maxLeverageX96 = uint256(params.maxLeverage) << FP96.RESOLUTION;
-    if (position._type == PositionType.Short) {
-      uint256 collateral = position.discountedQuoteAmount;
-      uint256 debt = position.discountedBaseAmount;
-
-      uint256 realTotalCollateral = quoteCollateralCoeff.mul(collateral);
-      uint256 realTotalDebt = baseDebtCoeff.mul(basePrice.mul(debt));
-
-      uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
-      if (leverageX96 > maxLeverageX96) {
-        enactMarginCall(user, position);
-        return true;
-      }
-
-      uint96 sortKey = calcSortKey(collateral, initialPrice.mul(debt));
-
-      uint32 heapIndex = position.heapPosition - 1;
-      shortHeap.update(positions, heapIndex, sortKey);
-    } else if (position._type == PositionType.Long) {
-      uint256 collateral = position.discountedBaseAmount;
-      uint256 debt = position.discountedQuoteAmount;
-
-      uint256 realTotalCollateral = baseCollateralCoeff.mul(basePrice.mul(collateral));
-      uint256 realTotalDebt = quoteDebtCoeff.mul(debt);
-
-      uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
-      if (leverageX96 > maxLeverageX96) {
-        enactMarginCall(user, position);
-        return true;
-      }
-
-      uint96 sortKey = calcSortKey(initialPrice.mul(collateral), debt);
+  function updateHeap(Position storage position) private {
+    if (position._type == PositionType.Long) {
+      uint96 sortKey = calcSortKey(initialPrice.mul(position.discountedBaseAmount), position.discountedQuoteAmount);
       uint32 heapIndex = position.heapPosition - 1;
       longHeap.update(positions, heapIndex, sortKey);
+    } else if (position._type == PositionType.Short) {
+      uint96 sortKey = calcSortKey(position.discountedQuoteAmount, initialPrice.mul(position.discountedBaseAmount));
+      uint32 heapIndex = position.heapPosition - 1;
+      shortHeap.update(positions, heapIndex, sortKey);
     }
   }
 
@@ -1042,8 +1020,7 @@ contract MarginlyPool is IMarginlyPool {
     positions[msg.sender] = badPosition;
     delete positions[badPositionAddress];
 
-    bool marginCallHappened = reinitAccount(msg.sender, basePrice);
-    require(!marginCallHappened, 'MC'); // Margin call
+    require(!positionHasBadLeverage(positions[msg.sender], basePrice), 'MC'); // Margin call
 
     TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), baseAmount);
     TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), quoteAmount);
@@ -1146,7 +1123,7 @@ contract MarginlyPool is IMarginlyPool {
   function emergencyWithdraw(bool unwrapWETH) private {
     require(mode != Mode.Regular, 'SM'); // System should be in emergency mode
 
-    Position memory position = positions[msg.sender];
+    Position storage position = positions[msg.sender];
     require(position._type != PositionType.Uninitialized, 'U'); // Uninitialized position
 
     address token;
