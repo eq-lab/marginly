@@ -26,6 +26,11 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          pwd
+          ls -la
+          cd ./packages/
+          ls -la
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
