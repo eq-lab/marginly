@@ -16,7 +16,7 @@ ENV NODE_ENV production
 WORKDIR /app
 RUN chown node:node .
 USER node
-COPY --chown=node:node ["package.json", "yarn.lock", "./"]
+COPY --chown=node:node --from=build ["package.json", "yarn.lock", "./"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/dist", "packages/oracle/dist/"]
 COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/package.json", "/usr/src/app/packages/oracle/config.json", "./packages/oracle/"]
@@ -25,13 +25,13 @@ COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/dist", "packa
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/package.json", "./packages/logger/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger-node/dist", "packages/logger-node/dist/"]
-COPY --chown=node:node --from=build  ["/usr/src/app/packages/logger-node/package.json", "./packages/logger-node/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/logger-node/package.json", "./packages/logger-node/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/common/dist", "packages/common/dist/"]
-COPY --chown=node:node --from=build  ["/usr/src/app/packages/common/package.json", "./packages/common/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/common/package.json", "./packages/common/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts/artifacts", "packages/contracts/artifacts/"]
-COPY --chown=node:node --from=build  ["/usr/src/app/packages/contracts/package.json", "./packages/contracts/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts/package.json", "./packages/contracts/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts-uniswap-mock/artifacts", "packages/contracts-uniswap-mock/artifacts/"]
 COPY --chown=node:node --from=build ["/usr/src/app/packages/contracts-uniswap-mock/package.json", "./packages/contracts-uniswap-mock/"]
