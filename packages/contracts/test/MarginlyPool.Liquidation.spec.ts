@@ -43,7 +43,7 @@ describe('MarginlyPool.Liquidation', () => {
     const baseAmount = 1000;
     await expect(
       marginlyPool.connect(receiver).execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address)
-    ).to.be.revertedWith('WPT');
+    ).to.be.revertedWith('NL');
   });
 
   it('should revert when position to liquidation not liquidatable', async () => {
