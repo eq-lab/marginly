@@ -1,4 +1,4 @@
-name: Oracle Image CI
+name: 0racle Image CI
 on:
   push:
     branches:
