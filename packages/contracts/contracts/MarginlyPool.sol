@@ -20,6 +20,7 @@ import './libraries/MaxBinaryHeapLib.sol';
 import './libraries/OracleLib.sol';
 import './libraries/FP48.sol';
 import './libraries/FP96.sol';
+import './dataTypes/Call.sol';
 
 //import 'hardhat/console.sol';
 
@@ -307,11 +308,13 @@ contract MarginlyPool is IMarginlyPool {
     position._type = PositionType.Lend;
   }
 
-  /// @inheritdoc IMarginlyPool
-  function depositBase(uint256 amount, uint256 longAmount) external payable override lock {
+  /// @notice Deposit base token
+  /// @param amount Amount of base token to deposit
+  /// @param longAmount Amount of base token to open long position
+  function depositBase(uint256 amount, uint256 longAmount) private {
     require(amount != 0, 'ZA'); // Zero amount
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -380,15 +383,17 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
 
     if (longAmount != 0) {
-      _long(longAmount);
+      long(longAmount);
     }
   }
 
-  /// @inheritdoc IMarginlyPool
-  function depositQuote(uint256 amount, uint256 shortAmount) external payable override lock {
+  /// @notice Deposit quote token
+  /// @param amount Amount of quote token
+  /// @param shortAmount Amount of base token to open short position
+  function depositQuote(uint256 amount, uint256 shortAmount) private {
     require(amount != 0, 'ZA'); //Zero amount
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -457,12 +462,14 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
 
     if (shortAmount != 0) {
-      _short(shortAmount);
+      short(shortAmount);
     }
   }
 
-  /// @inheritdoc IMarginlyPool
-  function withdrawBase(uint256 realAmount, bool unwrapWETH) external override lock {
+  /// @notice Withdraw base token
+  /// @param realAmount Amount of base token
+  /// @param unwrapWETH flag to unwrap WETH to ETH
+  function withdrawBase(uint256 realAmount, bool unwrapWETH) private {
     require(realAmount != 0, 'ZA'); // Zero amount
 
     Position storage position = positions[msg.sender];
@@ -470,7 +477,7 @@ contract MarginlyPool is IMarginlyPool {
     require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
     require(_type != PositionType.Short);
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -516,8 +523,10 @@ contract MarginlyPool is IMarginlyPool {
     emit WithdrawBase(msg.sender, realAmountToWithdraw, discountedBaseCollateralDelta);
   }
 
-  /// @inheritdoc IMarginlyPool
-  function withdrawQuote(uint256 realAmount, bool unwrapWETH) external override lock {
+  /// @notice Withdraw quote token
+  /// @param realAmount Amount of quote token
+  /// @param unwrapWETH flag to unwrap WETH to ETH
+  function withdrawQuote(uint256 realAmount, bool unwrapWETH) private {
     require(realAmount != 0, 'ZA'); // Zero amount
 
     Position storage position = positions[msg.sender];
@@ -525,7 +534,7 @@ contract MarginlyPool is IMarginlyPool {
     require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
     require(_type != PositionType.Long);
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -571,13 +580,13 @@ contract MarginlyPool is IMarginlyPool {
     emit WithdrawQuote(msg.sender, realAmountToWithdraw, discountedQuoteCollateralDelta);
   }
 
-  /// @inheritdoc IMarginlyPool
-  function closePosition() external override lock {
+  /// @notice Close position
+  function closePosition() private {
     Position storage position = positions[msg.sender];
     require(position._type != PositionType.Uninitialized, 'U'); // Uninitialized position
     require(position._type != PositionType.Lend, 'L'); // Lend, nothing to close
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -695,15 +704,12 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @inheritdoc IMarginlyPool
-  function short(uint256 realBaseAmount) external override lock {
-    _short(realBaseAmount);
-  }
-
-  function _short(uint256 realBaseAmount) private {
+  /// @notice Short with leverage
+  /// @param realBaseAmount Amount of base token
+  function short(uint256 realBaseAmount) private {
     require(realBaseAmount >= params.positionMinAmount, 'MA'); //Less than min amount
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -768,15 +774,12 @@ contract MarginlyPool is IMarginlyPool {
     emit Short(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteChange, discountedBaseDebtChange);
   }
 
-  /// @inheritdoc IMarginlyPool
-  function long(uint256 realBaseAmount) external override lock {
-    _long(realBaseAmount);
-  }
-
-  function _long(uint256 realBaseAmount) private {
+  /// @notice Long with leverage
+  /// @param realBaseAmount Amount of base token
+  function long(uint256 realBaseAmount) private {
     require(realBaseAmount >= params.positionMinAmount, 'MA'); //Less than min amount
 
-    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinitInternal();
+    (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
       return;
     }
@@ -880,13 +883,8 @@ contract MarginlyPool is IMarginlyPool {
     return true;
   }
 
-  /// @inheritdoc IMarginlyPool
-  function reinit() external override lock {
-    reinitInternal();
-  }
-
   /// @dev Accrue interest and try to reinit riskiest accounts (accounts on top of both heaps)
-  function reinitInternal() private returns (bool callerMarginCalled, FP96.FixedPoint memory basePrice) {
+  function reinit() private returns (bool callerMarginCalled, FP96.FixedPoint memory basePrice) {
     basePrice = getBasePrice();
     if (!accrueInterest()) {
       return (callerMarginCalled, basePrice); // (false, basePrice)
@@ -957,8 +955,11 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @inheritdoc IMarginlyPool
-  function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) external override lock {
+  /// @notice Liquidate bad position and receive position collateral and debt
+  /// @param badPositionAddress address of position to liquidate
+  /// @param quoteAmount amount of quote token to be deposited
+  /// @param baseAmount amount of base token to be deposited
+  function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) private {
     require(positions[msg.sender]._type == PositionType.Uninitialized, 'PI'); // Position initialized
 
     accrueInterest();
@@ -1140,8 +1141,9 @@ contract MarginlyPool is IMarginlyPool {
     emit Emergency(_mode);
   }
 
-  /// @inheritdoc IMarginlyPool
-  function emergencyWithdraw(bool unwrapWETH) external override lock {
+  /// @notice Withdraw position collateral in emergency mode
+  /// @param unwrapWETH flag to unwrap WETH to ETH
+  function emergencyWithdraw(bool unwrapWETH) private {
     require(mode != Mode.Regular, 'SM'); // System should be in emergency mode
 
     Position memory position = positions[msg.sender];
@@ -1238,5 +1240,44 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Calculate swap price in Q96
   function getSwapPrice(uint256 quoteAmount, uint256 baseAmount) private pure returns (uint256) {
     return Math.mulDiv(quoteAmount, FP96.Q96, baseAmount);
+  }
+
+  function execute(
+    CallType call,
+    uint256 amount1,
+    uint256 amount2,
+    bool unwrapWETH,
+    address receivePositionAddress
+  ) external payable override lock {
+    if (call == CallType.DepositBase) {
+      depositBase(amount1, amount2);
+    }
+    else if (call == CallType.DepositQuote) {
+      depositQuote(amount1, amount2);
+    }
+    else if (call == CallType.WithdrawBase) {
+      withdrawBase(amount1, unwrapWETH);
+    }
+    else if (call == CallType.WithdrawQuote) {
+      withdrawQuote(amount1, unwrapWETH);
+    }
+    else if (call == CallType.Short) {
+      short(amount1);
+    }
+    else if (call == CallType.Long) {
+      long(amount1);
+    }
+    else if (call == CallType.ClosePosition) {
+      closePosition();
+    }
+    else if (call == CallType.Reinit) {
+      reinit();
+    }
+    else if (call == CallType.ReceivePosition) {
+      receivePosition(receivePositionAddress, amount1, amount2);
+    }
+    else if (call == CallType.EmergencyWithdraw) {
+      emergencyWithdraw(unwrapWETH);
+    }
   }
 }

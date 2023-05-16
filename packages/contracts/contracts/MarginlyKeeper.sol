@@ -9,6 +9,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
+import './dataTypes/Call.sol';
 
 /// @notice Contract helper for Marginly position liquidators.
 /// @dev It make liquidation with help of AAVE flashloan
@@ -96,18 +97,22 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     address collateralToken;
     if (quoteToken == asset) {
       IERC20(quoteToken).approve(params.marginlyPool, amount);
-      marginlyPool.receivePosition(params.positionToLiquidate, amount, 0);
+      // marginlyPool.receivePosition(params.positionToLiquidate, amount, 0);
+      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate);
       collateralToken = baseToken;
     } else if (baseToken == asset) {
       IERC20(baseToken).approve(params.marginlyPool, amount);
-      marginlyPool.receivePosition(params.positionToLiquidate, 0, amount);
+      // marginlyPool.receivePosition(params.positionToLiquidate, 0, amount);
+      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate);
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');
     }
 
-    marginlyPool.withdrawBase(type(uint256).max, false);
-    marginlyPool.withdrawQuote(type(uint256).max, false);
+    // marginlyPool.withdrawBase(type(uint256).max, false);
+    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0));
+    // marginlyPool.withdrawQuote(type(uint256).max, false);
+    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0));
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 
