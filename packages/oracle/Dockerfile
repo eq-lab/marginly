@@ -1,12 +1,15 @@
-FROM node:16 AS build
+FROM node:18.14.2-alpine3.17 AS build
 WORKDIR /usr/src/app
 COPY . .
 
-RUN yarn install --frozen-lockfile
+RUN yarn
+
 WORKDIR /usr/src/app/packages/contracts
 RUN yarn compile
+
 WORKDIR /usr/src/app/packages/contracts-uniswap-mock
 RUN yarn compile
+
 WORKDIR /usr/src/app/packages/oracle
 RUN yarn build
 
