@@ -84,7 +84,7 @@
   "uniswapV3PoolMocks": [
     {
       "id": "fweth-usdc",
-      "address": "0x4bfD0f17025ed16014b3165c56F5dd09A73Cb490",
+      "address": "0x3FF49b72F5c3B1E4d63b3DB4F2d8a729d4463E0E",
       "priceId": "eth-usdc",
       "priceBaseTokenId": "fweth"
     },
