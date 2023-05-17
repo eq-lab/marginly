@@ -96,6 +96,7 @@ jobs:
       id: create-secret
     - name: 'deploy'
       run: |
+        ls -la
         helm upgrade -i $SERVICE_NAME \
           -n $NAMESPACE \
           --set fullnameOverride=$SERVICE_NAME \
