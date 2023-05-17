@@ -737,11 +737,11 @@ describe('MarginlyPool.Base', () => {
     it('should raise error when attempt to close Uninitialized or Lend position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
-      await expect(marginlyPool.execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS)).to.be.revertedWith('U');
+      await expect(marginlyPool.execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS)).to.be.revertedWith('WPT');
 
       const amountToDeposit = 1000;
       await marginlyPool.connect(signer).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS);
-      await expect(marginlyPool.connect(signer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS)).to.be.revertedWith('L');
+      await expect(marginlyPool.connect(signer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS)).to.be.revertedWith('WPT');
     });
 
     it('should close short position', async () => {
