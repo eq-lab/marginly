@@ -3,9 +3,10 @@ import { BigNumber } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
-import { decodeSwapEvent } from '../utils/chain-ops';
+import { CallType, decodeSwapEvent } from '../utils/chain-ops';
 import { FP96, toHumanString } from '../utils/fixed-point';
 import { changeWethPrice } from '../utils/uniswap-ops';
+import { ZERO_ADDRESS } from '../utils/const';
 
 export async function shortIncome(sut: SystemUnderTest) {
   logger.info(`Starting shortIncome test suite`);
@@ -27,7 +28,7 @@ export async function shortIncome(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
+      marginlyPool.connect(lenders[i]).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
   }
 
@@ -46,14 +47,14 @@ export async function shortIncome(sut: SystemUnderTest) {
 
   await gasReporter.saveGasUsage(
     'depositQuote',
-    marginlyPool.connect(borrower).depositQuote(initialBorrQuoteBalance, 0,{ gasLimit: 500_000 })
+    marginlyPool.connect(borrower).execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
   );
 
   // we are checking nothing here since it's basically short test with extra step
   const shortAmount = parseUnits('5', 18);
   logger.info(`Open ${formatUnits(shortAmount, 18)} WETH short position`);
 
-  await gasReporter.saveGasUsage('short', marginlyPool.connect(borrower).short(shortAmount, { gasLimit: 1_500_000 }));
+  await gasReporter.saveGasUsage('short', marginlyPool.connect(borrower).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 }));
 
   logger.info(`Decreasing WETH price by ~10%`);
   await changeWethPrice(treasury, provider.provider, sut, wethPriceX96.mul(9).div(10).div(FP96.one));
@@ -67,7 +68,7 @@ export async function shortIncome(sut: SystemUnderTest) {
   logger.info(`reinit`);
   const reinitReceipt = await gasReporter.saveGasUsage(
     'reinit',
-    marginlyPool.connect(treasury).reinit({ gasLimit: 1_000_000 })
+    marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
   );
   logger.info(`reinit executed`);
   const marginCallEvent = reinitReceipt.events?.find((e) => e.event == 'EnactMarginCall');
@@ -84,7 +85,7 @@ export async function shortIncome(sut: SystemUnderTest) {
   logger.info(`Closing position`);
   const closePosReceipt = await gasReporter.saveGasUsage(
     'closePosition',
-    marginlyPool.connect(borrower).closePosition({ gasLimit: 1_000_000 })
+    marginlyPool.connect(borrower).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
   );
   const closePosSwapEvent = decodeSwapEvent(closePosReceipt, uniswap.address);
   const swapAmount = closePosSwapEvent.amount0;
