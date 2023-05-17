@@ -17,9 +17,7 @@ export async function mc(sut: SystemUnderTest) {
   const numberOfLenders = 20;
   const lenders = accounts.slice(0, numberOfLenders);
   const baseAmount = parseUnits('20', 18); // 20 WETH
-  const quoteAmount = parseUnits('20', 18)
-    .mul(basePrice)
-    .div(FP96.one);
+  const quoteAmount = parseUnits('20', 18).mul(basePrice).div(FP96.one);
 
   logger.info(`Deposit quote and base`);
   for (let i = 0; i < lenders.length; i++) {
@@ -28,7 +26,9 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(lenders[i])
+        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
 
     await (await usdc.connect(treasury).transfer(lenders[i].address, quoteAmount)).wait();
@@ -36,7 +36,9 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(lenders[i]).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(lenders[i])
+        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
   }
 
@@ -45,48 +47,62 @@ export async function mc(sut: SystemUnderTest) {
   const initialLongerBalance = parseUnits('1', 18); // 1 WETH
   logger.info(`borrower initial deposit: ${formatUnits(initialLongerBalance, 18)} WETH`);
 
-  for(let i = 0; i < numberOfLongers; ++i) {
+  for (let i = 0; i < numberOfLongers; ++i) {
     const longer = longers[i];
     await (await weth.connect(treasury).transfer(longer.address, initialLongerBalance)).wait();
     await (await weth.connect(longer).approve(marginlyPool.address, initialLongerBalance)).wait();
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(longer).execute(CallType.DepositBase, initialLongerBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(longer)
+        .execute(CallType.DepositBase, initialLongerBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
 
     const longAmount = parseUnits('18', 18).mul(i + 1);
     logger.info(`Open ${formatUnits(longAmount, 18)} WETH long position`);
 
-    await gasReporter.saveGasUsage('long', marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 }));
+    await gasReporter.saveGasUsage(
+      'long',
+      marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 })
+    );
   }
 
   const numberOfShorters = 1;
-  const shorters = 
-    accounts.slice(numberOfLenders + numberOfLongers, numberOfLenders + numberOfLongers + numberOfShorters);
+  const shorters = accounts.slice(
+    numberOfLenders + numberOfLongers,
+    numberOfLenders + numberOfLongers + numberOfShorters
+  );
   const initialShorterBalance = parseUnits('1', 18) // 1 WETH in USDC
     .mul(basePrice)
     .div(FP96.one);
   logger.info(`borrower initial deposit: ${formatUnits(initialShorterBalance, 18)} WETH`);
 
-  for(let i = 0; i < numberOfShorters; ++i) {
+  for (let i = 0; i < numberOfShorters; ++i) {
     const shorter = shorters[i];
     await (await usdc.connect(treasury).transfer(shorter.address, initialShorterBalance)).wait();
     await (await usdc.connect(shorter).approve(marginlyPool.address, initialShorterBalance)).wait();
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(shorter).execute(CallType.DepositBase, initialShorterBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositBase, initialShorterBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
 
     const shortAmount = parseUnits('18', 18).mul(i + 1);
     logger.info(`Open ${formatUnits(shortAmount, 18)} WETH short position`);
 
-    await gasReporter.saveGasUsage('short', marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 }));
+    await gasReporter.saveGasUsage(
+      'short',
+      marginlyPool
+        .connect(shorter)
+        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 })
+    );
   }
 
   // 30 days -- 1 mc, 60 days -- 2 mc
-  const numOfSeconds = 30 * 24 * 60 * 60; 
+  const numOfSeconds = 30 * 24 * 60 * 60;
 
   const nextDate = +BigNumber.from(await marginlyPool.lastReinitTimestampSeconds()).add(numOfSeconds);
   await provider.mineAtTimestamp(nextDate);
@@ -98,7 +114,9 @@ export async function mc(sut: SystemUnderTest) {
 
   const txReceipt = await gasReporter.saveGasUsage(
     'depositBase',
-    marginlyPool.connect(depositor).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+    marginlyPool
+      .connect(depositor)
+      .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
   );
 
   const mcEventsNumber = txReceipt.events?.filter((e) => e.event == 'EnactMarginCall').length;

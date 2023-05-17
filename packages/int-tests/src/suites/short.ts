@@ -40,7 +40,9 @@ export async function short(sut: SystemUnderTest) {
     await (await weth.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lender).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
     logger.info(`lender depositBase call success`);
     baseAmountsLenders.push(baseAmount);
@@ -49,7 +51,9 @@ export async function short(sut: SystemUnderTest) {
     await (await usdc.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(lender).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
     logger.info(`lender depositQuote call success`);
   }
@@ -90,7 +94,9 @@ export async function short(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(shorter).execute(CallType.DepositQuote, initCollateral, 0, false, ZERO_ADDRESS, { gasLimit: 700_000 })
+      marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, initCollateral, 0, false, ZERO_ADDRESS, { gasLimit: 700_000 })
     );
     logger.info(`depositQuote call success`);
 
@@ -112,7 +118,9 @@ export async function short(sut: SystemUnderTest) {
     logger.info(`short call`);
     const txReceipt = await gasReporter.saveGasUsage(
       'short',
-      marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
+      marginlyPool
+        .connect(shorter)
+        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
     );
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
     logger.info(`short call success`);

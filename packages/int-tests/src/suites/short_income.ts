@@ -28,7 +28,9 @@ export async function shortIncome(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(lenders[i])
+        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
   }
 
@@ -47,14 +49,19 @@ export async function shortIncome(sut: SystemUnderTest) {
 
   await gasReporter.saveGasUsage(
     'depositQuote',
-    marginlyPool.connect(borrower).execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+    marginlyPool
+      .connect(borrower)
+      .execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
   );
 
   // we are checking nothing here since it's basically short test with extra step
   const shortAmount = parseUnits('5', 18);
   logger.info(`Open ${formatUnits(shortAmount, 18)} WETH short position`);
 
-  await gasReporter.saveGasUsage('short', marginlyPool.connect(borrower).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 }));
+  await gasReporter.saveGasUsage(
+    'short',
+    marginlyPool.connect(borrower).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 })
+  );
 
   logger.info(`Decreasing WETH price by ~10%`);
   await changeWethPrice(treasury, provider.provider, sut, wethPriceX96.mul(9).div(10).div(FP96.one));

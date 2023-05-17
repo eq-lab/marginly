@@ -35,7 +35,7 @@ export const CallType = {
   ClosePosition: 6,
   Reinit: 7,
   ReceivePosition: 8,
-  EmergencyWithdraw:9,
+  EmergencyWithdraw: 9,
 };
 
 export type SwapEvent = {

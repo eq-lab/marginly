@@ -23,7 +23,9 @@ export async function longIncome(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(lenders[i]).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      marginlyPool
+        .connect(lenders[i])
+        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
   }
 
@@ -40,14 +42,19 @@ export async function longIncome(sut: SystemUnderTest) {
 
   await gasReporter.saveGasUsage(
     'depositBase',
-    marginlyPool.connect(borrower).execute(CallType.DepositBase, initialBorrBaseBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+    marginlyPool
+      .connect(borrower)
+      .execute(CallType.DepositBase, initialBorrBaseBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
   );
 
   // we are checking nothing here since it's basically long test with extra step
   const longAmount = parseUnits('5', 18);
   logger.info(`Open ${formatUnits(longAmount, 18)} WETH long position`);
 
-  await gasReporter.saveGasUsage('long', marginlyPool.connect(borrower).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 }));
+  await gasReporter.saveGasUsage(
+    'long',
+    marginlyPool.connect(borrower).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 })
+  );
 
   logger.info(`Increasing WETH price by ~10%`);
   await changeWethPrice(treasury, provider.provider, sut, wethPriceX96.mul(11).div(10).div(FP96.one));
@@ -78,7 +85,9 @@ export async function longIncome(sut: SystemUnderTest) {
   logger.info(`Closing position`);
   const closePosReceipt = await gasReporter.saveGasUsage(
     'closePosition',
-    await marginlyPool.connect(borrower).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
+    await marginlyPool
+      .connect(borrower)
+      .execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
   );
   const closePosSwapEvent = decodeSwapEvent(closePosReceipt, uniswap.address);
   const swapAmount = closePosSwapEvent.amount1;
