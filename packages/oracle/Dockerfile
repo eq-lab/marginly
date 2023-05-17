@@ -19,7 +19,7 @@ ENV NODE_ENV production
 WORKDIR /app
 RUN chown node:node .
 USER node
-COPY --chown=node:node --from=build ["package.json", "yarn.lock", "./"]
+COPY --chown=node:node ["package.json", "yarn.lock", "./"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/dist", "packages/oracle/dist/"]
 COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/package.json", "/usr/src/app/packages/oracle/config.json", "./packages/oracle/"]
