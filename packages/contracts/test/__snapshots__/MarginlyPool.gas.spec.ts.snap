@@ -17,28 +17,28 @@ Object {
 exports[`Liquidation liquidate long position and create new long position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 230728,
+  "gasUsed": 230740,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 247839,
+  "gasUsed": 247851,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 259011,
+  "gasUsed": 259023,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new short position 1`] = `
 Object {
   "calldataByteLength": 100,
-  "gasUsed": 241739,
+  "gasUsed": 241751,
 }
 `;
 
