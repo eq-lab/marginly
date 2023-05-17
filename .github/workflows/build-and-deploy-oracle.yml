@@ -1,13 +1,13 @@
-name: 0racle Image CI
+name: Oracle Image CI
 on:
   push:
     branches:
-      - 'uniswap-mock-ci'
+      - 'oracle-releases'
     tags:
       - 'v*'
   pull_request:
     branches:
-      - 'uniswap-mock-ci'
+      - 'oracle-releases'
 
 env:
   REGISTRY: ghcr.io
@@ -46,7 +46,7 @@ jobs:
             type=ref,enable=true,priority=600,prefix=,suffix=-{{date 'YYYYMMDD'}}-{{sha}},event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'oracle-releases') }}
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
