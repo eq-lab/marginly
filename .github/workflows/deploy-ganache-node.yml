@@ -6,9 +6,9 @@ on:
 env:
   REGISTRY: trufflesuite/ganache
   IMAGE_TAG: latest
-  SERVICE_NAME: marginly-ganache-gitlab
-  CLUSTER: kube
-  NAMESPACE: eth-backend-test
+  SERVICE_NAME: ${{ secrets.SERVICE_NAME_GANACHE }}
+  CLUSTER: ${{ secrets.CLUSTER }}
+  NAMESPACE: ${{ secrets.NAMESPACE }}
   HELM_REPOSITORY: "ethpandaops/ethereum-helm-charts"
   
 jobs:
