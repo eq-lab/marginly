@@ -92,10 +92,10 @@ export async function keeper(sut: SystemUnderTest) {
     await (await marginlyPool.connect(shorter).short(shortAmount, ethArgs)).wait();
   }
 
-  // Set parameters to leverage 17
+  // Set parameters to leverage 15
   {
     const params = await marginlyPool.params();
-    await (await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 17 })).wait();
+    await (await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 15 })).wait();
   }
 
   const [basePrice, params, baseCollateralCoeff, baseDebtCoeff, quoteCollateralCoeff, quoteDebtCoeff]: [
@@ -135,7 +135,9 @@ export async function keeper(sut: SystemUnderTest) {
 
   await gasReporter.saveGasUsage(
     'keeper.flashLoan',
-    keeper.connect(liquidator).flashLoan(usdc.address, longerDebtAmount, 0, marginlyPool.address, longer.address, 0)
+    keeper
+      .connect(liquidator)
+      .flashLoan(usdc.address, longerDebtAmount, 0, marginlyPool.address, longer.address, 0, { gasLimit: 1_000_000 })
   );
 
   let balanceAfter = BigNumber.from(await usdc.balanceOf(liquidator.address));
@@ -146,7 +148,9 @@ export async function keeper(sut: SystemUnderTest) {
   balanceBefore = BigNumber.from(await weth.balanceOf(liquidator.address));
   await gasReporter.saveGasUsage(
     'keeper.flashLoan',
-    keeper.connect(liquidator).flashLoan(weth.address, shorterDebtAmount, 0, marginlyPool.address, shorter.address, 0)
+    keeper
+      .connect(liquidator)
+      .flashLoan(weth.address, shorterDebtAmount, 0, marginlyPool.address, shorter.address, 0, { gasLimit: 1_000_000 })
   );
 
   balanceAfter = BigNumber.from(await weth.balanceOf(liquidator.address));
