@@ -343,6 +343,7 @@ contract MarginlyPool is IMarginlyPool {
         // update aggregates
         discountedBaseCollateral = _discountedBaseCollateral.add(discountedBaseCollateralDelta);
         discountedBaseDebt = _discountedBaseDebt.sub(discountedBaseDebtDelta);
+        shortHeap.remove(positions, position.heapPosition - 1);
       } else {
         // Short position, debt > depositAmount, decrease debt
         // discountedBaseDebtDelta = (realDebt - amount) / coeff
@@ -414,6 +415,7 @@ contract MarginlyPool is IMarginlyPool {
         // update aggregates
         discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
         discountedQuoteDebt = _discountedQuoteDebt.sub(discountedQuoteDebtDelta);
+        longHeap.remove(positions, position.heapPosition - 1);
       } else {
         // Long position, debt > depositAmount, decrease debt on delta
         // discountedQuoteDebtDelta -= (realDebt - amount) / coeff

@@ -240,6 +240,7 @@ describe('MarginlyPool.Base', () => {
 
       const initialPrice = await marginlyPool.initialPrice();
       let position = await marginlyPool.positions(signer.address);
+      expect(position.heapPosition).to.be.equal(1);
 
       const sortKeyBefore = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
       const expectedShortKeyBefore = calcShortSortKey(
@@ -271,6 +272,8 @@ describe('MarginlyPool.Base', () => {
       {
         const position = await marginlyPool.positions(signer.address);
         expect(position._type).to.be.equal(PositionType.Lend);
+        expect(position.heapPosition).to.be.equal(0);
+        expect((await marginlyPool.getShortHeapPosition(0))[0]).to.be.false;
       }
     });
 
@@ -439,12 +442,15 @@ describe('MarginlyPool.Base', () => {
 
       const positionBefore = await marginlyPool.positions(signer.address);
       expect(positionBefore._type).to.be.equal(PositionType.Long);
+      expect(positionBefore.heapPosition).to.be.equal(1);
 
       const quoteDepositSecond = 300;
       await marginlyPool.connect(signer).execute(CallType.DepositQuote, quoteDepositSecond, 0, false, ZERO_ADDRESS);
 
       const positionAfter = await marginlyPool.positions(signer.address);
       expect(positionAfter._type).to.be.equal(PositionType.Lend);
+      expect(positionAfter.heapPosition).to.be.equal(0);
+      expect((await marginlyPool.getLongHeapPosition(0))[0]).to.be.false;
     });
 
     it('depositQuote and open short position', async () => {
