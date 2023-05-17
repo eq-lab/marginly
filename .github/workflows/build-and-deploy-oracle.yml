@@ -46,6 +46,7 @@ jobs:
             type=ref,enable=true,priority=600,prefix=,suffix=-{{date 'YYYYMMDD'}}-{{sha}},event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
