@@ -2,7 +2,7 @@ FROM node:18.14.2-alpine3.17 AS build
 WORKDIR /usr/src/app
 COPY . .
 
-RUN yarn
+RUN yarn install --frozen-lockfile
 
 WORKDIR /usr/src/app/packages/contracts
 RUN yarn compile
