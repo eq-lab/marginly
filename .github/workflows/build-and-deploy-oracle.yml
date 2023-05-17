@@ -100,15 +100,13 @@ jobs:
         helm upgrade -i $SERVICE_NAME \
           -n $NAMESPACE \
           --set fullnameOverride=$SERVICE_NAME \
-          --set service.enabled=true \
-          --set service.port=80 \
-          --set service.targetport=80 \
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
           --set image.tag=$IMAGE_TAG \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
+          --set extraEnv.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY=$PK \
           -f extraEnv.yml \
           ./
 
-#          --set extraEnv.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY=$PK \
+#         
