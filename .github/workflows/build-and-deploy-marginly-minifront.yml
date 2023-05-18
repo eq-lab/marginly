@@ -1,4 +1,4 @@
-name: Build adn deploy Marginly minifront
+name: Build and deploy Marginly minifront
 on:
   push:
     tags:
