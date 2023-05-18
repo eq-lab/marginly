@@ -1,8 +1,5 @@
 name: Marginly Image CI
 on:
-  workflow_run:
-    workflows: [Unit tests]
-    types: [completed]
   push:
     tags:
       - 'v*'
@@ -21,30 +18,7 @@ env:
   HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
 
 jobs:
-  testing:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency, keeper]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js 18.14.2
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.14.2
-      - name: Build for testing
-        run: |
-          cd ./packages/int-tests/
-          yarn
-          yarn compile 
-          yarn gen
-      - name: Test ${{ matrix.tests }}
-        run: |
-          cd ./packages/int-tests/
-          yarn start --suite=${{ matrix.tests }}
-
   build-image:
-    needs: testing
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU

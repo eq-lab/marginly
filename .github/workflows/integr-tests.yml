@@ -1,0 +1,36 @@
+name: Integration testing
+on:
+  push:
+    branches:
+        - main
+    tags:
+        - 'v*'
+  pull_request:
+    branches:
+        - main
+  workflow_dispatch:
+
+
+jobs:
+    integration_testing:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency, keeper]
+      steps:
+        - uses: actions/checkout@v3
+        - name: Use Node.js 18.14.2
+          uses: actions/setup-node@v3
+          with:
+            node-version: 18.14.2
+        - name: Build for testing
+          run: |
+            cd ./packages/int-tests/
+            yarn
+            yarn compile 
+            yarn gen
+        - name: Test ${{ matrix.tests }}
+          run: |
+            cd ./packages/int-tests/
+            yarn start --suite=${{ matrix.tests }}
+  
