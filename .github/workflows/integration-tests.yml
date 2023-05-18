@@ -1,4 +1,4 @@
-name: Integration testing
+name: Integration tests
 on:
   push:
     branches:
@@ -12,7 +12,7 @@ on:
 
 
 jobs:
-    integration_testing:
+    integration_tests:
       runs-on: ubuntu-latest
       strategy:
         matrix:
