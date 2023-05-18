@@ -1,4 +1,4 @@
-name: Marginly Image CI
+name: Build adn deploy Marginly minifront
 on:
   push:
     tags:

@@ -1,4 +1,4 @@
-name: Deploy ganache node CI
+name: Deploy ganache node
 
 on:
   workflow_dispatch:
