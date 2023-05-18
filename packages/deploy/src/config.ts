@@ -43,6 +43,7 @@ export interface MarginlyDeployConfig {
     quoteToken: string;
     params: {
       interestRate: string;
+      fee: string;
       maxLeverage: string;
       swapFee: string;
       priceAgo: string;

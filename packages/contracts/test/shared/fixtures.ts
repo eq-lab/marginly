@@ -139,7 +139,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
 
   const params: MarginlyParamsStruct = {
     interestRate: 54000, //5,4 %
-    fee: 10000, //1%
+    fee: 20000, //2%
     maxLeverage: 20,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900, // 15 min

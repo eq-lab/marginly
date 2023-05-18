@@ -435,6 +435,7 @@ class MarginlyDeployer {
       const quoteOne = BigNumber.from(10).pow(quoteDecimals);
       const params = {
         interestRate: config.params.interestRate.mul(one).toInteger(),
+        fee: config.params.fee.mul(one).toInteger(),
         maxLeverage: config.params.maxLeverage.toInteger(),
         swapFee: config.params.swapFee.mul(one).toInteger(),
         priceSecondsAgo: config.params.priceAgo.toSeconds(),
@@ -628,6 +629,7 @@ interface MarginlyFactoryConfig {
 
 interface MarginlyPoolParams {
   interestRate: RationalNumber;
+  fee: RationalNumber;
   maxLeverage: RationalNumber;
   swapFee: RationalNumber;
   priceAgo: TimeSpan;
@@ -751,6 +753,7 @@ class StrictMarginlyDeployConfig {
 
       const params: MarginlyPoolParams = {
         interestRate: RationalNumber.parsePercent(rawPool.params.interestRate),
+        fee: RationalNumber.parsePercent(rawPool.params.fee),
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
         priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
