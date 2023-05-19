@@ -231,7 +231,7 @@ contract MarginlyPool is IMarginlyPool {
         deleverageLong(baseCollToReduce, quoteDebtToReduce);
 
         uint256 disBaseDelta = baseDebtCoeff.recipMul(baseCollToReduce);
-        position.discountedBaseAmount = position.discountedQuoteAmount.sub(disBaseDelta);
+        position.discountedBaseAmount = position.discountedBaseAmount.sub(disBaseDelta);
         discountedBaseDebt = discountedBaseDebt.sub(disBaseDelta);
 
         uint256 disQuoteDelta = quoteCollateralCoeff.recipMul(quoteDebtToReduce.add(quoteDelevCoeff.mul(disBaseDelta)));
