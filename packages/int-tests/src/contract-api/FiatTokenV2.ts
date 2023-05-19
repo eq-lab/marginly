@@ -137,7 +137,7 @@ export interface FiatTokenV2_1Contract extends BaseContract {
     owner: PromiseOrValue<string>,
     spender: PromiseOrValue<string>,
     override?: CallOverrides
-  ): Promise<BigNumberish>;
+  ): Promise<BigNumber>;
   approve(
     spender: PromiseOrValue<string>,
     value: PromiseOrValue<BigNumberish>,
@@ -148,7 +148,7 @@ export interface FiatTokenV2_1Contract extends BaseContract {
     nonce: PromiseOrValue<BytesLike>,
     override?: CallOverrides
   ): Promise<boolean>;
-  balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumberish>;
+  balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumber>;
   blacklist(
     _account: PromiseOrValue<string>,
     override?: Overrides & { from?: PromiseOrValue<string> }
@@ -173,7 +173,7 @@ export interface FiatTokenV2_1Contract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   currency(override?: CallOverrides): Promise<string>;
-  decimals(override?: CallOverrides): Promise<BigNumberish>;
+  decimals(override?: CallOverrides): Promise<number>;
   decreaseAllowance(
     spender: PromiseOrValue<string>,
     decrement: PromiseOrValue<BigNumberish>,
@@ -212,9 +212,9 @@ export interface FiatTokenV2_1Contract extends BaseContract {
     _amount: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  minterAllowance(minter: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumberish>;
+  minterAllowance(minter: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumber>;
   name(override?: CallOverrides): Promise<string>;
-  nonces(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumberish>;
+  nonces(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumber>;
   owner(override?: CallOverrides): Promise<string>;
   pause(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   paused(override?: CallOverrides): Promise<boolean>;
@@ -255,7 +255,7 @@ export interface FiatTokenV2_1Contract extends BaseContract {
   ): Promise<ContractTransaction>;
   rescuer(override?: CallOverrides): Promise<string>;
   symbol(override?: CallOverrides): Promise<string>;
-  totalSupply(override?: CallOverrides): Promise<BigNumberish>;
+  totalSupply(override?: CallOverrides): Promise<BigNumber>;
   transfer(
     to: PromiseOrValue<string>,
     value: PromiseOrValue<BigNumberish>,
@@ -312,24 +312,24 @@ export interface FiatTokenV2_1Contract extends BaseContract {
       owner: PromiseOrValue<string>,
       spender: PromiseOrValue<string>,
       override?: CallOverrides
-    ): Promise<[BigNumberish]>;
+    ): Promise<[BigNumber]>;
     authorizationState(
       authorizer: PromiseOrValue<string>,
       nonce: PromiseOrValue<BytesLike>,
       override?: CallOverrides
     ): Promise<[boolean]>;
-    balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumberish]>;
+    balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumber]>;
     blacklister(override?: CallOverrides): Promise<[string]>;
     CANCEL_AUTHORIZATION_TYPEHASH(override?: CallOverrides): Promise<[BytesLike]>;
     currency(override?: CallOverrides): Promise<[string]>;
-    decimals(override?: CallOverrides): Promise<[BigNumberish]>;
+    decimals(override?: CallOverrides): Promise<[number]>;
     DOMAIN_SEPARATOR(override?: CallOverrides): Promise<[BytesLike]>;
     isBlacklisted(_account: PromiseOrValue<string>, override?: CallOverrides): Promise<[boolean]>;
     isMinter(account: PromiseOrValue<string>, override?: CallOverrides): Promise<[boolean]>;
     masterMinter(override?: CallOverrides): Promise<[string]>;
-    minterAllowance(minter: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumberish]>;
+    minterAllowance(minter: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumber]>;
     name(override?: CallOverrides): Promise<[string]>;
-    nonces(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumberish]>;
+    nonces(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumber]>;
     owner(override?: CallOverrides): Promise<[string]>;
     paused(override?: CallOverrides): Promise<[boolean]>;
     pauser(override?: CallOverrides): Promise<[string]>;
@@ -337,7 +337,7 @@ export interface FiatTokenV2_1Contract extends BaseContract {
     RECEIVE_WITH_AUTHORIZATION_TYPEHASH(override?: CallOverrides): Promise<[BytesLike]>;
     rescuer(override?: CallOverrides): Promise<[string]>;
     symbol(override?: CallOverrides): Promise<[string]>;
-    totalSupply(override?: CallOverrides): Promise<[BigNumberish]>;
+    totalSupply(override?: CallOverrides): Promise<[BigNumber]>;
     TRANSFER_WITH_AUTHORIZATION_TYPEHASH(override?: CallOverrides): Promise<[BytesLike]>;
     version(override?: CallOverrides): Promise<[string]>;
   };

@@ -29,6 +29,9 @@ export async function longAndShort(sut: SystemUnderTest) {
   logger.info(`Prepared accounts`);
   const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
 
+  const params = await marginlyPool.params();
+  await marginlyPool.connect(treasury).setParameters({ ...params, fee: 0 });
+
   const interestRateX96 = BigNumber.from((await marginlyPool.params()).interestRate)
     .mul(FP96.one)
     .div(1e6);
@@ -62,7 +65,7 @@ export async function longAndShort(sut: SystemUnderTest) {
     await (await weth.connect(longer).approve(marginlyPool.address, initBaseCollateral)).wait();
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(longer).depositBase(initBaseCollateral, 0,{ gasLimit: 1_000_000 })
+      marginlyPool.connect(longer).depositBase(initBaseCollateral, 0, { gasLimit: 1_000_000 })
     );
     logger.info(`longer depositBase call success`);
     longersAmounts.push([initBaseCollateral, BigNumber.from(0)]);
@@ -74,7 +77,7 @@ export async function longAndShort(sut: SystemUnderTest) {
     await (await usdc.connect(shorter).approve(marginlyPool.address, initQuoteCollateral)).wait();
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(shorter).depositQuote(initQuoteCollateral, 0,{ gasLimit: 1_000_000 })
+      marginlyPool.connect(shorter).depositQuote(initQuoteCollateral, 0, { gasLimit: 1_000_000 })
     );
     logger.info(`shorter depositQuote call success`);
     shortersAmounts.push([BigNumber.from(0), initQuoteCollateral]);
@@ -177,6 +180,7 @@ export async function longAndShort(sut: SystemUnderTest) {
     logger.info(` discountedBaseAmount  ${formatUnits(discountedBaseAmount, 18)}`);
     logger.info(` discountedQuoteAmount ${formatUnits(discountedQuoteAmount, 6)}`);
     const debtCoeff = BigNumber.from(await marginlyPool.quoteDebtCoeff());
+    const debtAccruedRate = await marginlyPool.quoteAccruedRate();
 
     const realBaseAmount = baseCollateralCoeff.mul(discountedBaseAmount).div(FP96.one);
     const realQuoteAmount = debtCoeff.mul(discountedQuoteAmount).div(FP96.one);
@@ -210,7 +214,9 @@ export async function longAndShort(sut: SystemUnderTest) {
     const discountedQuoteAmount = BigNumber.from(position.discountedQuoteAmount);
     logger.info(` discountedBaseAmount  ${formatUnits(discountedBaseAmount, 18)}`);
     logger.info(` discountedQuoteAmount ${formatUnits(discountedQuoteAmount, 6)}`);
-    const debtCoeff = BigNumber.from(await marginlyPool.baseDebtCoeff());
+
+    const debtCoeff = await marginlyPool.baseDebtCoeff();
+    const debtAccruedRate = await marginlyPool.baseAccruedRate();
 
     const realBaseAmount = debtCoeff.mul(discountedBaseAmount).div(FP96.one);
     const realQuoteAmount = quoteCollateralCoeff.mul(discountedQuoteAmount).div(FP96.one);

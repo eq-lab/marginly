@@ -96,6 +96,7 @@ async function initializeTestSystem(
 
   const initialParams = {
     interestRate: 54000, // 5.4%
+    fee: 20000, // 2%
     maxLeverage: 20n,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900n, // 15 min

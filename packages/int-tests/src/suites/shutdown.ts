@@ -33,7 +33,7 @@ export async function shortEmergency(sut: SystemUnderTest) {
   await (await marginlyPool.connect(lender).depositBase(lenderDepositBaseAmount, 0, { gasLimit: 400_000 })).wait();
   await showSystemAggregates(sut);
 
-  //shorter deposit 1000 USDC
+  //shorter deposit 250 USDC
   const shorterDepositQuote = parseUnits('250', 6);
   logger.info(`Shorter deposit ${formatUnits(shorterDepositQuote, 6)} USDC`);
   await (await usdc.connect(shorter).approve(marginlyPool.address, shorterDepositQuote)).wait();
@@ -49,7 +49,7 @@ export async function shortEmergency(sut: SystemUnderTest) {
   const longDepositBase = parseUnits('0.1', 18);
   logger.info(`Longer deposit ${formatUnits(longDepositBase, 18)} WETH`);
   await (await weth.connect(longer).approve(marginlyPool.address, longDepositBase)).wait();
-  await (await marginlyPool.connect(longer).depositBase(longDepositBase, 0, { gasLimit: 400_000 })).wait();
+  await (await marginlyPool.connect(longer).depositBase(longDepositBase, 0, { gasLimit: 500_000 })).wait();
 
   // longer make long on 1.8 ETH
   const longAmount = parseUnits('0.5', 18);
@@ -90,13 +90,27 @@ export async function shortEmergency(sut: SystemUnderTest) {
       await (await marginlyPool.connect(treasury).shutDown({ gasLimit: 500_000 })).wait();
       break;
     }
-
     await showSystemAggregates(sut);
   }
 
+  const emWithdrawCoeff = await marginlyPool.emergencyWithdrawCoeff();
+
+  const lenderPosition = await marginlyPool.positions(lender.address);
+  const longerPosition = await marginlyPool.positions(longer.address);
+
+  const lenderAmount = lenderPosition.discountedBaseAmount.mul(emWithdrawCoeff).div(FP96.one);
+  const longerAmount = longerPosition.discountedBaseAmount.mul(emWithdrawCoeff).div(FP96.one);
+
+  const poolBaseBalance = await weth.balanceOf(marginlyPool.address);
+
+  const baseCollateral = console.log(`In pool ${poolBaseBalance}`);
+  console.log(`Trying to withdraw ${lenderAmount} + ${longerAmount} = ${lenderAmount.add(longerAmount)}`);
+
   /* emergencyWithdraw */
+  logger.debug('system  in Emergency mode');
 
   await (await marginlyPool.connect(longer).emergencyWithdraw(false, { gasLimit: 400_000 })).wait();
+  logger.debug('befrore lender withdraw');
   await (await marginlyPool.connect(lender).emergencyWithdraw(false, { gasLimit: 400_000 })).wait();
 
   await showSystemAggregates(sut);

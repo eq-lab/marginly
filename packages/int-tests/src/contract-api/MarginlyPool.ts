@@ -19,6 +19,7 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyPoolInterface extends utils.Interface {
   functions: {
+    'baseAccruedRate()': utils.FunctionFragment;
     'baseCollateralCoeff()': utils.FunctionFragment;
     'baseDebtCoeff()': utils.FunctionFragment;
     'baseToken()': utils.FunctionFragment;
@@ -43,6 +44,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'mode()': utils.FunctionFragment;
     'params()': utils.FunctionFragment;
     'positions(address)': utils.FunctionFragment;
+    'quoteAccruedRate()': utils.FunctionFragment;
     'quoteCollateralCoeff()': utils.FunctionFragment;
     'quoteDebtCoeff()': utils.FunctionFragment;
     'quoteToken()': utils.FunctionFragment;
@@ -63,6 +65,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | 'baseAccruedRate'
       | 'baseCollateralCoeff'
       | 'baseDebtCoeff'
       | 'baseToken'
@@ -87,6 +90,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'mode'
       | 'params'
       | 'positions'
+      | 'quoteAccruedRate'
       | 'quoteCollateralCoeff'
       | 'quoteDebtCoeff'
       | 'quoteToken'
@@ -113,8 +117,9 @@ export interface MarginlyPoolContract extends BaseContract {
 
   interface: MarginlyPoolInterface;
 
-  baseCollateralCoeff(override?: CallOverrides): Promise<BigNumberish>;
-  baseDebtCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  baseAccruedRate(override?: CallOverrides): Promise<BigNumber>;
+  baseCollateralCoeff(override?: CallOverrides): Promise<BigNumber>;
+  baseDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   baseToken(override?: CallOverrides): Promise<string>;
   closePosition(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   depositBase(
@@ -127,26 +132,26 @@ export interface MarginlyPoolContract extends BaseContract {
     shortAmount: BigNumberish,
     override?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  discountedBaseCollateral(override?: CallOverrides): Promise<BigNumberish>;
-  discountedBaseDebt(override?: CallOverrides): Promise<BigNumberish>;
-  discountedQuoteCollateral(override?: CallOverrides): Promise<BigNumberish>;
-  discountedQuoteDebt(override?: CallOverrides): Promise<BigNumberish>;
+  discountedBaseCollateral(override?: CallOverrides): Promise<BigNumber>;
+  discountedBaseDebt(override?: CallOverrides): Promise<BigNumber>;
+  discountedQuoteCollateral(override?: CallOverrides): Promise<BigNumber>;
+  discountedQuoteDebt(override?: CallOverrides): Promise<BigNumber>;
   emergencyWithdraw(
     unwrapWETH: PromiseOrValue<boolean>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  emergencyWithdrawCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  emergencyWithdrawCoeff(override?: CallOverrides): Promise<BigNumber>;
   factory(override?: CallOverrides): Promise<string>;
-  getBasePrice(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
-  getCurrentBasePrice(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+  getBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
+  getCurrentBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
   getLongHeapPosition(
     index: PromiseOrValue<BigNumberish>,
     override?: CallOverrides
-  ): Promise<[boolean, { key: BigNumberish; account: string }]>;
+  ): Promise<[boolean, { key: BigNumber; account: string }]>;
   getShortHeapPosition(
     index: PromiseOrValue<BigNumberish>,
     override?: CallOverrides
-  ): Promise<[boolean, { key: BigNumberish; account: string }]>;
+  ): Promise<[boolean, { key: BigNumber; account: string }]>;
   initialize(
     _quoteToken: PromiseOrValue<string>,
     _baseToken: PromiseOrValue<string>,
@@ -157,6 +162,7 @@ export interface MarginlyPoolContract extends BaseContract {
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
+      fee: BigNumberish;
       swapFee: BigNumberish;
       positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
@@ -166,37 +172,39 @@ export interface MarginlyPoolContract extends BaseContract {
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  initialPrice(override?: CallOverrides): Promise<BigNumberish>;
-  lastReinitTimestampSeconds(override?: CallOverrides): Promise<BigNumberish>;
+  initialPrice(override?: CallOverrides): Promise<BigNumber>;
+  lastReinitTimestampSeconds(override?: CallOverrides): Promise<BigNumber>;
   long(
     realBaseAmount: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  mode(override?: CallOverrides): Promise<BigNumberish>;
+  mode(override?: CallOverrides): Promise<number>;
   params(
     override?: CallOverrides
   ): Promise<{
-    maxLeverage: BigNumberish;
-    priceSecondsAgo: BigNumberish;
-    interestRate: BigNumberish;
-    swapFee: BigNumberish;
-    positionSlippage: BigNumberish;
-    mcSlippage: BigNumberish;
-    positionMinAmount: BigNumberish;
-    baseLimit: BigNumberish;
-    quoteLimit: BigNumberish;
+    maxLeverage: number;
+    priceSecondsAgo: BigNumber;
+    interestRate: BigNumber;
+    fee: BigNumber;
+    swapFee: BigNumber;
+    positionSlippage: BigNumber;
+    mcSlippage: BigNumber;
+    positionMinAmount: BigNumber;
+    baseLimit: BigNumber;
+    quoteLimit: BigNumber;
   }>;
   positions(
     arg0: PromiseOrValue<string>,
     override?: CallOverrides
   ): Promise<{
-    heapPosition: BigNumberish;
-    _type: BigNumberish;
-    discountedBaseAmount: BigNumberish;
-    discountedQuoteAmount: BigNumberish;
+    heapPosition: BigNumber;
+    _type: number;
+    discountedBaseAmount: BigNumber;
+    discountedQuoteAmount: BigNumber;
   }>;
-  quoteCollateralCoeff(override?: CallOverrides): Promise<BigNumberish>;
-  quoteDebtCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  quoteAccruedRate(override?: CallOverrides): Promise<BigNumber>;
+  quoteCollateralCoeff(override?: CallOverrides): Promise<BigNumber>;
+  quoteDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteToken(override?: CallOverrides): Promise<string>;
   quoteTokenIsToken0(override?: CallOverrides): Promise<boolean>;
   receivePosition(
@@ -211,6 +219,7 @@ export interface MarginlyPoolContract extends BaseContract {
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
+      fee: BigNumberish;
       swapFee: BigNumberish;
       positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
@@ -226,8 +235,8 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<ContractTransaction>;
   shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-  systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumberish; longX96: BigNumberish }>;
-  uniswapFee(override?: CallOverrides): Promise<BigNumberish>;
+  systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
+  uniswapFee(override?: CallOverrides): Promise<BigNumber>;
   uniswapPool(override?: CallOverrides): Promise<string>;
   unlocked(override?: CallOverrides): Promise<boolean>;
   withdrawBase(
@@ -242,56 +251,59 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<ContractTransaction>;
 
   functions: {
-    baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
-    baseDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    baseAccruedRate(override?: CallOverrides): Promise<{ inner: BigNumber }>;
+    baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
+    baseDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseToken(override?: CallOverrides): Promise<[string]>;
-    discountedBaseCollateral(override?: CallOverrides): Promise<[BigNumberish]>;
-    discountedBaseDebt(override?: CallOverrides): Promise<[BigNumberish]>;
-    discountedQuoteCollateral(override?: CallOverrides): Promise<[BigNumberish]>;
-    discountedQuoteDebt(override?: CallOverrides): Promise<[BigNumberish]>;
-    emergencyWithdrawCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    discountedBaseCollateral(override?: CallOverrides): Promise<[BigNumber]>;
+    discountedBaseDebt(override?: CallOverrides): Promise<[BigNumber]>;
+    discountedQuoteCollateral(override?: CallOverrides): Promise<[BigNumber]>;
+    discountedQuoteDebt(override?: CallOverrides): Promise<[BigNumber]>;
+    emergencyWithdrawCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     factory(override?: CallOverrides): Promise<[string]>;
-    getBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumberish }]>;
-    getCurrentBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumberish }]>;
+    getBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
+    getCurrentBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
     getLongHeapPosition(
       index: PromiseOrValue<BigNumberish>,
       override?: CallOverrides
-    ): Promise<[boolean, { key: BigNumberish; account: string }]>;
+    ): Promise<[boolean, { key: BigNumber; account: string }]>;
     getShortHeapPosition(
       index: PromiseOrValue<BigNumberish>,
       override?: CallOverrides
-    ): Promise<[boolean, { key: BigNumberish; account: string }]>;
-    initialPrice(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
-    lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumberish]>;
-    mode(override?: CallOverrides): Promise<[BigNumberish]>;
+    ): Promise<[boolean, { key: BigNumber; account: string }]>;
+    initialPrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
+    lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumber]>;
+    mode(override?: CallOverrides): Promise<[number]>;
     params(
       override?: CallOverrides
     ): Promise<{
-      maxLeverage: BigNumberish;
-      priceSecondsAgo: BigNumberish;
-      interestRate: BigNumberish;
-      swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
-      mcSlippage: BigNumberish;
-      positionMinAmount: BigNumberish;
-      baseLimit: BigNumberish;
-      quoteLimit: BigNumberish;
+      maxLeverage: number;
+      priceSecondsAgo: BigNumber;
+      interestRate: BigNumber;
+      fee: BigNumber;
+      swapFee: BigNumber;
+      positionSlippage: BigNumber;
+      mcSlippage: BigNumber;
+      positionMinAmount: BigNumber;
+      baseLimit: BigNumber;
+      quoteLimit: BigNumber;
     }>;
     positions(
       arg0: PromiseOrValue<string>,
       override?: CallOverrides
     ): Promise<{
-      heapPosition: BigNumberish;
-      _type: BigNumberish;
-      discountedBaseAmount: BigNumberish;
-      discountedQuoteAmount: BigNumberish;
+      heapPosition: BigNumber;
+      _type: number;
+      discountedBaseAmount: BigNumber;
+      discountedQuoteAmount: BigNumber;
     }>;
-    quoteCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
-    quoteDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    quoteAccruedRate(override?: CallOverrides): Promise<{ inner: BigNumber }>;
+    quoteCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
+    quoteDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteToken(override?: CallOverrides): Promise<[string]>;
     quoteTokenIsToken0(override?: CallOverrides): Promise<[boolean]>;
-    systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumberish; longX96: BigNumberish }>;
-    uniswapFee(override?: CallOverrides): Promise<[BigNumberish]>;
+    systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
+    uniswapFee(override?: CallOverrides): Promise<[BigNumber]>;
     uniswapPool(override?: CallOverrides): Promise<[string]>;
     unlocked(override?: CallOverrides): Promise<[boolean]>;
   };
@@ -321,6 +333,7 @@ export interface MarginlyPoolContract extends BaseContract {
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
+        fee: BigNumberish;
         swapFee: BigNumberish;
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
@@ -346,6 +359,7 @@ export interface MarginlyPoolContract extends BaseContract {
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
+        fee: BigNumberish;
         swapFee: BigNumberish;
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
@@ -398,6 +412,7 @@ export interface MarginlyPoolContract extends BaseContract {
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
+        fee: BigNumberish;
         swapFee: BigNumberish;
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
@@ -423,6 +438,7 @@ export interface MarginlyPoolContract extends BaseContract {
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
+        fee: BigNumberish;
         swapFee: BigNumberish;
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
@@ -475,6 +491,7 @@ export interface MarginlyPoolContract extends BaseContract {
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
+        fee: BigNumberish;
         swapFee: BigNumberish;
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
@@ -500,6 +517,7 @@ export interface MarginlyPoolContract extends BaseContract {
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
         interestRate: BigNumberish;
+        fee: BigNumberish;
         swapFee: BigNumberish;
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;

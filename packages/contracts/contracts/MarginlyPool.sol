@@ -340,7 +340,7 @@ contract MarginlyPool is IMarginlyPool {
 
     {
       uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(
-        _baseDebtCoeff.mul(_discountedBaseDebt)
+        baseAccruedRate.mul(_discountedBaseDebt)
       );
       require(poolBaseBalance.add(amount) <= params.baseLimit, 'EL'); // exceeds limit
     }
@@ -426,7 +426,7 @@ contract MarginlyPool is IMarginlyPool {
 
     {
       uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
-        _quoteDebtCoeff.mul(_discountedQuoteDebt)
+        quoteAccruedRate.mul(_discountedQuoteDebt)
       );
       require(poolQuoteBalance.add(amount) <= params.quoteLimit, 'EL'); // exceeds limit
     }
@@ -701,6 +701,8 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @dev Charge fee (swap or debt fee) in quote token
+  /// @param token address of token
+  /// @param feeAmount amount of token
   function chargeFee(address token, uint256 feeAmount) private {
     TransferHelper.safeTransfer(token, IMarginlyFactory(factory).feeHolder(), feeAmount);
   }
@@ -768,7 +770,7 @@ contract MarginlyPool is IMarginlyPool {
     // use scope here to avoid "Stack too deep error"
     {
       uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
-        quoteDebtCoeff.mul(discountedQuoteDebt)
+        quoteAccruedRate.mul(discountedQuoteDebt)
       );
       require(poolQuoteBalance.add(realQuoteCollateralChange) <= params.quoteLimit, 'EL'); // exceeds limit
     }
@@ -821,8 +823,9 @@ contract MarginlyPool is IMarginlyPool {
     uint256 _discountedBaseCollateral = discountedBaseCollateral;
 
     {
-      uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral) -
-        baseDebtCoeff.mul(discountedBaseDebt);
+      uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(
+        baseAccruedRate.mul(discountedBaseDebt)
+      );
       require(realBaseAmount.add(poolBaseBalance) <= params.baseLimit, 'EL'); // exceeds limit
     }
 
@@ -1105,15 +1108,14 @@ contract MarginlyPool is IMarginlyPool {
        a bit more than IERC20(quoteToken).balanceOf(address(this))
      */
 
-    uint256 baseDebt = baseDebtCoeff.mul(discountedBaseDebt, Math.Rounding.Up);
-    uint256 baseDebtInQuoteUnits = basePrice.mul(baseDebt);
+    uint256 baseDebt = baseAccruedRate.mul(discountedBaseDebt, Math.Rounding.Up);
     uint256 quoteCollateral = quoteCollateralCoeff.mul(_discountedQuoteCollateral);
 
-    uint256 quoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt, Math.Rounding.Up);
+    uint256 quoteDebt = quoteAccruedRate.mul(discountedQuoteDebt, Math.Rounding.Up);
     uint256 baseCollateral = baseCollateralCoeff.mul(_discountedBaseCollateral);
-    uint256 baseCollateralInQuoteUnits = basePrice.mul(baseCollateral);
+    //uint256 baseCollateralInQuoteUnits = 
 
-    if (baseDebtInQuoteUnits > quoteCollateral) {
+    if (basePrice.mul(baseDebt) > quoteCollateral) {
       setEmergencyMode(
         Mode.ShortEmergency,
         baseCollateral,
@@ -1125,7 +1127,7 @@ contract MarginlyPool is IMarginlyPool {
       return;
     }
 
-    if (quoteDebt > baseCollateralInQuoteUnits) {
+    if (quoteDebt > basePrice.mul(baseCollateral)) {
       setEmergencyMode(
         Mode.LongEmergency,
         quoteCollateral,
@@ -1151,10 +1153,10 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     mode = _mode;
 
-    uint256 newCollateral = collateral >= debt ? collateral - debt : 0;
+    uint256 newCollateral = collateral >= debt ? collateral.sub(debt) : 0;
 
     if (emergencyCollateral > emergencyDebt) {
-      uint256 surplus = emergencyCollateral - emergencyDebt;
+      uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
       uint256 collateralSurplus = _mode == Mode.ShortEmergency
         ? swapExactInput(true, surplus, 0)
