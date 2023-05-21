@@ -6,8 +6,6 @@
   "ethereum": {
     "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
   },
-  "oracleWorker": {
-  },
   "tokens": [
     {
       "id": "fweth",
@@ -100,5 +98,22 @@
       "priceId": "gmx-eth",
       "priceBaseTokenId": "gmx"
     }
-  ]
+  ],
+  "oracleWorker": {
+    "tickMs": 1000,
+    "updatePriceJobs": [
+      {
+        "poolMockId": "fweth-usdc",
+        "periodMs": 60000
+      },
+      {
+        "poolMockId": "arb-fweth",
+        "periodMs": 60000
+      },
+      {
+        "poolMockId": "gmx-fweth",
+        "periodMs": 60000
+      }
+    ]
+  }
 }

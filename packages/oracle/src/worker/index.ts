@@ -4,19 +4,16 @@ import {
 } from '@marginly/common/lifecycle';
 import { Logger } from '@marginly/common/logger';
 import { Executor, sleep } from '@marginly/common/execution';
-import { using } from '@marginly/common/resource';
-import { StrictConfig, StrictTokenConfig, TokenConfig, UniswapV3PoolMockConfig } from '../config';
+import { StrictConfig, StrictTokenConfig, UniswapV3PoolMockConfig } from '../config';
 import {
   priceToPriceFp18,
   priceToSqrtPriceX96,
-  sortUniswapPoolTokens,
-  sqrtPriceX96toPrice,
+
+
 } from '@marginly/common/math';
 import { createPriceGetter, PriceGetter } from '@marginly/common/price';
 import * as ethers from 'ethers';
 import { ContractDescription, EthAddress } from '@marginly/common';
-import { isFunction } from 'util';
-import { number } from 'yargs';
 
 function readUniswapMockContract(name: string): ContractDescription {
   return require(`@marginly/contracts-uniswap-mock/artifacts/contracts/${name}.sol/${name}.json`);
@@ -45,7 +42,13 @@ export class OracleWorker implements Worker {
   private readonly logger;
   private readonly executor;
 
-  private state?: {};
+  private state?: {
+    priceCache: Map<string, {updatedAt: bigint, value: number}>;
+    priceGetters: Map<string, PriceGetter>;
+    lastJobStartTimes: Map<string, bigint>;
+    poolMocks: Map<string, PoolMock>;
+    tokens: Map<string, Token>;
+  };
 
   public constructor(
     config: StrictConfig,
@@ -64,10 +67,93 @@ export class OracleWorker implements Worker {
     this.cancellationTokenSource.cancel();
   }
 
+  private getNow(): bigint {
+    return process.hrtime.bigint();
+  }
+
+  private async getPrice(logger: Logger, priceId: string): Promise<number> {
+    const priceCacheTimeMs = 60_000n;
+
+    if (this.state === undefined) {
+      throw new Error('Worker is not started');
+    }
+
+    const cachedPrice = this.state.priceCache.get(priceId);
+    if (cachedPrice === undefined || cachedPrice.updatedAt + priceCacheTimeMs < this.getNow()) {
+      const priceGetter = this.state.priceGetters.get(priceId);
+      if (priceGetter === undefined) {
+        throw new Error(`Unknown price id ${priceId}`);
+      }
+      logger.info(`Load fresh price for ${priceId}`);
+      const price = await priceGetter.getPrice(logger);
+
+      this.state.priceCache.set(priceId, {updatedAt: this.getNow(), value: price});
+
+      return price;
+    } else {
+      return cachedPrice.value;
+    }
+  }
+
+  private findTokenByAddress(address: EthAddress): Token {
+    if (this.state === undefined) {
+      throw new Error('Worker is not started');
+    }
+    for (const token of this.state.tokens.values()) {
+      if (token.address.compare(address) === 0) {
+        return token;
+      }
+    }
+    throw new Error(`Token with address ${address} not found`);
+  }
+
+  private async processTick(logger: Logger, poolMockId: string, periodMs: bigint): Promise<void> {
+    if (this.state === undefined) {
+      throw new Error('Worker is not started');
+    }
+    const lastStartTime = this.state.lastJobStartTimes.get(poolMockId);
+
+    const startTime = this.getNow();
+
+    if (lastStartTime === undefined || lastStartTime + periodMs < startTime) {
+      logger.info(`Update price started`);
+      const poolMock = this.state.poolMocks.get(poolMockId);
+      if (poolMock === undefined) {
+        throw new Error(`Pool mock with id ${poolMockId} is not found`);
+      }
+      const price = await this.getPrice(logger, poolMock.priceId);
+
+      const priceBaseToken = this.state.tokens.get(poolMock.priceBaseTokenId);
+
+      if (priceBaseToken === undefined) {
+        throw new Error(`Price base token ${poolMock.priceBaseTokenId} not found`);
+      }
+
+      const token0 = this.findTokenByAddress(poolMock.token0Address);
+      const token1 = this.findTokenByAddress(poolMock.token1Address);
+
+      let token0Price: number;
+      if (token0.id === priceBaseToken.id) {
+        token0Price = price;
+      } else if (token1.id === priceBaseToken.id) {
+        token0Price = 1 / price;
+      } else {
+        throw new Error(`Price base token ${priceBaseToken.id} is neither token0 nor token1`);
+      }
+
+      this.logger.info(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
+      const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
+      const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
+      this.logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
+
+      await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
+
+      this.state.lastJobStartTimes.set(poolMockId, startTime);
+    }
+  }
+
   public async run(): Promise<void> {
     const cancellationToken = this.cancellationTokenSource.getToken();
-
-    this.state = {};
 
     const provider = new ethers.providers.JsonRpcProvider(this.config.ethereum.nodeUrl);
 
@@ -83,15 +169,6 @@ export class OracleWorker implements Worker {
       const decimals = await contract.decimals();
       tokens.set(tokenConfig.id, { ...tokenConfig, contract, symbol, decimals });
     }
-
-    const findTokenByAddress = (address: EthAddress): Token => {
-      for (const token of tokens.values()) {
-        if (token.address.compare(address) === 0) {
-          return token;
-        }
-      }
-      throw new Error(`Token with address ${address} not found`);
-    };
 
     const priceGetters = new Map<string, PriceGetter>();
 
@@ -115,6 +192,14 @@ export class OracleWorker implements Worker {
       });
     }
 
+    this.state = {
+      priceGetters,
+      priceCache: new Map<string, {updatedAt: bigint, value: number}>(),
+      lastJobStartTimes: new Map<string, bigint>(),
+      poolMocks,
+      tokens
+    };
+
     this.logger.info('Start oracle worker');
     while (true) {
       if (cancellationToken.isCancelled()) {
@@ -122,51 +207,12 @@ export class OracleWorker implements Worker {
         break;
       }
 
-      const currentPrices = new Map<string, number>();
-
-      for (const [priceId, priceGetter] of priceGetters.entries()) {
-        const price = await priceGetter.getPrice(this.logger);
-
-        this.logger.info(`Price of ${priceId} is ${price}`);
-
-        currentPrices.set(priceId, price);
-      }
-
-      for (const poolMock of poolMocks.values()) {
-        const price = currentPrices.get(poolMock.priceId);
-
-        if (price === undefined) {
-          throw new Error(`Price ${poolMock.priceId} not found`);
-        }
-
-        const priceBaseToken = tokens.get(poolMock.priceBaseTokenId);
-
-        if (priceBaseToken === undefined) {
-          throw new Error(`Price base token ${poolMock.priceBaseTokenId} not found`);
-        }
-
-        const token0 = findTokenByAddress(poolMock.token0Address);
-        const token1 = findTokenByAddress(poolMock.token1Address);
-
-        let token0Price: number;
-        if (token0.id === priceBaseToken.id) {
-          token0Price = price;
-        } else if (token1.id === priceBaseToken.id) {
-          token0Price = 1 / price;
-        } else {
-          throw new Error(`Price base token ${priceBaseToken.id} is neither token0 nor token1`);
-        }
-
-        this.logger.info(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
-        const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
-        const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
-        this.logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
-
-        await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
+      for (const { poolMockId, periodMs } of this.config.oracleWorker.updatePriceJobs) {
+        await this.processTick(this.logger, poolMockId, BigInt(periodMs))
       }
 
       await sleep(
-        50_000,
+        this.config.oracleWorker.tickMs,
       );
     }
   }

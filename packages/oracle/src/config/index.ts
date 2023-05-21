@@ -14,6 +14,8 @@ interface EthereumConfig {
 }
 
 export interface OracleWorkerConfig {
+  tickMs: number,
+  updatePriceJobs: { poolMockId: string, periodMs: number }[]
 }
 
 export interface TokenConfig {
@@ -102,6 +104,13 @@ function parseLogConfig(config: LogConfig): StrictLogConfig {
 function parseOracleWorkerConfig(
   config: OracleWorkerConfig,
 ): OracleWorkerConfig {
+  const idSet = new Set<string>();
+
+  for (const job of config.updatePriceJobs) {
+    if (idSet.has(job.poolMockId)) {
+      throw new Error(`Pool mock id '${job.poolMockId}' used in multiple jobs`);
+    }
+  }
   return config;
 }
 
@@ -110,8 +119,8 @@ export function parseConfig(config: Config): StrictConfig {
     id: x.id,
     address: EthAddress.parse(x.address),
     assertDecimals: x.assertDecimals,
-    assertSymbol: x.assertSymbol
-  }))
+    assertSymbol: x.assertSymbol,
+  }));
 
   return {
     log: parseLogConfig(config.log),
@@ -119,6 +128,6 @@ export function parseConfig(config: Config): StrictConfig {
     oracleWorker: parseOracleWorkerConfig(config.oracleWorker),
     tokens,
     prices: config.prices,
-    uniswapV3PoolMocks: config.uniswapV3PoolMocks
+    uniswapV3PoolMocks: config.uniswapV3PoolMocks,
   };
 }

@@ -16,12 +16,6 @@ function createLogFormatter(format: 'text' | 'json'): LogFormatter {
     return format === 'text' ? textFormatter : jsonFormatter;
 }
 
-// function experiments(logger: Logger) {
-//     {
-//         twapFromTickCumulatives([12384833891471n,12384845956271n], [60n,0n])
-//     }
-// }
-
 async function main(): Promise<void> {
     const config = parseConfig(loadConfig());
 
@@ -62,8 +56,6 @@ async function main(): Promise<void> {
 
                 rootLogger.info('Service started');
                 await worker.run();
-                // experiments(rootLogger);
-
             });
         });
     } catch (error) {
