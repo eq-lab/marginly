@@ -70,8 +70,14 @@ export function loadConfig(): Config {
     throw new Error(`${privateKeyKey} must be set`);
   }
 
+  const logFormatKey = `${envPrefix}LOG_FORMAT`;
+  const logFormat = process.env[logFormatKey];
+
   const config: Config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
   config.ethereum.oraclePrivateKey = privateKey;
+  if (logFormat !== undefined) {
+    config.log.format = logFormat;
+  }
   return config;
 }
 
