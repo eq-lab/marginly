@@ -20,6 +20,7 @@ export interface MarginlyDeployConfig {
   };
   marginlyFactory: {
     feeHolder: string;
+    techPositionOwner: string;
     wethTokenId: string;
   };
   tokens: {

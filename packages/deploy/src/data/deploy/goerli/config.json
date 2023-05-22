@@ -12,6 +12,7 @@
   },
   "marginlyFactory": {
     "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
+    "techPositionOwner": "0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3",
     "wethTokenId": "weth"
   },
   "tokens": [

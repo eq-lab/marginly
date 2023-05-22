@@ -218,7 +218,8 @@ class MarginlyDeployer {
     uniswapFactory: EthAddress,
     swapRouter: EthAddress,
     feeHolder: EthAddress,
-    wethAddress: EthAddress
+    wethAddress: EthAddress,
+    techPositionOwner: EthAddress
   ): Promise<DeployResult> {
     return this.deploy(
       'MarginlyFactory',
@@ -228,6 +229,7 @@ class MarginlyDeployer {
         swapRouter.toString(),
         feeHolder.toString(),
         wethAddress.toString(),
+        techPositionOwner.toString(),
       ],
       'marginlyFactory'
     );
@@ -624,6 +626,7 @@ interface MarginlyConfigUniswap {
 
 interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
+  techPositionOwner: EthAddress;
   wethAddress: EthAddress;
 }
 
@@ -806,6 +809,7 @@ class StrictMarginlyDeployConfig {
       },
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
+        techPositionOwner: EthAddress.parse(config.marginlyFactory.techPositionOwner),
         wethAddress: wethToken.address,
       },
       Array.from(tokens.values()),
@@ -972,7 +976,8 @@ export async function deployMarginly(
       config.uniswap.factory,
       config.uniswap.swapRouter,
       config.marginlyFactory.feeHolder,
-      config.marginlyFactory.wethAddress
+      config.marginlyFactory.wethAddress,
+      config.marginlyFactory.techPositionOwner
     );
     printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 
