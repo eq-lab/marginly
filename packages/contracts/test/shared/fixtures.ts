@@ -19,6 +19,7 @@ import { generateWallets, CallType, ZERO_ADDRESS } from './utils';
 import { Wallet } from 'ethers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
+import { expect } from 'chai';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -278,7 +279,7 @@ export async function getDeleveragedPool(): Promise<{
     await uniswapPoolInfo.token1.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
   }
 
-  const accounts = await ethers.getSigners();
+  const accounts = await (await ethers.getSigners()).slice(15, 20);
 
   let lender = accounts[0];
   await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
@@ -288,7 +289,7 @@ export async function getDeleveragedPool(): Promise<{
   await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS);
 
   let shorter = accounts[2];
-  await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 90000, 20000, false, ZERO_ADDRESS);
+  await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS);
 
   await time.increase(10 * 24 * 60 * 60);
   await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
