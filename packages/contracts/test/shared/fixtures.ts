@@ -23,6 +23,9 @@ import { parseEther, parseUnits } from 'ethers/lib/utils';
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
 
+/// @dev tone buddy include ridge cheap because marriage sorry jungle question pretty vacuum
+export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3';
+
 export interface UniswapPoolInfo {
   token0: TestERC20;
   token1: TestERC20;
@@ -109,7 +112,8 @@ export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
     uniswapFactory.address,
     swapRouter.address,
     FeeHolder,
-    baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address
+    baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address,
+    TechnicalPositionOwner
   )) as MarginlyFactory;
   return { factory, owner, uniswapPoolInfo, swapRouter };
 }

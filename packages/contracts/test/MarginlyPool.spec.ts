@@ -280,27 +280,6 @@ describe('MarginlyPool.Base', () => {
       }
     });
 
-    it('depositBase into Short position should charge debt fee', async () => {
-      const { marginlyPool, marginlyFactory, baseContract } = await loadFixture(createMarginlyPool);
-      const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositBase(10000, 0);
-
-      const firstDeposit = 1000;
-      const shortAmount = 1000;
-      await marginlyPool.connect(signer).depositQuote(firstDeposit, shortAmount);
-      const prevBlockNumber = await ethers.provider.getBlockNumber();
-      const timeShift = 365 * 24 * 60 * 60;
-      await time.increase(timeShift);
-
-      const depositAmount = 300;
-      await marginlyPool.connect(signer).depositBase(depositAmount, 0);
-
-      const expectedDebtFee = await calcDebtFee(marginlyPool, signer.address, prevBlockNumber);
-      const feeHolder = await marginlyFactory.feeHolder();
-      expect(await baseContract.balanceOf(feeHolder)).to.be.eq(expectedDebtFee);
-      console.log(expectedDebtFee);
-    });
-
     it('depositBase into long position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
@@ -544,33 +523,6 @@ describe('MarginlyPool.Base', () => {
       expect(position.discountedQuoteAmount).to.be.equal(depositAmount);
       expect(position.heapPosition).to.be.equal(0);
     });
-
-    it('depositQuote into Long position should charge debt fee', async () => {
-      const { marginlyPool, marginlyFactory, quoteContract } = await loadFixture(createMarginlyPool);
-      const [owner, signer, lender] = await ethers.getSigners();
-
-      // set swapFee to zero here, because we need to check only debtFee
-      const params = await marginlyPool.params();
-      await marginlyPool.connect(owner).setParameters({ ...params, swapFee: 0 });
-
-      await marginlyPool.connect(lender).depositQuote(10000, 0);
-      const firstDeposit = 1000;
-      const longAmount = 1200;
-
-      await marginlyPool.connect(signer).depositBase(firstDeposit, longAmount);
-      await marginlyPool.connect(signer).long(longAmount);
-      const prevBlockNumber = await ethers.provider.getBlockNumber();
-
-      const timeShift = 365 * 24 * 60 * 60;
-      await time.increase(timeShift);
-
-      const quoteDeposit = 1000;
-      await marginlyPool.connect(signer).depositQuote(quoteDeposit, 0);
-
-      const expectedDebtFee = await calcDebtFee(marginlyPool, signer.address, prevBlockNumber);
-      const feeHolder = await marginlyFactory.feeHolder();
-      expect(await quoteContract.balanceOf(feeHolder)).to.be.eq(expectedDebtFee);
-    });
   });
 
   describe('Withdraw base', () => {
@@ -713,11 +665,11 @@ describe('MarginlyPool.Base', () => {
       const [_, user1, user2] = await ethers.getSigners();
       const timeShift = 300 * 24 * 60 * 60;
 
-      const user1BaseDeposit = 100;
-      const user1LongAmount = 6;
+      const user1BaseDeposit = 1000;
+      const user1LongAmount = 1500;
 
-      const user2QuoteDeposit = 1000;
-      const user2ShortAmount = 20;
+      const user2QuoteDeposit = 5000;
+      const user2ShortAmount = 600;
 
       await marginlyPool.connect(user1).depositBase(user1BaseDeposit, 0);
       await marginlyPool.connect(user2).depositQuote(user2QuoteDeposit, 0);
@@ -828,49 +780,6 @@ describe('MarginlyPool.Base', () => {
         const DQD = BigNumber.from(await marginlyPool.discountedQuoteDebt());
         expect(DQD).to.be.equal(0);
       }
-    });
-
-    it('should charge debt fee on closing Long position', async () => {
-      const { marginlyPool, quoteContract, marginlyFactory } = await loadFixture(createMarginlyPool);
-      const [_, signer, lender] = await ethers.getSigners();
-
-      // set swapFee=0, because we want to check in the test only debtFee
-      const params = await marginlyPool.params();
-      await marginlyPool.setParameters({ ...params, swapFee: 0 });
-      await marginlyPool.connect(lender).depositQuote(2000, 0);
-
-      const amountToDeposit = 1000;
-      const amountOfLong = 2000;
-
-      await marginlyPool.connect(signer).depositBase(amountToDeposit, amountOfLong);
-      const prevBlockNumber = await ethers.provider.getBlockNumber();
-      const timeShift = 365 * 24 * 60 * 60;
-      await time.increase(timeShift);
-      await marginlyPool.connect(signer).closePosition();
-
-      const expectedDebtFee = await calcDebtFee(marginlyPool, signer.address, prevBlockNumber);
-      const feeHolder = await marginlyFactory.feeHolder();
-      expect(await quoteContract.balanceOf(feeHolder)).to.be.eq(expectedDebtFee);
-    });
-
-    it('should charge debt fee on closing Short position', async () => {
-      const { marginlyPool, marginlyFactory, baseContract } = await loadFixture(createMarginlyPool);
-      const [_, signer, lender] = await ethers.getSigners();
-      await marginlyPool.connect(lender).depositBase(1000, 0);
-
-      const amountToDeposit = 1000;
-      const amountOfShort = 500;
-
-      await marginlyPool.connect(signer).depositQuote(amountToDeposit, amountOfShort);
-      const prevBlockNumber = await ethers.provider.getBlockNumber();
-      const timeShift = 365 * 24 * 60 * 60;
-      await time.increase(timeShift);
-
-      await marginlyPool.connect(signer).closePosition();
-
-      const expectedDebtFee = await calcDebtFee(marginlyPool, signer.address, prevBlockNumber);
-      const feeHolder = await marginlyFactory.feeHolder();
-      expect(await baseContract.balanceOf(feeHolder)).to.be.eq(expectedDebtFee);
     });
   });
 
