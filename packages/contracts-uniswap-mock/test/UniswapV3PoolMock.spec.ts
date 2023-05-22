@@ -87,44 +87,35 @@ describe('UniswapV3PoolMock', () => {
         const startTimestamp = (Math.trunc(Date.now() / 1000 / secondsInDay) + 1) * secondsInDay;
         let currentTimestamp = startTimestamp;
         await (await pool.setTimestamp(currentTimestamp)).wait();
-        // await sleep(2000);
 
         const baseToken = tokens[baseTokenKey];
         const quoteToken = tokens[quoteTokenKey];
         await setPrice(pool, oracle, [baseToken, quoteToken], prices[0]);
         currentTimestamp += timestampStep;
-        // await sleep(2000);
 
         await (await pool.connect(owner).increaseObservationCardinalityNext(720)).wait();
 
         for (const price of prices.slice(1)) {
           await (await pool.setTimestamp(currentTimestamp)).wait();
-          // await sleep(2000);
           await setPrice(pool, oracle, [baseToken, quoteToken], price);
-          // await sleep(2000);
           currentTimestamp += timestampStep;
         }
-        await (await pool.setTimestamp(currentTimestamp)).wait();
 
         const observations = (await pool.observe(secondsAgos));
         const tickCumulatives: [bigint, bigint] = [observations.tickCumulatives[0].toBigInt(), observations.tickCumulatives[1].toBigInt()];
 
-        const [token0Decimals, token1Decimals] = sortUniswapPoolTokens([baseToken.address as `0x${string}`, quoteToken.address as `0x${string}`], [(await baseToken.decimals()), (await quoteToken.decimals())]);
-        const actualPrice = twapFromTickCumulatives(tickCumulatives, [BigInt(secondsAgos[0]), BigInt(secondsAgos[1])], token0Decimals, token1Decimals);
+        const [[token0Decimals, isToken0Base], [token1Decimals]] = sortUniswapPoolTokens([
+          baseToken.address as `0x${string}`,
+          quoteToken.address as `0x${string}`
+        ], [
+          [(await baseToken.decimals()), true],
+          [(await quoteToken.decimals()), false]
+        ]);
+        let actualPrice = twapFromTickCumulatives(tickCumulatives, [BigInt(secondsAgos[0]), BigInt(secondsAgos[1])], token0Decimals, token1Decimals);
+        actualPrice = isToken0Base ? actualPrice : 1 / actualPrice;
 
         const expectedError = 0.0001;
         const actualError = Math.abs(actualPrice / expectedPrice - 1);
-
-        // console.log({
-        //   baseTokenAddress: baseToken.address,
-        //   quoteTokenAddress: quoteToken.address,
-        //   expectedPrice,
-        //   actualPrice,
-        //   expectedError,
-        //   actualError,
-        //   range: secondsAgos,
-        //   tickCumulatives
-        // });
 
         expect(actualError).to.be.lte(expectedError);
       }),

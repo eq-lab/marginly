@@ -1,5 +1,4 @@
 import {expect} from 'chai';
-import {SwapRouterMock} from "../typechain-types";
 import {
     numberToFp
 } from '@marginly/common/math';
@@ -71,13 +70,10 @@ const createTokensGenerator = (tokens: CreateContractResultTokens, owner: Wallet
     }
 };
 
-describe.skip('SwapRouterMock', () => {
+describe('SwapRouterMock', () => {
     const blockNumberInADistantFuture = 1000000000000000000000n;
 
     const arbEthPrice = 0.0005;
-
-    const inTokenKey: keyof CreateContractResultTokens = 'weth';
-    const outTokenKey: keyof CreateContractResultTokens = 'arb';
 
     interface SwapCase {
         inAmount: number,

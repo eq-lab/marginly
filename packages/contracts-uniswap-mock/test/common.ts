@@ -1,4 +1,4 @@
-import { Wallet, Provider, Contract } from 'zksync-web3';
+import { Wallet, Contract } from 'zksync-web3';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { priceToPriceFp18, priceToSqrtPriceX96, sortUniswapPoolTokens } from '@marginly/common/math';
 import { SwapRouterMock } from '../typechain-types';
