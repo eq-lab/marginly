@@ -5,18 +5,21 @@
   "license": "GPL-2.0-or-later",
   "files": [
     "artifacts",
+    "artifacts-zk",
     "contracts",
     "typechain-types"
   ],
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test ./test/*.spec.ts",
+    "test:zksync": "NODE_ENV=test hardhat test --network zkSyncTestnet ./test/*.spec.ts",
     "lint:write": "prettier --write ./contracts"
   },
   "author": "EqLab",
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
+    "@marginly/common": "0.1.0",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
@@ -30,6 +33,8 @@
     "@uniswap/v3-core": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.3",
     "@uniswap/snapshot-gas-cost": "^1.0.0",
+    "@matterlabs/hardhat-zksync-deploy": "^0.6.3",
+    "@matterlabs/hardhat-zksync-solc": "^0.3.17",
     "mocha-chai-jest-snapshot": "^1.1.4",
     "chai": "^4.3.7",
     "ethers": "^5.7.2",
@@ -42,6 +47,6 @@
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
     "typescript": "^4.9.4",
-    "@marginly/common": "0.1.0"
+    "zksync-web3": "^0.14.3"
   }
 }

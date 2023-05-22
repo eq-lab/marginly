@@ -1,156 +1,133 @@
-import {expect} from 'chai';
-import {loadFixture} from '@nomicfoundation/hardhat-network-helpers';
-import {ethers} from 'hardhat';
-import {TestUniswapV3PoolMock, MintableToken, UniswapV3PoolMock, WETH9} from "../typechain-types";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import { expect } from 'chai';
 import {
-    priceToPriceFp18,
-    priceToSqrtPriceX96,
-    sortUniswapPoolTokens, twapFromTickCumulatives
+  sortUniswapPoolTokens, twapFromTickCumulatives,
 } from '@marginly/common/math';
-
-async function createToken(name: string, symbol: string, decimals: number = 18): Promise<MintableToken> {
-    const factory = await ethers.getContractFactory('MintableToken');
-    return await factory.deploy(name, symbol, decimals);
-}
-
-async function createWeth9(): Promise<WETH9> {
-    const factory = await ethers.getContractFactory('WETH9');
-    return await factory.deploy();
-}
-
-async function createTestUniswapV3PoolMock(oracle: string, tokenA: string, tokenB: string, fee: number): Promise<TestUniswapV3PoolMock> {
-    const factory = await ethers.getContractFactory('TestUniswapV3PoolMock');
-    return await factory.deploy(oracle, tokenA, tokenB, fee);
-}
+import { Wallet, Provider, Contract } from 'zksync-web3';
+import * as hre from 'hardhat';
+import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
+import { createTestUniswapV3PoolMock, createToken, createWeth9, richWalletPks, setPrice } from './common';
 
 interface CreateContractResultTokens {
-    arb: MintableToken,
-    weth: WETH9
+  arb: Contract,
+  weth: Contract
 }
 
 interface CreateContractsResult {
-    pool: TestUniswapV3PoolMock,
-    tokens: CreateContractResultTokens,
-    owner: SignerWithAddress,
-    oracle: SignerWithAddress
+  pool: Contract,
+  tokens: CreateContractResultTokens,
+  owner: Wallet,
+  oracle: Wallet
 }
 
-async function createContracts(): Promise<CreateContractsResult> {
-    const arbToken = await createToken('Arbitrum', 'ARB');
-    const wethToken = await createWeth9();
+async function createContracts(provider: Provider, deployer: Deployer): Promise<CreateContractsResult> {
+  const arbToken = await createToken(deployer, 'Arbitrum', 'ARB');
+  const wethToken = await createWeth9(deployer);
 
-    const fee = 500; // 0.05%
+  const fee = 500; // 0.05%
 
-    const [owner, oracle] = await ethers.getSigners();
+  const [owner, oracle] = richWalletPks.map(x => new Wallet(x, provider));
 
-    const pool = await createTestUniswapV3PoolMock(oracle.address, arbToken.address, wethToken.address, fee);
+  const pool = await createTestUniswapV3PoolMock(deployer, oracle.address, arbToken.address, wethToken.address, fee);
 
-    return {
-        pool,
-        tokens: {
-            arb: arbToken,
-            weth: wethToken
-        },
-        owner,
-        oracle
-    };
-}
-
-async function setPrice(pool: UniswapV3PoolMock, oracle: SignerWithAddress, tokens: [MintableToken | WETH9, MintableToken | WETH9], price: number) {
-    const [tokenA, tokenB] = tokens;
-    const [token0, token1] = sortUniswapPoolTokens(
-        [tokenA.address as `0x${string}`, tokenB.address as `0x${string}`],
-        [
-            {
-                symbol: await tokenA.symbol(),
-                address: tokenA.address,
-                decimals: await tokenA.decimals(),
-                price: price
-            },
-            {
-                symbol: await tokenB.symbol(),
-                address: tokenB.address,
-                decimals: await tokenB.decimals(),
-                price: 1 / price
-            }
-        ]
-    );
-
-    const priceFp18 = priceToPriceFp18(token0.price, token0.decimals, token1.decimals);
-    const sqrtPriceX96 = priceToSqrtPriceX96(token0.price, token0.decimals, token1.decimals);
-
-    await pool.connect(oracle).setPrice(priceFp18, sqrtPriceX96);
+  return {
+    pool,
+    tokens: {
+      arb: arbToken,
+      weth: wethToken,
+    },
+    owner,
+    oracle,
+  };
 }
 
 describe('UniswapV3PoolMock', () => {
-    interface PriceHistory {
-        prices: number[],
-        tokenPair: [keyof CreateContractResultTokens, keyof CreateContractResultTokens],
-        tests: { secondsAgos: [number, number], expectedPrice: number }[]
-    }
+  interface PriceHistory {
+    prices: number[],
+    tokenPair: [keyof CreateContractResultTokens, keyof CreateContractResultTokens],
+    tests: { secondsAgos: [number, number], expectedPrice: number }[]
+  }
 
-    const timestampStep = 1000;
-    const priceHistories: PriceHistory[] = [
+  const timestampStep = 1000;
+  const priceHistories: PriceHistory[] = [
+    {
+      prices: [1, 4, 9, 16, 25],
+      tokenPair: ['arb', 'weth'],
+      tests: [
         {
-            prices: [1, 4, 9, 16, 25],
-            tokenPair: ['arb', 'weth'],
-            tests: [
-                {
-                    secondsAgos: [timestampStep, 0],
-                    expectedPrice: 16
-                },
-                {
-                    secondsAgos: [2 * timestampStep, 0],
-                    expectedPrice: 12
-                },
-                {
-                    secondsAgos: [1.5 * timestampStep, 0.5 * timestampStep],
-                    expectedPrice: 12
-                }
-            ]
+          secondsAgos: [timestampStep, 0],
+          expectedPrice: 16,
+        },
+        {
+          secondsAgos: [2 * timestampStep, 0],
+          expectedPrice: 12,
+        },
+        {
+          secondsAgos: [1.5 * timestampStep, 0.5 * timestampStep],
+          expectedPrice: 12,
+        },
+      ],
+    },
+  ];
+
+  priceHistories.forEach(({ prices, tokenPair: [baseTokenKey, quoteTokenKey], tests }, priceHistoryNum) =>
+    tests.forEach(({ secondsAgos, expectedPrice }) =>
+      it(`should calc observations properly for time range [${secondsAgos[0]}, ${secondsAgos[1]}] in prices history ${priceHistoryNum}`, async () => {
+        const provider = Provider.getDefaultProvider();
+        const wallet = new Wallet(richWalletPks[0], provider);
+        const deployer = new Deployer(hre, wallet);
+
+        const {
+          pool,
+          tokens,
+          owner,
+          oracle,
+        } = await createContracts(provider, deployer);
+
+        const secondsInDay = 60 * 60 * 24;
+        const startTimestamp = (Math.trunc(Date.now() / 1000 / secondsInDay) + 1) * secondsInDay;
+        let currentTimestamp = startTimestamp;
+        await (await pool.setTimestamp(currentTimestamp)).wait();
+        // await sleep(2000);
+
+        const baseToken = tokens[baseTokenKey];
+        const quoteToken = tokens[quoteTokenKey];
+        await setPrice(pool, oracle, [baseToken, quoteToken], prices[0]);
+        currentTimestamp += timestampStep;
+        // await sleep(2000);
+
+        await (await pool.connect(owner).increaseObservationCardinalityNext(720)).wait();
+
+        for (const price of prices.slice(1)) {
+          await (await pool.setTimestamp(currentTimestamp)).wait();
+          // await sleep(2000);
+          await setPrice(pool, oracle, [baseToken, quoteToken], price);
+          // await sleep(2000);
+          currentTimestamp += timestampStep;
         }
-    ];
+        await (await pool.setTimestamp(currentTimestamp)).wait();
 
-    priceHistories.forEach(({prices, tokenPair: [baseTokenKey, quoteTokenKey], tests}, priceHistoryNum) =>
-        tests.forEach(({secondsAgos, expectedPrice}) =>
-            it(`should calc observations properly for time range [${secondsAgos[0]}, ${secondsAgos[1]}] in prices history ${priceHistoryNum}`, async () => {
-                const {
-                    pool,
-                    tokens,
-                    owner,
-                    oracle,
-                } = await loadFixture(createContracts);
+        const observations = (await pool.observe(secondsAgos));
+        const tickCumulatives: [bigint, bigint] = [observations.tickCumulatives[0].toBigInt(), observations.tickCumulatives[1].toBigInt()];
 
-                const secondsInDay = 60 * 60 * 24;
-                const startTimestamp = (Math.trunc(Date.now() / 1000 / secondsInDay) + 1) * secondsInDay;
-                let currentTimestamp = startTimestamp;
-                await pool.setTimestamp(currentTimestamp);
+        const [token0Decimals, token1Decimals] = sortUniswapPoolTokens([baseToken.address as `0x${string}`, quoteToken.address as `0x${string}`], [(await baseToken.decimals()), (await quoteToken.decimals())]);
+        const actualPrice = twapFromTickCumulatives(tickCumulatives, [BigInt(secondsAgos[0]), BigInt(secondsAgos[1])], token0Decimals, token1Decimals);
 
-                const baseToken = tokens[baseTokenKey];
-                const quoteToken = tokens[quoteTokenKey];
-                await setPrice(pool, oracle, [baseToken, quoteToken], prices[0]);
-                currentTimestamp += timestampStep;
+        const expectedError = 0.0001;
+        const actualError = Math.abs(actualPrice / expectedPrice - 1);
 
-                await pool.connect(owner).increaseObservationCardinalityNext(720);
+        // console.log({
+        //   baseTokenAddress: baseToken.address,
+        //   quoteTokenAddress: quoteToken.address,
+        //   expectedPrice,
+        //   actualPrice,
+        //   expectedError,
+        //   actualError,
+        //   range: secondsAgos,
+        //   tickCumulatives
+        // });
 
-                for (const price of prices.slice(1)) {
-                    await pool.setTimestamp(currentTimestamp);
-                    await setPrice(pool, oracle, [baseToken, quoteToken], price);
-                    currentTimestamp += timestampStep;
-                }
-
-                const observations = (await pool.observe(secondsAgos));
-                const tickCumulatives: [bigint, bigint] = [observations.tickCumulatives[0].toBigInt(), observations.tickCumulatives[1].toBigInt()];
-
-                const [token0Decimals, token1Decimals] = sortUniswapPoolTokens([baseToken.address as `0x${string}`, quoteToken.address as `0x${string}`], [(await baseToken.decimals()), (await quoteToken.decimals())]);
-                const actualPrice = twapFromTickCumulatives(tickCumulatives, [BigInt(secondsAgos[0]), BigInt(secondsAgos[1])], token0Decimals, token1Decimals);
-
-                const expectedError = 0.0001;
-                const actualError = Math.abs(actualPrice / expectedPrice - 1);
-
-                expect(actualError).to.be.lte(expectedError);
-            })
-        )
-    )
+        expect(actualError).to.be.lte(expectedError);
+      }),
+    ),
+  );
 });

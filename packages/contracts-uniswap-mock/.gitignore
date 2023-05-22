@@ -1,4 +1,6 @@
 artifacts
+artifacts-zk
 cache
+cache-zk
 node_modules
 typechain-types
