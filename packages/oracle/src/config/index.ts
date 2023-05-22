@@ -14,6 +14,9 @@ interface EthereumConfig {
 }
 
 export interface OracleWorkerConfig {
+  tickMs: number,
+  priceCachePeriodMs: number,
+  updatePriceJobs: { poolMockId: string, periodMs: number }[]
 }
 
 export interface TokenConfig {
@@ -70,8 +73,14 @@ export function loadConfig(): Config {
     throw new Error(`${privateKeyKey} must be set`);
   }
 
+  const logFormatKey = `${envPrefix}LOG_FORMAT`;
+  const logFormat = process.env[logFormatKey];
+
   const config: Config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
   config.ethereum.oraclePrivateKey = privateKey;
+  if (logFormat !== undefined) {
+    config.log.format = logFormat;
+  }
   return config;
 }
 
@@ -96,6 +105,13 @@ function parseLogConfig(config: LogConfig): StrictLogConfig {
 function parseOracleWorkerConfig(
   config: OracleWorkerConfig,
 ): OracleWorkerConfig {
+  const idSet = new Set<string>();
+
+  for (const job of config.updatePriceJobs) {
+    if (idSet.has(job.poolMockId)) {
+      throw new Error(`Pool mock id '${job.poolMockId}' used in multiple jobs`);
+    }
+  }
   return config;
 }
 
@@ -104,8 +120,8 @@ export function parseConfig(config: Config): StrictConfig {
     id: x.id,
     address: EthAddress.parse(x.address),
     assertDecimals: x.assertDecimals,
-    assertSymbol: x.assertSymbol
-  }))
+    assertSymbol: x.assertSymbol,
+  }));
 
   return {
     log: parseLogConfig(config.log),
@@ -113,6 +129,6 @@ export function parseConfig(config: Config): StrictConfig {
     oracleWorker: parseOracleWorkerConfig(config.oracleWorker),
     tokens,
     prices: config.prices,
-    uniswapV3PoolMocks: config.uniswapV3PoolMocks
+    uniswapV3PoolMocks: config.uniswapV3PoolMocks,
   };
 }

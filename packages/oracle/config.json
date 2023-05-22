@@ -1,12 +1,10 @@
 {
   "log": {
     "level": 3,
-    "format": "text"
+    "format": "json"
   },
   "ethereum": {
     "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
-  },
-  "oracleWorker": {
   },
   "tokens": [
     {
@@ -100,5 +98,23 @@
       "priceId": "gmx-eth",
       "priceBaseTokenId": "gmx"
     }
-  ]
+  ],
+  "oracleWorker": {
+    "tickMs": 1000,
+    "priceCachePeriodMs": 50000,
+    "updatePriceJobs": [
+      {
+        "poolMockId": "fweth-usdc",
+        "periodMs": 600000
+      },
+      {
+        "poolMockId": "arb-fweth",
+        "periodMs": 600000
+      },
+      {
+        "poolMockId": "gmx-fweth",
+        "periodMs": 600000
+      }
+    ]
+  }
 }
