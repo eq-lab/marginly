@@ -14,6 +14,7 @@ import {
 import { createPriceGetter, PriceGetter } from '@marginly/common/price';
 import * as ethers from 'ethers';
 import { ContractDescription, EthAddress } from '@marginly/common';
+import { using } from '@marginly/common/resource';
 
 function readUniswapMockContract(name: string): ContractDescription {
   return require(`@marginly/contracts-uniswap-mock/artifacts/contracts/${name}.sol/${name}.json`);
@@ -67,19 +68,19 @@ export class OracleWorker implements Worker {
     this.cancellationTokenSource.cancel();
   }
 
-  private getNow(): bigint {
-    return process.hrtime.bigint();
+  private getNowMs(): bigint {
+    return process.hrtime.bigint() / 1_000_000n;
   }
 
   private async getPrice(logger: Logger, priceId: string): Promise<number> {
-    const priceCacheTimeMs = 60_000n;
+    const priceCacheTimeMs = BigInt(this.config.oracleWorker.priceCachePeriodMs);
 
     if (this.state === undefined) {
       throw new Error('Worker is not started');
     }
 
     const cachedPrice = this.state.priceCache.get(priceId);
-    if (cachedPrice === undefined || cachedPrice.updatedAt + priceCacheTimeMs < this.getNow()) {
+    if (cachedPrice === undefined || cachedPrice.updatedAt + priceCacheTimeMs < this.getNowMs()) {
       const priceGetter = this.state.priceGetters.get(priceId);
       if (priceGetter === undefined) {
         throw new Error(`Unknown price id ${priceId}`);
@@ -87,7 +88,7 @@ export class OracleWorker implements Worker {
       logger.info(`Load fresh price for ${priceId}`);
       const price = await priceGetter.getPrice(logger);
 
-      this.state.priceCache.set(priceId, {updatedAt: this.getNow(), value: price});
+      this.state.priceCache.set(priceId, {updatedAt: this.getNowMs(), value: price});
 
       return price;
     } else {
@@ -113,7 +114,7 @@ export class OracleWorker implements Worker {
     }
     const lastStartTime = this.state.lastJobStartTimes.get(poolMockId);
 
-    const startTime = this.getNow();
+    const startTime = this.getNowMs();
 
     if (lastStartTime === undefined || lastStartTime + periodMs < startTime) {
       logger.info(`Update price started`);
@@ -141,10 +142,10 @@ export class OracleWorker implements Worker {
         throw new Error(`Price base token ${priceBaseToken.id} is neither token0 nor token1`);
       }
 
-      this.logger.info(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
+      logger.info(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
       const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
       const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
-      this.logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
+      logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
 
       await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
 
@@ -208,7 +209,9 @@ export class OracleWorker implements Worker {
       }
 
       for (const { poolMockId, periodMs } of this.config.oracleWorker.updatePriceJobs) {
-        await this.processTick(this.logger, poolMockId, BigInt(periodMs))
+        await using(this.logger.scope(poolMockId), async (logger) => {
+          await this.processTick(logger, poolMockId, BigInt(periodMs));
+        });
       }
 
       await sleep(

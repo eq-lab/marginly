@@ -15,6 +15,7 @@ interface EthereumConfig {
 
 export interface OracleWorkerConfig {
   tickMs: number,
+  priceCachePeriodMs: number,
   updatePriceJobs: { poolMockId: string, periodMs: number }[]
 }
 

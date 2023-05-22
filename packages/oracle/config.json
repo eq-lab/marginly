@@ -1,7 +1,7 @@
 {
   "log": {
     "level": 3,
-    "format": "text"
+    "format": "json"
   },
   "ethereum": {
     "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
@@ -101,6 +101,7 @@
   ],
   "oracleWorker": {
     "tickMs": 1000,
+    "priceCachePeriodMs": 50000,
     "updatePriceJobs": [
       {
         "poolMockId": "fweth-usdc",
