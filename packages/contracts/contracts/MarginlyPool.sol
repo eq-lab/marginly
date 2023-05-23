@@ -330,8 +330,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 _discountedBaseDebt = discountedBaseDebt;
 
     {
-      uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(
-        _baseDebtCoeff.mul(_discountedBaseDebt)
+      uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral, Math.Rounding.Up).sub(
+        _baseDebtCoeff.mul(_discountedBaseDebt, Math.Rounding.Down)
       );
       require(poolBaseBalance.add(amount) <= params.baseLimit, 'EL'); // exceeds limit
     }
@@ -411,8 +411,8 @@ contract MarginlyPool is IMarginlyPool {
       /*
         Explanation: underflow should not happened because tech position collateral contains debtFee 
      */
-      uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
-        quoteDebtCoeff.mul(_discountedQuoteDebt)
+      uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral, Math.Rounding.Up).sub(
+        quoteDebtCoeff.mul(_discountedQuoteDebt, Math.Rounding.Down)
       );
       require(poolQuoteBalance.add(amount) <= params.quoteLimit, 'EL'); // exceeds limit
     }
@@ -740,8 +740,8 @@ contract MarginlyPool is IMarginlyPool {
 
     // use scope here to avoid "Stack too deep error"
     {
-      uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral).sub(
-        quoteDebtCoeff.mul(discountedQuoteDebt)
+      uint256 poolQuoteBalance = _quoteCollateralCoeff.mul(_discountedQuoteCollateral, Math.Rounding.Up).sub(
+        quoteDebtCoeff.mul(discountedQuoteDebt, Math.Rounding.Down)
       );
       require(poolQuoteBalance.add(realQuoteCollateralChange) <= params.quoteLimit, 'EL'); // exceeds limit
     }
@@ -794,8 +794,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 _discountedBaseCollateral = discountedBaseCollateral;
 
     {
-      uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral).sub(
-        baseDebtCoeff.mul(discountedBaseDebt)
+      uint256 poolBaseBalance = _baseCollateralCoeff.mul(_discountedBaseCollateral, Math.Rounding.Up).sub(
+        baseDebtCoeff.mul(discountedBaseDebt, Math.Rounding.Down)
       );
       require(realBaseAmount.add(poolBaseBalance) <= params.baseLimit, 'EL'); // exceeds limit
     }

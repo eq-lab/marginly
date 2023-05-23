@@ -17,7 +17,7 @@ import { Web3Provider } from '@ethersproject/providers';
   const forkBlockNumber = 17265384;
   const server = ganache.server({
     fork: {
-      url: `https://rpc.ankr.com/eth`,
+      url: `https://rpc.ankr.com/eth@17265384`,
       blockNumber: forkBlockNumber,
     },
     wallet: {
