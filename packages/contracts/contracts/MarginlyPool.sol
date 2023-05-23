@@ -236,11 +236,10 @@ contract MarginlyPool is IMarginlyPool {
         // 1 - 1/2^n >= tokenNeeded / tokenPoolDebt = (posTokenColl - (tokenPoolColl - tokenPoolDebt)) / tokenPoolDebt
         // 1 - 1/2^n >= (posTokenColl - tokenPoolColl) / tokenPoolDebt + 1
         // 1/2^n <= (tokenPoolColl - posTokenColl) / tokenPoolDebt
-        // So if we represent 1/2^n as FP255, n equals numberOfLeadingZeros - 1 of the right side since:
+        // So if we represent 1/2^n as FP255, n equals numberOfLeadingZeros of the right side since:
         // 2^255 / 2^n = 2^(255 - n) <= (tokenPoolColl - posTokenColl) * 2^255 / token
-        // -1 needed cause we have have one extra bit for an integer part of FP255, which is always 0 by math
 
-        uint256 n = clz(Math.mulDiv(poolQuoteCollateral.sub(positionQuoteCollateral), (1 << 255), poolQuoteDebt)) - 1;
+        uint256 n = clz(Math.mulDiv(poolQuoteCollateral.sub(positionQuoteCollateral), (1 << 255), poolQuoteDebt));
         FP96.FixedPoint memory delevRatioDebt = FP96.one().sub(FP96.FixedPoint({inner: (1 << (96 - n))}));
 
         uint256 quoteDebtToFree = delevRatioDebt.mul(poolQuoteDebt);
@@ -270,11 +269,10 @@ contract MarginlyPool is IMarginlyPool {
         // 1 - 1/2^n >= tokenNeeded / tokenPoolDebt = (posTokenColl - (tokenPoolColl - tokenPoolDebt)) / tokenPoolDebt
         // 1 - 1/2^n >= (posTokenColl - tokenPoolColl) / tokenPoolDebt + 1
         // 1/2^n <= (tokenPoolColl - posTokenColl) / tokenPoolDebt
-        // So if we represent 1/2^n as FP255, n equals numberOfLeadingZeros - 1 of the right side since:
+        // So if we represent 1/2^n as FP255, n equals numberOfLeadingZeros of the right side since:
         // 2^255 / 2^n = 2^(255 - n) <= (tokenPoolColl - posTokenColl) * 2^255 / token
-        // -1 needed cause we have have one extra bit for an integer part of FP255, which is always 0 by math
 
-        uint256 n = clz(Math.mulDiv(poolBaseCollateral.sub(positionBaseCollateral), (1 << 255), poolBaseDebt)) - 1;
+        uint256 n = clz(Math.mulDiv(poolBaseCollateral.sub(positionBaseCollateral), (1 << 255), poolBaseDebt));
         FP96.FixedPoint memory delevRatioDebt = FP96.one().sub(FP96.FixedPoint({inner: (1 << (96 - n))}));
 
         uint256 baseDebtToFree = delevRatioDebt.mul(poolBaseDebt);
@@ -289,7 +287,7 @@ contract MarginlyPool is IMarginlyPool {
         quoteCollateralDelevCoeff = quoteCollateralDelevCoeff.mul(
           delevRatioDebt.mul(FP96.fromRatio(quoteCollTaken, baseDebtToFree))
         );
-        quoteDebtDelevCoeff = quoteDebtDelevCoeff.mul(delevRatioDebt);
+        baseDebtDelevCoeff = baseDebtDelevCoeff.mul(delevRatioDebt);
       }
     } else {
       revert('WPT');
