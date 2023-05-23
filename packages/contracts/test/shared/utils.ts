@@ -137,3 +137,5 @@ export function calcLeverageLong(
 
   return collateral.mul(FP96.one).div(collateral.sub(debt));
 }
+
+export const YEAR = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
