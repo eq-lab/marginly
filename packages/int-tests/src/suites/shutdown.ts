@@ -186,6 +186,7 @@ export async function longEmergency(sut: SystemUnderTest) {
       logger.info(`   bad position ${longer.address}`);
 
       await showSystemAggregates(sut);
+      logger.info(`Before shutdown`);
 
       await (await marginlyPool.connect(treasury).shutDown({ gasLimit: 500_000 })).wait();
 
@@ -196,8 +197,10 @@ export async function longEmergency(sut: SystemUnderTest) {
   }
 
   /* emergencyWithdraw */
-
+  logger.info(`Before shorter withdraw`);
   await (await marginlyPool.connect(shorter).emergencyWithdraw(false, { gasLimit: 400_000 })).wait();
+
+  logger.info(`Before lender withdraw`);
   await (await marginlyPool.connect(lender).emergencyWithdraw(false, { gasLimit: 400_000 })).wait();
 
   await showSystemAggregates(sut);

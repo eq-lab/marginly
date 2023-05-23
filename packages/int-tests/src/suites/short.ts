@@ -4,6 +4,7 @@ import { logger } from '../utils/logger';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { fp48ToHumanString, FP96, toHumanString } from '../utils/fixed-point';
 import { assertAccruedRateCoeffs, decodeSwapEvent, getShortSortKeyX48 } from '../utils/chain-ops';
+import { showSystemAggregates } from '../utils/log-utils';
 
 async function prepareAccounts(sut: SystemUnderTest) {
   const { treasury, usdc, weth, accounts } = sut;
@@ -118,10 +119,10 @@ export async function short(sut: SystemUnderTest) {
     const quoteDebtAfter = await marginlyPool.discountedQuoteDebt();
     const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
 
-    await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber, false);
+    const expectedCoeffs = await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber, false);
 
-    if (!baseCollateralBefore.eq(baseCollateralAfter)) {
-      const error = `baseCollateral shouldn't change: before ${baseCollateralBefore}, now ${baseCollateralAfter}`;
+    if (!baseCollateralBefore.add(expectedCoeffs.discountedBaseDebtFee).eq(baseCollateralAfter)) {
+      const error = `baseCollateral should change on fee value: before ${baseCollateralBefore}, fee ${expectedCoeffs.discountedBaseDebtFee} now ${baseCollateralAfter}`;
       logger.error(error);
       throw new Error(error);
     }
@@ -194,7 +195,7 @@ export async function short(sut: SystemUnderTest) {
     await provider.mineAtTimestamp(nextDate);
 
     const baseCollateralCoeffBefore = BigNumber.from(await marginlyPool.baseCollateralCoeff());
-    const baseAccruedRateBefore = BigNumber.from(await marginlyPool.baseAccruedRate());
+    const baseDebtCoeffBefore = await marginlyPool.baseDebtCoeff();
 
     //reinit tx
     const txReceipt = await gasReporter.saveGasUsage(
@@ -207,29 +208,33 @@ export async function short(sut: SystemUnderTest) {
       logger.warn(`mc account: ${marginCallEvent.args![0]}`);
     }
 
-    await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber, !!marginCallEvent);
+    const expectedCoeffs = await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber, !!marginCallEvent);
 
     //check coefficients
     const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
-    const baseAccruedRate = await marginlyPool.baseAccruedRate();
+    const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
     const discountedBaseDebt = await marginlyPool.discountedBaseDebt();
     const discountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
 
     if (!marginCallEvent) {
       // baseCollateralCoeff
-      const baseDebtDelta = baseAccruedRate.sub(baseAccruedRateBefore).mul(discountedBaseDebt).div(FP96.one);
+      const baseDebtDelta = baseDebtCoeff.sub(baseDebtCoeffBefore).mul(discountedBaseDebt).div(FP96.one);
 
       const baseCollatDelta = baseCollateralCoeff
         .sub(baseCollateralCoeffBefore)
         .mul(discountedBaseCollateral)
         .div(FP96.one);
 
+      const realDebtFee = expectedCoeffs.discountedBaseDebtFee.mul(baseCollateralCoeff).div(FP96.one);
+
       // base collateral change == base debt change
       const epsilon = BigNumber.from(1);
-      if (!baseDebtDelta.sub(baseCollateralCoeff).abs().gt(epsilon)) {
+      const delta = baseDebtDelta.sub(baseCollateralCoeff).sub(realDebtFee).abs();
+      if (!delta.gt(epsilon)) {
         logger.warn(`quoteDebtDelta: ${formatUnits(baseDebtDelta, 18)} WETH`);
         logger.warn(`quoteCollatDelta: ${formatUnits(baseCollatDelta, 18)} WETH`);
-        logger.error(`they must be equal`);
+        logger.warn(`realDebtFee: ${formatUnits(realDebtFee, 18)} WETH`);
+        logger.error(`delta ${delta} they must be equal`);
       }
 
       let lendersTotalBaseDelta = BigNumber.from(0);
@@ -248,21 +253,21 @@ export async function short(sut: SystemUnderTest) {
           continue; //skip margin called positions
         }
 
-        const debtAccruedRate = await marginlyPool.baseAccruedRate();
-        const realBaseAmount = debtAccruedRate.mul(position.discountedBaseAmount).div(FP96.one);
+        const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
+        const realBaseAmount = baseDebtCoeff.mul(position.discountedBaseAmount).div(FP96.one);
         shortersTotalBaseDelta = shortersTotalBaseDelta.add(realBaseAmount).sub(baseDebtsShorters[i]);
         baseDebtsShorters[i] = realBaseAmount;
       }
 
-      if (
-        lendersTotalBaseDelta
-          .sub(shortersTotalBaseDelta)
-          .abs()
-          .gt(epsilon.mul(BigNumber.from(shortersNumber)))
-      ) {
+      const lenderShortersDelta = lendersTotalBaseDelta.add(realDebtFee).sub(shortersTotalBaseDelta).abs();
+      if (lenderShortersDelta.gt(epsilon.mul(BigNumber.from(shortersNumber)))) {
         const lendersDelta = formatUnits(lendersTotalBaseDelta, 18);
+        const debtFee = formatUnits(realDebtFee, 18);
         const shortersDelta = formatUnits(shortersTotalBaseDelta, 18);
-        logger.warn(`Day ${i}: lenders delta = ${lendersDelta} != ${shortersDelta} = shorters delta`);
+        logger.warn(
+          `Day ${i}: lenders delta = ${lendersDelta} + debtFee ${debtFee} != ${shortersDelta} = shorters delta`
+        );
+        logger.warn(`Lender shorters delta is ${lenderShortersDelta}`);
       }
     }
   }
@@ -290,11 +295,13 @@ export async function short(sut: SystemUnderTest) {
     }
 
     const sortKeyX48 = await getShortSortKeyX48(marginlyPool, shorter.address);
-    const debtCoeff = BigNumber.from(await marginlyPool.baseDebtCoeff());
+    const debtCoeff = await marginlyPool.baseDebtCoeff();
     const realBaseAmount = debtCoeff.mul(position.discountedBaseAmount).div(FP96.one);
     const realQuoteAmount = quoteCollateralCoeff.mul(position.discountedQuoteAmount).div(FP96.one);
     logger.info(` position type ${position._type}`);
     logger.info(` sortKey ${fp48ToHumanString(sortKeyX48)}`);
     logger.info(` collateral ${formatUnits(realQuoteAmount, 6)} USDC, debt ${formatUnits(realBaseAmount, 18)} WETH`);
   }
+
+  await showSystemAggregates(sut);
 }

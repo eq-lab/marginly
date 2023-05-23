@@ -19,7 +19,6 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyPoolInterface extends utils.Interface {
   functions: {
-    'baseAccruedRate()': utils.FunctionFragment;
     'baseCollateralCoeff()': utils.FunctionFragment;
     'baseDebtCoeff()': utils.FunctionFragment;
     'baseToken()': utils.FunctionFragment;
@@ -44,7 +43,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'mode()': utils.FunctionFragment;
     'params()': utils.FunctionFragment;
     'positions(address)': utils.FunctionFragment;
-    'quoteAccruedRate()': utils.FunctionFragment;
     'quoteCollateralCoeff()': utils.FunctionFragment;
     'quoteDebtCoeff()': utils.FunctionFragment;
     'quoteToken()': utils.FunctionFragment;
@@ -65,7 +63,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | 'baseAccruedRate'
       | 'baseCollateralCoeff'
       | 'baseDebtCoeff'
       | 'baseToken'
@@ -90,7 +87,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'mode'
       | 'params'
       | 'positions'
-      | 'quoteAccruedRate'
       | 'quoteCollateralCoeff'
       | 'quoteDebtCoeff'
       | 'quoteToken'
@@ -117,7 +113,6 @@ export interface MarginlyPoolContract extends BaseContract {
 
   interface: MarginlyPoolInterface;
 
-  baseAccruedRate(override?: CallOverrides): Promise<BigNumber>;
   baseCollateralCoeff(override?: CallOverrides): Promise<BigNumber>;
   baseDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   baseToken(override?: CallOverrides): Promise<string>;
@@ -202,7 +197,6 @@ export interface MarginlyPoolContract extends BaseContract {
     discountedBaseAmount: BigNumber;
     discountedQuoteAmount: BigNumber;
   }>;
-  quoteAccruedRate(override?: CallOverrides): Promise<BigNumber>;
   quoteCollateralCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteToken(override?: CallOverrides): Promise<string>;
@@ -251,7 +245,6 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<ContractTransaction>;
 
   functions: {
-    baseAccruedRate(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseToken(override?: CallOverrides): Promise<[string]>;
@@ -297,7 +290,6 @@ export interface MarginlyPoolContract extends BaseContract {
       discountedBaseAmount: BigNumber;
       discountedQuoteAmount: BigNumber;
     }>;
-    quoteAccruedRate(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteToken(override?: CallOverrides): Promise<[string]>;

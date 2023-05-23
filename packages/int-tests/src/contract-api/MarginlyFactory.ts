@@ -26,6 +26,7 @@ export interface MarginlyFactoryInterface extends utils.Interface {
     'owner()': utils.FunctionFragment;
     'setOwner(address)': utils.FunctionFragment;
     'swapRouter()': utils.FunctionFragment;
+    'techPositionOwner()': utils.FunctionFragment;
     'uniswapFactory()': utils.FunctionFragment;
     'WETH9()': utils.FunctionFragment;
   };
@@ -39,6 +40,7 @@ export interface MarginlyFactoryInterface extends utils.Interface {
       | 'owner'
       | 'setOwner'
       | 'swapRouter'
+      | 'techPositionOwner'
       | 'uniswapFactory'
       | 'WETH9'
   ): utils.FunctionFragment;
@@ -83,6 +85,7 @@ export interface MarginlyFactoryContract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   swapRouter(override?: CallOverrides): Promise<string>;
+  techPositionOwner(override?: CallOverrides): Promise<string>;
   uniswapFactory(override?: CallOverrides): Promise<string>;
   WETH9(override?: CallOverrides): Promise<string>;
 
@@ -97,6 +100,7 @@ export interface MarginlyFactoryContract extends BaseContract {
     marginlyPoolImplementation(override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
     swapRouter(override?: CallOverrides): Promise<[string]>;
+    techPositionOwner(override?: CallOverrides): Promise<[string]>;
     uniswapFactory(override?: CallOverrides): Promise<[string]>;
     WETH9(override?: CallOverrides): Promise<[string]>;
   };
@@ -177,10 +181,18 @@ export async function deploy(
   _swapRouter: string,
   _feeHolder: string,
   _WETH9: string,
+  _techPositionOwner: string,
   signer?: Signer
 ): Promise<MarginlyFactoryContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(_marginlyPoolImplementation, _uniswapFactory, _swapRouter, _feeHolder, _WETH9);
+  const contract = await factory.deploy(
+    _marginlyPoolImplementation,
+    _uniswapFactory,
+    _swapRouter,
+    _feeHolder,
+    _WETH9,
+    _techPositionOwner
+  );
   return (await contract.deployed()) as any;
 }
 

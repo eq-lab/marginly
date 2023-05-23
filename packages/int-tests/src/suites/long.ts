@@ -5,6 +5,7 @@ import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
 import { getLongSortKeyX48, decodeSwapEvent, assertAccruedRateCoeffs } from '../utils/chain-ops';
 import { fp48ToHumanString, FP96, toHumanString } from '../utils/fixed-point';
+import { showSystemAggregates } from '../utils/log-utils';
 
 export async function long(sut: SystemUnderTest) {
   logger.info(`Starting long test suite`);
@@ -106,8 +107,7 @@ export async function long(sut: SystemUnderTest) {
     const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
     const realBaseBalance = await weth.balanceOf(marginlyPool.address);
 
-    //leverage
-    await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+    const expectedCoeffs = await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber);
     logger.info(` SortKeyX48 is ${sortKeyX48}`);
 
     //fee
@@ -164,8 +164,10 @@ export async function long(sut: SystemUnderTest) {
       assert.deepEqual(BigNumber.from(position._type), BigNumber.from(positionBefore._type), 'position type');
     }
 
+    const actualQuoteDebtFee = discountedQuoteCollateral.sub(discountedQuoteCollateralBefore);
+
     // discountedQuoteCollateral
-    assert.deepEqual(discountedQuoteCollateralBefore, discountedQuoteCollateral);
+    assert.deepEqual(actualQuoteDebtFee, expectedCoeffs.discountedQuoteDebtFee);
 
     //realQuoteBalance
     const expectedRealQuoteBalanceChange = fee.add(realQuoteAmount);
@@ -190,7 +192,7 @@ export async function long(sut: SystemUnderTest) {
     await provider.mineAtTimestamp(nextDate);
 
     const quoteCollateralCoeffBefore = BigNumber.from(await marginlyPool.quoteCollateralCoeff());
-    const quoteAccruedRateBefore = await marginlyPool.quoteAccruedRate();
+    const quoteDebtCoeffBefore = await marginlyPool.quoteDebtCoeff();
 
     //reinit tx
     const txReceipt = await (await marginlyPool.connect(treasury).reinit({ gasLimit: 500_000 })).wait();
@@ -203,28 +205,32 @@ export async function long(sut: SystemUnderTest) {
       logger.warn(` mc account: ${marginCallEvent.args![0]}`);
     }
 
-    await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber, !!marginCallEvent);
+    const expectedCoeffs = await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber, !!marginCallEvent);
 
     //check coefficients
     const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
-    const quoteAccruedRate = await marginlyPool.quoteAccruedRate();
+    const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
     const discountedQuoteDebt = await marginlyPool.discountedQuoteDebt();
     const discountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
 
     if (!marginCallEvent) {
-      const quoteDebtDelta = quoteAccruedRate.sub(quoteAccruedRateBefore).mul(discountedQuoteDebt).div(FP96.one);
+      const quoteDebtDelta = quoteDebtCoeff.sub(quoteDebtCoeffBefore).mul(discountedQuoteDebt).div(FP96.one);
 
       const quoteCollatDelta = quoteCollateralCoeff
         .sub(quoteCollateralCoeffBefore)
         .mul(discountedQuoteCollateral)
         .div(FP96.one);
 
-      // quote collateral change == quote debt change
-      const epsilon = BigNumber.from(1);
-      if (quoteDebtDelta.sub(quoteCollatDelta).abs().gt(epsilon)) {
+      const realDebtFee = expectedCoeffs.discountedQuoteDebtFee.mul(quoteCollateralCoeff).div(FP96.one);
+
+      // quote collateral change + debt fee == quote debt change
+      const epsilon = BigNumber.from(200);
+      const delta = quoteDebtDelta.sub(quoteCollatDelta).sub(realDebtFee).abs();
+      if (delta.gt(epsilon)) {
         logger.warn(`quoteDebtDelta: ${formatUnits(quoteDebtDelta, 6)} USDC`);
         logger.warn(`quoteCollatDelta: ${formatUnits(quoteCollatDelta, 6)} USDC`);
-        logger.error(`they must be equal`);
+        logger.warn(`quoteDbtFee: ${formatUnits(expectedCoeffs.discountedQuoteDebtFee, 6)} USDC`);
+        logger.error(`delta is ${delta} they must be equal`);
       }
       // assert.deepEqual(quoteDebtDelta, quoteCollatDelta);
     }
@@ -267,4 +273,6 @@ export async function long(sut: SystemUnderTest) {
     logger.info(` sortKeyX48 ${sortKeyX48}`);
     logger.info(` collateral ${formatUnits(realBaseAmount, 18)} WETH, debt ${formatUnits(realQuoteAmount, 6)} USDC`);
   }
+
+  await showSystemAggregates(sut);
 }

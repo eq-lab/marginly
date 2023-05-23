@@ -9,7 +9,7 @@ import { Web3Provider } from '@ethersproject/providers';
   const logFile = `.ganache.stdout.log`;
   await writeFile(logFile, ``, { flag: `w` });
 
-  let suiteName = process.argv[2].substring('--suite='.length);
+  const suiteName = process.argv[2].substring('--suite='.length);
   if (!suiteName) {
     throw `Suite name argument not passed. Run script with argument --suite=<suiteName>`;
   }
@@ -43,12 +43,8 @@ import { Web3Provider } from '@ethersproject/providers';
   try {
     await startSuite(provider, initialAccounts, suiteName);
   } catch (err) {
-    if (typeof err == 'object') {
-      console.log(Math.floor(Date.now() / 1000));
-      logger.error(JSON.stringify(err, null, 2));
-    } else {
-      logger.error(`${err}`);
-    }
+    console.log(Math.floor(Date.now() / 1000));
+    logger.error(`${err}`);
 
     process.exit(1);
   } finally {

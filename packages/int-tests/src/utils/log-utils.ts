@@ -3,7 +3,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import bn from 'bignumber.js';
 import { FP96, toHumanString } from '../utils/fixed-point';
 import { logger } from '../utils/logger';
-import { SystemUnderTest } from '../suites';
+import { SystemUnderTest, TechnicalPositionOwner } from '../suites';
 
 export async function showSystemAggregates(sut: SystemUnderTest) {
   const { marginlyPool, marginlyFactory, accounts, usdc, weth } = sut;
@@ -34,6 +34,10 @@ export async function showSystemAggregates(sut: SystemUnderTest) {
   const realBaseDebt = baseDebtCoeff.mul(discountedBaseDebt).div(FP96.one);
 
   const feeBalance = await usdc.balanceOf(await marginlyFactory.feeHolder());
+
+  const techPosition = await marginlyPool.positions(TechnicalPositionOwner);
+  const techRealBaseAmount = baseCollateralCoeff.mul(techPosition.discountedBaseAmount).div(FP96.one);
+  const techRealQuoteAmount = quoteCollateralCoeff.mul(techPosition.discountedQuoteAmount).div(FP96.one);
 
   //totalCollateral - totalDebt
   const systemBalance = realBaseCollateral
@@ -70,6 +74,12 @@ export async function showSystemAggregates(sut: SystemUnderTest) {
   logger.info(` `);
   logger.info(`     feeBalance               = ${formatUnits(feeBalance, 6)} USDC`);
   logger.info(` `);
+  logger.info(` TechPosition:`);
+  logger.info(`       discountedBaseAmount   = ${formatUnits(techPosition.discountedBaseAmount, 18)} WETH`);
+  logger.info(`       discountedQuoteAmount   = ${formatUnits(techPosition.discountedQuoteAmount, 6)} USDC`);
+  logger.info(`       realBaseAmount   = ${formatUnits(techRealBaseAmount, 18)} WETH`);
+  logger.info(`       realQuoteAmount   = ${formatUnits(techRealQuoteAmount, 6)} USDC`);
+
   logger.info(`  Positions:`);
   for (let i = 0; i < 4; i++) {
     const position = await marginlyPool.positions(accounts[i].address);

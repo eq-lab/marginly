@@ -4,6 +4,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { BigNumber, ethers, ContractReceipt } from 'ethers';
 import { FP96, powTaylor } from './fixed-point';
+import { TechnicalPositionOwner } from '../suites';
 
 export const PositionType = {
   Uninitialized: 0,
@@ -111,18 +112,16 @@ export async function calcAccruedRateCoeffs(
 
   const baseDebtCoeffPrev = await marginlyPool.baseDebtCoeff(callOpt);
   const quoteDebtCoeffPrev = await marginlyPool.quoteDebtCoeff(callOpt);
-  const baseAccruedRatePrev = await marginlyPool.baseAccruedRate(callOpt);
-  const quoteAccruedRatePrev = await marginlyPool.quoteAccruedRate(callOpt);
   const baseCollateralCoeffPrev = await marginlyPool.baseCollateralCoeff(callOpt);
   const quoteCollateralCoeffPrev = await marginlyPool.quoteCollateralCoeff(callOpt);
 
   const result = {
     baseDebtCoeff: baseDebtCoeffPrev,
     quoteDebtCoeff: quoteDebtCoeffPrev,
-    baseAccruedRate: baseAccruedRatePrev,
-    quoteAccruedRate: quoteAccruedRatePrev,
     baseCollateralCoeff: baseCollateralCoeffPrev,
     quoteCollateralCoeff: quoteCollateralCoeffPrev,
+    discountedBaseDebtFee: BigNumber.from(0),
+    discountedQuoteDebtFee: BigNumber.from(0),
   };
 
   if (+secondsPassed === 0) {
@@ -138,42 +137,57 @@ export async function calcAccruedRateCoeffs(
   const feeX96 = BigNumber.from(params.fee).mul(FP96.one).div(WHOLE_ONE);
 
   const onePlusFee = feeX96.mul(FP96.one).div(SECONDS_IN_YEAR_X96).add(FP96.one);
+  const feeDt = powTaylor(onePlusFee, +secondsPassed);
 
   if (!discountedBaseCollateralPrev.isZero()) {
     const onePlusIRshort = interestRateX96.mul(leverageShortX96).div(SECONDS_IN_YEAR_X96).add(FP96.one);
-    const baseAccruedRateMul = powTaylor(onePlusIRshort, +secondsPassed);
+    const accruedRateDt = powTaylor(onePlusIRshort, +secondsPassed);
     const baseDebtCoeffMul = powTaylor(onePlusIRshort.mul(onePlusFee).div(FP96.one), +secondsPassed);
 
-    const baseAccruedRate = baseAccruedRatePrev.mul(baseAccruedRateMul).div(FP96.one);
     const baseCollateralCoeff = baseCollateralCoeffPrev.add(
       fp96FromRatio(
-        baseAccruedRate.sub(baseAccruedRatePrev).mul(discountedBaseDebtPrev).div(FP96.one),
+        accruedRateDt.sub(FP96.one).mul(baseDebtCoeffPrev).div(FP96.one).mul(discountedBaseDebtPrev).div(FP96.one),
         discountedBaseCollateralPrev
       )
     );
     const baseDebtCoeff = baseDebtCoeffPrev.mul(baseDebtCoeffMul).div(FP96.one);
 
-    result.baseAccruedRate = baseAccruedRate;
+    const realBaseDebtFee = accruedRateDt
+      .mul(feeDt.sub(FP96.one))
+      .div(FP96.one)
+      .mul(baseDebtCoeffPrev)
+      .div(FP96.one)
+      .mul(discountedBaseDebtPrev)
+      .div(FP96.one);
+
+    result.discountedBaseDebtFee = realBaseDebtFee.mul(FP96.one).div(baseCollateralCoeff);
     result.baseCollateralCoeff = baseCollateralCoeff;
     result.baseDebtCoeff = baseDebtCoeff;
   }
 
   if (!discountedQuoteCollateralPrev.isZero()) {
     const onePlusIRLong = interestRateX96.mul(leverageLongX96).div(SECONDS_IN_YEAR_X96).add(FP96.one);
-    const quoteAccruedRateMul = powTaylor(onePlusIRLong, +secondsPassed);
+    const accruedRateDt = powTaylor(onePlusIRLong, +secondsPassed);
     const quoteDebtCoeffMul = powTaylor(onePlusIRLong.mul(onePlusFee).div(FP96.one), +secondsPassed);
 
     const quoteDebtCoeff = quoteDebtCoeffPrev.mul(quoteDebtCoeffMul).div(FP96.one);
-    const quoteAccruedRate = quoteAccruedRatePrev.mul(quoteAccruedRateMul).div(FP96.one);
 
     const quoteCollateralCoeff = quoteCollateralCoeffPrev.add(
       fp96FromRatio(
-        quoteAccruedRate.sub(quoteAccruedRatePrev).mul(discountedQuoteDebtPrev).div(FP96.one),
+        accruedRateDt.sub(FP96.one).mul(quoteDebtCoeffPrev).div(FP96.one).mul(discountedQuoteDebtPrev).div(FP96.one),
         discountedQuoteCollateralPrev
       )
     );
 
-    result.quoteAccruedRate = quoteAccruedRate;
+    const realQuoteDebtFee = accruedRateDt
+      .mul(feeDt.sub(FP96.one))
+      .div(FP96.one)
+      .mul(quoteDebtCoeffPrev)
+      .div(FP96.one)
+      .mul(discountedQuoteDebtPrev)
+      .div(FP96.one);
+
+    result.discountedQuoteDebtFee = realQuoteDebtFee.mul(FP96.one).div(quoteCollateralCoeff);
     result.quoteDebtCoeff = quoteDebtCoeff;
     result.quoteCollateralCoeff = quoteCollateralCoeff;
   }
@@ -193,20 +207,15 @@ export async function assertAccruedRateCoeffs(
   marginCallHappened = false
 ) {
   const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
-  const baseAccruedRate = await marginlyPool.baseAccruedRate();
   const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
-  const quoteAccruedRate = await marginlyPool.quoteAccruedRate();
   const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
   const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
 
+  const technicalPosition = await marginlyPool.positions(TechnicalPositionOwner);
+  const technicalPositionPrev = await marginlyPool.positions(TechnicalPositionOwner, { blockTag: prevBlockNumber });
+
   const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber, marginCallHappened);
 
-  if (!expectedCoeffs.baseAccruedRate.eq(baseAccruedRate)) {
-    throw new Error(`baseAccruedRate coeff differs ${expectedCoeffs.baseAccruedRate} and ${baseAccruedRate}`);
-  }
-  if (!expectedCoeffs.quoteAccruedRate.eq(quoteAccruedRate)) {
-    throw new Error(`quoteAccruedRate coeff differs ${expectedCoeffs.quoteAccruedRate} and ${quoteAccruedRate}`);
-  }
   if (!expectedCoeffs.baseDebtCoeff.eq(baseDebtCoeff)) {
     throw new Error(`baseDebtCoeff coeff differs ${expectedCoeffs.baseDebtCoeff} and ${baseDebtCoeff}`);
   }
@@ -223,40 +232,26 @@ export async function assertAccruedRateCoeffs(
       `baseCollateralCoeff coeff differs ${expectedCoeffs.baseCollateralCoeff} and ${baseCollateralCoeff}`
     );
   }
-}
-
-export async function calcDebtFee(
-  marginlyPool: MarginlyPoolContract,
-  positionAddress: string,
-  prevBlockNumber: number
-) {
-  const coeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
-  const positionPrev = await marginlyPool.positions(positionAddress, { blockTag: prevBlockNumber });
-  const position = await marginlyPool.positions(positionAddress);
-
-  await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber);
 
   if (
-    (positionPrev._type === PositionType.Long && position._type === PositionType.Lend) ||
-    (positionPrev._type === PositionType.Long && positionPrev.discountedQuoteAmount.gt(position.discountedQuoteAmount))
+    !technicalPosition.discountedBaseAmount.eq(
+      technicalPositionPrev.discountedBaseAmount.add(expectedCoeffs.discountedBaseDebtFee)
+    )
   ) {
-    const debtFee = divFp96(coeffs.quoteDebtCoeff, coeffs.quoteAccruedRate)
-      .sub(FP96.one)
-      .mul(positionPrev.discountedQuoteAmount)
-      .div(FP96.one);
-    return debtFee;
+    throw new Error(
+      `technicalPosition.discountedBaseAmount ${technicalPosition.discountedBaseAmount} not eqaul prev value ${technicalPositionPrev.discountedBaseAmount} plus fee ${expectedCoeffs.discountedBaseDebtFee}`
+    );
   }
 
   if (
-    (positionPrev._type === PositionType.Short && position._type === PositionType.Lend) ||
-    (positionPrev._type === PositionType.Short && positionPrev.discountedBaseAmount.gt(position.discountedBaseAmount))
+    !technicalPosition.discountedQuoteAmount.eq(
+      technicalPositionPrev.discountedQuoteAmount.add(expectedCoeffs.discountedQuoteDebtFee)
+    )
   ) {
-    const debtFee = divFp96(coeffs.baseDebtCoeff, coeffs.baseAccruedRate)
-      .sub(FP96.one)
-      .mul(positionPrev.discountedBaseAmount)
-      .div(FP96.one);
-    return debtFee;
+    throw new Error(
+      `technicalPosition.discountedQuoteAmount ${technicalPosition.discountedQuoteAmount} not eqaul prev value ${technicalPositionPrev.discountedQuoteAmount} plus fee ${expectedCoeffs.discountedQuoteDebtFee}`
+    );
   }
 
-  return BigNumber.from(0);
+  return expectedCoeffs;
 }
