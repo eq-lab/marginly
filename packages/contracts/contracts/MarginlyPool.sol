@@ -79,6 +79,11 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Ratio of best side collaterals before and after margin call of opposite side in shutdown mode
   FP96.FixedPoint public emergencyWithdrawCoeff;
 
+  FP96.FixedPoint public baseCollateralDelevCoeff;
+  FP96.FixedPoint public quoteCollateralDelevCoeff;
+  FP96.FixedPoint public baseDebtDelevCoeff;
+  FP96.FixedPoint public quoteDebtDelevCoeff;
+
   struct Leverage {
     /// @dev This is a leverage of all long positions in the system
     uint128 shortX96;
@@ -123,6 +128,10 @@ contract MarginlyPool is IMarginlyPool {
     baseDebtCoeff = FP96.one();
     quoteCollateralCoeff = FP96.one();
     quoteDebtCoeff = FP96.one();
+    baseCollateralDelevCoeff = FP96.one();
+    quoteCollateralDelevCoeff = FP96.one();
+    baseDebtDelevCoeff = FP96.one();
+    quoteDebtDelevCoeff = FP96.one();
     lastReinitTimestampSeconds = block.timestamp;
     unlocked = true;
     initialPrice = getBasePrice();
@@ -208,6 +217,125 @@ contract MarginlyPool is IMarginlyPool {
         sqrtPriceLimitX96: 0
       })
     );
+  }
+
+  /// @dev User liquidation: applies deleverage if needed then enacts MC
+  /// @param user User's address
+  /// @param position User's position to reinit
+  function liquidate(address user, Position storage position) private {
+    if (position._type == PositionType.Short) {
+      uint256 poolQuoteCollateral = quoteCollateralCoeff.mul(discountedQuoteCollateral);
+      uint256 poolQuoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt);
+      uint256 positionQuoteCollateral = quoteCollateralCoeff.mul(position.discountedQuoteAmount);
+      uint256 poolQuoteBalance = poolQuoteCollateral.sub(poolQuoteDebt);
+
+      if (positionQuoteCollateral > poolQuoteBalance) {
+        // so the idea is to find such an n that:
+        // sum(1/2^i, i = 0, n) * tokenPollDebt >= tokenNeeded
+        // using sum of geometric progression and dividing both sides by tokenPoolDebt:
+        // 1 - 1/2^n >= tokenNeeded / tokenPoolDebt = (posTokenColl - (tokenPoolColl - tokenPoolDebt)) / tokenPoolDebt
+        // 1 - 1/2^n >= (posTokenColl - tokenPoolColl) / tokenPoolDebt + 1
+        // 1/2^n <= (tokenPoolColl - posTokenColl) / tokenPoolDebt
+        // So if we represent 1/2^n as FP255, n equals numberOfLeadingZeros - 1 of the right side since:
+        // 2^255 / 2^n = 2^(255 - n) <= (tokenPoolColl - posTokenColl) * 2^255 / token
+        // -1 needed cause we have have one extra bit for an integer part of FP255, which is always 0 by math
+
+        uint256 n = clz(Math.mulDiv(poolQuoteCollateral.sub(positionQuoteCollateral), (1 << 255), poolQuoteDebt)) - 1;
+        FP96.FixedPoint memory delevRatioDebt = FP96.one().sub(FP96.FixedPoint({inner: (1 << (96 - n))}));
+
+        uint256 quoteDebtToFree = delevRatioDebt.mul(poolQuoteDebt);
+        uint256 baseInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
+          getCurrentBasePrice().recipMul(quoteDebtToFree)
+        );
+        uint256 baseCollTaken = swapExactOutput(false, baseInMaximum, quoteDebtToFree);
+
+        discountedQuoteDebt = discountedQuoteDebt.sub(quoteDebtCoeff.recipMul(quoteDebtToFree));
+        discountedBaseCollateral = discountedBaseCollateral.sub(baseCollateralCoeff.recipMul(baseCollTaken));
+
+        baseCollateralDelevCoeff = baseCollateralDelevCoeff.mul(
+          delevRatioDebt.mul(FP96.fromRatio(baseCollTaken, quoteDebtToFree))
+        );
+        quoteDebtDelevCoeff = quoteDebtDelevCoeff.mul(delevRatioDebt);
+      }
+    } else if (position._type == PositionType.Long) {
+      uint256 poolBaseCollateral = baseCollateralCoeff.mul(discountedBaseCollateral);
+      uint256 poolBaseDebt = baseDebtCoeff.mul(discountedBaseDebt);
+      uint256 positionBaseCollateral = baseCollateralCoeff.mul(position.discountedBaseAmount);
+      uint256 poolBaseBalance = poolBaseCollateral.sub(poolBaseDebt);
+
+      if (positionBaseCollateral > poolBaseBalance) {
+        // so the idea is to find such an n that:
+        // sum(1/2^i, i = 0, n) * tokenPollDebt >= tokenNeeded
+        // using sum of geometric progression and dividing both sides by tokenPoolDebt:
+        // 1 - 1/2^n >= tokenNeeded / tokenPoolDebt = (posTokenColl - (tokenPoolColl - tokenPoolDebt)) / tokenPoolDebt
+        // 1 - 1/2^n >= (posTokenColl - tokenPoolColl) / tokenPoolDebt + 1
+        // 1/2^n <= (tokenPoolColl - posTokenColl) / tokenPoolDebt
+        // So if we represent 1/2^n as FP255, n equals numberOfLeadingZeros - 1 of the right side since:
+        // 2^255 / 2^n = 2^(255 - n) <= (tokenPoolColl - posTokenColl) * 2^255 / token
+        // -1 needed cause we have have one extra bit for an integer part of FP255, which is always 0 by math
+
+        uint256 n = clz(Math.mulDiv(poolBaseCollateral.sub(positionBaseCollateral), (1 << 255), poolBaseDebt)) - 1;
+        FP96.FixedPoint memory delevRatioDebt = FP96.one().sub(FP96.FixedPoint({inner: (1 << (96 - n))}));
+
+        uint256 baseDebtToFree = delevRatioDebt.mul(poolBaseDebt);
+        uint256 quoteInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
+          getCurrentBasePrice().mul(baseDebtToFree)
+        );
+        uint256 quoteCollTaken = swapExactOutput(true, quoteInMaximum, baseDebtToFree);
+
+        discountedBaseDebt = discountedBaseDebt.sub(baseDebtCoeff.recipMul(baseDebtToFree));
+        discountedQuoteCollateral = discountedQuoteCollateral.sub(quoteCollateralCoeff.recipMul(quoteCollTaken));
+
+        quoteCollateralDelevCoeff = quoteCollateralDelevCoeff.mul(
+          delevRatioDebt.mul(FP96.fromRatio(quoteCollTaken, baseDebtToFree))
+        );
+        quoteDebtDelevCoeff = quoteDebtDelevCoeff.mul(delevRatioDebt);
+      }
+    } else {
+      revert('WPT');
+    }
+
+    enactMarginCall(user, position);
+  }
+
+  function clz(uint256 x) private pure returns (uint256 leadingZeros) {
+    leadingZeros = 256;
+
+    if (x >= 1 << 128) {
+      x >>= 128;
+      leadingZeros -= 128;
+    }
+    if (x >= 1 << 64) {
+      x >>= 64;
+      leadingZeros -= 64;
+    }
+    if (x >= 1 << 32) {
+      x >>= 32;
+      leadingZeros -= 32;
+    }
+    if (x >= 1 << 16) {
+      x >>= 16;
+      leadingZeros -= 16;
+    }
+    if (x >= 1 << 8) {
+      x >>= 8;
+      leadingZeros -= 8;
+    }
+    if (x >= 1 << 4) {
+      x >>= 4;
+      leadingZeros -= 4;
+    }
+    if (x >= 1 << 2) {
+      x >>= 2;
+      leadingZeros -= 2;
+    }
+    if (x >= 1 << 1) {
+      x >>= 1;
+      leadingZeros -= 1;
+    }
+    if (x >= 1) {
+      leadingZeros -= 1;
+    }
   }
 
   /// @dev Enact margin call procedure for the position
@@ -711,6 +839,8 @@ contract MarginlyPool is IMarginlyPool {
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
       shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
       position._type = PositionType.Short;
+      position.collateralDelevCoeff = quoteCollateralDelevCoeff;
+      position.debtDelevCoeff = baseDebtDelevCoeff;
     }
 
     updateSystemLeverageShort(basePrice);
@@ -767,6 +897,8 @@ contract MarginlyPool is IMarginlyPool {
       //init heap with default value 1.0
       longHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
       position._type = PositionType.Long;
+      position.collateralDelevCoeff = baseCollateralDelevCoeff;
+      position.debtDelevCoeff = quoteDebtDelevCoeff;
     }
 
     updateSystemLeverageLong(basePrice);
@@ -848,7 +980,7 @@ contract MarginlyPool is IMarginlyPool {
 
     marginCallHappened = positionHasBadLeverage(position, basePrice);
     if (marginCallHappened) {
-      enactMarginCall(user, position);
+      liquidate(user, position);
     }
   }
 
@@ -925,6 +1057,8 @@ contract MarginlyPool is IMarginlyPool {
         shortHeap.remove(positions, heapIndex);
       } else {
         position._type = PositionType.Short;
+        position.collateralDelevCoeff = quoteCollateralDelevCoeff;
+        position.debtDelevCoeff = baseDebtDelevCoeff;
         position.heapPosition = heapIndex + 1;
         position.discountedBaseAmount = badPosition.discountedBaseAmount.sub(discountedBaseAmount);
         discountedBaseDebt = discountedBaseDebt.sub(discountedBaseAmount);
@@ -947,6 +1081,8 @@ contract MarginlyPool is IMarginlyPool {
         longHeap.remove(positions, heapIndex);
       } else {
         position._type = PositionType.Long;
+        position.collateralDelevCoeff = baseCollateralDelevCoeff;
+        position.debtDelevCoeff = quoteDebtDelevCoeff;
         position.heapPosition = heapIndex + 1;
         position.discountedQuoteAmount = badPosition.discountedQuoteAmount.sub(discountedQuoteAmount);
         discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteAmount);
@@ -1179,8 +1315,26 @@ contract MarginlyPool is IMarginlyPool {
 
     Position storage position = positions[msg.sender];
 
+    if (position._type == PositionType.Short) {
+      FP96.FixedPoint memory collateralDelevCoeffDiff = quoteCollateralDelevCoeff.sub(position.collateralDelevCoeff);
+      if (collateralDelevCoeffDiff.inner != 0) {
+        position.discountedQuoteAmount = collateralDelevCoeffDiff.mul(position.discountedQuoteAmount);
+        position.discountedBaseAmount = baseDebtDelevCoeff.sub(position.debtDelevCoeff).mul(
+          position.discountedBaseAmount
+        );
+      }
+    } else if (position._type == PositionType.Long) {
+      FP96.FixedPoint memory collateralDelevCoeffDiff = baseCollateralDelevCoeff.sub(position.collateralDelevCoeff);
+      if (collateralDelevCoeffDiff.inner != 0) {
+        position.discountedBaseAmount = collateralDelevCoeffDiff.mul(position.discountedBaseAmount);
+        position.discountedQuoteAmount = quoteDebtDelevCoeff.sub(position.debtDelevCoeff).mul(
+          position.discountedQuoteAmount
+        );
+      }
+    }
+
     if (positionHasBadLeverage(position, basePrice)) {
-      enactMarginCall(msg.sender, position);
+      liquidate(msg.sender, position);
       return;
     }
 

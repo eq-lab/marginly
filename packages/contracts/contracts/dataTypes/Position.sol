@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
+import '../libraries/FP96.sol';
+
 enum PositionType {
   Uninitialized,
   Lend,
@@ -18,4 +20,6 @@ struct Position {
   uint256 discountedBaseAmount;
   /// @dev negative value if _type == Long, positive value otherwise in quote asset (e.g. USDC)
   uint256 discountedQuoteAmount;
+  FP96.FixedPoint collateralDelevCoeff;
+  FP96.FixedPoint debtDelevCoeff;
 }
