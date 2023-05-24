@@ -1314,20 +1314,26 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position = positions[msg.sender];
 
     if (position._type == PositionType.Short) {
-      FP96.FixedPoint memory collateralDelevCoeffDiff = quoteCollateralDelevCoeff.sub(position.collateralDelevCoeff);
-      if (collateralDelevCoeffDiff.inner != 0) {
-        position.discountedQuoteAmount = collateralDelevCoeffDiff.mul(position.discountedQuoteAmount);
-        position.discountedBaseAmount = baseDebtDelevCoeff.sub(position.debtDelevCoeff).mul(
+      FP96.FixedPoint memory collateralDelevCoeffRatio = quoteCollateralDelevCoeff.div(position.collateralDelevCoeff);
+      if (collateralDelevCoeffRatio.inner != FP96.Q96) {
+        position.discountedQuoteAmount = collateralDelevCoeffRatio.mul(position.discountedQuoteAmount);
+        position.collateralDelevCoeff = quoteCollateralDelevCoeff;
+
+        position.discountedBaseAmount = baseDebtDelevCoeff.div(position.debtDelevCoeff).mul(
           position.discountedBaseAmount
         );
+        position.debtDelevCoeff = baseDebtDelevCoeff;
       }
     } else if (position._type == PositionType.Long) {
-      FP96.FixedPoint memory collateralDelevCoeffDiff = baseCollateralDelevCoeff.sub(position.collateralDelevCoeff);
-      if (collateralDelevCoeffDiff.inner != 0) {
-        position.discountedBaseAmount = collateralDelevCoeffDiff.mul(position.discountedBaseAmount);
-        position.discountedQuoteAmount = quoteDebtDelevCoeff.sub(position.debtDelevCoeff).mul(
+      FP96.FixedPoint memory collateralDelevCoeffRatio = baseCollateralDelevCoeff.div(position.collateralDelevCoeff);
+      if (collateralDelevCoeffRatio.inner != FP96.Q96) {
+        position.discountedBaseAmount = collateralDelevCoeffRatio.mul(position.discountedBaseAmount);
+        position.collateralDelevCoeff = baseCollateralDelevCoeff;
+
+        position.discountedQuoteAmount = quoteDebtDelevCoeff.div(position.debtDelevCoeff).mul(
           position.discountedQuoteAmount
         );
+        position.debtDelevCoeff = quoteDebtDelevCoeff;
       }
     }
 
