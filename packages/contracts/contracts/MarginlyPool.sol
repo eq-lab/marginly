@@ -1162,12 +1162,9 @@ contract MarginlyPool is IMarginlyPool {
     uint256 newCollateral = collateral >= debt ? collateral.sub(debt) : 0;
 
     if (emergencyCollateral > emergencyDebt) {
-      uint256 surplus = emergencyCollateral.sub(emergencyDebt);
       address token = _mode == Mode.ShortEmergency ? quoteToken : baseToken;
-      uint256 balance = IERC20(token).balanceOf(address(this));
-      //require(surplus <= balance, 'BD'); // Balance differ
-
-      if (surplus <= balance) {
+      uint256 surplus = IERC20(token).balanceOf(address(this));
+      if (surplus != 0) {
         uint256 collateralSurplus = _mode == Mode.ShortEmergency
           ? swapExactInput(true, surplus, 0)
           : swapExactInput(false, surplus, 0);
