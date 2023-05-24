@@ -21,13 +21,6 @@
     ]
   },
   {
-    "code": "FB",
-    "description": "Forbidden",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
     "code": "HPE",
     "description": "Heap position exists",
     "fileNames": [

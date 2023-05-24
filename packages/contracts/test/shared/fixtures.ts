@@ -1,4 +1,4 @@
-import { ethers } from 'hardhat';
+import { ethers } from './mocks';
 import {
   MarginlyFactory,
   MarginlyPool,
@@ -12,13 +12,14 @@ import {
   MarginlyKeeper,
   MockSwapRouter,
   MockMarginlyFactory,
-} from '../../typechain-types';
+} from './mocks';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { SignerWithAddress } from './mocks';
 import { generateWallets } from './utils';
-import { Wallet } from 'ethers';
+import { Wallet } from 'zksync-web3';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
+import { Contract } from 'ethers';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -35,10 +36,11 @@ export async function createToken(name: string, symbol: string): Promise<TestERC
   const [_,signer] = await ethers.getSigners();
   const factory = await ethers.getContractFactory('TestERC20');
   const tokenContract = await factory.deploy(name, symbol);
-  await signer.sendTransaction({
+  const tx = await signer.sendTransaction({
     to: tokenContract.address,
     value: parseEther("100"),
   });
+  await tx.wait();
 
   return tokenContract;
 }
@@ -66,7 +68,7 @@ export async function createUniswapFactory(): Promise<{
   const factory = await ethers.getContractFactory('TestUniswapFactory');
   const contract = await factory.deploy();
   const { uniswapPool: pool, token0, token1 } = await createUniswapPool();
-  await contract.addPool(pool.address);
+  await (await contract.addPool(pool.address)).wait();
   const fee = await pool.fee();
 
   return {
@@ -89,7 +91,7 @@ export async function createMarginlyPoolImplementation(): Promise<{ poolImplemen
   };
 }
 
-export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
+export async function createMarginlyFactory(baseTokenIsWETH: boolean, isTimeMove: boolean = false): Promise<{
   factory: MarginlyFactory;
   owner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
@@ -97,15 +99,17 @@ export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
 }> {
   const { uniswapFactory, uniswapPoolInfo } = await createUniswapFactory();
   const { swapRouter } = await createSwapRoute(uniswapPoolInfo.address);
-  const { poolImplementation } = await createMarginlyPoolImplementation();
+  const poolImplementationAddress = '0x0000000000000000000000000000000000000000';
 
-  await uniswapPoolInfo.token0.mint(swapRouter.address, parseUnits('100000', 18));
-  await uniswapPoolInfo.token1.mint(swapRouter.address, parseUnits('100000', 18));
+  await (await uniswapPoolInfo.token0.mint(swapRouter.address, parseUnits('100000', 18))).wait();
+  await (await uniswapPoolInfo.token1.mint(swapRouter.address, parseUnits('100000', 18))).wait();
 
-  const factoryFactory = await ethers.getContractFactory('MarginlyFactory');
+  const contractName = isTimeMove ? 'TimeMoveMarginlyFactory' : 'MarginlyFactory';
+
+  const factoryFactory = await ethers.getContractFactory(contractName);
   const [owner] = await ethers.getSigners();
   const factory = (await factoryFactory.deploy(
-    poolImplementation.address,
+    poolImplementationAddress,
     uniswapFactory.address,
     swapRouter.address,
     FeeHolder,
@@ -122,7 +126,13 @@ export function createMarginlyPoolQuoteTokenIsWETH(){
   return createMarginlyPoolInternal(false);
 }
 
-async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
+export function createTimeMoveMarginlyPool(){
+  return createMarginlyPoolInternal(true, true);
+}
+
+export const initialPoolTimestamp = (new Date('2023-05-24T00:00:00.000Z')).getTime() / 1000;
+
+async function createMarginlyPoolInternal(baseTokenIsWETH: boolean, isTimeMove: boolean = false): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
@@ -131,7 +141,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
   swapRouter: TestSwapRouter;
   marginlyFactory: MarginlyFactory;
 }> {
-  const { factory, owner, uniswapPoolInfo, swapRouter } = await createMarginlyFactory(baseTokenIsWETH);
+  const { factory, owner, uniswapPoolInfo, swapRouter } = await createMarginlyFactory(baseTokenIsWETH, isTimeMove);
 
   const quoteToken = uniswapPoolInfo.token0.address;
   const baseToken = uniswapPoolInfo.token1.address;
@@ -149,10 +159,30 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     quoteLimit: 1_000_000,
   };
 
-  const poolAddress = await factory.callStatic.createPool(quoteToken, baseToken, fee, params);
-  await factory.createPool(quoteToken, baseToken, fee, params);
+  let poolAddress: string;
+  let poolContractName: string;
+  if (isTimeMove) {
+    poolAddress = await factory.callStatic.createPool(quoteToken, baseToken, fee, params, initialPoolTimestamp);
+    await (await factory.createPool(quoteToken, baseToken, fee, params, initialPoolTimestamp)).wait();
+    poolContractName = 'TimeMoveMarginlyPool';
+  } else {
+    poolAddress = await factory.callStatic.createPool(quoteToken, baseToken, fee, params);
+    await (await factory.createPool(quoteToken, baseToken, fee, params)).wait();
+    poolContractName = 'MarginlyPool';
+  }
+  //     const tx = await marginlyPool.connect(signer).depositBase(depositAmount, 0);
+  //     const depositBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'DepositBase')!;
 
-  const poolFactory = await ethers.getContractFactory('MarginlyPool');
+  // const txInfo = await (await factory.createPool(quoteToken, baseToken, fee, params)).wait();
+  // const event = txInfo.events.find(x => x.event === 'PoolCreated');
+  // const poolAddress = event.args.pool;
+  //
+  // const poolFactory = await ethers.getContractFactory('MarginlyPool');
+  // const pool = poolFactory.attach(poolAddress) as MarginlyPool;
+
+  // const foo = await pool.lastReinitTimestampSeconds();
+  // const params1 = await pool.params();
+  const poolFactory = await ethers.getContractFactory(poolContractName);
   const pool = poolFactory.attach(poolAddress) as MarginlyPool;
 
   // mint for the first five signers and approve spend for marginlyPool
@@ -160,11 +190,11 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
 
   const signers = (await ethers.getSigners()).slice(0, 5);
   for (let i = 0; i < signers.length; i++) {
-    await uniswapPoolInfo.token0.mint(signers[i].address, amountToDeposit);
-    await uniswapPoolInfo.token1.mint(signers[i].address, amountToDeposit);
+    await (await uniswapPoolInfo.token0.mint(signers[i].address, amountToDeposit)).wait();
+    await (await uniswapPoolInfo.token1.mint(signers[i].address, amountToDeposit)).wait();
 
-    await uniswapPoolInfo.token0.connect(signers[i]).approve(poolAddress, amountToDeposit);
-    await uniswapPoolInfo.token1.connect(signers[i]).approve(poolAddress, amountToDeposit);
+    await (await uniswapPoolInfo.token0.connect(signers[i]).approve(poolAddress, amountToDeposit)).wait();
+    await (await uniswapPoolInfo.token1.connect(signers[i]).approve(poolAddress, amountToDeposit)).wait();
   }
 
   const [quoteContract, baseContract] = [uniswapPoolInfo.token0, uniswapPoolInfo.token1];
@@ -178,6 +208,12 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     swapRouter,
     marginlyFactory: factory,
   };
+}
+
+export async function increatePoolTimestamp(pool: Contract, timeShift: number): Promise<void> {
+  const currentTimestamp = await pool.blockTimestamp();
+  const nextTimeStamp = BigInt(currentTimestamp) + BigInt(timeShift);
+  await (await pool.setTimestamp(nextTimeStamp)).wait();
 }
 
 /**
@@ -289,14 +325,14 @@ export async function createMarginlyKeeperContract(): Promise<{
   const decimals = BigInt(await baseToken.decimals());
   const mintAmount = 10000000000n * 10n ** decimals;
 
-  await baseToken.mint(marginlyPool.address, mintAmount);
-  await quoteToken.mint(marginlyPool.address, mintAmount);
+  await (await baseToken.mint(marginlyPool.address, mintAmount)).wait();
+  await (await quoteToken.mint(marginlyPool.address, mintAmount)).wait();
 
-  await baseToken.mint(swapRouter.address, mintAmount);
-  await quoteToken.mint(swapRouter.address, mintAmount);
+  await (await baseToken.mint(swapRouter.address, mintAmount)).wait();
+  await (await quoteToken.mint(swapRouter.address, mintAmount)).wait();
 
-  await baseToken.mint(aavePool.address, mintAmount);
-  await quoteToken.mint(aavePool.address, mintAmount);
+  await (await baseToken.mint(aavePool.address, mintAmount)).wait();
+  await (await quoteToken.mint(aavePool.address, mintAmount)).wait();
 
   const factory = await ethers.getContractFactory('MarginlyKeeper');
   const marginlyKeeper = await factory.deploy(addressesProvider.address);

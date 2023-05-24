@@ -1,13 +1,12 @@
-import { ethers } from 'hardhat';
-import { BigNumber, Wallet } from 'ethers';
+import { BigNumber } from 'ethers';
+import { Wallet, Provider} from 'zksync-web3';
 import bn from 'bignumber.js';
-import { MarginlyPool } from '../../typechain-types';
 
 export async function generateWallets(count: number): Promise<Wallet[]> {
   const wallets = [];
   for (let i = 0; i < count; i++) {
-    let wallet = ethers.Wallet.createRandom();
-    wallet = wallet.connect(ethers.provider);
+    let wallet = Wallet.createRandom();
+    wallet = wallet.connect(Provider.getDefaultProvider());
     wallets.push(wallet);
   }
 

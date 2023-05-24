@@ -9,6 +9,7 @@
   "scripts": {
     "compile": "hardhat compile && ts-node generate-error-codes.ts",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
+    "test:zksync": "NODE_ENV=test hardhat test --network zkSyncTestnet ./test/*.spec.ts",
     "gas": "hardhat test ./test/gas-costs/*.spec.ts",
     "test:unit": "REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "test:bench": "REPORT_GAS=true hardhat test ./test/benchmarks/*.bench.ts",
@@ -34,6 +35,8 @@
     "@uniswap/v3-periphery": "^1.4.3",
     "@uniswap/snapshot-gas-cost": "^1.0.0",
     "@marginly/contracts-uniswap-mock": "^0.1.0",
+    "@matterlabs/hardhat-zksync-deploy": "^0.6.3",
+    "@matterlabs/hardhat-zksync-solc": "^0.3.17",
     "mocha-chai-jest-snapshot": "^1.1.4",
     "chai": "^4.3.7",
     "ethers": "^5.7.2",

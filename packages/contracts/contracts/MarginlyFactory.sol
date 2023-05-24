@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
-import '@openzeppelin/contracts/proxy/Clones.sol';
+//import '@openzeppelin/contracts/proxy/Clones.sol';
 
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
@@ -70,8 +70,16 @@ contract MarginlyFactory is IMarginlyFactory {
 
     bool quoteTokenIsToken0 = quoteToken == IUniswapV3Pool(uniswapPool).token0();
 
-    pool = Clones.cloneDeterministic(marginlyPoolImplementation, keccak256(abi.encode(uniswapPool)));
-    IMarginlyPool(pool).initialize(quoteToken, baseToken, uniswapFee, quoteTokenIsToken0, uniswapPool, params);
+    pool = address(new MarginlyPool{salt: keccak256(abi.encode(uniswapPool))}(
+      quoteToken,
+      baseToken,
+      uniswapFee,
+      quoteTokenIsToken0,
+      uniswapPool,
+      params
+    ));
+//    pool = Clones.cloneDeterministic(marginlyPoolImplementation, keccak256(abi.encode(uniswapPool)));
+//    IMarginlyPool(pool).initialize(quoteToken, baseToken, uniswapFee, quoteTokenIsToken0, uniswapPool, params);
 
     getPool[quoteToken][baseToken][uniswapFee] = pool;
     getPool[baseToken][quoteToken][uniswapFee] = pool;

@@ -5,6 +5,7 @@ import './IMarginlyPoolOwnerActions.sol';
 import '../dataTypes/Mode.sol';
 import '../libraries/FP96.sol';
 import '../dataTypes/Position.sol';
+import '../dataTypes/MarginlyParams.sol';
 
 interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when margin call took place
@@ -108,15 +109,15 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param reinitTimestamp timestamp when reinit happened
   event Reinit(uint256 reinitTimestamp);
 
-  /// @dev Initializes the pool
-  function initialize(
-    address quoteToken,
-    address baseToken,
-    uint24 uniswapFee,
-    bool quoteTokenIsToken0,
-    address uniswapPool,
-    MarginlyParams memory _params
-  ) external;
+//  /// @dev Initializes the pool
+//  function initialize(
+//    address quoteToken,
+//    address baseToken,
+//    uint24 uniswapFee,
+//    bool quoteTokenIsToken0,
+//    address uniswapPool,
+//    MarginlyParams memory _params
+//  ) external;
 
   /// @notice Returns the address of quote token from pool
   function quoteToken() external view returns (address token);

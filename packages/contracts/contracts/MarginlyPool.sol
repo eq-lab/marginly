@@ -95,21 +95,14 @@ contract MarginlyPool is IMarginlyPool {
   /// @notice users positions
   mapping(address => Position) public positions;
 
-  constructor() {
-    factory = address(0xdead);
-  }
-
-  /// @inheritdoc IMarginlyPool
-  function initialize(
+  constructor(
     address _quoteToken,
     address _baseToken,
     uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
     MarginlyParams memory _params
-  ) external {
-    require(factory == address(0), 'FB'); // Forbidden
-
+  ) {
     factory = msg.sender;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
@@ -128,6 +121,10 @@ contract MarginlyPool is IMarginlyPool {
 
   receive() external payable {
     require(msg.sender == IMarginlyFactory(factory).WETH9(), 'NW9'); // Not WETH9
+  }
+
+  function getTimestamp() internal virtual view returns (uint256) {
+    return block.timestamp;
   }
 
   function _lock() private view {
@@ -173,7 +170,7 @@ contract MarginlyPool is IMarginlyPool {
         tokenOut: tokenOut,
         fee: uniswapFee,
         recipient: address(this),
-        deadline: block.timestamp,
+        deadline: getTimestamp(),
         amountInMaximum: amountInMaximum,
         amountOut: amountOut,
         sqrtPriceLimitX96: 0
@@ -200,7 +197,7 @@ contract MarginlyPool is IMarginlyPool {
         tokenOut: tokenOut,
         fee: uniswapFee,
         recipient: address(this),
-        deadline: block.timestamp,
+        deadline: getTimestamp(),
         amountIn: amountIn,
         amountOutMinimum: amountOutMinimum,
         sqrtPriceLimitX96: 0
@@ -841,11 +838,11 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Update collateral and debt coeffs in system
   function accrueInterest() private returns (bool) {
-    uint256 secondsPassed = block.timestamp - lastReinitTimestampSeconds;
+    uint256 secondsPassed = getTimestamp() - lastReinitTimestampSeconds;
     if (secondsPassed == 0) {
       return false;
     }
-    lastReinitTimestampSeconds = block.timestamp;
+    lastReinitTimestampSeconds = getTimestamp();
 
     FP96.FixedPoint memory secondsInYear = FP96.FixedPoint({inner: SECONDS_IN_YEAR_X96});
     FP96.FixedPoint memory interestRate = FP96.FixedPoint({
@@ -1240,5 +1237,27 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Calculate swap price in Q96
   function getSwapPrice(uint256 quoteAmount, uint256 baseAmount) private pure returns (uint256) {
     return Math.mulDiv(quoteAmount, FP96.Q96, baseAmount);
+  }
+
+  function getParams() external view returns (
+    uint8 maxLeverage,
+    uint16 priceSecondsAgo,
+    uint24 interestRate,
+    uint24 swapFee,
+    uint24 positionSlippage,
+    uint24 mcSlippage,
+    uint96 positionMinAmount,
+    uint96 baseLimit,
+    uint96 quoteLimit
+  ) {
+    maxLeverage = params.maxLeverage;
+    priceSecondsAgo = params.priceSecondsAgo;
+    interestRate = params.interestRate;
+    swapFee = params.swapFee;
+    positionSlippage = params.positionSlippage;
+    mcSlippage = params.mcSlippage;
+    positionMinAmount = params.positionMinAmount;
+    baseLimit = params.baseLimit;
+    quoteLimit = params.quoteLimit;
   }
 }

@@ -1,7 +1,7 @@
 import { createMarginlyPool } from './shared/fixtures';
-import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
+import { loadFixture } from './shared/mocks';
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers } from './shared/mocks';
 import { generateWallets } from './shared/utils';
 import { parseUnits } from 'ethers/lib/utils';
 
@@ -11,19 +11,19 @@ describe.skip('TestSwapRouter', () => {
     const [owner] = await ethers.getSigners();
     const [signer] = await generateWallets(1);
 
-    await owner.sendTransaction({
+    await (await owner.sendTransaction({
       from: owner.address,
       to: signer.address,
       value: parseUnits('1', 18),
-    });
+    })).wait();
 
-    await baseContract.connect(signer).mint(signer.address, 100);
-    await baseContract.connect(signer).approve(swapRouter.address, 100);
+    await (await baseContract.connect(signer).mint(signer.address, 100)).wait();
+    await (await baseContract.connect(signer).approve(swapRouter.address, 100)).wait();
 
     console.log(`base balance = ${await baseContract.balanceOf(signer.address)}`);
     console.log(`quote balance = ${await quoteContract.balanceOf(signer.address)}`);
 
-    await swapRouter.connect(signer).exactInputSingle({
+    await (await swapRouter.connect(signer).exactInputSingle({
       tokenIn: baseContract.address,
       tokenOut: quoteContract.address,
       amountIn: 100,
@@ -32,7 +32,7 @@ describe.skip('TestSwapRouter', () => {
       fee: 1,
       recipient: signer.address,
       sqrtPriceLimitX96: 0,
-    });
+    })).wait();
     const quoteBalance = await quoteContract.balanceOf(signer.address);
     const baseBalance = await baseContract.balanceOf(signer.address);
 
@@ -48,19 +48,19 @@ describe.skip('TestSwapRouter', () => {
     const [owner] = await ethers.getSigners();
     const [signer] = await generateWallets(1);
 
-    await owner.sendTransaction({
+    await (await owner.sendTransaction({
       from: owner.address,
       to: signer.address,
       value: parseUnits('1', 18),
-    });
+    })).wait();
 
-    await quoteContract.connect(signer).mint(signer.address, 100);
-    await quoteContract.connect(signer).approve(swapRouter.address, 100);
+    await (await quoteContract.connect(signer).mint(signer.address, 100)).wait();
+    await (await quoteContract.connect(signer).approve(swapRouter.address, 100)).wait();
 
     console.log(`base balance = ${await baseContract.balanceOf(signer.address)}`);
     console.log(`quote balance = ${await quoteContract.balanceOf(signer.address)}`);
 
-    await swapRouter.connect(signer).exactInputSingle({
+    await (await swapRouter.connect(signer).exactInputSingle({
       tokenIn: quoteContract.address,
       tokenOut: baseContract.address,
       amountIn: 100,
@@ -69,7 +69,7 @@ describe.skip('TestSwapRouter', () => {
       fee: 1,
       recipient: signer.address,
       sqrtPriceLimitX96: 0,
-    });
+    })).wait();
     const quoteBalance = await quoteContract.balanceOf(signer.address);
     const baseBalance = await baseContract.balanceOf(signer.address);
 
@@ -85,19 +85,19 @@ describe.skip('TestSwapRouter', () => {
     const [owner] = await ethers.getSigners();
     const [signer] = await generateWallets(1);
 
-    await owner.sendTransaction({
+    await (await owner.sendTransaction({
       from: owner.address,
       to: signer.address,
       value: parseUnits('1', 18),
-    });
+    })).wait();
 
-    await baseContract.connect(signer).mint(signer.address, 400);
-    await baseContract.connect(signer).approve(swapRouter.address, 400);
+    await (await baseContract.connect(signer).mint(signer.address, 400)).wait();
+    await (await baseContract.connect(signer).approve(swapRouter.address, 400)).wait();
 
     console.log(`base balance = ${await baseContract.balanceOf(signer.address)}`);
     console.log(`quote balance = ${await quoteContract.balanceOf(signer.address)}`);
 
-    await swapRouter.connect(signer).exactOutputSingle({
+    await (await swapRouter.connect(signer).exactOutputSingle({
       tokenIn: baseContract.address,
       tokenOut: quoteContract.address,
       amountInMaximum: 400,
@@ -106,7 +106,7 @@ describe.skip('TestSwapRouter', () => {
       fee: 0,
       recipient: signer.address,
       sqrtPriceLimitX96: 0,
-    });
+    })).wait();
     const quoteBalance = await quoteContract.balanceOf(signer.address);
     const baseBalance = await baseContract.balanceOf(signer.address);
 
@@ -123,19 +123,19 @@ describe.skip('TestSwapRouter', () => {
     const [owner] = await ethers.getSigners();
     const [signer] = await generateWallets(1);
 
-    await owner.sendTransaction({
+    await (await owner.sendTransaction({
       from: owner.address,
       to: signer.address,
       value: parseUnits('1', 18),
-    });
+    })).wait();
 
-    await quoteContract.connect(signer).mint(signer.address, 100);
-    await quoteContract.connect(signer).approve(swapRouter.address, 100);
+    await (await quoteContract.connect(signer).mint(signer.address, 100)).wait();
+    await (await quoteContract.connect(signer).approve(swapRouter.address, 100)).wait();
 
     console.log(`base balance = ${await baseContract.balanceOf(signer.address)}`);
     console.log(`quote balance = ${await quoteContract.balanceOf(signer.address)}`);
 
-    await swapRouter.connect(signer).exactOutputSingle({
+    await (await swapRouter.connect(signer).exactOutputSingle({
       tokenIn: quoteContract.address,
       tokenOut: baseContract.address,
       amountInMaximum: 100,
@@ -144,7 +144,7 @@ describe.skip('TestSwapRouter', () => {
       fee: 0,
       recipient: signer.address,
       sqrtPriceLimitX96: 0,
-    });
+    })).wait();
     const quoteBalance = await quoteContract.balanceOf(signer.address);
     const baseBalance = await baseContract.balanceOf(signer.address);
 

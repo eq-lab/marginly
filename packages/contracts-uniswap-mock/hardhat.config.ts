@@ -19,7 +19,7 @@ const zkSyncTestnet =
       zksync: true,
     };
 
-const config : HardhatUserConfig & Record<string, unknown> = {
+const config: HardhatUserConfig & Record<string, unknown> = {
   zksolc: {
     version: "1.3.10",
     compilerSource: "binary",
