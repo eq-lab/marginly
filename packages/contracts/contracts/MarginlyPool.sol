@@ -982,6 +982,32 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
+  function applyDeleverage(Position storage position) private {
+    if (position._type == PositionType.Short) {
+      FP96.FixedPoint memory collateralDelevCoeffRatio = quoteCollateralDelevCoeff.div(position.collateralDelevCoeff);
+      if (collateralDelevCoeffRatio.inner != FP96.Q96) {
+        position.discountedQuoteAmount = collateralDelevCoeffRatio.mul(position.discountedQuoteAmount);
+        position.collateralDelevCoeff = quoteCollateralDelevCoeff;
+
+        position.discountedBaseAmount = baseDebtDelevCoeff.div(position.debtDelevCoeff).mul(
+          position.discountedBaseAmount
+        );
+        position.debtDelevCoeff = baseDebtDelevCoeff;
+      }
+    } else if (position._type == PositionType.Long) {
+      FP96.FixedPoint memory collateralDelevCoeffRatio = baseCollateralDelevCoeff.div(position.collateralDelevCoeff);
+      if (collateralDelevCoeffRatio.inner != FP96.Q96) {
+        position.discountedBaseAmount = collateralDelevCoeffRatio.mul(position.discountedBaseAmount);
+        position.collateralDelevCoeff = baseCollateralDelevCoeff;
+
+        position.discountedQuoteAmount = quoteDebtDelevCoeff.div(position.debtDelevCoeff).mul(
+          position.discountedQuoteAmount
+        );
+        position.debtDelevCoeff = quoteDebtDelevCoeff;
+      }
+    }
+  }
+
   function positionHasBadLeverage(
     Position storage position,
     FP96.FixedPoint memory basePrice
@@ -1033,6 +1059,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 discountedBaseAmount = _baseCollateralCoeff.recipMul(baseAmount);
 
     Position storage badPosition = positions[badPositionAddress];
+    applyDeleverage(badPosition);
 
     FP96.FixedPoint memory basePrice = getBasePrice();
     require(positionHasBadLeverage(badPosition, basePrice), 'NL'); // Not liquidatable position
@@ -1313,29 +1340,7 @@ contract MarginlyPool is IMarginlyPool {
 
     Position storage position = positions[msg.sender];
 
-    if (position._type == PositionType.Short) {
-      FP96.FixedPoint memory collateralDelevCoeffRatio = quoteCollateralDelevCoeff.div(position.collateralDelevCoeff);
-      if (collateralDelevCoeffRatio.inner != FP96.Q96) {
-        position.discountedQuoteAmount = collateralDelevCoeffRatio.mul(position.discountedQuoteAmount);
-        position.collateralDelevCoeff = quoteCollateralDelevCoeff;
-
-        position.discountedBaseAmount = baseDebtDelevCoeff.div(position.debtDelevCoeff).mul(
-          position.discountedBaseAmount
-        );
-        position.debtDelevCoeff = baseDebtDelevCoeff;
-      }
-    } else if (position._type == PositionType.Long) {
-      FP96.FixedPoint memory collateralDelevCoeffRatio = baseCollateralDelevCoeff.div(position.collateralDelevCoeff);
-      if (collateralDelevCoeffRatio.inner != FP96.Q96) {
-        position.discountedBaseAmount = collateralDelevCoeffRatio.mul(position.discountedBaseAmount);
-        position.collateralDelevCoeff = baseCollateralDelevCoeff;
-
-        position.discountedQuoteAmount = quoteDebtDelevCoeff.div(position.debtDelevCoeff).mul(
-          position.discountedQuoteAmount
-        );
-        position.debtDelevCoeff = quoteDebtDelevCoeff;
-      }
-    }
+    applyDeleverage(position);
 
     if (positionHasBadLeverage(position, basePrice)) {
       liquidate(msg.sender, position);
