@@ -5,6 +5,7 @@ import './IMarginlyPoolOwnerActions.sol';
 import '../dataTypes/Mode.sol';
 import '../libraries/FP96.sol';
 import '../dataTypes/Position.sol';
+import '../dataTypes/Call.sol';
 
 interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when margin call took place
@@ -136,47 +137,11 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);
 
-  /// @notice Deposit base token
-  /// @param amount Amount of base token to deposit
-  /// @param longAmount Amount of base token to open long position
-  function depositBase(uint256 amount, uint256 longAmount) external payable;
-
-  /// @notice Deposit quote token
-  /// @param amount Amount of quote token
-  /// @param shortAmount Amount of base token to open short position
-  function depositQuote(uint256 amount, uint256 shortAmount) external payable;
-
-  /// @notice Withdraw base token
-  /// @param amount Amount of base token
-  /// @param unwrapWETH flag to unwrap WETH to ETH
-  function withdrawBase(uint256 amount, bool unwrapWETH) external;
-
-  /// @notice Withdraw quote token
-  /// @param amount Amount of quote token
-  /// @param unwrapWETH flag to unwrap WETH to ETH
-  function withdrawQuote(uint256 amount, bool unwrapWETH) external;
-
-  /// @notice Short with leverage
-  /// @param baseAmount Amount of base token
-  function short(uint256 baseAmount) external;
-
-  /// @notice Long with leverage
-  /// @param baseAmount Amount of base token
-  function long(uint256 baseAmount) external;
-
-  /// @notice Close position
-  function closePosition() external;
-
-  /// @notice Accrue interest, check and run margin call for riskiest positions
-  function reinit() external;
-
-  /// @notice Liquidate bad position and receive position collateral and debt
-  /// @param badPositionAddress address of position to liquidate
-  /// @param quoteAmount amount of quote token to be deposited
-  /// @param baseAmount amount of base token to be deposited
-  function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) external;
-
-  /// @notice Withdraw position collateral in emergency mode
-  /// @param unwrapWETH flag to unwrap WETH to ETH
-  function emergencyWithdraw(bool unwrapWETH) external;
+  function execute(
+    CallType call,
+    uint256 amount1,
+    uint256 amount2,
+    bool unwrapWETH,
+    address receivePositionAddress
+  ) external payable;
 }

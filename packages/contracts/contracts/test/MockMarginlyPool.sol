@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import '../interfaces/IMarginlyPool.sol';
 import '../dataTypes/Position.sol';
+import '../dataTypes/Call.sol';
 
 contract MockMarginlyPool is IMarginlyPool {
   address public override quoteToken;
@@ -58,48 +59,32 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function quoteTokenIsToken0() external pure returns (bool) {}
 
-  function depositBase(uint256 amount, uint256 longAmount) external payable {}
+  function execute(
+    CallType call,
+    uint256 amount1,
+    uint256 amount2,
+    bool unwrapWETH,
+    address receivePositionAddress
+  ) external payable override {
+    if (call == CallType.ReceivePosition) {
+      require(receivePositionAddress == badPositionAddress);
 
-  function depositQuote(uint256 amount, uint256 shortAmount) external payable {}
-
-  function withdrawBase(uint256 amount, bool) external {
-    if (positionType == PositionType.Short) {
-      IERC20(baseToken).transfer(msg.sender, dust);
-    } else {
-      IERC20(baseToken).transfer(msg.sender, baseAmount);
+      IERC20(quoteToken).transferFrom(msg.sender, address(this), amount1);
+      IERC20(baseToken).transferFrom(msg.sender, address(this), amount2);
+    } else if (call == CallType.WithdrawBase) {
+      if (positionType == PositionType.Short) {
+        IERC20(baseToken).transfer(msg.sender, dust);
+      } else {
+        IERC20(baseToken).transfer(msg.sender, baseAmount);
+      }
+    } else if (call == CallType.WithdrawQuote) {
+      if (positionType == PositionType.Short) {
+        IERC20(quoteToken).transfer(msg.sender, quoteAmount);
+      } else {
+        IERC20(quoteToken).transfer(msg.sender, dust);
+      }
     }
   }
-
-  function withdrawQuote(uint256 amount, bool) external {
-    if (positionType == PositionType.Short) {
-      IERC20(quoteToken).transfer(msg.sender, quoteAmount);
-    } else {
-      IERC20(quoteToken).transfer(msg.sender, dust);
-    }
-  }
-
-  function short(uint256 baseAmount) external {}
-
-  function long(uint256 baseAmount) external {}
-
-  function closePosition() external {}
-
-  function reinit() external {}
-
-  function increaseBaseCollateralCoeff(uint256 realBaseAmount) external {}
-
-  function increaseQuoteCollateralCoeff(uint256 realQuoteAmount) external {}
-
-  function receivePosition(address _badPositionAddress, uint256 _quoteAmount, uint256 _baseAmount) external {
-    require(_badPositionAddress == badPositionAddress);
-
-    IERC20(quoteToken).transferFrom(msg.sender, address(this), _quoteAmount);
-    IERC20(baseToken).transferFrom(msg.sender, address(this), _baseAmount);
-  }
-
-  function emergencyWithdraw(bool unwrapWETH) external {}
-
-  function transferPosition(address newOwner) external {}
 
   function sweepETH() external {}
 }
