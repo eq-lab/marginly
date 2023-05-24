@@ -2,7 +2,7 @@ import { createMarginlyPool } from './shared/fixtures';
 import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { FP96, MarginlyPoolMode } from './shared/utils';
+import { CallType, FP96, MarginlyPoolMode, ZERO_ADDRESS } from './shared/utils';
 
 describe('MarginlyPool.Shutdown', () => {
   it('should revert when collateral enough', async () => {
@@ -10,7 +10,7 @@ describe('MarginlyPool.Shutdown', () => {
     const [owner, depositor] = await ethers.getSigners();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     await expect(marginlyPool.connect(owner).shutDown()).to.be.rejectedWith('NE');
   });
@@ -25,10 +25,10 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     const shortAmount = 100;
-    await marginlyPool.connect(shorter).depositQuote(amountToDeposit, shortAmount);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, amountToDeposit, shortAmount, false, ZERO_ADDRESS);
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
@@ -37,7 +37,7 @@ describe('MarginlyPool.Shutdown', () => {
     const timeShift = 24 * 60 * 60;
     await time.increase(timeShift);
 
-    await expect(marginlyPool.reinit()).to.be.rejected;
+    await expect(marginlyPool.execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS)).to.be.rejected;
 
     await marginlyPool.connect(owner).shutDown();
     expect(await marginlyPool.mode()).to.be.equals(MarginlyPoolMode.ShortEmergency);
@@ -57,10 +57,10 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     const longAmount = 100;
-    await marginlyPool.connect(longer).depositBase(amountToDeposit, longAmount);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, amountToDeposit, longAmount, false, ZERO_ADDRESS);
 
     //Base price lower than Quote price
     await pool.setPriceQuoteBiggerThanBase();
@@ -89,15 +89,15 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     const shortAmount = 100;
 
-    await marginlyPool.connect(shorter).depositQuote(amountToDeposit, shortAmount);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, amountToDeposit, shortAmount, false, ZERO_ADDRESS);
 
-    await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
     const longAmount = 50;
-    await marginlyPool.connect(longer).long(longAmount);
+    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS);
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
@@ -118,8 +118,8 @@ describe('MarginlyPool.Shutdown', () => {
 
     const longerPosition = await marginlyPool.positions(longer.address);
 
-    await marginlyPool.connect(depositor).emergencyWithdraw(false);
-    await marginlyPool.connect(longer).emergencyWithdraw(false);
+    await marginlyPool.connect(depositor).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS);
 
     const longerBalanceAfter = await baseContract.balanceOf(longer.address);
     const depositorBalanceAfter = await baseContract.balanceOf(depositor.address);
@@ -164,14 +164,14 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
-    await marginlyPool.connect(depositor).depositBase(10, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, 10, 0, false, ZERO_ADDRESS);
 
     const longAmount = 100;
-    await marginlyPool.connect(longer).depositBase(amountToDeposit, longAmount);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, amountToDeposit, longAmount, false, ZERO_ADDRESS);
 
     const shortAmount = 50;
-    await marginlyPool.connect(shorter).depositQuote(amountToDeposit, shortAmount);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, amountToDeposit, shortAmount, false, ZERO_ADDRESS);
 
     //Base price lower than Quote price
     await pool.setPriceQuoteBiggerThanBase();
@@ -192,8 +192,8 @@ describe('MarginlyPool.Shutdown', () => {
 
     const shorterPosition = await marginlyPool.positions(shorter.address);
 
-    await marginlyPool.connect(depositor).emergencyWithdraw(false);
-    await marginlyPool.connect(shorter).emergencyWithdraw(false);
+    await marginlyPool.connect(depositor).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS);
 
     const shorterBalanceAfter = await quoteContract.balanceOf(shorter.address);
     const depositorBalanceAfter = await quoteContract.balanceOf(depositor.address);
@@ -237,15 +237,15 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     const shortAmount = 100;
 
-    await marginlyPool.connect(shorter).depositQuote(amountToDeposit, shortAmount);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, amountToDeposit, shortAmount, false, ZERO_ADDRESS);
 
-    await marginlyPool.connect(longer).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
     const longAmount = 50;
-    await marginlyPool.connect(longer).long(longAmount);
+    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS);
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
@@ -263,7 +263,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     const depositorPosition = await marginlyPool.positions(depositor.address);
 
-    const txReceipt = await (await marginlyPool.connect(depositor).emergencyWithdraw(true)).wait();
+    const txReceipt = await (await marginlyPool.connect(depositor).execute(CallType.EmergencyWithdraw, 0, 0, true, ZERO_ADDRESS)).wait();
     const txFee = txReceipt.gasUsed.mul(txReceipt.effectiveGasPrice);
 
     const depositorBalanceAfter = await depositor.getBalance();
@@ -285,10 +285,10 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositBase(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     const shortAmount = 100;
-    await marginlyPool.connect(shorter).depositQuote(amountToDeposit, shortAmount);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, amountToDeposit, shortAmount, false, ZERO_ADDRESS);
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
@@ -300,7 +300,7 @@ describe('MarginlyPool.Shutdown', () => {
     await marginlyPool.connect(owner).shutDown();
     expect(await marginlyPool.mode()).to.be.equal(MarginlyPoolMode.ShortEmergency);
 
-    await expect(marginlyPool.connect(shorter).emergencyWithdraw(false)).to.be.rejectedWith('SE');
+    await expect(marginlyPool.connect(shorter).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS)).to.be.rejectedWith('SE');
   });
 
   it('should revert withdraw tokens from Long position in LongEmergency mode', async () => {
@@ -313,10 +313,10 @@ describe('MarginlyPool.Shutdown', () => {
     await pool.setParityPrice();
 
     const amountToDeposit = 100;
-    await marginlyPool.connect(depositor).depositQuote(amountToDeposit, 0);
+    await marginlyPool.connect(depositor).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS);
 
     const longAmount = 100;
-    await marginlyPool.connect(longer).depositBase(amountToDeposit, longAmount);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, amountToDeposit, longAmount, false, ZERO_ADDRESS);
 
     //Base price lower than Quote price
     await pool.setPriceQuoteBiggerThanBase();
@@ -327,6 +327,6 @@ describe('MarginlyPool.Shutdown', () => {
 
     await marginlyPool.connect(owner).shutDown();
 
-    await expect(marginlyPool.connect(longer).emergencyWithdraw(false)).to.be.rejectedWith('LE');
+    await expect(marginlyPool.connect(longer).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS)).to.be.rejectedWith('LE');
   });
 });

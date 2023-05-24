@@ -28,20 +28,6 @@
     ]
   },
   {
-    "code": "HPE",
-    "description": "Heap position exists",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
-    "code": "L",
-    "description": "Lend, nothing to close",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
     "code": "LE",
     "description": "Long positions in emergency mode",
     "fileNames": [

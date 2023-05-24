@@ -3,6 +3,8 @@ import { BigNumber, Wallet } from 'ethers';
 import bn from 'bignumber.js';
 import { MarginlyPool } from '../../typechain-types';
 
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 export async function generateWallets(count: number): Promise<Wallet[]> {
   const wallets = [];
   for (let i = 0; i < count; i++) {
@@ -25,6 +27,19 @@ export const MarginlyPoolMode = {
   Regular: 0,
   ShortEmergency: 1,
   LongEmergency: 2,
+};
+
+export const CallType = {
+  DepositBase: 0,
+  DepositQuote: 1,
+  WithdrawBase: 2,
+  WithdrawQuote: 3,
+  Short: 4,
+  Long: 5,
+  ClosePosition: 6,
+  Reinit: 7,
+  ReceivePosition: 8,
+  EmergencyWithdraw:9,
 };
 
 export const FP96 = {

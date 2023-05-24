@@ -5,6 +5,21 @@ import { sendTransaction } from './common';
 import { ContractsParams } from '../../connection';
 import { parseUnits } from 'ethers/lib/utils';
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+export const CallType = {
+  DepositBase: 0,
+  DepositQuote: 1,
+  WithdrawBase: 2,
+  WithdrawQuote: 3,
+  Short: 4,
+  Long: 5,
+  ClosePosition: 6,
+  Reinit: 7,
+  ReceivePosition: 8,
+  EmergencyWithdraw: 9,
+};
+
 const longCall: ContractMethodDescription = {
   methodName: 'long',
   argsNames: ['base amount'],
@@ -24,7 +39,14 @@ const longCall: ContractMethodDescription = {
     const decimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
 
-    await sendTransaction(contract, signer, 'long', [amount.toString()], gasLimit, gasPrice);
+    await sendTransaction(
+      contract,
+      signer,
+      'execute',
+      [CallType.Long.toString(), amount.toString(), '0', 'false', ZERO_ADDRESS],
+      gasLimit,
+      gasPrice
+    );
   },
 };
 
@@ -47,7 +69,14 @@ const shortCall: ContractMethodDescription = {
     const baseTokenContract = await getBaseTokenContract(contract);
     const decimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
-    await sendTransaction(contract, signer, 'short', [amount.toString()], gasLimit, gasPrice);
+    await sendTransaction(
+      contract,
+      signer,
+      'execute',
+      [CallType.Short.toString(), amount.toString(), '0', 'false', ZERO_ADDRESS],
+      gasLimit,
+      gasPrice
+    );
   },
 };
 
@@ -74,8 +103,8 @@ const depositBaseNativeCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'depositBase',
-      [amount.toString(), longAmount.toString()],
+      'execute',
+      [CallType.DepositBase.toString(), amount.toString(), longAmount.toString(), 'false', ZERO_ADDRESS],
       gasLimit,
       gasPrice,
       amount.toString()
@@ -125,8 +154,8 @@ const depositBaseCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'depositBase',
-      [amount.toString(), longAmount.toString()],
+      'execute',
+      [CallType.DepositBase.toString(), amount.toString(), longAmount.toString(), 'false', ZERO_ADDRESS],
       gasLimit,
       gasPrice
     );
@@ -158,8 +187,8 @@ const depositQuoteNativeCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'depositQuote',
-      [amount.toString(), shortAmount.toString()],
+      'execute',
+      [CallType.DepositQuote.toString(), amount.toString(), shortAmount.toString(), 'false', ZERO_ADDRESS],
       gasLimit,
       gasPrice,
       amount.toString()
@@ -211,8 +240,8 @@ const depositQuoteCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'depositQuote',
-      [amount.toString(), shortAmount.toString()],
+      'execute',
+      [CallType.DepositQuote.toString(), amount.toString(), shortAmount.toString(), 'false', ZERO_ADDRESS],
       gasLimit,
       gasPrice
     );
@@ -245,8 +274,8 @@ const withdrawQuoteCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'withdrawQuote',
-      [amount.toString(), unwrapETH.toString()],
+      'execute',
+      [CallType.WithdrawQuote.toString(), amount.toString(), '0', unwrapETH.toString(), ZERO_ADDRESS],
       gasLimit,
       gasPrice
     );
@@ -279,8 +308,8 @@ const withdrawBaseCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'withdrawBase',
-      [amount.toString(), unwrapETH.toString()],
+      'execute',
+      [CallType.WithdrawBase.toString(), amount.toString(), '0', unwrapETH.toString(), ZERO_ADDRESS],
       gasLimit,
       gasPrice
     );
@@ -309,105 +338,14 @@ const closePositionCall: ContractMethodDescription = {
       console.error(`closePositionCall: Lend position, nothing to close`);
       return;
     }
-    await sendTransaction(contract, signer, 'closePosition', [], gasLimit, gasPrice);
-  },
-};
-
-const increaseBaseCollateralCoeffCall: ContractMethodDescription = {
-  methodName: 'increaseBaseCollateralCoeff',
-  argsNames: ['amount'],
-  callHandler: async (
-    contract: ethers.Contract,
-    signer: ethers.Signer,
-    args: string[],
-    gasLimit: number,
-    gasPrice: number,
-    _contractsContext: ContractsParams
-  ): Promise<void> => {
-    if (args.length !== 1) {
-      console.error(`increaseBaseCollateralCoeffCall: invalid count of args`);
-      return;
-    }
-
-    const discountedBaseCollateral = BigNumber.from(await contract.discountedBaseCollateral());
-    if (discountedBaseCollateral.isZero()) {
-      console.error(`increaseBaseCollateralCoeffCall: discountedBaseCollateral must be not zero`);
-      return;
-    }
-
-    const baseTokenContract = await getBaseTokenContract(contract);
-    const decimals = await baseTokenContract.decimals();
-    const amount = ethers.utils.parseUnits(args[0], decimals);
-    const signerAddress = await signer.getAddress();
-    const balance = BigNumber.from(await baseTokenContract.balanceOf(await signer.getAddress()));
-    const allowance = BigNumber.from(await baseTokenContract.allowance(signerAddress, contract.address));
-    const symbol = await baseTokenContract.symbol();
-    if (amount.gt(balance)) {
-      console.error(
-        `increaseBaseCollateralCoeffCall: insufficient base token balance! ` +
-          `Balance: ${ethers.utils.formatUnits(balance, decimals)} ${symbol}, ` +
-          `transfer amount: ${ethers.utils.formatUnits(amount, decimals)} ${symbol}`
-      );
-      return;
-    }
-    if (amount.gt(allowance)) {
-      console.error(
-        `increaseBaseCollateralCoeffCall: base token allowance it too low! ` +
-          `Allowance: ${ethers.utils.formatUnits(allowance, decimals)} ${symbol}, ` +
-          `transfer amount: ${ethers.utils.formatUnits(amount, decimals)} ${symbol}`
-      );
-      return;
-    }
-    await sendTransaction(contract, signer, 'increaseBaseCollateralCoeff', [amount.toString()], gasLimit, gasPrice);
-  },
-};
-
-const increaseQuoteCollateralCoeffCall: ContractMethodDescription = {
-  methodName: 'increaseQuoteCollateralCoeff',
-  argsNames: ['amount'],
-  callHandler: async (
-    contract: ethers.Contract,
-    signer: ethers.Signer,
-    args: string[],
-    gasLimit: number,
-    gasPrice: number,
-    _contractsContext: ContractsParams
-  ): Promise<void> => {
-    if (args.length !== 1) {
-      console.error(`increaseQuoteCollateralCoeffCall: invalid count of args`);
-      return;
-    }
-
-    const discountedQuoteCollateral = BigNumber.from(await contract.discountedQuoteCollateral());
-    if (discountedQuoteCollateral.isZero()) {
-      console.error(`increaseQuoteCollateralCoeffCall: discountedQuoteCollateral must be not zero`);
-      return;
-    }
-
-    const quoteTokenContract = await getQuoteTokenContract(contract);
-    const decimals = await quoteTokenContract.decimals();
-    const amount = ethers.utils.parseUnits(args[0], decimals);
-    const signerAddress = await signer.getAddress();
-    const balance = BigNumber.from(await quoteTokenContract.balanceOf(await signer.getAddress()));
-    const allowance = BigNumber.from(await quoteTokenContract.allowance(signerAddress, contract.address));
-    const symbol = await quoteTokenContract.symbol();
-    if (amount.gt(balance)) {
-      console.error(
-        `increaseQuoteCollateralCoeffCall: insufficient quote token balance! ` +
-          `Balance: ${ethers.utils.formatUnits(balance, decimals)} ${symbol}, ` +
-          `transfer amount: ${ethers.utils.formatUnits(amount, decimals)} ${symbol}`
-      );
-      return;
-    }
-    if (amount.gt(allowance)) {
-      console.error(
-        `increaseQuoteCollateralCoeffCall: quote token allowance it too low! ` +
-          `Allowance: ${ethers.utils.formatUnits(allowance, decimals)} ${symbol}, ` +
-          `transfer amount: ${ethers.utils.formatUnits(amount, decimals)} ${symbol}`
-      );
-      return;
-    }
-    await sendTransaction(contract, signer, 'increaseQuoteCollateralCoeff', [amount.toString()], gasLimit, gasPrice);
+    await sendTransaction(
+      contract,
+      signer,
+      'execute',
+      [CallType.ClosePosition.toString(), '0', '0', 'false', ZERO_ADDRESS],
+      gasLimit,
+      gasPrice
+    );
   },
 };
 
@@ -422,7 +360,14 @@ const reinitCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    await sendTransaction(contract, signer, 'reinit', args, gasLimit, gasPrice);
+    await sendTransaction(
+      contract,
+      signer,
+      'execute',
+      [CallType.Reinit.toString(), '0', '0', 'false', ZERO_ADDRESS],
+      gasLimit,
+      gasPrice
+    );
   },
 };
 
@@ -482,8 +427,8 @@ const receivePositionCall: ContractMethodDescription = {
     await sendTransaction(
       contract,
       signer,
-      'receivePosition',
-      [address, quoteAmount.toString(), baseAmount.toString()],
+      'execute',
+      [CallType.ReceivePosition.toString(), quoteAmount.toString(), baseAmount.toString(), 'false', address],
       gasLimit,
       gasPrice
     );
@@ -526,7 +471,14 @@ const emergencyWithdraw: ContractMethodDescription = {
       return;
     }
 
-    await sendTransaction(contract, signer, 'emergencyWithdraw', [], gasLimit, gasPrice);
+    await sendTransaction(
+      contract,
+      signer,
+      'execute',
+      [CallType.EmergencyWithdraw.toString(), '0', '0', 'false', ZERO_ADDRESS],
+      gasLimit,
+      gasPrice
+    );
   },
 };
 
@@ -546,9 +498,6 @@ export const marginlyPoolMethods = [
 
   closePositionCall,
   setParametersCall,
-
-  increaseBaseCollateralCoeffCall,
-  increaseQuoteCollateralCoeffCall,
 
   receivePositionCall,
   shutDownCall,

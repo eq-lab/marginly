@@ -3,8 +3,9 @@ import { BigNumber } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
-import { getLongSortKeyX48, decodeSwapEvent } from '../utils/chain-ops';
+import { getLongSortKeyX48, decodeSwapEvent, CallType } from '../utils/chain-ops';
 import { fp48ToHumanString, FP96, pow, powTaylor, secondsInYearX96, toHumanString } from '../utils/fixed-point';
+import { ZERO_ADDRESS } from '../utils/const';
 
 export async function long(sut: SystemUnderTest) {
   logger.info(`Starting long test suite`);
@@ -26,11 +27,15 @@ export async function long(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositQuote',
-      await marginlyPool.connect(lenders[i]).depositQuote(quoteAmount,0, { gasLimit: 500_000 })
+      await marginlyPool
+        .connect(lenders[i])
+        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(lenders[i]).depositBase(baseAmount, 0,{ gasLimit: 500_000 })
+      marginlyPool
+        .connect(lenders[i])
+        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
   }
 
@@ -60,7 +65,9 @@ export async function long(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'depositBase',
-      await marginlyPool.connect(borrowers[i]).depositBase(initialBorrBaseBalance, 0,{ gasLimit: 500_000 })
+      await marginlyPool
+        .connect(borrowers[i])
+        .execute(CallType.DepositBase, initialBorrBaseBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     );
     const position = await marginlyPool.positions(borrowers[i].address);
     assert.deepEqual(initialBorrBaseBalance, position.discountedBaseAmount);
@@ -93,7 +100,11 @@ export async function long(sut: SystemUnderTest) {
     const lastReinitTimestampBefore = BigNumber.from(await marginlyPool.lastReinitTimestampSeconds());
 
     logger.info(`Before long transaction`);
-    const txReceipt = await (await marginlyPool.connect(borrowers[i]).long(longAmount, { gasLimit: 1_900_000 })).wait();
+    const txReceipt = await (
+      await marginlyPool
+        .connect(borrowers[i])
+        .execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_900_000 })
+    ).wait();
     await gasReporter.saveGasUsage('long', txReceipt);
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
     //check position
@@ -216,7 +227,9 @@ export async function long(sut: SystemUnderTest) {
     const leverageLongBefore = BigNumber.from((await marginlyPool.systemLeverage()).longX96);
 
     //reinit tx
-    const txReceipt = await (await marginlyPool.connect(treasury).reinit({ gasLimit: 500_000 })).wait();
+    const txReceipt = await (
+      await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+    ).wait();
     await gasReporter.saveGasUsage('reinit', txReceipt);
 
     const marginCallEvent = txReceipt.events?.find((e) => e.event == 'EnactMarginCall');

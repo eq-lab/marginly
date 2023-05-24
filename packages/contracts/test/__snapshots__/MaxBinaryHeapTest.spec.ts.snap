@@ -3,28 +3,28 @@
 exports[`MaxBinaryHeapTest Should update heap by index from bottom to top 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 58534,
+  "gasUsed": 58469,
 }
 `;
 
 exports[`MaxBinaryHeapTest Should update heap by index from middle to bottom 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 49429,
+  "gasUsed": 49394,
 }
 `;
 
 exports[`MaxBinaryHeapTest Should update heap by index from middle to top 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 46371,
+  "gasUsed": 46337,
 }
 `;
 
 exports[`MaxBinaryHeapTest Should update heap by index from top to bottom 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 64190,
+  "gasUsed": 64119,
 }
 `;
 
@@ -38,34 +38,34 @@ Object {
 exports[`MaxBinaryHeapTest Should update heap by index without changing position 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 29396,
+  "gasUsed": 29393,
 }
 `;
 
 exports[`MaxBinaryHeapTest should add new item and rebuild tree 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 89173,
+  "gasUsed": 89190,
 }
 `;
 
 exports[`MaxBinaryHeapTest should create max binary heap and remove items in right order 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 145052,
+  "gasUsed": 144883,
 }
 `;
 
 exports[`MaxBinaryHeapTest should create max binary heap and remove items in right order 2`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 112951,
+  "gasUsed": 112750,
 }
 `;
 
 exports[`MaxBinaryHeapTest should remove item by index 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 41477,
+  "gasUsed": 41452,
 }
 `;

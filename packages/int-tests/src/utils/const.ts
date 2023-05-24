@@ -7,3 +7,4 @@ export const INITIAL_ETH = parseEther(INITIAL_BALANCE);
 export const INITIAL_USDC = parseUnits(INITIAL_BALANCE, 6);
 export const SECS_PER_BLOCK = process.env.SECS_PER_BLOCK ? +process.env.SECS_PER_BLOCK : 6;
 export const USDC_OWNER_ADDR = `0xFcb19e6a322b27c06842A71e8c725399f049AE3a`;
+export const ZERO_ADDRESS = `0x0000000000000000000000000000000000000000`;

@@ -3,7 +3,8 @@ import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { FP96, toHumanString } from '../utils/fixed-point';
-import { decodeSwapEvent, getLongSortKeyX48, getShortSortKeyX48 } from '../utils/chain-ops';
+import { CallType, decodeSwapEvent, getLongSortKeyX48, getShortSortKeyX48 } from '../utils/chain-ops';
+import { ZERO_ADDRESS } from '../utils/const';
 
 async function prepareAccounts(sut: SystemUnderTest) {
   const { treasury, usdc, weth, accounts, marginlyPool } = sut;
@@ -62,7 +63,9 @@ export async function longAndShort(sut: SystemUnderTest) {
     await (await weth.connect(longer).approve(marginlyPool.address, initBaseCollateral)).wait();
     await gasReporter.saveGasUsage(
       'depositBase',
-      marginlyPool.connect(longer).depositBase(initBaseCollateral, 0,{ gasLimit: 1_000_000 })
+      marginlyPool
+        .connect(longer)
+        .execute(CallType.DepositBase, initBaseCollateral, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
     );
     logger.info(`longer depositBase call success`);
     longersAmounts.push([initBaseCollateral, BigNumber.from(0)]);
@@ -74,7 +77,9 @@ export async function longAndShort(sut: SystemUnderTest) {
     await (await usdc.connect(shorter).approve(marginlyPool.address, initQuoteCollateral)).wait();
     await gasReporter.saveGasUsage(
       'depositQuote',
-      marginlyPool.connect(shorter).depositQuote(initQuoteCollateral, 0,{ gasLimit: 1_000_000 })
+      marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, initQuoteCollateral, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
     );
     logger.info(`shorter depositQuote call success`);
     shortersAmounts.push([BigNumber.from(0), initQuoteCollateral]);
@@ -84,7 +89,10 @@ export async function longAndShort(sut: SystemUnderTest) {
   const numOfSeconds = 365 * 24 * 60 * 60;
   await provider.mineAtTimestamp(+BigNumber.from(await marginlyPool.lastReinitTimestampSeconds()) + numOfSeconds);
 
-  await gasReporter.saveGasUsage('reinit', marginlyPool.connect(treasury).reinit({ gasLimit: 500_000 }));
+  await gasReporter.saveGasUsage(
+    'reinit',
+    marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+  );
 
   for (let i = 0; i < longersNumber; ++i) {
     logger.info(`Iteration ${i + 1} of ${longersNumber}`);
@@ -96,7 +104,7 @@ export async function longAndShort(sut: SystemUnderTest) {
     logger.info(`long call`);
     const txReceipt = await gasReporter.saveGasUsage(
       'long',
-      marginlyPool.connect(longer).long(longAmount, { gasLimit: 1_000_000 })
+      marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
     );
     logger.info(`long call success`);
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
@@ -124,7 +132,9 @@ export async function longAndShort(sut: SystemUnderTest) {
     logger.info(`short call`);
     const txReceipt = await gasReporter.saveGasUsage(
       'short',
-      await marginlyPool.connect(shorter).short(shortAmount, { gasLimit: 1_000_000 })
+      await marginlyPool
+        .connect(shorter)
+        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_000_000 })
     );
     logger.info(`short call success`);
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
@@ -147,7 +157,7 @@ export async function longAndShort(sut: SystemUnderTest) {
   await provider.mineAtTimestamp(+BigNumber.from(await marginlyPool.lastReinitTimestampSeconds()) + numOfSeconds);
   const txReceipt = await gasReporter.saveGasUsage(
     'reinit',
-    await marginlyPool.connect(treasury).reinit({ gasLimit: 500_000 })
+    await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
   );
   const marginCallEvent = txReceipt.events?.find((e) => e.event == 'EnactMarginCall');
   if (marginCallEvent) {

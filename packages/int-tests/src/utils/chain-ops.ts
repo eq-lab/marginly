@@ -25,6 +25,19 @@ export class Web3ProviderDecorator {
   }
 }
 
+export const CallType = {
+  DepositBase: 0,
+  DepositQuote: 1,
+  WithdrawBase: 2,
+  WithdrawQuote: 3,
+  Short: 4,
+  Long: 5,
+  ClosePosition: 6,
+  Reinit: 7,
+  ReceivePosition: 8,
+  EmergencyWithdraw: 9,
+};
+
 export type SwapEvent = {
   amount0: BigNumber;
   amount1: BigNumber;
