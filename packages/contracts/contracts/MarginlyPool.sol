@@ -228,6 +228,10 @@ contract MarginlyPool is IMarginlyPool {
       if (realQuoteCollateral > quoteBalance) {
         uint256 quoteDebtToReduce = realQuoteCollateral.sub(quoteBalance);
         uint256 baseCollToReduce = basePrice.recipMul(quoteDebtToReduce);
+        uint256 positionBaseDebt = baseDebtCoeff.mul(position.discountedBaseAmount);
+        if (baseCollToReduce > positionBaseDebt) {
+          baseCollToReduce = positionBaseDebt;
+        }
         deleverageLong(baseCollToReduce, quoteDebtToReduce);
 
         uint256 disBaseDelta = baseDebtCoeff.recipMul(baseCollToReduce);
@@ -248,6 +252,10 @@ contract MarginlyPool is IMarginlyPool {
       if (realBaseCollateral > baseBalance) {
         uint256 baseDebtToReduce = realBaseCollateral.sub(baseBalance);
         uint256 quoteCollToReduce = basePrice.mul(baseDebtToReduce);
+        uint256 positionQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
+        if (quoteCollToReduce > positionQuoteDebt) {
+          quoteCollToReduce = positionQuoteDebt;
+        }
         deleverageShort(quoteCollToReduce, baseDebtToReduce);
 
         uint256 disQuoteDelta = quoteDebtCoeff.recipMul(quoteCollToReduce);
@@ -295,11 +303,15 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realBaseDebt = baseDebtCoeff.mul(position.discountedBaseAmount);
 
       // short position mc
-      uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-        getCurrentBasePrice().recipMul(realQuoteCollateral)
-      );
-      uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum);
-      swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
+      uint256 swappedBaseDebt;
+      if (realQuoteCollateral != 0) {
+        uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
+          getCurrentBasePrice().recipMul(realQuoteCollateral)
+        );
+        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum);
+        swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
+      }
+      
       // baseCollateralCoeff += rcd * (rqc - sqc) / sqc
       if (swappedBaseDebt >= realBaseDebt) {
         // Position has enough collateral to repay debt
@@ -324,11 +336,15 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
 
       // long position mc
-      uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-        getCurrentBasePrice().mul(realBaseCollateral)
-      );
-      uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum);
-      swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
+      uint256 swappedQuoteDebt;
+      if (realBaseCollateral != 0) {
+        uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
+          getCurrentBasePrice().mul(realBaseCollateral)
+        );
+        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum);
+        swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
+      }
+
       // quoteCollateralCoef += rqd * (rbc - sbc) / sbc
       if (swappedQuoteDebt >= realQuoteDebt) {
         // Position has enough collateral to repay debt
