@@ -162,7 +162,9 @@ export interface UniswapV3PoolContract extends BaseContract {
     feeProtocol1: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  slot0(override?: CallOverrides): Promise<{
+  slot0(
+    override?: CallOverrides
+  ): Promise<{
     sqrtPriceX96: BigNumberish;
     tick: BigNumberish;
     observationIndex: BigNumberish;
@@ -237,7 +239,9 @@ export interface UniswapV3PoolContract extends BaseContract {
       tokensOwed1: BigNumberish;
     }>;
     protocolFees(override?: CallOverrides): Promise<{ token0: BigNumberish; token1: BigNumberish }>;
-    slot0(override?: CallOverrides): Promise<{
+    slot0(
+      override?: CallOverrides
+    ): Promise<{
       sqrtPriceX96: BigNumberish;
       tick: BigNumberish;
       observationIndex: BigNumberish;

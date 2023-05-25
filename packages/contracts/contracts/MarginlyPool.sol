@@ -654,7 +654,7 @@ contract MarginlyPool is IMarginlyPool {
         position.discountedQuoteAmount,
         position.discountedBaseAmount
       );
-      uint256 realBaseDebt = baseDebtCoeff.mul(position.discountedBaseAmount);
+      uint256 realBaseDebt = baseDebtCoeff.mul(position.discountedBaseAmount, Math.Rounding.Up);
 
       uint256 swappedQuoteCollateral = swapExactOutput(true, realQuoteCollateral, realBaseDebt);
       swapPriceX96 = getSwapPrice(swappedQuoteCollateral, realBaseDebt);
@@ -695,7 +695,7 @@ contract MarginlyPool is IMarginlyPool {
         position.discountedBaseAmount,
         position.discountedQuoteAmount
       );
-      uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
+      uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount, Math.Rounding.Up);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);

@@ -27,6 +27,7 @@ import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
+import { deleveragePrecisionLong } from './deleveragePrecision';
 
 export type SystemUnderTest = {
   uniswap: UniswapV3PoolContract;
@@ -155,6 +156,7 @@ export async function startSuite(
     shortEmergency,
     longEmergency,
     keeper,
+    deleveragePrecisionLong,
   };
   const sut = await initializeTestSystem(provider, suitName, initialAccounts);
 
