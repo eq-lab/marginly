@@ -5,7 +5,7 @@ import { ethers } from './shared/mocks';
 import { generateWallets } from './shared/utils';
 import { parseUnits } from 'ethers/lib/utils';
 
-describe.skip('TestSwapRouter', () => {
+describe('TestSwapRouter', () => {
   it('swap base to quote exact input', async () => {
     const { swapRouter, baseContract, quoteContract } = await loadFixture(createMarginlyPool);
     const [owner] = await ethers.getSigners();

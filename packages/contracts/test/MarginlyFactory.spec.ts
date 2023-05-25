@@ -3,7 +3,7 @@ import { loadFixture, snapshotGasCost } from './shared/mocks';
 import { MarginlyParamsStruct } from '../typechain-types/contracts/MarginlyFactory';
 import { createMarginlyFactory } from './shared/fixtures';
 
-describe.skip('MarginlyFactory', () => {
+describe('MarginlyFactory', () => {
   function getPoolParams() {
     const params: MarginlyParamsStruct = {
       interestRate: 54000, //5,4 %

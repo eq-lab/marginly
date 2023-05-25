@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { ethers } from './shared/mocks';
 import { FP96, MarginlyPoolMode } from './shared/utils';
 
-describe.skip('MarginlyPool.Shutdown', () => {
+describe('MarginlyPool.Shutdown', () => {
   it('should revert when collateral enough', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [owner, depositor] = await ethers.getSigners();

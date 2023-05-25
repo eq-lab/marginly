@@ -7,7 +7,7 @@ import { createMarginlyKeeperContract } from './shared/fixtures';
 const shortPositionType = 2;
 const longPositionType = 3;
 
-describe.skip('MarginlyKeeper', () => {
+describe('MarginlyKeeper', () => {
   it('Should liquidate short bad position', async () => {
     const { marginlyKeeper, swapRouter, baseToken, marginlyPool } = await loadFixture(createMarginlyKeeperContract);
     const [, badPosition, liquidator] = await ethers.getSigners();

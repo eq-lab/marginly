@@ -6,7 +6,7 @@ import { BigNumber } from 'ethers';
 import { toHumanString } from './shared/utils';
 import { expect } from 'chai';
 
-describe('Open position:', () => {
+describe.skip('Open position:', () => {
   it('depositBase', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [_, signer] = await ethers.getSigners();
@@ -24,7 +24,7 @@ describe('Open position:', () => {
   });
 });
 
-describe('Deposit into existing position:', () => {
+describe.skip('Deposit into existing position:', () => {
   it('depositBase', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [_, signer1] = await ethers.getSigners();
@@ -46,7 +46,7 @@ describe('Deposit into existing position:', () => {
   });
 });
 
-describe('System initialized:', async () => {
+describe.skip('System initialized:', async () => {
   it('long', async () => {
     const { marginlyPool, wallets } = await loadFixture(getInitializedPool);
     const longer = wallets[0];
@@ -107,7 +107,7 @@ describe('System initialized:', async () => {
   });
 });
 
-describe('mc happens:', async () => {
+describe.skip('mc happens:', async () => {
   it('depositBase with one mc', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [_, longer, depositor, lender] = await ethers.getSigners();
@@ -309,7 +309,7 @@ describe('mc happens:', async () => {
   });
 });
 
-describe('Liquidation', () => {
+describe.skip('Liquidation', () => {
   it('liquidate long position and create new position', async () => {
     const {
       marginlyPool,

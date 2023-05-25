@@ -4,7 +4,7 @@ import { loadFixture } from './shared/mocks';
 import { generateWallets } from './shared/utils';
 import { snapshotGasCost } from './shared/mocks';
 
-describe.skip('MaxBinaryHeapTest', () => {
+describe('MaxBinaryHeapTest', () => {
   async function deployMaxBinaryHeapTestFixture() {
     // Contracts are deployed using the first signer/account by default
     const signers = await ethers.getSigners();

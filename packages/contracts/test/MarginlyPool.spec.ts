@@ -24,7 +24,7 @@ import { getMarginlyPoolParams } from './shared/mocks';
 import * as ethers1 from 'ethers';
 import { Provider } from 'zksync-web3';
 
-describe.skip('MarginlyPool.Base', () => {
+describe('MarginlyPool.Base', () => {
   // it('should revert when second try of initialization', async () => {
   //   const { marginlyPool: pool, factoryOwner } = await loadFixture(createMarginlyPool);
   //
