@@ -20,7 +20,9 @@ import { PromiseOrValue } from '../utils/api-gen';
 export interface MarginlyPoolInterface extends utils.Interface {
   functions: {
     'baseCollateralCoeff()': utils.FunctionFragment;
+    'baseCollateralDelevCoeff()': utils.FunctionFragment;
     'baseDebtCoeff()': utils.FunctionFragment;
+    'baseDebtDelevCoeff()': utils.FunctionFragment;
     'baseToken()': utils.FunctionFragment;
     'discountedBaseCollateral()': utils.FunctionFragment;
     'discountedBaseDebt()': utils.FunctionFragment;
@@ -40,7 +42,9 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'params()': utils.FunctionFragment;
     'positions(address)': utils.FunctionFragment;
     'quoteCollateralCoeff()': utils.FunctionFragment;
+    'quoteCollateralDelevCoeff()': utils.FunctionFragment;
     'quoteDebtCoeff()': utils.FunctionFragment;
+    'quoteDebtDelevCoeff()': utils.FunctionFragment;
     'quoteToken()': utils.FunctionFragment;
     'quoteTokenIsToken0()': utils.FunctionFragment;
     'setParameters(tuple)': utils.FunctionFragment;
@@ -55,7 +59,9 @@ export interface MarginlyPoolInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | 'baseCollateralCoeff'
+      | 'baseCollateralDelevCoeff'
       | 'baseDebtCoeff'
+      | 'baseDebtDelevCoeff'
       | 'baseToken'
       | 'discountedBaseCollateral'
       | 'discountedBaseDebt'
@@ -75,7 +81,9 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'params'
       | 'positions'
       | 'quoteCollateralCoeff'
+      | 'quoteCollateralDelevCoeff'
       | 'quoteDebtCoeff'
+      | 'quoteDebtDelevCoeff'
       | 'quoteToken'
       | 'quoteTokenIsToken0'
       | 'setParameters'
@@ -96,7 +104,9 @@ export interface MarginlyPoolContract extends BaseContract {
   interface: MarginlyPoolInterface;
 
   baseCollateralCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  baseCollateralDelevCoeff(override?: CallOverrides): Promise<BigNumberish>;
   baseDebtCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  baseDebtDelevCoeff(override?: CallOverrides): Promise<BigNumberish>;
   baseToken(override?: CallOverrides): Promise<string>;
   discountedBaseCollateral(override?: CallOverrides): Promise<BigNumberish>;
   discountedBaseDebt(override?: CallOverrides): Promise<BigNumberish>;
@@ -144,7 +154,9 @@ export interface MarginlyPoolContract extends BaseContract {
   initialPrice(override?: CallOverrides): Promise<BigNumberish>;
   lastReinitTimestampSeconds(override?: CallOverrides): Promise<BigNumberish>;
   mode(override?: CallOverrides): Promise<BigNumberish>;
-  params(override?: CallOverrides): Promise<{
+  params(
+    override?: CallOverrides
+  ): Promise<{
     maxLeverage: BigNumberish;
     priceSecondsAgo: BigNumberish;
     interestRate: BigNumberish;
@@ -163,9 +175,13 @@ export interface MarginlyPoolContract extends BaseContract {
     heapPosition: BigNumberish;
     discountedBaseAmount: BigNumberish;
     discountedQuoteAmount: BigNumberish;
+    collateralDelevCoeff: { inner: BigNumberish };
+    debtDelevCoeff: { inner: BigNumberish };
   }>;
   quoteCollateralCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  quoteCollateralDelevCoeff(override?: CallOverrides): Promise<BigNumberish>;
   quoteDebtCoeff(override?: CallOverrides): Promise<BigNumberish>;
+  quoteDebtDelevCoeff(override?: CallOverrides): Promise<BigNumberish>;
   quoteToken(override?: CallOverrides): Promise<string>;
   quoteTokenIsToken0(override?: CallOverrides): Promise<boolean>;
   setParameters(
@@ -191,7 +207,9 @@ export interface MarginlyPoolContract extends BaseContract {
 
   functions: {
     baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    baseCollateralDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
     baseDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    baseDebtDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
     baseToken(override?: CallOverrides): Promise<[string]>;
     discountedBaseCollateral(override?: CallOverrides): Promise<[BigNumberish]>;
     discountedBaseDebt(override?: CallOverrides): Promise<[BigNumberish]>;
@@ -212,7 +230,9 @@ export interface MarginlyPoolContract extends BaseContract {
     initialPrice(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
     lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumberish]>;
     mode(override?: CallOverrides): Promise<[BigNumberish]>;
-    params(override?: CallOverrides): Promise<{
+    params(
+      override?: CallOverrides
+    ): Promise<{
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
       interestRate: BigNumberish;
@@ -231,9 +251,13 @@ export interface MarginlyPoolContract extends BaseContract {
       heapPosition: BigNumberish;
       discountedBaseAmount: BigNumberish;
       discountedQuoteAmount: BigNumberish;
+      collateralDelevCoeff: { inner: BigNumberish };
+      debtDelevCoeff: { inner: BigNumberish };
     }>;
     quoteCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    quoteCollateralDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
     quoteDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
+    quoteDebtDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumberish }>;
     quoteToken(override?: CallOverrides): Promise<[string]>;
     quoteTokenIsToken0(override?: CallOverrides): Promise<[boolean]>;
     systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumberish; longX96: BigNumberish }>;
