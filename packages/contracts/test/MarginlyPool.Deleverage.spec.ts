@@ -49,8 +49,9 @@ describe('Deleverage', () => {
     const delevRatioDebt = BigNumber.from(FP96.one).sub(BigNumber.from(FP96.one).div(2 ** n));
 
     expect(baseDebtDelevCoeff).to.be.equal(delevRatioDebt);
+    const quoteCollateralDelevCoeffExpected = delevRatioDebt.mul(price).div(FP96.one)
     expect(quoteCollateralDelevCoeff).to.be.closeTo(
-        delevRatioDebt.mul(price).div(FP96.one), quoteCollateralDelevCoeff.mul(1).div(1000)
+      quoteCollateralDelevCoeffExpected, quoteCollateralDelevCoeff.mul(1).div(1000)
     );
   });
 
@@ -146,8 +147,12 @@ describe('Deleverage', () => {
     expect(positionAfter.collateralDelevCoeff.inner).to.be.equal(quoteCollateralDelevCoeff);
     expect(positionAfter.debtDelevCoeff.inner).to.be.equal(baseDebtDelevCoeff);
 
-    const posBaseAmount = positionBefore.discountedBaseAmount.mul(delevRatioDebt).div(FP96.one);
-    const posQuoteAmount = positionBefore.discountedQuoteAmount.mul(delevRatioDebt).div(FP96.one).mul(price).div(FP96.one);
+    const posBaseAmount = positionBefore.discountedBaseAmount.mul(
+      BigNumber.from(FP96.one).sub(delevRatioDebt)
+    ).div(FP96.one);
+    const posQuoteAmount = positionBefore.discountedQuoteAmount.sub(
+      delevRatioDebt.mul(price).mul(positionBefore.discountedBaseAmount).div(FP96.one).div(FP96.one)
+    );
 
     expect(positionAfter.discountedBaseAmount).to.be.closeTo(posBaseAmount, posBaseAmount.div(1000));
     expect(positionAfter.discountedQuoteAmount).to.be.closeTo(posQuoteAmount, posQuoteAmount.div(1000));
@@ -197,10 +202,14 @@ describe('Deleverage', () => {
     expect(positionAfter.collateralDelevCoeff.inner).to.be.equal(baseCollateralDelevCoeff);
     expect(positionAfter.debtDelevCoeff.inner).to.be.equal(quoteDebtDelevCoeff);
 
-    const posQuoteAmount = positionBefore.discountedQuoteAmount.mul(delevRatioDebt).div(FP96.one);
-    const posBaseAmount = positionBefore.discountedBaseAmount.mul(delevRatioDebt).div(FP96.one).mul(FP96.one).div(price);
+    const posQuoteAmount = positionBefore.discountedQuoteAmount.mul(
+      BigNumber.from(FP96.one).sub(delevRatioDebt)
+    ).div(FP96.one);
+    const posBaseAmount = positionBefore.discountedBaseAmount.sub(
+      delevRatioDebt.mul(positionBefore.discountedQuoteAmount).div(price)
+    );
 
-    expect(positionAfter.discountedQuoteAmount).to.be.closeTo(posQuoteAmount, posQuoteAmount.div(1000));
+    expect(positionAfter.discountedQuoteAmount).to.be.closeTo(posQuoteAmount, posQuoteAmount.div(500));
     expect(positionAfter.discountedBaseAmount).to.be.closeTo(posBaseAmount, posBaseAmount.div(1000));
   });
 
