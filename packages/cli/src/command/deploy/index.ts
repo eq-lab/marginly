@@ -29,6 +29,11 @@ const nodeUriParameter = {
   description: 'Eth Node URI',
 };
 
+const nodeL1UriParameter = {
+  name: ['l1', 'node', 'uri'],
+  description: 'L1 Node URI',
+};
+
 const readEthDeploy = async (command: Command, config: DeployConfig) => {
   const ethDeployCommand = command?.parent;
 
@@ -345,13 +350,22 @@ function updateDeploymentFile(deploymentFile: string, currentDeployment: Marginl
   fs.writeFileSync(deploymentFile, JSON.stringify(mergedDeployment, null, 2), { encoding: 'utf-8' });
 }
 
-export const readReadOnlyEthFromContext = async (
+export const readReadOnlyZkFromContext = async (
   systemContext: SystemContext,
-): Promise<{ nodeUri: { parameter: Parameter; value: string } }> => {
+): Promise<{
+  nodeUri: { parameter: Parameter; value: string }
+  l1NodeUri: { parameter: Parameter; value: string }
+}> => {
   const nodeUri = readParameter(nodeUriParameter, systemContext);
 
   if (!nodeUri) {
     throw new Error('Unable to determine Eth Node Uri');
+  }
+
+  const l1NodeUri = readParameter(nodeL1UriParameter, systemContext);
+
+  if (!l1NodeUri) {
+    throw new Error('Unable to determine L1 Node Uri');
   }
 
   return {
@@ -359,6 +373,10 @@ export const readReadOnlyEthFromContext = async (
       parameter: nodeUriParameter,
       value: nodeUri,
     },
+    l1NodeUri: {
+      parameter: nodeL1UriParameter,
+      value: l1NodeUri
+    }
   };
 };
 
@@ -367,11 +385,15 @@ export const readReadWriteEthFromContext = async (
 ): Promise<{
   signer: Wallet;
 }> => {
-  const nodeUri = await readReadOnlyEthFromContext(systemContext);
+  const { nodeUri, l1NodeUri } = await readReadOnlyZkFromContext(systemContext);
 
-  const provider = new Provider(nodeUri.nodeUri.value);
+  const provider = new Provider(nodeUri.value);
 
-  const signer = (await readZkWalletFromContext(systemContext)).connect(provider);
+  const l1Provider = new Provider(l1NodeUri.value);
+
+  const signer = (await readZkWalletFromContext(systemContext))
+    .connect(provider)
+    .connectToL1(l1Provider);
 
   return {
     signer,

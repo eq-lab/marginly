@@ -1,6 +1,7 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "http://localhost:3050"
+    "ethNodeUri": "http://localhost:3050",
+    "l1NodeUri": "http://localhost:8545"
   },
   "connection": {
     "assertChainId": 270,
