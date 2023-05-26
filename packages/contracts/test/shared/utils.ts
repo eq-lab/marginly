@@ -5,7 +5,7 @@ import { MarginlyPool } from '../../typechain-types';
 import { expect } from 'chai';
 import { TechnicalPositionOwner } from './fixtures';
 
-export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export async function generateWallets(count: number): Promise<Wallet[]> {
   const wallets = [];
@@ -41,7 +41,7 @@ export const CallType = {
   ClosePosition: 6,
   Reinit: 7,
   ReceivePosition: 8,
-  EmergencyWithdraw:9,
+  EmergencyWithdraw: 9,
 };
 
 export const FP96 = {
@@ -196,25 +196,17 @@ export async function calcAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBloc
   const feeDt = powTaylor(onePlusFee, +secondsPassed);
 
   if (!discountedBaseCollateralPrev.isZero()) {
+    const realBaseDebtPrev = baseDebtCoeffPrev.mul(discountedBaseDebtPrev).div(FP96.one);
     const onePlusIRshort = interestRateX96.mul(leverageShortX96).div(SECONDS_IN_YEAR_X96).add(FP96.one);
     const accruedRateDt = powTaylor(onePlusIRshort, +secondsPassed);
-    const baseDebtCoeffMul = powTaylor(onePlusIRshort.mul(onePlusFee).div(FP96.one), +secondsPassed);
+    const baseDebtCoeffMul = accruedRateDt.mul(feeDt).div(FP96.one);
 
     const baseCollateralCoeff = baseCollateralCoeffPrev.add(
-      fp96FromRatio(
-        accruedRateDt.sub(FP96.one).mul(baseDebtCoeffPrev).div(FP96.one).mul(discountedBaseDebtPrev).div(FP96.one),
-        discountedBaseCollateralPrev
-      )
+      fp96FromRatio(accruedRateDt.sub(FP96.one).mul(realBaseDebtPrev).div(FP96.one), discountedBaseCollateralPrev)
     );
     const baseDebtCoeff = baseDebtCoeffPrev.mul(baseDebtCoeffMul).div(FP96.one);
 
-    const realBaseDebtFee = accruedRateDt
-      .mul(feeDt.sub(FP96.one))
-      .div(FP96.one)
-      .mul(baseDebtCoeffPrev)
-      .div(FP96.one)
-      .mul(discountedBaseDebtPrev)
-      .div(FP96.one);
+    const realBaseDebtFee = accruedRateDt.mul(feeDt.sub(FP96.one)).div(FP96.one).mul(realBaseDebtPrev).div(FP96.one);
 
     result.discountedBaseDebtFee = realBaseDebtFee.mul(FP96.one).div(baseCollateralCoeff);
     result.baseCollateralCoeff = baseCollateralCoeff;
@@ -222,26 +214,18 @@ export async function calcAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBloc
   }
 
   if (!discountedQuoteCollateralPrev.isZero()) {
+    const realQuoteDebtPrev = quoteDebtCoeffPrev.mul(discountedQuoteDebtPrev).div(FP96.one);
     const onePlusIRLong = interestRateX96.mul(leverageLongX96).div(SECONDS_IN_YEAR_X96).add(FP96.one);
     const accruedRateDt = powTaylor(onePlusIRLong, +secondsPassed);
-    const quoteDebtCoeffMul = powTaylor(onePlusIRLong.mul(onePlusFee).div(FP96.one), +secondsPassed);
+    const quoteDebtCoeffMul = accruedRateDt.mul(feeDt).div(FP96.one);
 
     const quoteDebtCoeff = quoteDebtCoeffPrev.mul(quoteDebtCoeffMul).div(FP96.one);
 
     const quoteCollateralCoeff = quoteCollateralCoeffPrev.add(
-      fp96FromRatio(
-        accruedRateDt.sub(FP96.one).mul(quoteDebtCoeffPrev).div(FP96.one).mul(discountedQuoteDebtPrev).div(FP96.one),
-        discountedQuoteCollateralPrev
-      )
+      fp96FromRatio(accruedRateDt.sub(FP96.one).mul(realQuoteDebtPrev).div(FP96.one), discountedQuoteCollateralPrev)
     );
 
-    const realQuoteDebtFee = accruedRateDt
-      .mul(feeDt.sub(FP96.one))
-      .div(FP96.one)
-      .mul(quoteDebtCoeffPrev)
-      .div(FP96.one)
-      .mul(discountedQuoteDebtPrev)
-      .div(FP96.one);
+    const realQuoteDebtFee = accruedRateDt.mul(feeDt.sub(FP96.one)).div(FP96.one).mul(realQuoteDebtPrev).div(FP96.one);
 
     result.discountedQuoteDebtFee = realQuoteDebtFee.mul(FP96.one).div(quoteCollateralCoeff);
     result.quoteDebtCoeff = quoteDebtCoeff;

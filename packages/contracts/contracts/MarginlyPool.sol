@@ -365,7 +365,6 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     updateSystemLeverageLong(basePrice);
-    require(!reinitAccount(msg.sender, basePrice), 'MC'); // Margin call
 
     wrapAndTransferFrom(baseToken, msg.sender, amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
@@ -444,7 +443,6 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     updateSystemLeverageShort(basePrice);
-    require(!reinitAccount(msg.sender, basePrice), 'MC'); // Margin call
 
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
@@ -808,8 +806,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 discountedQuoteFee;
 
     if (discountedBaseCollateral != 0) {
-      uint256 _discountedBaseDebt = discountedBaseDebt;
       FP96.FixedPoint memory baseDebtCoeffPrev = baseDebtCoeff;
+      uint256 realBaseDebtPrev = baseDebtCoeffPrev.mul(discountedBaseDebt);
       FP96.FixedPoint memory onePlusIR = interestRate
         .mul(FP96.FixedPoint({inner: systemLeverage.shortX96}))
         .div(secondsInYear)
@@ -819,21 +817,16 @@ contract MarginlyPool is IMarginlyPool {
       FP96.FixedPoint memory accruedRateDt = FP96.powTaylor(onePlusIR, secondsPassed);
 
       baseCollateralCoeff = baseCollateralCoeff.add(
-        FP96.fromRatio(
-          accruedRateDt.sub(FP96.one()).mul(baseDebtCoeffPrev).mul(_discountedBaseDebt),
-          discountedBaseCollateral
-        )
+        FP96.fromRatio(accruedRateDt.sub(FP96.one()).mul(realBaseDebtPrev), discountedBaseCollateral)
       );
 
-      baseDebtCoeff = baseDebtCoeffPrev.mul(FP96.powTaylor(onePlusIR.mul(onePlusFee), secondsPassed));
-      discountedBaseFee = baseCollateralCoeff.recipMul(
-        accruedRateDt.mul(feeDt.sub(FP96.one())).mul(baseDebtCoeffPrev).mul(_discountedBaseDebt)
-      );
+      baseDebtCoeff = baseDebtCoeffPrev.mul(accruedRateDt).mul(feeDt);
+      discountedBaseFee = baseCollateralCoeff.recipMul(accruedRateDt.mul(feeDt.sub(FP96.one())).mul(realBaseDebtPrev));
     }
 
     if (discountedQuoteCollateral != 0) {
-      uint256 _discountedQuoteDebt = discountedQuoteDebt;
       FP96.FixedPoint memory quoteDebtCoeffPrev = quoteDebtCoeff;
+      uint256 realQuoteDebtPrev = quoteDebtCoeffPrev.mul(discountedQuoteDebt);
       FP96.FixedPoint memory onePlusIR = interestRate
         .mul(FP96.FixedPoint({inner: systemLeverage.longX96}))
         .div(secondsInYear)
@@ -843,16 +836,13 @@ contract MarginlyPool is IMarginlyPool {
       FP96.FixedPoint memory accruedRateDt = FP96.powTaylor(onePlusIR, secondsPassed);
 
       quoteCollateralCoeff = quoteCollateralCoeff.add(
-        FP96.fromRatio(
-          accruedRateDt.sub(FP96.one()).mul(quoteDebtCoeffPrev).mul(_discountedQuoteDebt),
-          discountedQuoteCollateral
-        )
+        FP96.fromRatio(accruedRateDt.sub(FP96.one()).mul(realQuoteDebtPrev), discountedQuoteCollateral)
       );
 
-      quoteDebtCoeff = quoteDebtCoeffPrev.mul(FP96.powTaylor(onePlusIR.mul(onePlusFee), secondsPassed));
+      quoteDebtCoeff = quoteDebtCoeffPrev.mul(accruedRateDt).mul(feeDt);
 
       discountedQuoteFee = quoteCollateralCoeff.recipMul(
-        accruedRateDt.mul(feeDt.sub(FP96.one())).mul(quoteDebtCoeffPrev).mul(_discountedQuoteDebt)
+        accruedRateDt.mul(feeDt.sub(FP96.one())).mul(realQuoteDebtPrev)
       );
     }
 
@@ -1088,15 +1078,11 @@ contract MarginlyPool is IMarginlyPool {
     uint256 newCollateral = collateral >= debt ? collateral.sub(debt) : 0;
 
     if (emergencyCollateral > emergencyDebt) {
-      address token = _mode == Mode.ShortEmergency ? quoteToken : baseToken;
-      uint256 surplus = IERC20(token).balanceOf(address(this));
-      if (surplus != 0) {
-        uint256 collateralSurplus = _mode == Mode.ShortEmergency
-          ? swapExactInput(true, surplus, 0)
-          : swapExactInput(false, surplus, 0);
+      uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
-        newCollateral = newCollateral.add(collateralSurplus);
-      }
+      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0);
+
+      newCollateral = newCollateral.add(collateralSurplus);
     }
 
     /**
