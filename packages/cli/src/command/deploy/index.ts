@@ -2,20 +2,13 @@ import { Command } from 'commander';
 import { log } from '@marginly/common';
 import {
   createSystemContext,
-  getCommanderFlagForm,
   getCommanderForm,
   Parameter,
-  readFlag,
   readParameter,
   SystemContext,
-  readEthSignerFromContext,
-  registerEthSignerParameters,
 } from '@marginly/cli-common';
 import * as fs from 'fs';
-import * as fse from 'fs-extra';
 import * as ethers from 'ethers';
-import * as ganache from 'ganache';
-import * as os from 'os';
 import * as path from 'path';
 import {
   Logger,
@@ -28,20 +21,12 @@ import {
   DeployState,
   DeployConfig,
 } from '@marginly/deploy';
+import { readZkWalletFromContext, registerZkWalletParameters } from '@marginly/cli-common/signer-zk';
+import { Provider, Wallet } from 'zksync-web3';
 
 const nodeUriParameter = {
   name: ['eth', 'node', 'uri'],
   description: 'Eth Node URI',
-};
-
-export const dryRunParameter = {
-  name: ['dry', 'run'],
-  description: 'Run command on chain fork',
-};
-
-export const dryRunOptsParameter = {
-  name: ['dry', 'run', 'opts'],
-  description: 'Dry run options. You can specify \'fund\' to fund deployer account',
 };
 
 const readEthDeploy = async (command: Command, config: DeployConfig) => {
@@ -101,7 +86,7 @@ async function deployCommandTemplate(
   command: Command,
   deployCommandArgs: DeployCommandArgs,
   perform: (
-    signer: ethers.Signer,
+    signer: Wallet,
     actualConfigFile: string,
     actualStateFile: string,
     actualDeploymentFile: string,
@@ -147,16 +132,7 @@ async function deployCommandTemplate(
   }
 
   const config: DeployConfig = JSON.parse(fs.readFileSync(path.join(deployDir, 'config.json'), 'utf-8'));
-  const { signer, dryRun } = await readEthDeploy(command, config);
-
-  if (dryRun) {
-    const osTmpDir = os.tmpdir();
-    const tmpDir = fs.mkdtempSync(path.join(osTmpDir, 'marginly_deploy_'));
-    log(`Created tmp dir for writing deploy files: ${tmpDir}`);
-
-    fse.copySync(deployDir, tmpDir, { preserveTimestamps: true });
-    deployDir = tmpDir;
-  }
+  const { signer } = await readEthDeploy(command, config);
 
   const statesDir = path.join(deployDir, statesDirName);
 
@@ -389,56 +365,16 @@ export const readReadOnlyEthFromContext = async (
 export const readReadWriteEthFromContext = async (
   systemContext: SystemContext,
 ): Promise<{
-  signer: ethers.Signer;
-  dryRun: boolean;
+  signer: Wallet;
 }> => {
   const nodeUri = await readReadOnlyEthFromContext(systemContext);
 
-  const dryRun = readFlag(dryRunParameter, systemContext);
-  const dryRunOpts = readParameter(dryRunOptsParameter, systemContext);
+  const provider = new Provider(nodeUri.nodeUri.value);
 
-  if (!dryRun && dryRunOpts !== undefined) {
-    throw new Error('Dry run options can only be set while dry run mode is enabled');
-  }
-
-  if (dryRunOpts !== undefined && dryRunOpts !== 'fund') {
-    throw new Error(`Unknown dry run option '${dryRunOpts}'`);
-  }
-
-  const realProvider = new ethers.providers.JsonRpcProvider(nodeUri.nodeUri.value);
-  let provider;
-  if (!dryRun) {
-    provider = realProvider;
-  } else {
-    log(`Dry run command on fork`);
-    const { chainId: realChainId } = await realProvider.getNetwork();
-    const options = {
-      chain: { chainId: realChainId },
-      logging: { quiet: true },
-      fork: { url: nodeUri.nodeUri.value },
-    };
-    provider = new ethers.providers.Web3Provider(
-      ganache.provider(options) as unknown as ethers.providers.ExternalProvider,
-    );
-    const blockNumber = await provider.getBlockNumber();
-    log(`Fork block number: ${blockNumber}`);
-  }
-
-  const signer = (await readEthSignerFromContext(systemContext)).connect(provider);
-
-  if (dryRun && dryRunOpts === 'fund') {
-    const treasurySigner = provider.getSigner();
-    await treasurySigner.sendTransaction({
-      to: await signer.getAddress(),
-      value: ethers.utils.parseEther('100'),
-    });
-    const signerBalance = (await signer.getBalance()).toBigInt();
-    signerBalance.toString();
-  }
+  const signer = (await readZkWalletFromContext(systemContext)).connect(provider);
 
   return {
     signer,
-    dryRun,
   };
 };
 export const registerReadOnlyEthParameters = (command: Command): Command => {
@@ -446,13 +382,7 @@ export const registerReadOnlyEthParameters = (command: Command): Command => {
 };
 
 export const registerReadWriteEthParameters = (command: Command): Command => {
-  return registerEthSignerParameters(registerReadOnlyEthParameters(command)).option(
-    getCommanderFlagForm(dryRunParameter),
-    dryRunParameter.description,
-  ).option(
-    getCommanderForm(dryRunOptsParameter),
-    dryRunOptsParameter.description,
-  );
+  return registerZkWalletParameters(registerReadOnlyEthParameters(command));
 };
 
 export const deployCommand = registerReadWriteEthParameters(new Command('deploy')).addCommand(deployMarginlyCommand);

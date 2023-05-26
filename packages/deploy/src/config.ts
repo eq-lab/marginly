@@ -30,7 +30,12 @@ export interface MarginlyDeployConfigMintableToken {
   decimals: number;
 }
 
-export type MarginlyDeployConfigToken = MarginlyDeployConfigExistingToken | MarginlyDeployConfigMintableToken;
+export interface MarginlyDeployConfigWethToken {
+  type: 'weth';
+  id: string;
+}
+
+export type MarginlyDeployConfigToken = MarginlyDeployConfigExistingToken | MarginlyDeployConfigMintableToken | MarginlyDeployConfigWethToken;
 
 export function isMarginlyDeployConfigExistingToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigExistingToken {
   return token.type === 'existing' || token.type === undefined;
@@ -38,6 +43,10 @@ export function isMarginlyDeployConfigExistingToken(token: MarginlyDeployConfigT
 
 export function isMarginlyDeployConfigMintableToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigMintableToken {
   return token.type === 'mintable';
+}
+
+export function isMarginlyDeployConfigWethToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigWethToken {
+  return token.type === 'weth';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {

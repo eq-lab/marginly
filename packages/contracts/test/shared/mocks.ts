@@ -62,43 +62,6 @@ interface ContractFactory {
   attach(address: unknown): Contract;
 }
 
-// function wrapContract(contract: Contract) {
-//   const contractFunctionNames = new Set(
-//     Object.getOwnPropertyNames(
-//       contract.interface.functions
-//     ).map(x => x.substring(0, x.indexOf('(')))
-//   );
-//
-//   const createsContractFunctionNames = new Set([
-//     'connect',
-//     'attach',
-//   ]);
-//
-//   return new Proxy({}, {
-//     get: (target: Contract, p: string | symbol, receiver: any): any => {
-//       const value = (contract as unknown as Record<string | symbol, unknown>)[p];
-//       if (typeof(p) === 'string' && contractFunctionNames.has(p)) {
-//         return function (...args) {
-//           return value.call(contract, ...args).then(x => {
-//             if (Object.prototype.hasOwnProperty.call(x, 'wait')) {
-//               return x.wait().then(_ => {wait: ()=>{};});
-//             } else {
-//               return x;
-//             }
-//           })
-//         }
-//       } else if (typeof(p) === 'string' && createsContractFunctionNames.has(p)) {
-//           return function (...args) {
-//             const newContract = value.call(contract, ...args);
-//             return wrapContract(newContract);
-//           }
-//         } else {
-//         return value;
-//       }
-//     }
-//   });
-// }
-
 class Ethers {
   private readonly provider: Provider;
   private readonly signers: originalEthers.Wallet[];

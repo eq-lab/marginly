@@ -28,6 +28,9 @@
     "@uniswap/v3-core": "^1.0.1",
     "@openzeppelin/contracts": "^4.8.0",
     "ethers": "^5.7.2",
-    "fs-extra": "^11.1.0"
+    "fs-extra": "^11.1.0",
+    "@matterlabs/hardhat-zksync-deploy": "^0.6.3",
+    "zksync-web3": "^0.14.3",
+    "hardhat": "^2.12.6"
   }
 }
