@@ -3,6 +3,8 @@ import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import {
+  assertAccruedRateCoeffs,
+  calcDebtFee,
   calcLeverageLong,
   calcLeverageShort,
   calcLongSortKey,
@@ -30,6 +32,7 @@ describe('MarginlyPool.Base', () => {
     const marginlyParams = {
       interestRate: 54,
       maxLeverage: 15,
+      fee: 1,
       swapFee: 1000,
       priceSecondsAgo: 1000,
       positionMinAmount: 100,
@@ -99,6 +102,7 @@ describe('MarginlyPool.Base', () => {
 
     await pool.connect(factoryOwner).setParameters({
       interestRate: 54,
+      fee: 1,
       maxLeverage: 15,
       swapFee: 1000,
       priceSecondsAgo: 1000,
@@ -120,6 +124,7 @@ describe('MarginlyPool.Base', () => {
     expect(params.mcSlippage).to.equal(400000);
     expect(params.baseLimit).to.equal(1_000_000_000);
     expect(params.quoteLimit).to.equal(1_000_000_000);
+    expect(params.fee).to.equal(1);
   });
 
   it('should raise error when not an owner trying to set parameters', async () => {
@@ -132,6 +137,7 @@ describe('MarginlyPool.Base', () => {
       pool.connect(otherSigner).setParameters({
         interestRate: 54,
         maxLeverage: 15,
+        fee: 1,
         swapFee: 1000,
         priceSecondsAgo: 1000,
         positionMinAmount: 100,
@@ -229,7 +235,7 @@ describe('MarginlyPool.Base', () => {
       expect(position.heapPosition).to.be.equal(0);
     });
 
-    it('deposit into short position', async () => {
+    it('depositBase into short position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
       await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
@@ -277,7 +283,7 @@ describe('MarginlyPool.Base', () => {
       }
     });
 
-    it('deposit into long position', async () => {
+    it('depositBase into long position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
       await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS);
@@ -661,17 +667,12 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, user1, user2] = await ethers.getSigners();
       const timeShift = 300 * 24 * 60 * 60;
-      const one = BigNumber.from(FP96.one);
-      const interestRateX96 = BigNumber.from((await marginlyPool.params()).interestRate)
-        .mul(one)
-        .div(1e6);
-      const year = BigNumber.from(365.25 * 24 * 60 * 60).mul(one);
 
-      const user1BaseDeposit = 100;
-      const user1LongAmount = 6;
+      const user1BaseDeposit = 1000;
+      const user1LongAmount = 1500;
 
-      const user2QuoteDeposit = 1000;
-      const user2ShortAmount = 20;
+      const user2QuoteDeposit = 5000;
+      const user2ShortAmount = 600;
 
       await marginlyPool.connect(user1).execute(CallType.DepositBase, user1BaseDeposit, 0, false, ZERO_ADDRESS);
       await marginlyPool.connect(user2).execute(CallType.DepositQuote, user2QuoteDeposit, 0, false, ZERO_ADDRESS);
@@ -679,27 +680,12 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(user1).execute(CallType.Long, user1LongAmount, 0, false, ZERO_ADDRESS);
       await marginlyPool.connect(user2).execute(CallType.Short,user2ShortAmount, 0, false, ZERO_ADDRESS);
 
-      const baseDebtCoeffBefore = await marginlyPool.baseDebtCoeff();
-      const quoteDebtCoeffBefore = await marginlyPool.quoteDebtCoeff();
-      const systemLeverage = await marginlyPool.systemLeverage();
-      const leverageShort = systemLeverage.shortX96;
-      const leverageLong = systemLeverage.longX96;
-      const lastReinitTimestampBefore = await marginlyPool.lastReinitTimestampSeconds();
+      const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
 
       await time.increase(timeShift);
       await marginlyPool.execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
 
-      const lastReinitTimestamp = await marginlyPool.lastReinitTimestampSeconds();
-      const secondsPassed = lastReinitTimestamp.sub(lastReinitTimestampBefore);
-
-      const baseDebtCoeffMul = powTaylor(leverageShort.mul(interestRateX96).div(year).add(one), +secondsPassed);
-      const quoteDebtCoeffMul = powTaylor(leverageLong.mul(interestRateX96).div(year).add(one), +secondsPassed);
-
-      const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
-      const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
-
-      expect(baseDebtCoeffBefore.mul(baseDebtCoeffMul).div(one)).to.be.eq(baseDebtCoeff);
-      expect(quoteDebtCoeffBefore.mul(quoteDebtCoeffMul).div(one)).to.be.eq(quoteDebtCoeff);
+      await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber);
     });
 
     it('withdraw with position removing', async () => {

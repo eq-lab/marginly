@@ -100,7 +100,7 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
     tokenId: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  balanceOf(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumberish>;
+  balanceOf(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumber>;
   burn(
     tokenId: BigNumberish,
     override?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -177,18 +177,18 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
     tokenId: PromiseOrValue<BigNumberish>,
     override?: CallOverrides
   ): Promise<{
-    nonce: BigNumberish;
+    nonce: BigNumber;
     operator: string;
     token0: string;
     token1: string;
-    fee: BigNumberish;
-    tickLower: BigNumberish;
-    tickUpper: BigNumberish;
-    liquidity: BigNumberish;
-    feeGrowthInside0LastX128: BigNumberish;
-    feeGrowthInside1LastX128: BigNumberish;
-    tokensOwed0: BigNumberish;
-    tokensOwed1: BigNumberish;
+    fee: BigNumber;
+    tickLower: BigNumber;
+    tickUpper: BigNumber;
+    liquidity: BigNumber;
+    feeGrowthInside0LastX128: BigNumber;
+    feeGrowthInside1LastX128: BigNumber;
+    tokensOwed0: BigNumber;
+    tokensOwed1: BigNumber;
   }>;
   refundETH(override?: PayableOverrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   safeTransferFrom(
@@ -211,14 +211,14 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
     override?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   symbol(override?: CallOverrides): Promise<string>;
-  tokenByIndex(index: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<BigNumberish>;
+  tokenByIndex(index: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<BigNumber>;
   tokenOfOwnerByIndex(
     owner: PromiseOrValue<string>,
     index: PromiseOrValue<BigNumberish>,
     override?: CallOverrides
-  ): Promise<BigNumberish>;
+  ): Promise<BigNumber>;
   tokenURI(tokenId: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<string>;
-  totalSupply(override?: CallOverrides): Promise<BigNumberish>;
+  totalSupply(override?: CallOverrides): Promise<BigNumber>;
   transferFrom(
     from: PromiseOrValue<string>,
     to: PromiseOrValue<string>,
@@ -233,7 +233,7 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
   WETH9(override?: CallOverrides): Promise<string>;
 
   functions: {
-    balanceOf(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<{ balance: BigNumberish }>;
+    balanceOf(owner: PromiseOrValue<string>, override?: CallOverrides): Promise<{ balance: BigNumber }>;
     DOMAIN_SEPARATOR(override?: CallOverrides): Promise<[BytesLike]>;
     factory(override?: CallOverrides): Promise<[string]>;
     getApproved(tokenId: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<{ operator: string }>;
@@ -249,29 +249,29 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       override?: CallOverrides
     ): Promise<{
-      nonce: BigNumberish;
+      nonce: BigNumber;
       operator: string;
       token0: string;
       token1: string;
-      fee: BigNumberish;
-      tickLower: BigNumberish;
-      tickUpper: BigNumberish;
-      liquidity: BigNumberish;
-      feeGrowthInside0LastX128: BigNumberish;
-      feeGrowthInside1LastX128: BigNumberish;
-      tokensOwed0: BigNumberish;
-      tokensOwed1: BigNumberish;
+      fee: BigNumber;
+      tickLower: BigNumber;
+      tickUpper: BigNumber;
+      liquidity: BigNumber;
+      feeGrowthInside0LastX128: BigNumber;
+      feeGrowthInside1LastX128: BigNumber;
+      tokensOwed0: BigNumber;
+      tokensOwed1: BigNumber;
     }>;
     supportsInterface(interfaceId: PromiseOrValue<BytesLike>, override?: CallOverrides): Promise<[boolean]>;
     symbol(override?: CallOverrides): Promise<[string]>;
-    tokenByIndex(index: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[BigNumberish]>;
+    tokenByIndex(index: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[BigNumber]>;
     tokenOfOwnerByIndex(
       owner: PromiseOrValue<string>,
       index: PromiseOrValue<BigNumberish>,
       override?: CallOverrides
-    ): Promise<{ tokenId: BigNumberish }>;
+    ): Promise<{ tokenId: BigNumber }>;
     tokenURI(tokenId: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[string]>;
-    totalSupply(override?: CallOverrides): Promise<[BigNumberish]>;
+    totalSupply(override?: CallOverrides): Promise<[BigNumber]>;
     WETH9(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
@@ -477,7 +477,7 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
     collect(
       params: { tokenId: BigNumberish; recipient: string; amount0Max: BigNumberish; amount1Max: BigNumberish },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<{ amount0: BigNumberish; amount1: BigNumberish }>;
+    ): Promise<{ amount0: BigNumber; amount1: BigNumber }>;
     createAndInitializePoolIfNecessary(
       token0: string,
       token1: string,
@@ -494,7 +494,7 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
         deadline: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<{ amount0: BigNumberish; amount1: BigNumberish }>;
+    ): Promise<{ amount0: BigNumber; amount1: BigNumber }>;
     increaseLiquidity(
       params: {
         tokenId: BigNumberish;
@@ -505,7 +505,7 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
         deadline: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<{ liquidity: BigNumberish; amount0: BigNumberish; amount1: BigNumberish }>;
+    ): Promise<{ liquidity: BigNumber; amount0: BigNumber; amount1: BigNumber }>;
     mint(
       params: {
         token0: string;
@@ -521,7 +521,7 @@ export interface NonfungiblePositionManagerContract extends BaseContract {
         deadline: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<{ tokenId: BigNumberish; liquidity: BigNumberish; amount0: BigNumberish; amount1: BigNumberish }>;
+    ): Promise<{ tokenId: BigNumber; liquidity: BigNumber; amount0: BigNumber; amount1: BigNumber }>;
     permit(
       spender: string,
       tokenId: BigNumberish,

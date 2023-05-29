@@ -24,6 +24,8 @@ contract MarginlyFactory is IMarginlyFactory {
   address public override feeHolder;
   /// @notice Address of wrapped ETH
   address public override WETH9;
+  /// @notice Technical position address
+  address public override techPositionOwner;
 
   /// @inheritdoc IMarginlyFactory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
@@ -33,7 +35,8 @@ contract MarginlyFactory is IMarginlyFactory {
     address _uniswapFactory,
     address _swapRouter,
     address _feeHolder,
-    address _WETH9
+    address _WETH9,
+    address _techPositionOwner
   ) {
     owner = msg.sender;
     emit OwnerChanged(address(0), msg.sender);
@@ -43,6 +46,7 @@ contract MarginlyFactory is IMarginlyFactory {
     swapRouter = _swapRouter;
     feeHolder = _feeHolder;
     WETH9 = _WETH9;
+    techPositionOwner = _techPositionOwner;
   }
 
   /// @inheritdoc IOwnable

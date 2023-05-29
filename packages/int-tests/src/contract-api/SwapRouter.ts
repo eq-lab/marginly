@@ -214,7 +214,7 @@ export interface SwapRouterContract extends BaseContract {
         amountOutMinimum: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumberish>;
+    ): Promise<BigNumber>;
     exactInputSingle(
       params: {
         tokenIn: string;
@@ -227,7 +227,7 @@ export interface SwapRouterContract extends BaseContract {
         sqrtPriceLimitX96: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumberish>;
+    ): Promise<BigNumber>;
     exactOutput(
       params: {
         path: BytesLike;
@@ -237,7 +237,7 @@ export interface SwapRouterContract extends BaseContract {
         amountInMaximum: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumberish>;
+    ): Promise<BigNumber>;
     exactOutputSingle(
       params: {
         tokenIn: string;
@@ -250,7 +250,7 @@ export interface SwapRouterContract extends BaseContract {
         sqrtPriceLimitX96: BigNumberish;
       },
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumberish>;
+    ): Promise<BigNumber>;
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,

@@ -218,7 +218,8 @@ class MarginlyDeployer {
     uniswapFactory: EthAddress,
     swapRouter: EthAddress,
     feeHolder: EthAddress,
-    wethAddress: EthAddress
+    wethAddress: EthAddress,
+    techPositionOwner: EthAddress
   ): Promise<DeployResult> {
     return this.deploy(
       'MarginlyFactory',
@@ -228,6 +229,7 @@ class MarginlyDeployer {
         swapRouter.toString(),
         feeHolder.toString(),
         wethAddress.toString(),
+        techPositionOwner.toString(),
       ],
       'marginlyFactory'
     );
@@ -435,6 +437,7 @@ class MarginlyDeployer {
       const quoteOne = BigNumber.from(10).pow(quoteDecimals);
       const params = {
         interestRate: config.params.interestRate.mul(one).toInteger(),
+        fee: config.params.fee.mul(one).toInteger(),
         maxLeverage: config.params.maxLeverage.toInteger(),
         swapFee: config.params.swapFee.mul(one).toInteger(),
         priceSecondsAgo: config.params.priceAgo.toSeconds(),
@@ -623,11 +626,13 @@ interface MarginlyConfigUniswap {
 
 interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
+  techPositionOwner: EthAddress;
   wethAddress: EthAddress;
 }
 
 interface MarginlyPoolParams {
   interestRate: RationalNumber;
+  fee: RationalNumber;
   maxLeverage: RationalNumber;
   swapFee: RationalNumber;
   priceAgo: TimeSpan;
@@ -751,6 +756,7 @@ class StrictMarginlyDeployConfig {
 
       const params: MarginlyPoolParams = {
         interestRate: RationalNumber.parsePercent(rawPool.params.interestRate),
+        fee: RationalNumber.parsePercent(rawPool.params.fee),
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
         priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
@@ -803,6 +809,7 @@ class StrictMarginlyDeployConfig {
       },
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
+        techPositionOwner: EthAddress.parse(config.marginlyFactory.techPositionOwner),
         wethAddress: wethToken.address,
       },
       Array.from(tokens.values()),
@@ -969,7 +976,8 @@ export async function deployMarginly(
       config.uniswap.factory,
       config.uniswap.swapRouter,
       config.marginlyFactory.feeHolder,
-      config.marginlyFactory.wethAddress
+      config.marginlyFactory.wethAddress,
+      config.marginlyFactory.techPositionOwner
     );
     printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 

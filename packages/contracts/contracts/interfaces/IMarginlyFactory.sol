@@ -51,4 +51,7 @@ interface IMarginlyFactory is IOwnable {
 
   /// @notice Address of wrapper
   function WETH9() external view returns (address);
+
+  /// @notice Address of technical position
+  function techPositionOwner() external view returns (address);
 }

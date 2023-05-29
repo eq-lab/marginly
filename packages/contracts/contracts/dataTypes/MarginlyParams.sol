@@ -8,6 +8,8 @@ struct MarginlyParams {
   uint16 priceSecondsAgo;
   /// @dev Interest rate. Example 1% = 10000
   uint24 interestRate;
+  /// @dev Close debt fee. 1% = 10000
+  uint24 fee;
   /// @dev Pool fee. When users take leverage they pay `swapFee` on the notional borrow amount. 1% = 10000
   uint24 swapFee;
   /// @dev Max slippage when open/close position
