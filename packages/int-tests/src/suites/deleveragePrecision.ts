@@ -11,7 +11,7 @@ import { logger } from '../utils/logger';
 const paramsDefaultLeverage = {
   interestRate: 0,
   maxLeverage: 20n,
-  swapFee: 1000, // 0.1%
+  swapFee: 0,
   priceSecondsAgo: 900n, // 15 min
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
@@ -23,7 +23,7 @@ const paramsDefaultLeverage = {
 const paramsLowLeverage = {
   interestRate: 0,
   maxLeverage: 10n,
-  swapFee: 1000, // 0.1%
+  swapFee: 0,
   priceSecondsAgo: 900n, // 15 min
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
@@ -259,19 +259,7 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
     await (
       await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     ).wait();
-    await addToLogs(
-      sut,
-      1,
-      1,
-      shortersNum,
-      `Liquidation ${i}`,
-      `0`,
-      '0',
-      coeffsTable,
-      aggregates,
-      balances,
-      positions
-    );
+    await addToLogs(sut, 1, 1, shortersNum, `Liquidation ${i}`, `0`, '0', coeffsTable, aggregates, balances, positions);
 
     await marginlyPool.connect(treasury).setParameters(paramsDefaultLeverage, { gasLimit: 500_000 });
 
@@ -306,23 +294,23 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
         positions
       );
 
-      logger.info(`  Shorter_${j} withdraw all`);
+      logger.info(`  Shorter_${j} withdraws all`);
       await marginlyPool
         .connect(shorters[j])
         .execute(CallType.WithdrawQuote, parseUnits('200000', 6), 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
-        await addToLogs(
-          sut,
-          1,
-          1,
-          shortersNum,
-          `Shorter_${j} withdrawQuote all ${i}`,
-          `0`,
-          '0',
-          coeffsTable,
-          aggregates,
-          balances,
-          positions
-        );
+      await addToLogs(
+        sut,
+        1,
+        1,
+        shortersNum,
+        `Shorter_${j} withdrawQuote all ${i}`,
+        `0`,
+        '0',
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
     }
   }
   console.table(coeffsTable);
@@ -334,18 +322,28 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
 export async function deleveragePrecisionShort(sut: SystemUnderTest) {
   const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
 
+  const coeffsTable: { [key: string]: {} } = {};
+  const aggregates: { [key: string]: {} } = {};
+  const balances: { [key: string]: {} } = {};
+  const positions: { [key: string]: {} } = {};
+
   // we set interest rate as 0 for this test so we don't need to calculate accrued rate
   // liquidations are approached via decreasing maxLeverage
   await marginlyPool.connect(treasury).setParameters(paramsDefaultLeverage);
 
   const lender = accounts[0];
-  const liquidatedShort = accounts[1];
-  const longersNum = 4;
-  const longers = accounts.slice(2, 2 + longersNum);
+  const longersNum = 5;
+  const longers = accounts.slice(1, 1 + longersNum);
+  const liquidatedShort = accounts[1 + longersNum];
 
-  const ethPrice = BigNumber.from((await marginlyPool.getBasePrice()).inner).div(FP96.one);
   // 20 WETH in total
-  const longersLongAmount = [parseUnits('2', 18), parseUnits('3', 18), parseUnits('4', 18), parseUnits('11', 18)];
+  const longersLongAmount = [
+    parseUnits('2', 18),
+    parseUnits('3', 18),
+    parseUnits('4', 18),
+    parseUnits('11', 18),
+    parseUnits('20', 18),
+  ];
 
   const price = (await marginlyPool.getBasePrice()).inner;
 
@@ -358,54 +356,197 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
   await (await weth.connect(treasury).transfer(lender.address, lenderBaseAmount)).wait();
   await (await weth.connect(lender).approve(marginlyPool.address, lenderBaseAmount)).wait();
 
+  logger.info(`Lender deposits quote`);
   await marginlyPool
     .connect(lender)
     .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
+  await addToLogs(
+    sut,
+    1,
+    longersNum,
+    1,
+    'Lender depositQuote 1',
+    lenderQuoteAmount.toString(),
+    '0',
+    coeffsTable,
+    aggregates,
+    balances,
+    positions
+  );
+
+  logger.info(`Lender deposits base`);
   await marginlyPool
     .connect(lender)
     .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
+  await addToLogs(
+    sut,
+    1,
+    longersNum,
+    1,
+    'Lender depositBase 1',
+    lenderBaseAmount.toString(),
+    '0',
+    coeffsTable,
+    aggregates,
+    balances,
+    positions
+  );
 
   let nextDate = Math.floor(Date.now() / 1000);
   const timeDelta = 24 * 60 * 60;
 
   for (let i = 0; i < 10; ++i) {
+    if (i == 5) {
+      await (await usdc.connect(treasury).transfer(lender.address, lenderQuoteAmount)).wait();
+      await (await usdc.connect(lender).approve(marginlyPool.address, lenderQuoteAmount)).wait();
+
+      await (await weth.connect(treasury).transfer(lender.address, lenderBaseAmount)).wait();
+      await (await weth.connect(lender).approve(marginlyPool.address, lenderBaseAmount)).wait();
+
+      logger.info(`Lender deposits quote`);
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
+      await addToLogs(
+        sut,
+        1,
+        longersNum,
+        1,
+        'Lender depositQuote 2',
+        lenderQuoteAmount.toString(),
+        '0',
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
+
+      logger.info(`Lender deposits base`);
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
+      await addToLogs(
+        sut,
+        1,
+        longersNum,
+        1,
+        'Lender depositBase 2',
+        lenderBaseAmount.toString(),
+        '0',
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
+    }
+
     logger.info(`iteration ${i + 1}`);
     let price = (await marginlyPool.getBasePrice()).inner;
     const shorterQuoteDeposit = parseUnits('1', 18).mul(price).div(FP96.one); // USDC equivalent of 1 WETH
     await (await usdc.connect(treasury).transfer(liquidatedShort.address, shorterQuoteDeposit)).wait();
     await (await usdc.connect(liquidatedShort).approve(marginlyPool.address, shorterQuoteDeposit)).wait();
 
+    logger.info(`  Shorter deposits quote`);
     const shorterShortAmount = parseUnits('18', 18); // 18 WETH
     await marginlyPool
       .connect(liquidatedShort)
       .execute(CallType.DepositQuote, shorterQuoteDeposit, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
 
-    console.log(`USDC Balance after depositQuote ${formatUnits(await usdc.balanceOf(marginlyPool.address), 6)}`);
+    await addToLogs(
+      sut,
+      1,
+      longersNum,
+      1,
+      `  Shorter depositQuote ${i}`,
+      shorterQuoteDeposit.toString(),
+      '0',
+      coeffsTable,
+      aggregates,
+      balances,
+      positions
+    );
 
-    await marginlyPool
-      .connect(liquidatedShort)
-      .execute(CallType.Short, shorterShortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
-
-    console.log(`USDC Balance after long ${formatUnits(await usdc.balanceOf(marginlyPool.address), 6)}`);
+    logger.info(`  Shorter shorts`);
+    const shortTx = await (
+      await marginlyPool
+        .connect(liquidatedShort)
+        .execute(CallType.Short, shorterShortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+    ).wait();
+    const swapPrice = BigNumber.from(shortTx.events?.find((e) => e.event == 'Short')?.args?.swapPriceX96).mul(
+      10n ** 12n
+    );
+    await addToLogs(
+      sut,
+      1,
+      longersNum,
+      1,
+      `Shorter short ${i}`,
+      shorterShortAmount.toString(),
+      toHumanString(swapPrice),
+      coeffsTable,
+      aggregates,
+      balances,
+      positions
+    );
 
     const longersBaseDeposit = parseUnits('10', 18); // 10 WETH
 
-    for (let j = 0; j < longersNum; ++j) {
+    const itersNum = i < 5 ? longersNum - 1 : longersNum;
+    for (let j = 0; j < itersNum; ++j) {
       await (await weth.connect(treasury).transfer(longers[j].address, longersBaseDeposit)).wait();
       await (await weth.connect(longers[j]).approve(marginlyPool.address, longersBaseDeposit)).wait();
-      logger.info(`DepositQuote`);
+      logger.info(`  Longer_${j} deposits base`);
       await (
         await marginlyPool
           .connect(longers[j])
           .execute(CallType.DepositBase, longersBaseDeposit, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
       ).wait();
-      logger.info(`Short`);
-      await (
+      await addToLogs(
+        sut,
+        1,
+        longersNum,
+        1,
+        `Longer_${j} depositBase ${i}`,
+        longersBaseDeposit.toString(),
+        '0',
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
+
+      logger.info(`  Longer_${j} longs`);
+      const price = BigNumber.from((await marginlyPool.getBasePrice()).inner);
+
+      const amount =
+        j + 1 != itersNum
+          ? longersLongAmount[j]
+          : BigNumber.from(await usdc.balanceOf(marginlyPool.address))
+              .mul(FP96.one)
+              .div(price)
+              .mul(999)
+              .div(1000);
+      const longTx = await (
         await marginlyPool
           .connect(longers[j])
-          .execute(CallType.Long, longersLongAmount[j], 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+          .execute(CallType.Long, amount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
       ).wait();
-      console.log(`USDC balance after short ${formatUnits(await usdc.balanceOf(marginlyPool.address), 6)}`);
+      const swapPrice = BigNumber.from(longTx.events?.find((e) => e.event == 'Long')?.args?.swapPriceX96).mul(
+        10n ** 12n
+      );
+      await addToLogs(
+        sut,
+        1,
+        longersNum,
+        1,
+        `Longer_${j} long ${i}`,
+        amount.toString(),
+        toHumanString(swapPrice),
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
     }
 
     const baseDelevCoeffBefore = BigNumber.from(await marginlyPool.baseDelevCoeff());
@@ -420,6 +561,7 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
     await (
       await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     ).wait();
+    await addToLogs(sut, 1, longersNum, 1, `Liquidation ${i}`, '0', '0', coeffsTable, aggregates, balances, positions);
 
     await marginlyPool.connect(treasury).setParameters(paramsDefaultLeverage, { gasLimit: 500_000 });
 
@@ -429,23 +571,54 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
     assert(!baseDelevCoeffBefore.eq(baseDelevCoeffAfter));
     assert(!quoteDebtCoeffBefore.eq(quoteDebtCoeffAfter));
     logger.info(`  Liquidation happened`);
-    logger.info(`  baseDelevCoeffAfter = ${baseDelevCoeffAfter}`);
-    logger.info(`  quoteDebtCoeffAfter = ${quoteDebtCoeffAfter}`);
 
-    console.log(`USDC balance after liquidation ${formatUnits(await usdc.balanceOf(marginlyPool.address), 6)}`);
+    for (let j = 0; j < itersNum; ++j) {
+      logger.info(`  Longer_${j} closes position`);
+      const closePosTx = await (
+        await marginlyPool
+          .connect(longers[j])
+          .execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      ).wait();
+      const swapPrice = BigNumber.from(
+        closePosTx.events?.find((e) => e.event == 'ClosePosition')?.args?.swapPriceX96
+      ).mul(10n ** 12n);
+      await addToLogs(
+        sut,
+        1,
+        longersNum,
+        1,
+        `Longer_${j} closePosition ${i}`,
+        '0',
+        toHumanString(swapPrice),
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
 
-    for (let j = 0; j < longersNum; ++j) {
-      await marginlyPool
-        .connect(longers[j])
-        .execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
-
-      console.log(`USDC balance after closePosition ${formatUnits(await usdc.balanceOf(marginlyPool.address), 6)}`);
-
+      logger.info(`  Longer_${j} withdraws all`);
       await marginlyPool
         .connect(longers[j])
         .execute(CallType.WithdrawBase, parseUnits('200000', 18), 0, false, ZERO_ADDRESS, { gasLimit: 500_000 });
+      await addToLogs(
+        sut,
+        1,
+        longersNum,
+        1,
+        `Longer_${j} withdrawQuote all ${i}`,
+        `0`,
+        '0',
+        coeffsTable,
+        aggregates,
+        balances,
+        positions
+      );
     }
   }
+  console.table(coeffsTable);
+  console.table(aggregates);
+  console.table(balances);
+  console.table(positions);
 }
 
 async function addToLogs(
@@ -459,7 +632,7 @@ async function addToLogs(
   coeffsTable: { [key: string]: {} },
   aggregates: { [key: string]: {} },
   balances: { [key: string]: {} },
-  positions: { [key: string]: {} },
+  positions: { [key: string]: {} }
 ) {
   const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
   const lenders = accounts.slice(0, lendersNum);
@@ -479,6 +652,12 @@ async function addToLogs(
     quoteCollateralCoeffHuman: toHumanString(quoteCollateralCoeff),
     quoteDelevCoeff: quoteDelevCoeff.toString(),
     quoteDelevCoeffHuman: toHumanString(quoteDelevCoeff),
+    quoteDebtCoeff: quoteDebtCoeff.toString(),
+    quoteDebtCoeffHuman: toHumanString(quoteDebtCoeff),
+    baseCollateralCoeff: baseCollateralCoeff.toString(),
+    baseCollateralCoeffHuman: toHumanString(baseCollateralCoeff),
+    baseDelevCoeff: baseDelevCoeff.toString(),
+    baseDelevCoeffHuman: toHumanString(baseDelevCoeff),
     baseDebtCoeff: baseDebtCoeff.toString(),
     baseDebtCoeffHuman: toHumanString(baseDebtCoeff),
   };

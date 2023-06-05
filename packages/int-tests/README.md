@@ -27,3 +27,5 @@ yarn start --suite=short
 - mc,
 - shortEmergency,
 - longEmergency,
+- deleveragePrecisionLong,
+- deleveragePrecisionShort,
