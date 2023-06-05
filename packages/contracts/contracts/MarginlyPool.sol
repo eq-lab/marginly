@@ -584,7 +584,7 @@ contract MarginlyPool is IMarginlyPool {
       }
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realCollateralDelta, WHOLE_ONE);
-      chargeFee(collateralToken, realFeeAmount);
+      chargeFee(realFeeAmount);
 
       realCollateralDelta = realCollateralDelta.add(realFeeAmount);
       discountedCollateralDelta = quoteCollateralCoeff.recipMul(realCollateralDelta);
@@ -621,7 +621,7 @@ contract MarginlyPool is IMarginlyPool {
         require(realCollateralDelta <= baseInMaximum, 'SL'); // Slippage above maximum
       }
 
-      chargeFee(quoteToken, realFeeAmount);
+      chargeFee(realFeeAmount);
 
       discountedCollateralDelta = baseCollateralCoeff.recipMul(realCollateralDelta);
 
@@ -646,10 +646,9 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @dev Charge fee (swap or debt fee) in quote token
-  /// @param token address of token
   /// @param feeAmount amount of token
-  function chargeFee(address token, uint256 feeAmount) private {
-    TransferHelper.safeTransfer(token, IMarginlyFactory(factory).feeHolder(), feeAmount);
+  function chargeFee(uint256 feeAmount) private {
+    TransferHelper.safeTransfer(quoteToken, IMarginlyFactory(factory).feeHolder(), feeAmount);
   }
 
   /// @notice Get oracle price baseToken / quoteToken
@@ -711,7 +710,7 @@ contract MarginlyPool is IMarginlyPool {
 
     position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteChange);
     discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteChange);
-    chargeFee(quoteToken, realSwapFee);
+    chargeFee(realSwapFee);
 
     uint256 discountedBaseDebtChange = baseDebtCoeff.recipMul(realBaseAmount);
     position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseDebtChange);
@@ -763,7 +762,7 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteAmount, WHOLE_ONE);
     realQuoteAmount = realQuoteAmount.add(realSwapFee); // we need to add this fee to position debt
-    chargeFee(quoteToken, realSwapFee);
+    chargeFee(realSwapFee);
 
     uint256 discountedBaseCollateralChange = _baseCollateralCoeff.recipMul(realBaseAmount);
     position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseCollateralChange);
