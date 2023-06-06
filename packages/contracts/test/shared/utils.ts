@@ -139,3 +139,27 @@ export function calcLeverageLong(
 }
 
 export const YEAR = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
+
+export const paramsDefaultLeverageWithoutIr = {
+  interestRate: 0,
+  maxLeverage: 20,
+  swapFee: 1000, // 0.1%
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
+export const paramsLowLeverageWithoutIr = {
+  interestRate: 0,
+  maxLeverage: 19,
+  swapFee: 1000, // 0.1%
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};

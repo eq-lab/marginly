@@ -15,7 +15,7 @@ import {
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { generateWallets, CallType, ZERO_ADDRESS } from './utils';
+import { generateWallets, CallType, ZERO_ADDRESS, paramsDefaultLeverageWithoutIr, paramsLowLeverageWithoutIr } from './utils';
 import { Wallet } from 'ethers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
@@ -255,6 +255,8 @@ export async function getDeleveragedPool(): Promise<{
 }> {
   const { marginlyPool, factoryOwner, uniswapPoolInfo } = await createMarginlyPool();
 
+  await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
+
   const amountToDeposit = 5000n * 10n ** BigInt(await uniswapPoolInfo.token0.decimals());
   const signers = await ethers.getSigners();
   for (let i = 0; i < signers.length; i++) {
@@ -291,8 +293,9 @@ export async function getDeleveragedPool(): Promise<{
   let shorter = accounts[2];
   await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS);
 
-  await time.increase(10 * 24 * 60 * 60);
+  await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithoutIr);
   await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
+  await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
 
   await marginlyPool.connect(shorter).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS);
   await marginlyPool.connect(shorter).execute(CallType.WithdrawQuote, 100000, 0, false, ZERO_ADDRESS);
@@ -308,8 +311,9 @@ export async function getDeleveragedPool(): Promise<{
   longer = accounts[4];
   await marginlyPool.connect(longer).execute(CallType.DepositBase, 10000, 8000, false, ZERO_ADDRESS);
 
-  await time.increase(10 * 24 * 60 * 60);
+  await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithoutIr);
   await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
+  await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
 
   await marginlyPool.connect(longer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS);
   await marginlyPool.connect(longer).execute(CallType.WithdrawBase, 100000, 0, false, ZERO_ADDRESS);
