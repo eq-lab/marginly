@@ -318,7 +318,8 @@ class MarginlyDeployer {
     swapRouter: EthAddress,
     feeHolder: EthAddress,
     weth9: MarginlyConfigToken,
-    tokenRepository: TokenRepository
+    tokenRepository: TokenRepository,
+    techPositionOwner: EthAddress
   ): Promise<DeployResult> {
     const { address: weth9Address } = tokenRepository.getTokenInfo(weth9.id);
     return this.deploy(
@@ -329,6 +330,7 @@ class MarginlyDeployer {
         swapRouter.toString(),
         feeHolder.toString(),
         weth9Address.toString(),
+        techPositionOwner.toString(),
       ],
       'marginlyFactory'
     );
@@ -546,6 +548,7 @@ class MarginlyDeployer {
       const quoteOne = BigNumber.from(10).pow(quoteTokenInfo.decimals);
       const params = {
         interestRate: config.params.interestRate.mul(one).toInteger(),
+        fee: config.params.fee.mul(one).toInteger(),
         maxLeverage: config.params.maxLeverage.toInteger(),
         swapFee: config.params.swapFee.mul(one).toInteger(),
         priceSecondsAgo: config.params.priceAgo.toSeconds(),
@@ -825,11 +828,13 @@ function isMarginlyConfigUniswapPoolMock(uniswapPool: MarginlyConfigUniswapPool)
 
 interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
+  techPositionOwner: EthAddress;
   weth9Token: MarginlyConfigToken;
 }
 
 interface MarginlyPoolParams {
   interestRate: RationalNumber;
+  fee: RationalNumber;
   maxLeverage: RationalNumber;
   swapFee: RationalNumber;
   priceAgo: TimeSpan;
@@ -1069,6 +1074,7 @@ class StrictMarginlyDeployConfig {
 
       const params: MarginlyPoolParams = {
         interestRate: RationalNumber.parsePercent(rawPool.params.interestRate),
+        fee: RationalNumber.parsePercent(rawPool.params.fee),
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
         priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
@@ -1118,6 +1124,7 @@ class StrictMarginlyDeployConfig {
       uniswap,
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
+        techPositionOwner: EthAddress.parse(config.marginlyFactory.techPositionOwner),
         weth9Token: wethToken,
       },
       Array.from(tokens.values()),
@@ -1354,6 +1361,7 @@ export async function deployMarginly(
         config.marginlyFactory.feeHolder,
         config.marginlyFactory.weth9Token,
         tokenRepository,
+      config.marginlyFactory.techPositionOwner
       );
       printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 

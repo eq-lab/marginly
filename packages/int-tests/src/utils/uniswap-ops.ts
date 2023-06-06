@@ -129,7 +129,7 @@ export async function changeWethPrice(
     uniswap: UniswapV3PoolContract;
     swapRouter: SwapRouterContract;
   },
-  targetPrice: BigNumber,
+  targetPrice: BigNumber
 ) {
   logger.info(`Start changing price, target: ${targetPrice.toString()}`);
   const { tick } = await uniswap.connect(provider).slot0();
@@ -143,10 +143,9 @@ export async function changeWethPrice(
 
   const decreasingPrice = wethPrice.gt(targetPrice);
 
-  let amountIn =
-    decreasingPrice
-      ? parseUnits('2000', 18) // 2000 ETH
-      : parseUnits('3200000', 6); //3_200_000 USDC
+  let amountIn = decreasingPrice
+    ? parseUnits('2000', 18) // 2000 ETH
+    : parseUnits('3200000', 6); //3_200_000 USDC
   const depositAmount = amountIn.mul(1_000_000);
 
   if (decreasingPrice) {
@@ -165,8 +164,7 @@ export async function changeWethPrice(
     const currentBlockNumber = await provider.getBlockNumber();
     const now = (await provider.getBlock(currentBlockNumber)).timestamp;
 
-    const [tokenIn, tokenOut] =
-      decreasingPrice ? [weth.address, usdc.address] : [usdc.address, weth.address];
+    const [tokenIn, tokenOut] = decreasingPrice ? [weth.address, usdc.address] : [usdc.address, weth.address];
 
     const priceLeft = targetPrice.sub(currentPrice).abs();
     if (priceDelta.gt(priceLeft)) {

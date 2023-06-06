@@ -15,13 +15,16 @@ import {
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { generateWallets } from './utils';
+import { generateWallets, CallType, ZERO_ADDRESS } from './utils';
 import { Wallet } from 'ethers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
+
+/// @dev tone buddy include ridge cheap because marriage sorry jungle question pretty vacuum
+export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3';
 
 export interface UniswapPoolInfo {
   token0: TestERC20;
@@ -32,12 +35,12 @@ export interface UniswapPoolInfo {
 }
 
 export async function createToken(name: string, symbol: string): Promise<TestERC20> {
-  const [_,signer] = await ethers.getSigners();
+  const [_, signer] = await ethers.getSigners();
   const factory = await ethers.getContractFactory('TestERC20');
   const tokenContract = await factory.deploy(name, symbol);
   await signer.sendTransaction({
     to: tokenContract.address,
-    value: parseEther("100"),
+    value: parseEther('100'),
   });
 
   return tokenContract;
@@ -89,7 +92,7 @@ export async function createMarginlyPoolImplementation(): Promise<{ poolImplemen
   };
 }
 
-export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
+export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
   factory: MarginlyFactory;
   owner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
@@ -109,16 +112,17 @@ export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
     uniswapFactory.address,
     swapRouter.address,
     FeeHolder,
-    baseTokenIsWETH ? uniswapPoolInfo.token1.address :  uniswapPoolInfo.token0.address
+    baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address,
+    TechnicalPositionOwner
   )) as MarginlyFactory;
   return { factory, owner, uniswapPoolInfo, swapRouter };
 }
 
-export function createMarginlyPool(){
+export function createMarginlyPool() {
   return createMarginlyPoolInternal(true);
 }
 
-export function createMarginlyPoolQuoteTokenIsWETH(){
+export function createMarginlyPoolQuoteTokenIsWETH() {
   return createMarginlyPoolInternal(false);
 }
 
@@ -139,6 +143,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
 
   const params: MarginlyParamsStruct = {
     interestRate: 54000, //5,4 %
+    fee: 20000, //2%
     maxLeverage: 20,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900, // 15 min
@@ -222,18 +227,18 @@ export async function getInitializedPool(): Promise<{
   const longers = accounts.slice(15, 20);
 
   for (let i = 0; i < lenders.length; i++) {
-    await marginlyPool.connect(lenders[i]).depositBase(1000,0);
-    await marginlyPool.connect(lenders[i]).depositQuote(5000,0);
+    await marginlyPool.connect(lenders[i]).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lenders[i]).execute(CallType.DepositQuote, 5000, 0, false, ZERO_ADDRESS);
   }
 
   for (let i = 0; i < longers.length; i++) {
-    await marginlyPool.connect(longers[i]).depositBase(1000 + i * 100,0);
-    await marginlyPool.connect(longers[i]).long(500 + i * 20);
+    await marginlyPool.connect(longers[i]).execute(CallType.DepositBase, 1000 + i * 100, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longers[i]).execute(CallType.Long, 500 + i * 20, 0, false, ZERO_ADDRESS);
   }
 
   for (let i = 0; i < shorters.length; i++) {
-    await marginlyPool.connect(shorters[i]).depositQuote(1000 + i * 100,0);
-    await marginlyPool.connect(shorters[i]).short(500 + i * 20);
+    await marginlyPool.connect(shorters[i]).execute(CallType.DepositQuote, 1000 + i * 100, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorters[i]).execute(CallType.Short, 500 + i * 20, 0, false, ZERO_ADDRESS);
   }
 
   // shift time to 1 day

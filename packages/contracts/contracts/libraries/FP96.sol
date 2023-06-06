@@ -148,4 +148,12 @@ library FP96 {
   function recipMul(FixedPoint memory self, uint256 rhs) internal pure returns (uint256 result) {
     result = Math.mulDiv(Q96, rhs, self.inner);
   }
+
+  function recipMul(
+    FixedPoint memory self,
+    uint256 rhs,
+    Math.Rounding rounding
+  ) internal pure returns (uint256 result) {
+    result = Math.mulDiv(Q96, rhs, self.inner, rounding);
+  }
 }

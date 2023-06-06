@@ -49,7 +49,7 @@ export interface UniswapV3FactoryContract extends BaseContract {
     tickSpacing: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  feeAmountTickSpacing(fee: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<BigNumberish>;
+  feeAmountTickSpacing(fee: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<BigNumber>;
   getPool(
     tokenA: PromiseOrValue<string>,
     tokenB: PromiseOrValue<string>,
@@ -63,7 +63,7 @@ export interface UniswapV3FactoryContract extends BaseContract {
   ): Promise<ContractTransaction>;
 
   functions: {
-    feeAmountTickSpacing(fee: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[BigNumberish]>;
+    feeAmountTickSpacing(fee: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[BigNumber]>;
     getPool(
       tokenA: PromiseOrValue<string>,
       tokenB: PromiseOrValue<string>,

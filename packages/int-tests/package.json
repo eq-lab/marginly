@@ -24,7 +24,7 @@
     "@uniswap/v3-periphery": "^1.4.3",
     "bignumber.js": "^9.1.1",
     "ethers": "^5.7.2",
-    "ganache": "^7.5.0",
+    "ganache": "^7.8.0",
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1",
     "tslib": "^2.4.1"
