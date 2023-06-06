@@ -11,6 +11,7 @@ const paramsDefaultLeverage = {
   interestRate: 0,
   maxLeverage: 20n,
   swapFee: 0,
+  fee: 0,
   priceSecondsAgo: 900n, // 15 min
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
@@ -23,6 +24,7 @@ const paramsLowLeverage = {
   interestRate: 0,
   maxLeverage: 10n,
   swapFee: 0,
+  fee: 0,
   priceSecondsAgo: 900n, // 15 min
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%

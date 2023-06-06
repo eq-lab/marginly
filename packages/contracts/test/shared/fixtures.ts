@@ -24,6 +24,9 @@ import { expect } from 'chai';
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
 
+/// @dev tone buddy include ridge cheap because marriage sorry jungle question pretty vacuum
+export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3';
+
 export interface UniswapPoolInfo {
   token0: TestERC20;
   token1: TestERC20;
@@ -33,12 +36,12 @@ export interface UniswapPoolInfo {
 }
 
 export async function createToken(name: string, symbol: string): Promise<TestERC20> {
-  const [_,signer] = await ethers.getSigners();
+  const [_, signer] = await ethers.getSigners();
   const factory = await ethers.getContractFactory('TestERC20');
   const tokenContract = await factory.deploy(name, symbol);
   await signer.sendTransaction({
     to: tokenContract.address,
-    value: parseEther("100"),
+    value: parseEther('100'),
   });
 
   return tokenContract;
@@ -90,7 +93,7 @@ export async function createMarginlyPoolImplementation(): Promise<{ poolImplemen
   };
 }
 
-export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
+export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
   factory: MarginlyFactory;
   owner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
@@ -110,16 +113,17 @@ export async function createMarginlyFactory(baseTokenIsWETH: boolean): Promise<{
     uniswapFactory.address,
     swapRouter.address,
     FeeHolder,
-    baseTokenIsWETH ? uniswapPoolInfo.token1.address :  uniswapPoolInfo.token0.address
+    baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address,
+    TechnicalPositionOwner
   )) as MarginlyFactory;
   return { factory, owner, uniswapPoolInfo, swapRouter };
 }
 
-export function createMarginlyPool(){
+export function createMarginlyPool() {
   return createMarginlyPoolInternal(true);
 }
 
-export function createMarginlyPoolQuoteTokenIsWETH(){
+export function createMarginlyPoolQuoteTokenIsWETH() {
   return createMarginlyPoolInternal(false);
 }
 
@@ -140,6 +144,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
 
   const params: MarginlyParamsStruct = {
     interestRate: 54000, //5,4 %
+    fee: 20000, //2%
     maxLeverage: 20,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900, // 15 min

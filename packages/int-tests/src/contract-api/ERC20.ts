@@ -58,14 +58,14 @@ export interface ERC20Contract extends BaseContract {
     owner: PromiseOrValue<string>,
     spender: PromiseOrValue<string>,
     override?: CallOverrides
-  ): Promise<BigNumberish>;
+  ): Promise<BigNumber>;
   approve(
     spender: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumberish>;
-  decimals(override?: CallOverrides): Promise<BigNumberish>;
+  balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<BigNumber>;
+  decimals(override?: CallOverrides): Promise<number>;
   decreaseAllowance(
     spender: PromiseOrValue<string>,
     subtractedValue: PromiseOrValue<BigNumberish>,
@@ -78,7 +78,7 @@ export interface ERC20Contract extends BaseContract {
   ): Promise<ContractTransaction>;
   name(override?: CallOverrides): Promise<string>;
   symbol(override?: CallOverrides): Promise<string>;
-  totalSupply(override?: CallOverrides): Promise<BigNumberish>;
+  totalSupply(override?: CallOverrides): Promise<BigNumber>;
   transfer(
     to: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
@@ -96,12 +96,12 @@ export interface ERC20Contract extends BaseContract {
       owner: PromiseOrValue<string>,
       spender: PromiseOrValue<string>,
       override?: CallOverrides
-    ): Promise<[BigNumberish]>;
-    balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumberish]>;
-    decimals(override?: CallOverrides): Promise<[BigNumberish]>;
+    ): Promise<[BigNumber]>;
+    balanceOf(account: PromiseOrValue<string>, override?: CallOverrides): Promise<[BigNumber]>;
+    decimals(override?: CallOverrides): Promise<[number]>;
     name(override?: CallOverrides): Promise<[string]>;
     symbol(override?: CallOverrides): Promise<[string]>;
-    totalSupply(override?: CallOverrides): Promise<[BigNumberish]>;
+    totalSupply(override?: CallOverrides): Promise<[BigNumber]>;
   };
   estimateGas: {
     approve(

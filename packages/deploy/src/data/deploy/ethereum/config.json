@@ -12,6 +12,7 @@
   },
   "marginlyFactory": {
     "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
+    "techPositionOwner": "0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3",
     "wethTokenId": "weth"
   },
   "tokens": [
@@ -90,6 +91,7 @@
         "interestRate": "5.4%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
@@ -107,6 +109,7 @@
         "interestRate": "5.4%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
@@ -124,6 +127,7 @@
         "interestRate": "5.4%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
@@ -141,6 +145,7 @@
         "interestRate": "5.4%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
