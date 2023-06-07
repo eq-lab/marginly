@@ -4,7 +4,7 @@
 
 ```shell
 cd <marginly_root_dir>
-docker build -f packages/oracle/Dockerfile .
+docker build -t marginly-oracle -f packages/oracle/Dockerfile .
 ```
 
 ## Run
