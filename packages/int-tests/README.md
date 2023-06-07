@@ -29,3 +29,7 @@ yarn start --suite=short
 - longEmergency,
 - deleveragePrecisionLong,
 - deleveragePrecisionShort,
+- deleveragePrecisionLongCollateral,
+- deleveragePrecisionShortCollateral,
+- deleveragePrecisionLongReinit,
+- deleveragePrecisionShortReinit,

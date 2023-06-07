@@ -30,8 +30,10 @@ import { keeper } from './keeper';
 import {
   deleveragePrecisionLong,
   deleveragePrecisionShort,
-  deleveragePrecisionLongWithCollateral,
-  deleveragePrecisionShortWithCollateral,
+  deleveragePrecisionLongCollateral,
+  deleveragePrecisionShortCollateral,
+  deleveragePrecisionLongReinit,
+  deleveragePrecisionShortReinit,
 } from './deleveragePrecision';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
@@ -168,8 +170,10 @@ export async function startSuite(
     keeper,
     deleveragePrecisionLong,
     deleveragePrecisionShort,
-    deleveragePrecisionLongWithCollateral,
-    deleveragePrecisionShortWithCollateral,
+    deleveragePrecisionLongCollateral,
+    deleveragePrecisionShortCollateral,
+    deleveragePrecisionLongReinit,
+    deleveragePrecisionShortReinit,
   };
 
   const suite = suits[suitName];

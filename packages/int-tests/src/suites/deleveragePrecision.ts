@@ -33,6 +33,19 @@ const paramsLowLeverage = {
   quoteLimit: 10n ** 12n * 10n ** 6n,
 };
 
+const paramsWithIr = {
+  interestRate: 54000,
+  maxLeverage: 20n,
+  swapFee: 0,
+  fee: 0,
+  priceSecondsAgo: 900n, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 10000000000000000n, // 0,01 ETH
+  baseLimit: 10n ** 9n * 10n ** 18n,
+  quoteLimit: 10n ** 12n * 10n ** 6n,
+};
+
 export async function deleveragePrecisionLong(sut: SystemUnderTest) {
   const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
 
@@ -320,13 +333,23 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
   console.table(positions);
 }
 
-export async function deleveragePrecisionLongWithCollateral(sut: SystemUnderTest) {
+export async function deleveragePrecisionLongCollateral(sut: SystemUnderTest) {
+  await deleveragePrecisionLongCollateralReinitInner(sut, false);
+}
+
+export async function deleveragePrecisionLongReinit(sut: SystemUnderTest) {
+  await deleveragePrecisionLongCollateralReinitInner(sut, true);
+}
+
+async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest, withReinits: boolean) {
   const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
 
   const coeffsTable: { [key: string]: {} } = {};
   const aggregates: { [key: string]: {} } = {};
   const balances: { [key: string]: {} } = {};
   const positions: { [key: string]: {} } = {};
+
+  let now = Math.floor(Date.now() / 1000);
 
   // we set interest rate as 0 for this test so we don't need to calculate accrued rate
   // liquidations are approached via decreasing maxLeverage
@@ -337,7 +360,7 @@ export async function deleveragePrecisionLongWithCollateral(sut: SystemUnderTest
   const shorter = accounts[2];
 
   const lenderBaseAmount = parseUnits('1', 18); // 1 WETH
-  const lenderQuoteAmount = parseUnits('18000', 6); // 18000 USDC;
+  const lenderQuoteAmount = parseUnits('200000', 6); // 200000 USDC;
 
   await (await usdc.connect(treasury).transfer(lender.address, lenderQuoteAmount)).wait();
   await (await usdc.connect(lender).approve(marginlyPool.address, lenderQuoteAmount)).wait();
@@ -381,7 +404,6 @@ export async function deleveragePrecisionLongWithCollateral(sut: SystemUnderTest
     positions
   );
 
-  let nextDate = Math.floor(Date.now() / 1000);
   const timeDelta = 24 * 60 * 60;
 
   for (let i = 0; i < 10; ++i) {
@@ -485,8 +507,8 @@ export async function deleveragePrecisionLongWithCollateral(sut: SystemUnderTest
 
     await marginlyPool.connect(treasury).setParameters(paramsLowLeverage, { gasLimit: 500_000 });
 
-    nextDate += timeDelta;
-    await provider.mineAtTimestamp(nextDate);
+    now += timeDelta;
+    await provider.mineAtTimestamp(now);
     await (
       await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     ).wait();
@@ -500,6 +522,21 @@ export async function deleveragePrecisionLongWithCollateral(sut: SystemUnderTest
     assert(!quoteDelevCoeffBefore.eq(quoteDelevCoeffAfter));
     assert(!baseDebtCoeffBefore.eq(baseDebtCoeffAfter));
     logger.info(`  Liquidation happened`);
+
+    if(withReinits) {
+      await marginlyPool.connect(treasury).setParameters(paramsWithIr, { gasLimit: 500_000 });
+
+      for(let j = 0; j < 12; ++j) {
+        now += 24 * 60 * 60;
+        await provider.mineAtTimestamp(now);
+        await (
+          await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+        ).wait();
+        await addToLogs(sut, 1, 1, 1, `Reinit ${i}, ${j}`, `0`, '0', coeffsTable, aggregates, balances, positions);
+      }
+
+      await marginlyPool.connect(treasury).setParameters(paramsDefaultLeverage, { gasLimit: 500_000 });
+    }
 
     logger.info(`  Shorter closes position`);
     const closePosTx = await (
@@ -851,13 +888,22 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
   console.table(positions);
 }
 
-export async function deleveragePrecisionShortWithCollateral(sut: SystemUnderTest) {
+export async function deleveragePrecisionShortCollateral(sut: SystemUnderTest) {
+  await deleveragePrecisionShortCollateralReinitInner(sut, false);
+}
+
+export async function deleveragePrecisionShortReinit(sut: SystemUnderTest) {
+  await deleveragePrecisionShortCollateralReinitInner(sut, true);
+}
+async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTest, withReinits: boolean) {
   const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
 
   const coeffsTable: { [key: string]: {} } = {};
   const aggregates: { [key: string]: {} } = {};
   const balances: { [key: string]: {} } = {};
   const positions: { [key: string]: {} } = {};
+
+  let now = Math.floor(Date.now() / 1000);
 
   // we set interest rate as 0 for this test so we don't need to calculate accrued rate
   // liquidations are approached via decreasing maxLeverage
@@ -914,7 +960,6 @@ export async function deleveragePrecisionShortWithCollateral(sut: SystemUnderTes
     positions
   );
 
-  let nextDate = Math.floor(Date.now() / 1000);
   const timeDelta = 24 * 60 * 60;
 
   for (let i = 0; i < 10; ++i) {
@@ -1024,8 +1069,8 @@ export async function deleveragePrecisionShortWithCollateral(sut: SystemUnderTes
 
     await marginlyPool.connect(treasury).setParameters(paramsLowLeverage, { gasLimit: 500_000 });
 
-    nextDate += timeDelta;
-    await provider.mineAtTimestamp(nextDate);
+    now += timeDelta;
+    await provider.mineAtTimestamp(now);
     await (
       await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
     ).wait();
@@ -1039,6 +1084,21 @@ export async function deleveragePrecisionShortWithCollateral(sut: SystemUnderTes
     assert(!baseDelevCoeffBefore.eq(baseDelevCoeffAfter));
     assert(!quoteDebtCoeffBefore.eq(quoteDebtCoeffAfter));
     logger.info(`  Liquidation happened`);
+
+    if(withReinits) {
+      await marginlyPool.connect(treasury).setParameters(paramsWithIr, { gasLimit: 500_000 });
+
+      for(let j = 0; j < 12; ++j) {
+        now += 30 * 24 * 60 * 60;
+        await provider.mineAtTimestamp(now);
+        await (
+          await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+        ).wait();
+        await addToLogs(sut, 1, 1, 1, `Reinit ${i}, ${j}`, `0`, '0', coeffsTable, aggregates, balances, positions);
+      }
+
+      await marginlyPool.connect(treasury).setParameters(paramsDefaultLeverage, { gasLimit: 500_000 });
+    }
 
     logger.info(`  Longer closes position`);
     const closePosTx = await (
@@ -1100,7 +1160,7 @@ async function addToLogs(
   balances: { [key: string]: {} },
   positions: { [key: string]: {} }
 ) {
-  const { marginlyPool, usdc, weth, accounts, treasury, provider, uniswap, gasReporter } = sut;
+  const { marginlyPool, usdc, weth, accounts, marginlyFactory } = sut;
   const lenders = accounts.slice(0, lendersNum);
   const longers = accounts.slice(lendersNum, lendersNum + longersNum);
   const shorters = accounts.slice(lendersNum + longersNum, lendersNum + longersNum + shortersNum);
@@ -1168,6 +1228,21 @@ async function addToLogs(
   };
 
   const positionsInfo = new Map();
+
+  {  
+    const techPosition = await marginlyPool.positions((await marginlyFactory.techPositionOwner()));
+    const discountedBaseCollateral = techPosition.discountedBaseAmount;
+    const discountedQuoteCollateral = techPosition.discountedQuoteAmount;
+    const realBaseCollateral = baseCollateralCoeff.mul(discountedBaseCollateral).div(FP96.one);
+    const realQuoteCollateral = quoteCollateralCoeff.mul(discountedQuoteCollateral).div(FP96.one);
+
+    positionsInfo.set(`tech position type`, techPosition._type.toString());
+    positionsInfo.set(`tech position discountedBaseAmount`, discountedBaseCollateral.toString());
+    positionsInfo.set(`tech position realBaseAmount`, realBaseCollateral.toString());
+    positionsInfo.set(`tech position discountedQuoteAmount`, discountedQuoteCollateral.toString());
+    positionsInfo.set(`tech position realQuoteAmount`, realQuoteCollateral.toString());
+  }
+
   for (let i = 0; i < lendersNum; ++i) {
     const position = await marginlyPool.positions(lenders[i].address);
     const discountedBaseCollateral = position.discountedBaseAmount;
