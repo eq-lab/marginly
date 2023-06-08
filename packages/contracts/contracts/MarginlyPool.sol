@@ -322,24 +322,26 @@ contract MarginlyPool is IMarginlyPool {
         swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       }
 
+      FP96.FixedPoint memory factor;
       // baseCollateralCoeff += rcd * (rqc - sqc) / sqc
       if (swappedBaseDebt >= realBaseDebt) {
         // Position has enough collateral to repay debt
-        uint256 baseDebtDelta = swappedBaseDebt.sub(realBaseDebt);
-        FP96.FixedPoint memory factor = FP96.one().add(
-          FP96.fromRatio(baseDebtDelta, calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt))
+        factor = FP96.one().add(
+          FP96.fromRatio(
+            swappedBaseDebt.sub(realBaseDebt),
+            calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt)
+          )
         );
-        baseCollateralCoeff = baseCollateralCoeff.mul(factor);
-        baseDelevCoeff = baseDelevCoeff.mul(factor);
       } else {
         // Position's debt has been repaid by pool
-        uint256 baseDebtDelta = realBaseDebt.sub(swappedBaseDebt);
-        FP96.FixedPoint memory factor = FP96.one().sub(
-          FP96.fromRatio(baseDebtDelta, calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt))
+        factor = FP96.one().sub(
+          FP96.fromRatio(
+            realBaseDebt.sub(swappedBaseDebt),
+            calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt)
+          )
         );
-        baseCollateralCoeff = baseCollateralCoeff.mul(factor);
-        baseDelevCoeff = baseDelevCoeff.mul(factor);
       }
+      updateBaseCollateralCoeffs(factor);
 
       discountedQuoteCollateral = discountedQuoteCollateral.sub(position.discountedQuoteAmount);
       discountedBaseDebt = discountedBaseDebt.sub(position.discountedBaseAmount);
@@ -363,24 +365,26 @@ contract MarginlyPool is IMarginlyPool {
         swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       }
 
+      FP96.FixedPoint memory factor;
       // quoteCollateralCoef += rqd * (rbc - sbc) / sbc
       if (swappedQuoteDebt >= realQuoteDebt) {
         // Position has enough collateral to repay debt
-        uint256 quoteDebtDelta = swappedQuoteDebt.sub(realQuoteDebt);
-        FP96.FixedPoint memory factor = FP96.one().add(
-          FP96.fromRatio(quoteDebtDelta, calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt))
+        factor = FP96.one().add(
+          FP96.fromRatio(
+            swappedQuoteDebt.sub(realQuoteDebt),
+            calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt)
+          )
         );
-        quoteCollateralCoeff = quoteCollateralCoeff.mul(factor);
-        quoteDelevCoeff = quoteDelevCoeff.mul(factor);
       } else {
         // Position's debt has been repaid by pool
-        uint256 quoteDebtDelta = realQuoteDebt.sub(swappedQuoteDebt);
-        FP96.FixedPoint memory factor = FP96.one().sub(
-          FP96.fromRatio(quoteDebtDelta, calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt))
+        factor = FP96.one().sub(
+          FP96.fromRatio(
+            realQuoteDebt.sub(swappedQuoteDebt),
+            calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt)
+          )
         );
-        quoteCollateralCoeff = quoteCollateralCoeff.mul(factor);
-        quoteDelevCoeff = quoteDelevCoeff.mul(factor);
       }
+      updateQuoteCollateralCoeffs(factor);
 
       discountedBaseCollateral = discountedBaseCollateral.sub(position.discountedBaseAmount);
       discountedQuoteDebt = discountedQuoteDebt.sub(position.discountedQuoteAmount);
@@ -934,8 +938,7 @@ contract MarginlyPool is IMarginlyPool {
           calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt)
         )
       );
-      baseCollateralCoeff = baseCollateralCoeff.mul(factor);
-      baseDelevCoeff = baseDelevCoeff.mul(factor);
+      updateBaseCollateralCoeffs(factor);
       discountedBaseFee = baseCollateralCoeff.recipMul(accruedRateDt.mul(feeDt.sub(FP96.one())).mul(realBaseDebtPrev));
     }
 
@@ -956,8 +959,7 @@ contract MarginlyPool is IMarginlyPool {
           calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt)
         )
       );
-      quoteCollateralCoeff = quoteCollateralCoeff.mul(factor);
-      quoteDelevCoeff = quoteDelevCoeff.mul(factor);
+      updateQuoteCollateralCoeffs(factor);
       discountedQuoteFee = quoteCollateralCoeff.recipMul(
         accruedRateDt.mul(feeDt.sub(FP96.one())).mul(realQuoteDebtPrev)
       );
@@ -1055,6 +1057,16 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
     return leverageX96 > maxLeverageX96;
+  }
+
+  function updateBaseCollateralCoeffs(FP96.FixedPoint memory factor) private {
+    baseCollateralCoeff = baseCollateralCoeff.mul(factor);
+    baseDelevCoeff = baseDelevCoeff.mul(factor);
+  }
+
+  function updateQuoteCollateralCoeffs(FP96.FixedPoint memory factor) private {
+    quoteCollateralCoeff = quoteCollateralCoeff.mul(factor);
+    quoteDelevCoeff = quoteDelevCoeff.mul(factor);
   }
 
   function updateHeap(Position storage position) private {
