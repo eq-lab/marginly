@@ -4,7 +4,7 @@
 
 ```shell
 cd <marginly_root_dir>
-docker build -f packages/oracle/Dockerfile .
+docker build -t marginly-oracle -f packages/oracle/Dockerfile .
 ```
 
 ## Run
@@ -20,3 +20,10 @@ MARGINLY_ORACLE_LOG_FORMAT=json
 ```
 
 Supported formats are `text` and `json`.
+
+By default, oracle reads config from `config.json` file.
+You can change it by defining following environment variable:
+
+```shell
+MARGINLY_ORACLE_CONFIG_FILE=config-zk-testnet.json
+```

@@ -34,10 +34,12 @@ export function genDefinitions(
     ignoreImportError,
   }: { noCode?: boolean; overrideName?: string; ignoreImportError?: boolean } = {}
 ): string {
-  function convertType(arg: Arg): Arg {
+  function convertType(arg: Arg, inputs: boolean): Arg {
     let jsType = `void`;
-    if (arg.type?.startsWith(`uint`) || arg.type?.startsWith(`int`)) {
-      jsType = `BigNumberish`;
+    if (arg.type?.startsWith(`uint8`)) {
+      jsType = inputs ? `BigNumberish` : `number`;
+    } else if (arg.type?.startsWith(`uint`) || arg.type?.startsWith(`int`)) {
+      jsType = inputs ? `BigNumberish` : `BigNumber`;
     } else if (arg.type == `bool`) {
       jsType = `boolean`;
     } else if (arg.type == `address` || arg.type == `string`) {
@@ -46,7 +48,7 @@ export function genDefinitions(
       jsType = `BytesLike`;
     } else if (arg.type == `tuple`) {
       const components = arg.components!;
-      jsType = `{${stringifyInputs(components.map(convertType)).reduce((a, b) => `${a}${b},`, ``)}}`;
+      jsType = `{${stringifyInputs(components.map((x) => convertType(x, inputs))).reduce((a, b) => `${a}${b},`, ``)}}`;
     }
     return {
       name: arg.name != `` ? arg.name : undefined,
@@ -62,8 +64,8 @@ export function genDefinitions(
   for (const entry of contract.abi) {
     if (entry.type == `fallback` || entry.type === `receive`) continue;
     logger.debug(`${contract.contractName}::${entry.name} => ${entry.type}`);
-    const outputs = entry.outputs?.map(convertType);
-    const inputs = entry.inputs.map(convertType);
+    const outputs = entry.outputs?.map((x) => convertType(x, false));
+    const inputs = entry.inputs.map((x) => convertType(x, true));
 
     switch (entry.type) {
       case `constructor`:
@@ -144,7 +146,7 @@ export function genDefinitions(
   const write = all.filter(([, { type }]) => type == `w`);
 
   const defMethods = all.map(([name, { type, inputs, outputs, payable }]) => {
-    let override = { name: `override?`, type: ``, jsType: `` };
+    const override = { name: `override?`, type: ``, jsType: `` };
     let output = ``;
     if (type == `w`) {
       override.jsType = `${payable ? `PayableOverrides` : `Overrides`} & { from?: PromiseOrValue<string> }`;

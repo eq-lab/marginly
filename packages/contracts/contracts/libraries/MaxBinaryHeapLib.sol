@@ -16,10 +16,10 @@ library MaxBinaryHeapLib {
 
   /// @dev Heap representation. Using length and mapping instead of array reduce gas costs.
   struct Heap {
-    /// @dev Total length of the Heap
-    uint32 length;
     /// @dev Keep heap elements by index
     mapping(uint32 => Node) nodes;
+    /// @dev Total length of the Heap
+    uint32 length;
   }
 
   /// @dev Inserting a new element into the heap. Time complexity O(Log n)

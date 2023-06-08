@@ -128,7 +128,8 @@
     ]
   },
   "marginlyFactory": {
-    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
+    "feeHolder": "0xfee4F33f95ec3E63a774fCfa80171Ca2d76428A1",
+    "techPositionOwner": "0xaaaaE8DD2F7d0b31e8464C65F8D8721CD231b0D6",
     "wethTokenId": "weth"
   },
   "marginlyPools": [
@@ -141,6 +142,7 @@
         "maxLeverage": "20",
         "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
@@ -158,6 +160,7 @@
         "maxLeverage": "20",
         "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
@@ -175,6 +178,7 @@
         "maxLeverage": "20",
         "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
+        "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",

@@ -76,7 +76,10 @@ export function loadConfig(): Config {
   const logFormatKey = `${envPrefix}LOG_FORMAT`;
   const logFormat = process.env[logFormatKey];
 
-  const config: Config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+  const configFileKey = `${envPrefix}CONFIG_FILE`;
+  const configFile = process.env[configFileKey] ?? 'config.json';
+
+  const config: Config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
   config.ethereum.oraclePrivateKey = privateKey;
   if (logFormat !== undefined) {
     config.log.format = logFormat;

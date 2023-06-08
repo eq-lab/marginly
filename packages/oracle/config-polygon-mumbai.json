@@ -1,0 +1,73 @@
+{
+  "log": {
+    "level": 3,
+    "format": "json"
+  },
+  "ethereum": {
+    "nodeUrl": "https://rpc-mumbai.maticvigil.com/"
+  },
+  "tokens": [
+    {
+      "id": "fweth",
+      "address": "0xE4Aca502d05Ca25862ffF831fA90CeCd5241f62a",
+      "assertSymbol": "FWETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc",
+      "address": "0x29A7425B0c1d44D5046E10B24821ea859215168c",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
+    },
+    {
+      "id": "fmatic",
+      "address": "0x7C9fe5570cC1b4DDB35Dc591A2e295c91a420413",
+      "assertSymbol": "FMATIC",
+      "assertDecimals": 18
+    }
+  ],
+  "prices": [
+    {
+      "id": "eth-usdc",
+      "label": "eth/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+    },
+    {
+      "id": "matic-usdc",
+      "label": "matic/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://www.mexc.com/open/api/v2/market/ticker?symbol=MATIC_USDC).data[0].last"
+    }
+  ],
+  "uniswapV3PoolMocks": [
+    {
+      "id": "fweth-usdc",
+      "address": "0x73956b3b0c279e9cF2700F91B2e48E4eC0C8F281",
+      "priceId": "eth-usdc",
+      "priceBaseTokenId": "fweth"
+    },
+    {
+      "id": "fmatic-usdc",
+      "address": "0x429558A95501D82035d8592b07280c3312acBe4A",
+      "priceId": "matic-usdc",
+      "priceBaseTokenId": "fmatic"
+    }
+  ],
+  "oracleWorker": {
+    "tickMs": 1000,
+    "priceCachePeriodMs": 50000,
+    "updatePriceJobs": [
+      {
+        "poolMockId": "fweth-usdc",
+        "periodMs": 600000
+      },
+      {
+        "poolMockId": "fmatic-usdc",
+        "periodMs": 600000
+      }
+    ]
+  }
+}
