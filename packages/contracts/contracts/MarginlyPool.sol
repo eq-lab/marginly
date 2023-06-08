@@ -288,6 +288,7 @@ contract MarginlyPool is IMarginlyPool {
   function deleverageShort(uint256 realQuoteCollateral, uint256 realBaseDebt) private {
     quoteDelevCoeff = quoteDelevCoeff.add(FP96.fromRatio(realQuoteCollateral, discountedBaseDebt));
     baseDebtCoeff = baseDebtCoeff.sub(FP96.fromRatio(realBaseDebt, discountedBaseDebt));
+    emit Deleverage(PositionType.Short, realQuoteCollateral, realBaseDebt);
   }
 
   /// @dev All long positions deleverage
@@ -296,6 +297,7 @@ contract MarginlyPool is IMarginlyPool {
   function deleverageLong(uint256 realBaseCollateral, uint256 realQuoteDebt) private {
     baseDelevCoeff = baseDelevCoeff.add(FP96.fromRatio(realBaseCollateral, discountedQuoteDebt));
     quoteDebtCoeff = quoteDebtCoeff.sub(FP96.fromRatio(realQuoteDebt, discountedQuoteDebt));
+    emit Deleverage(PositionType.Long, realBaseCollateral, realQuoteDebt);
   }
 
   /// @dev Enact margin call procedure for the position
