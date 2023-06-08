@@ -25,3 +25,15 @@ In order to run benchmark tests you should run
 ```bash
 yarn test:bench
 ```
+
+## zkSync
+
+Install zkSync node from https://github.com/matter-labs/local-setup
+
+Run zkSync node
+
+Run tests
+
+```bash
+yarn test:zksync
+```

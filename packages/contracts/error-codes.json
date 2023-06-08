@@ -21,13 +21,6 @@
     ]
   },
   {
-    "code": "FB",
-    "description": "Forbidden",
-    "fileNames": [
-      "MarginlyPool.sol"
-    ]
-  },
-  {
     "code": "LE",
     "description": "Long positions in emergency mode",
     "fileNames": [
@@ -66,14 +59,16 @@
     "code": "NO",
     "description": "Not an owner",
     "fileNames": [
-      "MarginlyFactory.sol"
+      "MarginlyFactory.sol",
+      "test/TimeMoveMarginlyFactory.sol"
     ]
   },
   {
     "code": "PC",
     "description": "Pool already created",
     "fileNames": [
-      "MarginlyFactory.sol"
+      "MarginlyFactory.sol",
+      "test/TimeMoveMarginlyFactory.sol"
     ]
   },
   {
@@ -115,7 +110,8 @@
     "code": "UNF",
     "description": "Uniswap pool not found",
     "fileNames": [
-      "MarginlyFactory.sol"
+      "MarginlyFactory.sol",
+      "test/TimeMoveMarginlyFactory.sol"
     ]
   },
   {

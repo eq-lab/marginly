@@ -94,7 +94,10 @@ export async function createMarginlyPoolImplementation(): Promise<{ poolImplemen
   };
 }
 
-export async function createMarginlyFactory(baseTokenIsWETH = true, isTimeMove: boolean = false): Promise<{
+export async function createMarginlyFactory(
+  baseTokenIsWETH = true,
+  isTimeMove: boolean = false
+): Promise<{
   factory: MarginlyFactory;
   owner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
@@ -130,13 +133,16 @@ export function createMarginlyPoolQuoteTokenIsWETH() {
   return createMarginlyPoolInternal(false);
 }
 
-export function createTimeMoveMarginlyPool(){
+export function createTimeMoveMarginlyPool() {
   return createMarginlyPoolInternal(true, true);
 }
 
-export const initialPoolTimestamp = (new Date('2023-05-24T00:00:00.000Z')).getTime() / 1000;
+export const initialPoolTimestamp = new Date('2023-05-24T00:00:00.000Z').getTime() / 1000;
 
-async function createMarginlyPoolInternal(baseTokenIsWETH: boolean, isTimeMove: boolean = false): Promise<{
+async function createMarginlyPoolInternal(
+  baseTokenIsWETH: boolean,
+  isTimeMove: boolean = false
+): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;

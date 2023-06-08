@@ -1,9 +1,9 @@
 import { BigNumber, logger } from 'ethers';
 import { Wallet, Provider} from 'zksync-web3';
 import bn from 'bignumber.js';
-import { MarginlyPool } from '../../typechain-types';
 import { expect } from 'chai';
 import { TechnicalPositionOwner } from './fixtures';
+import { MarginlyPool } from './mocks';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 

@@ -57,7 +57,9 @@ describe('MarginlyPool.Liquidation', () => {
 
     const shorterCollateral = 100;
     const shortAmount = 5000; // leverage 19.9
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS);
+    await marginlyPool
+      .connect(shorter)
+      .execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS);
 
     const quoteAmount = 0;
     const baseAmount = 7700; // the sum is enough to cover debt + accruedInterest
@@ -72,15 +74,23 @@ describe('MarginlyPool.Liquidation', () => {
 
     const depositAmount = 40000;
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     const shorterCollateral = 100;
     const shortAmount = 7600; // leverage 19.9
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(shorter).execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS)
+    ).wait();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -99,14 +109,20 @@ describe('MarginlyPool.Liquidation', () => {
 
     const depositAmount = 40000;
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     const baseCollateral = 100;
     const longAmount = 1980; // leverage 19.8
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(longer).execute(CallType.DepositBase, baseCollateral, longAmount, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(longer).execute(CallType.DepositBase, baseCollateral, longAmount, false, ZERO_ADDRESS)
+    ).wait();
 
     //wait for accrue interest
     const timeShift = 60 * 24 * 60 * 60;
@@ -128,14 +144,22 @@ describe('MarginlyPool.Liquidation', () => {
 
     const depositAmount = 20000;
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     const shorterCollateral = 100;
     const shortAmount = 7600; // leverage 19.9
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(shorter).execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS)
+    ).wait();
 
     const beforeLiquidationPosition = await marginlyPool.positions(shorter.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -151,9 +175,13 @@ describe('MarginlyPool.Liquidation', () => {
 
     const quoteAmount = 356;
     const baseAmount = 7700; // the sum is enough to cover debt + accruedInterest
-    await (await marginlyPool.connect(receiver).execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address);
+    await (
+      await marginlyPool
+        .connect(receiver)
+        .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address)
+    ).wait();
 
-    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber)).wait();
+    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
 
     const liquidatedPosition = await marginlyPool.positions(shorter.address);
     expect(liquidatedPosition._type).to.be.equal(0);
@@ -220,14 +248,20 @@ describe('MarginlyPool.Liquidation', () => {
 
     const depositAmount = 40000;
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     const baseCollateral = 100;
     const longAmount = 1980; // leverage 19.8
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(longer).execute(CallType.DepositBase, baseCollateral, longAmount, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(longer).execute(CallType.DepositBase, baseCollateral, longAmount, false, ZERO_ADDRESS)
+    ).wait();
 
     const beforeLiquidationPosition = await marginlyPool.positions(longer.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -242,7 +276,11 @@ describe('MarginlyPool.Liquidation', () => {
 
     const quoteAmount = 3000;
     const baseAmount = 10;
-    await (await marginlyPool.connect(receiver).execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, longer.address)).wait();
+    await (
+      await marginlyPool
+        .connect(receiver)
+        .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, longer.address)
+    ).wait();
 
     const liquidatedPosition = await marginlyPool.positions(longer.address);
     expect(liquidatedPosition._type).to.be.equal(0);
@@ -305,14 +343,22 @@ describe('MarginlyPool.Liquidation', () => {
 
     const depositAmount = 20000;
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     const shorterCollateral = 100;
     const shortAmount = 7600; // leverage 19.9
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(shorter).execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, shorterCollateral, shortAmount, false, ZERO_ADDRESS)
+    ).wait();
 
     const beforeLiquidationPosition = await marginlyPool.positions(shorter.address);
     const beforeDiscountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -327,9 +373,13 @@ describe('MarginlyPool.Liquidation', () => {
 
     const quoteAmount = 1000; // the sum is enough to improve position leverage
     const baseAmount = 100; // the sum is not enough to cover debt + accruedInterest
-    await (await marginlyPool.connect(receiver).execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address);
+    await (
+      await marginlyPool
+        .connect(receiver)
+        .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address)
+    ).wait();
 
-    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber)).wait();
+    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
 
     const liquidatedPosition = await marginlyPool.positions(shorter.address);
     expect(liquidatedPosition._type).to.be.equal(0);
@@ -391,14 +441,20 @@ describe('MarginlyPool.Liquidation', () => {
 
     const depositAmount = 40000;
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(depositor).execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS)
+    ).wait();
 
     const baseCollateral = 100;
     const longAmount = 1980; // leverage 19.8
     await increatePoolTimestamp(marginlyPool, 1);
-    await (await marginlyPool.connect(longer).execute(CallType.DepositBase, baseCollateral, longAmount, false, ZERO_ADDRESS)).wait();
+    await (
+      await marginlyPool.connect(longer).execute(CallType.DepositBase, baseCollateral, longAmount, false, ZERO_ADDRESS)
+    ).wait();
 
     const beforeLiquidationPosition = await marginlyPool.positions(longer.address);
     const beforeDiscountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
@@ -413,9 +469,13 @@ describe('MarginlyPool.Liquidation', () => {
 
     const quoteAmount = 20; // the sum is not enough to cover bad position debt
     const baseAmount = 10;
-    await (await marginlyPool.connect(receiver).execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, longer.address);
+    await (
+      await marginlyPool
+        .connect(receiver)
+        .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, longer.address)
+    ).wait();
 
-    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber)).wait();
+    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
 
     const liquidatedPosition = await marginlyPool.positions(longer.address);
     expect(liquidatedPosition._type).to.be.equal(0);
