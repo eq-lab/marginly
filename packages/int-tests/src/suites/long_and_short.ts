@@ -275,7 +275,6 @@ export async function longAndShort(sut: SystemUnderTest) {
     // throw new Error(error);
   }
 
-  
   logger.info(`baseDebtCoeff: ${toHumanString(BigNumber.from(await marginlyPool.baseDebtCoeff()))}`);
   logger.info(`quoteDebtCoeff: ${toHumanString(BigNumber.from(await marginlyPool.quoteDebtCoeff()))}`);
 
