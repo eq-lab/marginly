@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import {
   assertAccruedRateCoeffs,
-  calcDebtFee,
   calcLeverageLong,
   calcLeverageShort,
   calcLongSortKey,
