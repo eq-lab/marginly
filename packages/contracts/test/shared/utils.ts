@@ -168,6 +168,19 @@ export const paramsLowLeverageWithoutIr = {
   quoteLimit: 1_000_000,
 };
 
+export const paramsLowLeverageWithIr = {
+  interestRate: 54000,
+  maxLeverage: 19,
+  swapFee: 1000, // 0.1%
+  fee: 20000,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
 export const WHOLE_ONE = 1e6;
 export const SECONDS_IN_YEAR_X96 = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
 
