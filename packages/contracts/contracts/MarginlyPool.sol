@@ -467,7 +467,7 @@ contract MarginlyPool is IMarginlyPool {
 
     PositionType _type = position._type;
     require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
-    require(_type != PositionType.Short);
+    require(_type != PositionType.Short, 'WPT'); // Wrong position type
 
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff;
     uint256 positionBaseAmount = position.discountedBaseAmount;
@@ -519,7 +519,7 @@ contract MarginlyPool is IMarginlyPool {
 
     PositionType _type = position._type;
     require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
-    require(_type != PositionType.Long);
+    require(_type != PositionType.Long, 'WPT'); // Wrong position type
 
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff;
     uint256 positionQuoteAmount = position.discountedQuoteAmount;
