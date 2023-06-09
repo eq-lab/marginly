@@ -708,7 +708,7 @@ contract MarginlyPool is IMarginlyPool {
 
       realCollateralDelta = realCollateralDelta.add(realFeeAmount);
       discountedCollateralDelta = quoteCollateralCoeff.recipMul(
-        realCollateralDelta.add(realFeeAmount).add(quoteDelevCoeff.mul(position.discountedBaseAmount))
+        realCollateralDelta.add(quoteDelevCoeff.mul(position.discountedBaseAmount))
       );
 
       discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedCollateralDelta);
