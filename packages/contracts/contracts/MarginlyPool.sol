@@ -364,8 +364,6 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseCollateral = _discountedBaseCollateral.add(discountedCollateralDelta);
     }
 
-    updateSystemLeverageLong(basePrice);
-
     wrapAndTransferFrom(baseToken, msg.sender, amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
 
@@ -442,7 +440,6 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
     }
 
-    updateSystemLeverageShort(basePrice);
 
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
@@ -490,8 +487,6 @@ contract MarginlyPool is IMarginlyPool {
 
     position.discountedBaseAmount = positionBaseAmount.sub(discountedBaseCollateralDelta);
     discountedBaseCollateral = discountedBaseCollateral.sub(discountedBaseCollateralDelta);
-
-    updateSystemLeverageLong(basePrice);
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
 
@@ -542,8 +537,6 @@ contract MarginlyPool is IMarginlyPool {
 
     position.discountedQuoteAmount = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
     discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedQuoteCollateralDelta);
-
-    updateSystemLeverageShort(basePrice);
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
 
@@ -598,8 +591,6 @@ contract MarginlyPool is IMarginlyPool {
 
       uint32 heapIndex = position.heapPosition - 1;
       shortHeap.remove(positions, heapIndex);
-
-      updateSystemLeverageShort(basePrice);
     } else if (position._type == PositionType.Long) {
       collateralToken = baseToken;
 
@@ -634,8 +625,6 @@ contract MarginlyPool is IMarginlyPool {
 
       uint32 heapIndex = position.heapPosition - 1;
       longHeap.remove(positions, heapIndex);
-
-      updateSystemLeverageLong(basePrice);
 
       collateralToken = baseToken;
     } else {
@@ -723,8 +712,6 @@ contract MarginlyPool is IMarginlyPool {
       position._type = PositionType.Short;
     }
 
-    updateSystemLeverageShort(basePrice);
-
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
 
     emit Short(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteChange, discountedBaseDebtChange);
@@ -778,8 +765,6 @@ contract MarginlyPool is IMarginlyPool {
       longHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
       position._type = PositionType.Long;
     }
-
-    updateSystemLeverageLong(basePrice);
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); //Margin call
 
@@ -867,9 +852,6 @@ contract MarginlyPool is IMarginlyPool {
     if (!accrueInterest()) {
       return (callerMarginCalled, basePrice); // (false, basePrice)
     }
-
-    updateSystemLeverageLong(basePrice);
-    updateSystemLeverageShort(basePrice);
 
     (bool success, MaxBinaryHeapLib.Node memory root) = shortHeap.getNodeByIndex(0);
     if (success) {
@@ -1244,5 +1226,8 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     updateHeap(position);
+
+    updateSystemLeverageLong(basePrice);
+    updateSystemLeverageShort(basePrice);
   }
 }
