@@ -17,28 +17,28 @@ Object {
 exports[`Liquidation liquidate long position and create new long position 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 294661,
+  "gasUsed": 294673,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 322466,
+  "gasUsed": 322478,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 330794,
+  "gasUsed": 330806,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new short position 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 305682,
+  "gasUsed": 305694,
 }
 `;
 
@@ -122,7 +122,7 @@ Object {
 exports[`mc happens: MC long position with deleverage 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 221828,
+  "gasUsed": 223187,
 }
 `;
 
@@ -136,7 +136,7 @@ Object {
 exports[`mc happens: MC short position with deleverage 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 221877,
+  "gasUsed": 223236,
 }
 `;
 

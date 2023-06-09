@@ -203,7 +203,7 @@ describe('Deleverage', () => {
     const disBaseCollateralAfter = await marginlyPool.discountedBaseCollateral();
 
     const baseCollDelta = BigNumber.from(longAmount).mul(FP96.one).div(baseCollCoeff).add(
-      baseDelevCoeff.mul(price).mul(longAmount).div(quoteDebtCoeff).div(baseCollCoeff)
+      baseDelevCoeff.mul(price).div(FP96.one).mul(longAmount).div(quoteDebtCoeff).mul(FP96.one).div(baseCollCoeff)
     );
 
     const posBaseCollDelta = positionAfter.discountedBaseAmount.sub(positionBefore.discountedBaseAmount);
