@@ -238,7 +238,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseDebt = discountedBaseDebt.sub(position.discountedBaseAmount);
 
       //remove position
-      shortHeap.remove(positions, 0);
+      shortHeap.remove(positions, position.heapPosition - 1);
     } else if (position._type == PositionType.Long) {
       uint256 realBaseCollateral = baseCollateralCoeff.mul(position.discountedBaseAmount);
       uint256 realQuoteDebt = quoteDebtCoeff.mul(position.discountedQuoteAmount);
@@ -264,7 +264,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteDebt = discountedQuoteDebt.sub(position.discountedQuoteAmount);
 
       //remove position
-      longHeap.remove(positions, 0);
+      longHeap.remove(positions, position.heapPosition - 1);
     } else {
       revert('WPT'); // Wrong position type to MC
     }
@@ -706,9 +706,9 @@ contract MarginlyPool is IMarginlyPool {
     discountedBaseDebt = discountedBaseDebt.add(discountedBaseDebtChange);
 
     if (position._type == PositionType.Lend) {
-      //init heap with default value 1.0
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
-      shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
+      // init heap with default value 0, it will be updated by 'updateHeap' function later
+      shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
       position._type = PositionType.Short;
     }
 
@@ -761,8 +761,8 @@ contract MarginlyPool is IMarginlyPool {
 
     if (position._type == PositionType.Lend) {
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
-      //init heap with default value 1.0
-      longHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
+      // init heap with default value 0, it will be updated by 'updateHeap' function later
+      longHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
       position._type = PositionType.Long;
     }
 
