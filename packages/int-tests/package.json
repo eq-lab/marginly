@@ -31,7 +31,7 @@
   },
   "scripts": {
     "compile": "hardhat compile",
-    "start": "bash -c 'yarn ts-node ./src/index.ts \"$*\" | pino-pretty' --",
+    "start": "bash -c 'yarn ts-node ./src/index.ts \"$*\" | pino-pretty ; ( exit ${PIPESTATUS[0]} )' --",
     "gen": "cd ../contracts && yarn compile && cd - && ts-node ./src/gen.ts && prettier --write ./src/contract-api",
     "build": "tsc",
     "lint:write": "prettier --write ./src",
