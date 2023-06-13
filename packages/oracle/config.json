@@ -105,15 +105,15 @@
     "updatePriceJobs": [
       {
         "poolMockId": "fweth-usdc",
-        "periodMs": 600000
+        "periodMs": 60000
       },
       {
         "poolMockId": "arb-fweth",
-        "periodMs": 600000
+        "periodMs": 60000
       },
       {
         "poolMockId": "gmx-fweth",
-        "periodMs": 600000
+        "periodMs": 60000
       }
     ]
   }
