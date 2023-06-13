@@ -1,19 +1,10 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://ganache-node.equilab.io"
+    "ethNodeUri": "https://ganache.equilab.io/"
   },
   "connection": {
     "assertChainId": 1337,
     "ethOptions": {}
-  },
-  "uniswap": {
-    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-  },
-  "marginlyFactory": {
-    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
-    "techPositionOwner": "0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3",
-    "wethTokenId": "weth"
   },
   "tokens": [
     {
@@ -29,22 +20,31 @@
       "assertDecimals": 18
     }
   ],
-  "uniswapPools": [
-    {
-      "id": "usdc-weth",
-      "token0Id": "usdc",
-      "token1Id": "weth",
-      "fee": "0.05%",
-      "allowCreate": false,
-      "assertAddress": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
-    }
-  ],
+  "prices": [],
+  "uniswap": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "pools": [
+      {
+        "id": "usdc-weth",
+        "tokenAId": "usdc",
+        "tokenBId": "weth",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
+      }
+    ]
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa",
+    "techPositionOwner": "0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3",
+    "wethTokenId": "weth"
+  },
   "marginlyPools": [
     {
       "id": "usdc-weth",
       "uniswapPoolId": "usdc-weth",
-      "baseToken": "token1",
-      "quoteToken": "token0",
+      "baseTokenId": "weth",
       "params": {
         "interestRate": "5.4%",
         "maxLeverage": "20",

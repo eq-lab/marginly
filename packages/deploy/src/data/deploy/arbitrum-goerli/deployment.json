@@ -1,0 +1,19 @@
+{
+  "marginlyPools": [
+    {
+      "id": "arb-fweth",
+      "address": "0x61CD23e3688710Afe5eFa055e0CE0f1156592a5B"
+    },
+    {
+      "id": "fweth-usdc",
+      "address": "0x44141aD8D67f386C1985880A134dB38a3b52B805"
+    },
+    {
+      "id": "gmx-fweth",
+      "address": "0x54F1514B9aB7BD8f4Ec3F610Ed370f0e13059a80"
+    }
+  ],
+  "marginlyKeeper": {
+    "address": "0x797883F7041AE7A46081D6E3eB78EDBbBd417B78"
+  }
+}

@@ -1,3 +1,5 @@
+import { RootPriceConfig } from '@marginly/common/dist/price';
+
 export interface EthOptions {
   gasLimit?: number;
   gasPrice?: number;
@@ -12,36 +14,86 @@ export interface DeployConfig {
   systemContextDefaults?: Record<string, string>;
 }
 
+export interface MarginlyDeployConfigExistingToken {
+  type: 'existing' | undefined;
+  id: string;
+  address: string;
+  assertSymbol?: string;
+  assertDecimals?: number;
+}
+
+export interface MarginlyDeployConfigMintableToken {
+  type: 'mintable';
+  id: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+export type MarginlyDeployConfigToken = MarginlyDeployConfigExistingToken | MarginlyDeployConfigMintableToken;
+
+export function isMarginlyDeployConfigExistingToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigExistingToken {
+  return token.type === 'existing' || token.type === undefined;
+}
+
+export function isMarginlyDeployConfigMintableToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigMintableToken {
+  return token.type === 'mintable';
+}
+
+interface MarginlyDeployConfigUniswapGenuine {
+  type: 'genuine' | undefined;
+  factory: string;
+  swapRouter: string;
+  pools: {
+    id: string;
+    tokenAId: string;
+    tokenBId: string;
+    fee: string;
+    allowCreate: boolean;
+    assertAddress?: string;
+  }[];
+}
+
+interface MarginlyDeployConfigUniswapMock {
+  type: 'mock';
+  oracle: string;
+  weth9TokenId: string;
+  priceLogSize: number;
+  pools: {
+    id: string;
+    tokenAId: string;
+    tokenBId: string;
+    fee: string;
+    tokenABalance?: string;
+    tokenBBalance?: string;
+    priceId: string;
+    priceBaseTokenId: string;
+  }[];
+}
+
+type MarginlyDeployConfigUniswap = MarginlyDeployConfigUniswapGenuine | MarginlyDeployConfigUniswapMock;
+export function isMarginlyDeployConfigUniswapGenuine(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapGenuine {
+  return uniswap.type === 'genuine' || uniswap.type === undefined;
+}
+
+export function isMarginlyDeployConfigUniswapMock(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapMock {
+  return uniswap.type === 'mock';
+}
+
 export interface MarginlyDeployConfig {
   connection: EthConnectionConfig;
-  uniswap: {
-    factory: string;
-    swapRouter: string;
-  };
+  tokens: MarginlyDeployConfigToken[];
+  prices: RootPriceConfig[];
+  uniswap: MarginlyDeployConfigUniswap;
   marginlyFactory: {
     feeHolder: string;
     techPositionOwner: string;
     wethTokenId: string;
   };
-  tokens: {
-    id: string;
-    address: string;
-    assertSymbol?: string;
-    assertDecimals?: number;
-  }[];
-  uniswapPools: {
-    id: string;
-    token0Id: string;
-    token1Id: string;
-    fee: string;
-    allowCreate: boolean;
-    assertAddress?: string;
-  }[];
   marginlyPools: {
     id: string;
     uniswapPoolId: string;
-    baseToken: string;
-    quoteToken: string;
+    baseTokenId: string;
     params: {
       interestRate: string;
       fee: string;

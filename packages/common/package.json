@@ -1,21 +1,54 @@
 {
   "name": "@marginly/common",
   "version": "0.1.0",
-  "main": "dist/index.js",
+  "description": "Marginly common code",
+  "types": "dist/index.d.ts",
   "author": "EqLab",
   "license": "MIT",
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "test": "mocha",
+    "lint": "eslint src --ext .ts",
+    "prettify": "prettier --write ."
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.31.0",
-    "@typescript-eslint/parser": "^4.31.0",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "prettier": "^2.4.0",
-    "typescript": "^4.4.2"
+    "@types/node": "16",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "@types/node-fetch": "^2.6.3",
+    "@types/mocha": "^10.0.1",
+    "@types/chai": "^4.3.5",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.6.0",
+    "prettier": "^2.8.2",
+    "typescript": "^4.9.4",
+    "ts-node": "^10.9.1",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7"
   },
   "dependencies": {
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "node-fetch": "^2.6.9"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./resource": "./dist/resource.js",
+    "./error": "./dist/error.js",
+    "./logger": "./dist/logger.js",
+    "./execution": "./dist/execution.js",
+    "./lifecycle": "./dist/lifecycle.js",
+    "./math": "./dist/math.js",
+    "./price": "./dist/price.js"
+  },
+  "typesVersions": {
+    "*": {
+      "resource": ["dist/resource.d.ts"],
+      "error": ["dist/error.d.ts"],
+      "logger": ["dist/logger.d.ts"],
+      "execution": ["dist/execution.d.ts"],
+      "lifecycle": ["dist/lifecycle.d.ts"],
+      "math": ["dist/math.d.ts"],
+      "price": ["dist/price.d.ts"]
+    }
   }
 }
