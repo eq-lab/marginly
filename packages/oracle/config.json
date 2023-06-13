@@ -9,25 +9,25 @@
   "tokens": [
     {
       "id": "fweth",
-      "address": "0x4AA54b32b964D2a768bc2659c4C86cCFEEf9561A",
+      "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
       "assertSymbol": "FWETH",
       "assertDecimals": 18
     },
     {
       "id": "usdc",
-      "address": "0x7ed484327b2E27464790c8a0882452B05D41E9D5",
+      "address": "0xd87f0fb191580e3bB59e3ab612DeeB28e74d7812",
       "assertSymbol": "USDC",
       "assertDecimals": 6
     },
     {
       "id": "arb",
-      "address": "0x429366dC3ccaBf97Cf71A73152f622C3587C524b",
+      "address": "0x4223950D11c535cE136299cd6a9Ddf88ace69F1b",
       "assertSymbol": "ARB",
       "assertDecimals": 18
     },
     {
       "id": "gmx",
-      "address": "0xFC5E87626b1dc26ed7780E6885975c958478fefe",
+      "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD",
       "assertSymbol": "GMX",
       "assertDecimals": 18
     }
