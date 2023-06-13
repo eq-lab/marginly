@@ -450,3 +450,53 @@ describe('MarginlyPool.Liquidation', () => {
     expect(await token1.balanceOf(marginlyPool.address)).to.be.equal(token1BalanceBefore.add(baseAmount));
   });
 });
+
+describe('mc heap tests', () => {
+  it('remove long caller', async () => {
+    const { marginlyPool } = await loadFixture(createMarginlyPool);
+    const [_, depositor, longer1, longer2, longer3] = await ethers.getSigners();
+    const depositAmount = 1000;
+
+    await marginlyPool.connect(depositor).execute(CallType.DepositQuote, 1000 * depositAmount, 0, false, ZERO_ADDRESS);
+
+    await marginlyPool.connect(longer1).execute(CallType.DepositBase, depositAmount, 18500, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer2).execute(CallType.DepositBase, depositAmount, 18400, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer3).execute(CallType.DepositBase, depositAmount, 18300, false, ZERO_ADDRESS);
+
+    expect((await marginlyPool.getLongHeapPosition(0))[1].account).to.be.equal(longer1.address);
+    expect((await marginlyPool.getLongHeapPosition(1))[1].account).to.be.equal(longer2.address);
+    expect((await marginlyPool.getLongHeapPosition(2))[1].account).to.be.equal(longer3.address);
+
+    await time.increase(24 * 60 * 60);
+
+    // should happen 2 MCs: longer1 as as the one with the worst leverage and longer3 as the caller with bad leverage
+    await marginlyPool.connect(longer3).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
+
+    expect((await marginlyPool.getLongHeapPosition(0))[1].account).to.be.equal(longer2.address);
+    expect((await marginlyPool.getLongHeapPosition(1))[1].account).to.be.equal(ZERO_ADDRESS);
+  });
+
+  it('remove short caller', async () => {
+    const { marginlyPool } = await loadFixture(createMarginlyPool);
+    const [_, depositor, shorter1, shorter2, shorter3] = await ethers.getSigners();
+    const depositAmount = +(await marginlyPool.getBasePrice()).inner.mul(1000).div(FP96.one);
+
+    await marginlyPool.connect(depositor).execute(CallType.DepositBase, 1000 * depositAmount, 0, false, ZERO_ADDRESS);
+
+    await marginlyPool.connect(shorter1).execute(CallType.DepositQuote, depositAmount, 18500, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter2).execute(CallType.DepositQuote, depositAmount, 18400, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter3).execute(CallType.DepositQuote, depositAmount, 18300, false, ZERO_ADDRESS);
+
+    expect((await marginlyPool.getShortHeapPosition(0))[1].account).to.be.equal(shorter1.address);
+    expect((await marginlyPool.getShortHeapPosition(1))[1].account).to.be.equal(shorter2.address);
+    expect((await marginlyPool.getShortHeapPosition(2))[1].account).to.be.equal(shorter3.address);
+
+    await time.increase(24 * 60 * 60);
+
+    // should happen 2 MCs: shorter1 as the one with the worst leverage and shorter3 as the caller with bad leverage
+    await marginlyPool.connect(shorter3).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
+
+    expect((await marginlyPool.getShortHeapPosition(0))[1].account).to.be.equal(shorter2.address);
+    expect((await marginlyPool.getShortHeapPosition(1))[1].account).to.be.equal(ZERO_ADDRESS);
+  });
+});
