@@ -25,7 +25,7 @@ describe('MarginlyFactory', () => {
     return { fee: 3000n, params };
   }
 
-  it.only('should create pool', async () => {
+  it('should create pool', async () => {
     const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;
     const baseToken = uniswapPoolInfo.token1.address;
