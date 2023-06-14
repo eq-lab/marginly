@@ -124,6 +124,9 @@ contract MarginlyPool is IMarginlyPool {
     lastReinitTimestampSeconds = block.timestamp;
     unlocked = true;
     initialPrice = getBasePrice();
+
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    techPosition._type = PositionType.Lend;
   }
 
   receive() external payable {
@@ -439,7 +442,6 @@ contract MarginlyPool is IMarginlyPool {
       // update aggregates
       discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
     }
-
 
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
@@ -835,7 +837,6 @@ contract MarginlyPool is IMarginlyPool {
       Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
       techPosition.discountedBaseAmount = techPosition.discountedBaseAmount.add(discountedBaseFee);
       techPosition.discountedQuoteAmount = techPosition.discountedQuoteAmount.add(discountedQuoteFee);
-      techPosition._type = PositionType.Lend;
 
       discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseFee);
       discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteFee);
