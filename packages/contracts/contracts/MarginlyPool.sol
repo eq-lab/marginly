@@ -552,9 +552,8 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @notice Close position
-  /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function closePosition(FP96.FixedPoint memory basePrice, Position storage position) private {
+  function closePosition(Position storage position) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -1220,7 +1219,7 @@ contract MarginlyPool is IMarginlyPool {
     } else if (call == CallType.Long) {
       long(amount1, basePrice, position);
     } else if (call == CallType.ClosePosition) {
-      closePosition(basePrice, position);
+      closePosition(position);
     } else if (call != CallType.Reinit) {
       // reinit already happened
       revert('UC'); // unknown call

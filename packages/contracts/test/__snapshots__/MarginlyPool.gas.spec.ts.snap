@@ -59,7 +59,7 @@ Object {
 exports[`System initialized: closePosition 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 227979,
+  "gasUsed": 227974,
 }
 `;
 
@@ -122,7 +122,7 @@ Object {
 exports[`mc happens: closePosition with two mc 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 358621,
+  "gasUsed": 358617,
 }
 `;
 
@@ -157,7 +157,7 @@ Object {
 exports[`mc happens: long closePosition with one mc 1`] = `
 Object {
   "calldataByteLength": 164,
-  "gasUsed": 252252,
+  "gasUsed": 252248,
 }
 `;
 
