@@ -124,6 +124,9 @@ contract MarginlyPool is IMarginlyPool {
     lastReinitTimestampSeconds = block.timestamp;
     unlocked = true;
     initialPrice = getBasePrice();
+
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    techPosition._type = PositionType.Lend;
   }
 
   receive() external payable {
@@ -440,7 +443,6 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
     }
 
-
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
 
@@ -550,9 +552,8 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @notice Close position
-  /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function closePosition(FP96.FixedPoint memory basePrice, Position storage position) private {
+  function closePosition(Position storage position) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -835,7 +836,6 @@ contract MarginlyPool is IMarginlyPool {
       Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
       techPosition.discountedBaseAmount = techPosition.discountedBaseAmount.add(discountedBaseFee);
       techPosition.discountedQuoteAmount = techPosition.discountedQuoteAmount.add(discountedQuoteFee);
-      techPosition._type = PositionType.Lend;
 
       discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseFee);
       discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteFee);
@@ -1219,7 +1219,7 @@ contract MarginlyPool is IMarginlyPool {
     } else if (call == CallType.Long) {
       long(amount1, basePrice, position);
     } else if (call == CallType.ClosePosition) {
-      closePosition(basePrice, position);
+      closePosition(position);
     } else if (call != CallType.Reinit) {
       // reinit already happened
       revert('UC'); // unknown call
