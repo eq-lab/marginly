@@ -3,6 +3,9 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { MarginlyParamsStruct } from '../typechain-types/contracts/MarginlyFactory';
 import { createMarginlyFactory } from './shared/fixtures';
 import snapshotGasCost from '@uniswap/snapshot-gas-cost';
+import { MarginlyPool, MarginlyPool } from '../typechain-types';
+import { ethers } from 'hardhat';
+import { PositionType } from './shared/utils';
 
 describe('MarginlyFactory', () => {
   function getPoolParams() {
@@ -22,17 +25,24 @@ describe('MarginlyFactory', () => {
     return { fee: 3000n, params };
   }
 
-  it('should create pool', async () => {
+  it.only('should create pool', async () => {
     const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;
     const baseToken = uniswapPoolInfo.token1.address;
     const { fee, params } = getPoolParams();
 
-    const pool = await factory.callStatic.createPool(quoteToken, baseToken, fee, params);
+    const poolAddress = await factory.callStatic.createPool(quoteToken, baseToken, fee, params);
     await snapshotGasCost(factory.createPool(quoteToken, baseToken, fee, params));
 
-    expect(await factory.getPool(quoteToken, baseToken, fee)).to.be.equal(pool);
-    expect(await factory.getPool(baseToken, quoteToken, fee)).to.be.equal(pool);
+    expect(await factory.getPool(quoteToken, baseToken, fee)).to.be.equal(poolAddress);
+    expect(await factory.getPool(baseToken, quoteToken, fee)).to.be.equal(poolAddress);
+
+    const poolFactory = await ethers.getContractFactory('MarginlyPool');
+    const pool = poolFactory.attach(poolAddress) as MarginlyPool;
+
+    const techPositionOwner = await factory.techPositionOwner();
+    const techPosition = await pool.positions(techPositionOwner);
+    expect(techPosition._type).to.be.eq(PositionType.Lend);
   });
 
   it('should raise error when pool exists', async () => {
