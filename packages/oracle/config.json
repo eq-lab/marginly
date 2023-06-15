@@ -82,19 +82,19 @@
   "uniswapV3PoolMocks": [
     {
       "id": "fweth-usdc",
-      "address": "0x3FF49b72F5c3B1E4d63b3DB4F2d8a729d4463E0E",
+      "address": "0x035b26AF837e78798AD7c89050939B9AB2E192A0",
       "priceId": "eth-usdc",
       "priceBaseTokenId": "fweth"
     },
     {
       "id": "arb-fweth",
-      "address": "0xc745D5B682E9597001ba291dB61F84846104deE1",
+      "address": "0xf97c7F7ccBB90ba32d3fb01aF18c8FFf5A94Bd65",
       "priceId": "arb-eth",
       "priceBaseTokenId": "arb"
     },
     {
       "id": "gmx-fweth",
-      "address": "0x9d733DCdD69a72FAA5Fa87611d384605D2cfedF4",
+      "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
       "priceId": "gmx-eth",
       "priceBaseTokenId": "gmx"
     }
