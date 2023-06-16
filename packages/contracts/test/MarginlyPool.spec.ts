@@ -120,7 +120,9 @@ describe('MarginlyPool.Base', () => {
 
     await (
       await marginlyPool
+      
         .connect(signer)
+      
         .execute(CallType.DepositBase, baseDeposit, 0, false, ZERO_ADDRESS, { value: valueDeposit })
     ).wait();
 
@@ -194,7 +196,9 @@ describe('MarginlyPool.Base', () => {
       const [_, otherSigner] = await ethers.getSigners();
 
       expect(
+        
         marginlyPool.connect(otherSigner).execute(CallType.DepositBase, 0, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('ZA');
     });
 
@@ -203,7 +207,9 @@ describe('MarginlyPool.Base', () => {
       const [_, otherSigner] = await ethers.getSigners();
 
       expect(
+        
         marginlyPool.connect(otherSigner).execute(CallType.DepositBase, 2_000_000, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('EL');
     });
 
@@ -405,7 +411,9 @@ describe('MarginlyPool.Base', () => {
       const baseDepositFirst = 10;
       const longAmount = 10;
       expect(
+        
         marginlyPool.connect(signer).execute(CallType.DepositBase, baseDepositFirst, longAmount, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('WPT');
     });
 
@@ -417,7 +425,9 @@ describe('MarginlyPool.Base', () => {
       await (await baseContract.connect(signer).approve(marginlyPool.address, 0)).wait();
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositBase, depositAmount, 0, false, ZERO_ADDRESS, { value: depositAmount })
       ).wait();
 
@@ -436,7 +446,9 @@ describe('MarginlyPool.Base', () => {
       const [_, otherSigner] = await ethers.getSigners();
 
       expect(
+        
         marginlyPool.connect(otherSigner).execute(CallType.DepositQuote, 0, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('ZA');
     });
 
@@ -445,7 +457,9 @@ describe('MarginlyPool.Base', () => {
       const [_, otherSigner] = await ethers.getSigners();
 
       expect(
+        
         marginlyPool.connect(otherSigner).execute(CallType.DepositQuote, 2_000_000, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('EL');
     });
 
@@ -569,7 +583,9 @@ describe('MarginlyPool.Base', () => {
       const shortAmount = 1000;
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositQuote, depositAmount, shortAmount, false, ZERO_ADDRESS)
       ).wait();
 
@@ -594,7 +610,7 @@ describe('MarginlyPool.Base', () => {
 
       const quoteDepositSecond = 300;
       const shortAmount = 100;
-      expect(
+      await expect(
         marginlyPool
           .connect(signer)
           .execute(CallType.DepositQuote, quoteDepositSecond, shortAmount, false, ZERO_ADDRESS)
@@ -609,7 +625,9 @@ describe('MarginlyPool.Base', () => {
       const shortAmount1 = 63;
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositQuote, firstDeposit, shortAmount1, false, ZERO_ADDRESS)
       ).wait();
 
@@ -620,7 +638,9 @@ describe('MarginlyPool.Base', () => {
       const shortAmount2 = 100;
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositQuote, quoteDepositSecond, shortAmount2, false, ZERO_ADDRESS)
       ).wait();
       expect(positionBefore._type).to.be.equal(PositionType.Short);
@@ -634,7 +654,9 @@ describe('MarginlyPool.Base', () => {
       await quoteContract.connect(signer).approve(marginlyPool.address, 0);
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositQuote, depositAmount, 0, false, ZERO_ADDRESS, { value: depositAmount })
       ).wait();
 
@@ -652,7 +674,9 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer] = await ethers.getSigners();
 
-      expect(marginlyPool.connect(signer).execute(CallType.WithdrawBase, 0, 0, false, ZERO_ADDRESS)).to.be.revertedWith(
+      expect(
+        marginlyPool.connect(signer).execute(CallType.WithdrawBase, 0, 0, false, ZERO_ADDRESS)
+      ).to.be.revertedWith(
         'ZA'
       );
     });
@@ -667,7 +691,9 @@ describe('MarginlyPool.Base', () => {
 
       const amountToWithdraw = 89;
       expect(
+        
         marginlyPool.connect(signer2).execute(CallType.WithdrawBase, amountToWithdraw, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('U');
     });
 
@@ -755,6 +781,26 @@ describe('MarginlyPool.Base', () => {
 
       expect(balanceBefore.sub(txFee).add(amountToWithdraw)).to.be.equal(balanceAfter);
     });
+
+    it('should raise error when trying to withdraw from short position', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, shorter] = await ethers.getSigners();
+
+      const amountToDeposit = 1000;
+      await marginlyPool.connect(signer).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
+      await marginlyPool.connect(signer).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS);
+
+      const shortDeposit = 100;
+      const shortAmount = 10;
+      await marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, shortDeposit, shortAmount, false, ZERO_ADDRESS);
+
+      const amountToWithdraw = 10;
+      await expect(
+        marginlyPool.connect(shorter).execute(CallType.WithdrawBase, amountToWithdraw, 0, false, ZERO_ADDRESS)
+      ).to.be.revertedWith('WPT');
+    });
   });
 
   describe('Withdraw quote', () => {
@@ -763,7 +809,9 @@ describe('MarginlyPool.Base', () => {
       const [_, signer] = await ethers.getSigners();
 
       expect(
+        
         marginlyPool.connect(signer).execute(CallType.WithdrawQuote, 0, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('ZA');
     });
 
@@ -777,7 +825,9 @@ describe('MarginlyPool.Base', () => {
 
       const amountToWithdraw = 125;
       expect(
+        
         marginlyPool.connect(signer2).execute(CallType.WithdrawQuote, amountToWithdraw, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('U');
     });
 
@@ -837,7 +887,7 @@ describe('MarginlyPool.Base', () => {
 
       await (await marginlyPool.connect(user1).execute(CallType.Long, user1LongAmount, 0, false, ZERO_ADDRESS)).wait();
       await (
-        await marginlyPool.connect(user2).execute(CallType.Short, user2ShortAmount, 0, false, ZERO_ADDRESS)
+        await marginlyPool.connect(user2).execute(CallType.Short,  user2ShortAmount, 0, false, ZERO_ADDRESS)
       ).wait();
 
       const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
@@ -895,6 +945,24 @@ describe('MarginlyPool.Base', () => {
 
       expect(balanceBefore.sub(txFee).add(amountToWithdraw)).to.be.equal(balanceAfter);
     });
+
+    it('should raise error when trying to withdraw from long position', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, longer] = await ethers.getSigners();
+
+      const amountToDeposit = 1000;
+      await marginlyPool.connect(signer).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
+      await marginlyPool.connect(signer).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS);
+
+      const longDeposit = 100;
+      const longAmount = 10;
+      await marginlyPool.connect(longer).execute(CallType.DepositBase, longDeposit, longAmount, false, ZERO_ADDRESS);
+
+      const amountToWithdraw = 10;
+      await expect(
+        marginlyPool.connect(longer).execute(CallType.WithdrawQuote, amountToWithdraw, 0, false, ZERO_ADDRESS)
+      ).to.be.revertedWith('WPT');
+    });
   });
 
   describe('Close position', () => {
@@ -912,7 +980,9 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.connect(signer).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS)
       ).wait();
       expect(
+        
         marginlyPool.connect(signer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('WPT');
     });
 
@@ -926,7 +996,9 @@ describe('MarginlyPool.Base', () => {
 
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositQuote, amountToDeposit, amountOfShort, false, ZERO_ADDRESS)
       ).wait();
 
@@ -957,7 +1029,9 @@ describe('MarginlyPool.Base', () => {
 
       await (
         await marginlyPool
+        
           .connect(signer)
+        
           .execute(CallType.DepositBase, amountToDeposit, amountOfLong, false, ZERO_ADDRESS)
       ).wait();
 
@@ -993,7 +1067,9 @@ describe('MarginlyPool.Base', () => {
 
       await (
         await marginlyPool
+        
           .connect(shorter)
+        
           .execute(CallType.DepositQuote, amountToDeposit, shortAmount, false, ZERO_ADDRESS)
       ).wait();
 
@@ -1001,7 +1077,9 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.connect(shorter).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS)
       ).wait();
       expect(
+        
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('WPT');
     });
 
@@ -1021,7 +1099,9 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.connect(shorter).execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS)
       ).wait();
       expect(
+        
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS)
+      
       ).to.be.rejectedWith('MA');
     });
 
@@ -1044,7 +1124,9 @@ describe('MarginlyPool.Base', () => {
 
       // 450 + 450 + 200 > 1000
       expect(
+        
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('EL');
     });
 
@@ -1280,7 +1362,9 @@ describe('MarginlyPool.Base', () => {
         await marginlyPool.connect(longer).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS)
       ).wait();
       expect(
+        
         marginlyPool.connect(longer).execute(CallType.Long, shortAmount, 0, false, ZERO_ADDRESS)
+      
       ).to.be.rejectedWith('MA');
     });
 
@@ -1300,7 +1384,9 @@ describe('MarginlyPool.Base', () => {
       ).wait();
 
       expect(
+        
         marginlyPool.connect(longer).execute(CallType.Long, amountToDeposit, 0, false, ZERO_ADDRESS)
+      
       ).to.be.revertedWith('EL');
     });
 
@@ -1578,14 +1664,18 @@ describe('MarginlyPool.Base', () => {
       const longAmount1 = 10;
       await (
         await marginlyPool
+        
           .connect(longer1)
+        
           .execute(CallType.DepositBase, amountToDeposit, longAmount1, false, ZERO_ADDRESS)
       ).wait();
 
       const longAmount2 = 25;
       await (
         await marginlyPool
+        
           .connect(longer2)
+        
           .execute(CallType.DepositBase, amountToDeposit, longAmount2, false, ZERO_ADDRESS)
       ).wait();
 
@@ -1600,21 +1690,23 @@ describe('MarginlyPool.Base', () => {
       const [_, shorter1, shorter2, shorter3, depositor] = await ethers.getSigners();
 
       const amountToDeposit = 10000;
-      await (
-        await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS)
-      ).wait();
+      await marginlyPool.connect(depositor).execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS);
 
       const shortAmount1 = 10;
       await (
         await marginlyPool
+        
           .connect(shorter1)
+        
           .execute(CallType.DepositQuote, amountToDeposit, shortAmount1, false, ZERO_ADDRESS)
       ).wait();
 
       const shortAmount2 = 25;
       await (
         await marginlyPool
+        
           .connect(shorter2)
+        
           .execute(CallType.DepositQuote, amountToDeposit, shortAmount2, false, ZERO_ADDRESS)
       ).wait();
       await (

@@ -53,7 +53,7 @@ contract MarginlyFactory is IMarginlyFactory {
   function setOwner(address _owner) external override {
     require(msg.sender == owner, 'NO'); // Not an owner
     owner = _owner;
-    emit OwnerChanged(owner, _owner);
+    emit OwnerChanged(msg.sender, _owner);
   }
 
   /// @inheritdoc IMarginlyFactory

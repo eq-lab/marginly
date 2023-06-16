@@ -42,7 +42,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @dev Emitted when user shorted
   /// @param user Depositor
-  /// @param amount Amount of token user deposited
+  /// @param amount Amount of token user use in short position
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
   /// @param quoteDiscountedDelta Discounted delta amount of quote tokens
   /// @param baseDiscountedDelta Discounted delta amount of base tokens

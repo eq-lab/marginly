@@ -9,19 +9,19 @@
   "tokens": [
     {
       "id": "fweth",
-      "address": "0xE4Aca502d05Ca25862ffF831fA90CeCd5241f62a",
+      "address": "0x230f4447F79DC52a5Bc8031Dfdd49da6929Ca290",
       "assertSymbol": "FWETH",
       "assertDecimals": 18
     },
     {
       "id": "usdc",
-      "address": "0x29A7425B0c1d44D5046E10B24821ea859215168c",
+      "address": "0x33544752A157AeE7e78AD83DC61E95EF7aAe52a1",
       "assertSymbol": "USDC",
       "assertDecimals": 6
     },
     {
       "id": "fmatic",
-      "address": "0x7C9fe5570cC1b4DDB35Dc591A2e295c91a420413",
+      "address": "0x6ea7a8FecbFf190D6B504263BDD81b7F2B07700A",
       "assertSymbol": "FMATIC",
       "assertDecimals": 18
     }
