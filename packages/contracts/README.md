@@ -37,3 +37,7 @@ Run tests
 ```bash
 yarn test:zksync
 ```
+
+### zkSync verify
+
+https://era.zksync.io/docs/tools/hardhat/hardhat-zksync-verify.html

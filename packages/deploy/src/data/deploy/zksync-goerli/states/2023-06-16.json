@@ -41,13 +41,16 @@
       "txHash": "0xe52159bd539e50e6a71c58a0498b63d912b22096cfe4dc830ab9ba5cb680862b"
     },
     "marginlyPool_fweth-usdc": {
-      "address": "0x6Fe1030A59C2F22300A5Dc14111CBE36d5ec82c5"
+      "address": "0x6Fe1030A59C2F22300A5Dc14111CBE36d5ec82c5",
+      "txHash": "0x80cebc5785e190541fca888a1bbaba94ac5590e29f506a0715f60d38a409a453"
     },
     "marginlyPool_arb-fweth": {
-      "address": "0x282910Dc20C96aDeF0BAc6b5D8b49A5F23113E33"
+      "address": "0x282910Dc20C96aDeF0BAc6b5D8b49A5F23113E33",
+      "txHash":"0xed67605435665e13ca0ef6746eba1f8a5c55027d0b56b6c7e3b95f94a8a7036c"
     },
     "marginlyPool_gmx-fweth": {
-      "address": "0xA251CA4B4F4eCc7Dc0F363e2B3ef5b9F381C721B"
+      "address": "0xA251CA4B4F4eCc7Dc0F363e2B3ef5b9F381C721B",
+      "txHash":"0x4f19552a62bff099a5e1b12a8aa11514156ef08d1d4e013eec3cadb6fefceb10"
     },
     "mockAavePool": {
       "address": "0x3ef565aA8F87c00a26d350d93A65db209382C0d3",
