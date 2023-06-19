@@ -597,6 +597,8 @@ class MarginlyDeployer {
       if (marginlyPoolAddress.isZero()) {
         throw new Error('Marginly pool creation failed');
       }
+
+      creationTxHash = tx.hash;
     }
 
     this.stateStore.setById(stateFileId, {
