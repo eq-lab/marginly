@@ -3,118 +3,128 @@
     "level": 3,
     "format": "json"
   },
-  "ethereum": {
-    "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
-  },
-  "tokens": [
-    {
-      "id": "fweth",
-      "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
-      "assertSymbol": "FWETH",
-      "assertDecimals": 18
-    },
-    {
-      "id": "usdc",
-      "address": "0xd87f0fb191580e3bB59e3ab612DeeB28e74d7812",
-      "assertSymbol": "USDC",
-      "assertDecimals": 6
-    },
-    {
-      "id": "arb",
-      "address": "0x4223950D11c535cE136299cd6a9Ddf88ace69F1b",
-      "assertSymbol": "ARB",
-      "assertDecimals": 18
-    },
-    {
-      "id": "gmx",
-      "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD",
-      "assertSymbol": "GMX",
-      "assertDecimals": 18
-    }
-  ],
-  "prices": [
-    {
-      "id": "eth-usdc",
-      "label": "eth/usdc",
-      "type": "http-get",
-      "direction": "forward",
-      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
-    },
-    {
-      "id": "arb-eth",
-      "label": "arb/eth",
-      "type": "composite",
-      "sources": [
-        {
-          "type": "http-get",
-          "label": "arb/usdt",
-          "direction": "forward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
-        },
-        {
-          "type": "http-get",
-          "label": "usdt/eth",
-          "direction": "backward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
-        }
-      ]
-    },
-    {
-      "id": "gmx-eth",
-      "label": "gmx/eth",
-      "type": "composite",
-      "sources": [
-        {
-          "type": "http-get",
-          "label": "gmx/usdt",
-          "direction": "forward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
-        },
-        {
-          "type": "http-get",
-          "label": "usdt/eth",
-          "direction": "backward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
-        }
-      ]
-    }
-  ],
-  "uniswapV3PoolMocks": [
-    {
-      "id": "fweth-usdc",
-      "address": "0x035b26AF837e78798AD7c89050939B9AB2E192A0",
-      "priceId": "eth-usdc",
-      "priceBaseTokenId": "fweth"
-    },
-    {
-      "id": "arb-fweth",
-      "address": "0xf97c7F7ccBB90ba32d3fb01aF18c8FFf5A94Bd65",
-      "priceId": "arb-eth",
-      "priceBaseTokenId": "arb"
-    },
-    {
-      "id": "gmx-fweth",
-      "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
-      "priceId": "gmx-eth",
-      "priceBaseTokenId": "gmx"
-    }
-  ],
-  "oracleWorker": {
-    "tickMs": 1000,
+  "ethereum": {},
+  "pricesRepository": {
     "priceCachePeriodMs": 50000,
-    "updatePriceJobs": [
+    "prices": [
       {
-        "poolMockId": "fweth-usdc",
-        "periodMs": 60000
+        "id": "eth-usdc",
+        "label": "eth/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
       },
       {
-        "poolMockId": "arb-fweth",
-        "periodMs": 60000
+        "id": "arb-eth",
+        "label": "arb/eth",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "arb/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/eth",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+          }
+        ]
       },
       {
-        "poolMockId": "gmx-fweth",
-        "periodMs": 60000
+        "id": "gmx-eth",
+        "label": "gmx/eth",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "gmx/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/eth",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+          }
+        ]
       }
     ]
-  }
+  },
+  "workerManager": {
+    "sequentialFailsThresholdMs": 600000,
+    "restartDelayMs": 10000
+  },
+  "oracleWorkers": [
+    {
+      "id": "arbitrum-goerli",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0xd87f0fb191580e3bB59e3ab612DeeB28e74d7812",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "arb",
+          "address": "0x4223950D11c535cE136299cd6a9Ddf88ace69F1b",
+          "assertSymbol": "ARB",
+          "assertDecimals": 18
+        },
+        {
+          "id": "gmx",
+          "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD",
+          "assertSymbol": "GMX",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x035b26AF837e78798AD7c89050939B9AB2E192A0",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "arb-fweth",
+          "address": "0xf97c7F7ccBB90ba32d3fb01aF18c8FFf5A94Bd65",
+          "priceId": "arb-eth",
+          "priceBaseTokenId": "arb"
+        },
+        {
+          "id": "gmx-fweth",
+          "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
+          "priceId": "gmx-eth",
+          "priceBaseTokenId": "gmx"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "arb-fweth",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "gmx-fweth",
+          "periodMs": 60000
+        }
+      ]
+    }
+  ]
 }
