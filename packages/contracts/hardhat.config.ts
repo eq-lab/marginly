@@ -12,6 +12,20 @@ const config = {
       },
     },
   },
+  networks: {
+    polygonMumbai: {
+      url: 'https://rpc.ankr.com/polygon_mumbai',
+    },
+    arbitrumGoerli: {
+      url: '',
+    },
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: '',
+      arbitrumGoerli: '',
+    },
+  },
   mocha: {
     timeout: 200_000,
   },
