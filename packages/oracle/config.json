@@ -15,6 +15,25 @@
         "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
       },
       {
+        "id": "arb-usdc",
+        "label": "arb/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "arb/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          }
+        ]
+      },
+      {
         "id": "arb-eth",
         "label": "arb/eth",
         "type": "composite",
@@ -51,6 +70,13 @@
             "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
           }
         ]
+      },
+      {
+        "id": "matic-usdc",
+        "label": "matic/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://www.mexc.com/open/api/v2/market/ticker?symbol=MATIC_USDC).data[0].last"
       }
     ]
   },
@@ -109,6 +135,12 @@
           "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
           "priceId": "gmx-eth",
           "priceBaseTokenId": "gmx"
+        },
+        {
+          "id": "arb-usdc",
+          "address": "0x9C653a10e4C51e9A784FeE3D5495de91cf3e1c51",
+          "priceId": "arb-usdc",
+          "priceBaseTokenId": "arb"
         }
       ],
       "updatePriceJobs": [
@@ -122,6 +154,96 @@
         },
         {
           "poolMockId": "gmx-fweth",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "arb-usdc",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "polygon-mumbai",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://rpc.ankr.com/polygon_mumbai"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "fmatic",
+          "address": "",
+          "assertSymbol": "FMATIC",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x64BF3213666bC357155DDb21aD2404d3Df04e0A1",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "fmatic-usdc",
+          "address": "0xC931D0D6BDCc8b264983533a58ED80F1a3b99ef7",
+          "priceId": "matic-usdc",
+          "priceBaseTokenId": "matic"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "fmatic-usdc",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "zksync-goerli",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://testnet.era.zksync.dev"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0x79eB1A2f1CF6CBD932b8f11aF63A08867883b203",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x4F6a828B20B2Db54925ddDCaFF6EA189492904d5",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x9ccf1B78db39e8c7c4B98B1cE06a874a9a93F28d",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
           "periodMs": 60000
         }
       ]
