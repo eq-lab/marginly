@@ -17,7 +17,6 @@ env:
   GH_SECR: ${{ secrets.GH_SECR }}
   CLUSTER: ${{ secrets.CLUSTER }}
   PK: ${{ secrets.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY }}
-  IMAGE_TAG: latest
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
@@ -25,6 +24,8 @@ env:
 jobs:
   build-image:
     runs-on: ubuntu-latest
+    outputs:
+        output_tag: ${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up QEMU
@@ -97,13 +98,12 @@ jobs:
       id: create-secret
     - name: 'deploy'
       run: |
-        ls -la
         helm upgrade -i $SERVICE_NAME \
           -n $NAMESPACE \
           --set fullnameOverride=$SERVICE_NAME \
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
-          --set image.tag=$IMAGE_TAG \
+          --set image.tag=${{ needs.build-image.outputs.output_tag }} \
           --set imagePullSecrets[0].name=$GH_SECR \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
