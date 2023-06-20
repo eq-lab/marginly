@@ -51,6 +51,13 @@
             "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
           }
         ]
+      },
+      {
+        "id": "matic-usdc",
+        "label": "matic/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://www.mexc.com/open/api/v2/market/ticker?symbol=MATIC_USDC).data[0].last"
       }
     ]
   },
@@ -122,6 +129,124 @@
         },
         {
           "poolMockId": "gmx-fweth",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "zksync-era-testnet",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://testnet.era.zksync.dev"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0x09573DED24a47b02B3e2bFc10d8855c5ed17625c",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0xdFC1848B817fad895fC4560aEEB5C12Ecf1eB14f",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "arb",
+          "address": "0x7e3cf272219CfaA812E874A52956B1EafB893fd1",
+          "assertSymbol": "ARB",
+          "assertDecimals": 18
+        },
+        {
+          "id": "gmx",
+          "address": "0x8aD8248342D3a83622301c35FA482aE2B71366A2",
+          "assertSymbol": "GMX",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x334AFd1b43239EcE0b1E78a559ac9A304A343268",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "arb-fweth",
+          "address": "0x6baa27CaA7E32c372a16e072dfd0047cDFAdd605",
+          "priceId": "arb-eth",
+          "priceBaseTokenId": "arb"
+        },
+        {
+          "id": "gmx-fweth",
+          "address": "0x98d9Ab78D3608b201BB7b41FDe9D9C7FB13Dad49",
+          "priceId": "gmx-eth",
+          "priceBaseTokenId": "gmx"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "arb-fweth",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "gmx-fweth",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "polygon-mumbai",
+      "ticksMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://rpc-mumbai.maticvigil.com"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0x230f4447F79DC52a5Bc8031Dfdd49da6929Ca290",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x33544752A157AeE7e78AD83DC61E95EF7aAe52a1",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "fmatic",
+          "address": "0x6ea7a8FecbFf190D6B504263BDD81b7F2B07700A",
+          "assertSymbol": "FMATIC",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x64BF3213666bC357155DDb21aD2404d3Df04e0A1",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "fmatic-usdc",
+          "address": "0xC931D0D6BDCc8b264983533a58ED80F1a3b99ef7",
+          "priceId": "matic-usdc",
+          "priceBaseTokenId": "fmatic"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "fmatic-usdc",
           "periodMs": 60000
         }
       ]
