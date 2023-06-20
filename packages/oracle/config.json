@@ -15,6 +15,25 @@
         "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
       },
       {
+        "id": "arb-usdc",
+        "label": "arb/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "arb/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          }
+        ]
+      },
+      {
         "id": "arb-eth",
         "label": "arb/eth",
         "type": "composite",
@@ -116,6 +135,12 @@
           "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
           "priceId": "gmx-eth",
           "priceBaseTokenId": "gmx"
+        },
+        {
+          "id": "arb-usdc",
+          "address": "0x9C653a10e4C51e9A784FeE3D5495de91cf3e1c51",
+          "priceId": "arb-usdc",
+          "priceBaseTokenId": "arb"
         }
       ],
       "updatePriceJobs": [
@@ -129,6 +154,10 @@
         },
         {
           "poolMockId": "gmx-fweth",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "arb-usdc",
           "periodMs": 60000
         }
       ]
