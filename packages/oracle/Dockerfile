@@ -22,7 +22,7 @@ USER node
 COPY --chown=node:node ["package.json", "yarn.lock", "./"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/dist", "packages/oracle/dist/"]
-COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/package.json", "/usr/src/app/packages/oracle/config.json", "/usr/src/app/packages/oracle/config-polygon-mumbai.json", "./packages/oracle/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/oracle/package.json", "/usr/src/app/packages/oracle/config.json", "./packages/oracle/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/dist", "packages/logger/dist/"]
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/package.json", "./packages/logger/"]
