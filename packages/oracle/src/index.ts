@@ -9,8 +9,9 @@ import {
     textFormatter,
 } from '@marginly/logger';
 import {loadConfig, parseConfig} from "./config";
-import {OracleWorker} from "./worker";
 import { stdOutWriter } from '@marginly/logger-node';
+import { PricesRepository } from './repository/prices';
+import { WorkerManager } from './worker/manager';
 
 function createLogFormatter(format: 'text' | 'json'): LogFormatter {
     return format === 'text' ? textFormatter : jsonFormatter;
@@ -28,7 +29,7 @@ async function main(): Promise<void> {
     try {
         rootLogger.info('Starting service');
 
-        let worker: OracleWorker | undefined;
+        let worker: WorkerManager | undefined;
 
         process.on('SIGTERM', () => {
             rootLogger.info('On sigterm');
@@ -52,7 +53,8 @@ async function main(): Promise<void> {
                     },
                 });
 
-                worker = new OracleWorker(config, rootLogger, executor);
+                const pricesRepository = new PricesRepository(config, executor);
+                worker = new WorkerManager(config, rootLogger, executor, pricesRepository);
 
                 rootLogger.info('Service started');
                 await worker.run();

@@ -13,10 +13,14 @@ interface EthereumConfig {
   oraclePrivateKey: string;
 }
 
-export interface OracleWorkerConfig {
-  tickMs: number,
+export interface PricesRepositoryConfig {
   priceCachePeriodMs: number,
-  updatePriceJobs: { poolMockId: string, periodMs: number }[]
+  prices: RootPriceConfig[];
+}
+
+interface OracleWorkerEthereumConfig {
+  nodeUrl: string;
+  oraclePrivateKey?: string;
 }
 
 export interface TokenConfig {
@@ -33,13 +37,31 @@ export interface UniswapV3PoolMockConfig {
   priceBaseTokenId: string;
 }
 
+interface UpdatePriceJobConfig {
+  poolMockId: string;
+  periodMs: number
+}
+
+export interface OracleWorkerConfig {
+  id: string;
+  tickMs: number,
+  ethereum: OracleWorkerEthereumConfig,
+  tokens: TokenConfig[],
+  uniswapV3PoolMocks: UniswapV3PoolMockConfig[];
+  updatePriceJobs: UpdatePriceJobConfig[]
+}
+
+interface WorkerManagerConfig {
+  sequentialFailsThresholdMs: number;
+  restartDelayMs: number;
+}
+
 export interface Config {
   log: LogConfig;
+  pricesRepository: PricesRepositoryConfig;
   ethereum: EthereumConfig;
-  oracleWorker: OracleWorkerConfig;
-  tokens: TokenConfig[];
-  prices: RootPriceConfig[];
-  uniswapV3PoolMocks: UniswapV3PoolMockConfig[];
+  workerManager: WorkerManagerConfig;
+  oracleWorkers: OracleWorkerConfig[];
 }
 
 export interface StrictLogConfig {
@@ -54,13 +76,25 @@ export interface StrictTokenConfig {
   assertDecimals?: number;
 }
 
+interface StrictOracleWorkerEthereumConfig {
+  nodeUrl: string;
+  oraclePrivateKey: string;
+}
+
+export interface StrictOracleWorkerConfig {
+  id: string;
+  tickMs: number,
+  ethereum: StrictOracleWorkerEthereumConfig,
+  tokens: StrictTokenConfig[],
+  uniswapV3PoolMocks: UniswapV3PoolMockConfig[];
+  updatePriceJobs: UpdatePriceJobConfig[]
+}
+
 export interface StrictConfig {
   log: StrictLogConfig;
-  ethereum: EthereumConfig;
-  oracleWorker: OracleWorkerConfig;
-  tokens: StrictTokenConfig[];
-  prices: RootPriceConfig[];
-  uniswapV3PoolMocks: UniswapV3PoolMockConfig[];
+  pricesRepository: PricesRepositoryConfig;
+  workerManager: WorkerManagerConfig;
+  oracleWorkers: StrictOracleWorkerConfig[];
 }
 
 export function loadConfig(): Config {
@@ -107,7 +141,8 @@ function parseLogConfig(config: LogConfig): StrictLogConfig {
 
 function parseOracleWorkerConfig(
   config: OracleWorkerConfig,
-): OracleWorkerConfig {
+  ethereumConfig: EthereumConfig
+): StrictOracleWorkerConfig {
   const idSet = new Set<string>();
 
   for (const job of config.updatePriceJobs) {
@@ -115,10 +150,7 @@ function parseOracleWorkerConfig(
       throw new Error(`Pool mock id '${job.poolMockId}' used in multiple jobs`);
     }
   }
-  return config;
-}
 
-export function parseConfig(config: Config): StrictConfig {
   const tokens: StrictTokenConfig[] = config.tokens.map(x => ({
     id: x.id,
     address: EthAddress.parse(x.address),
@@ -127,11 +159,34 @@ export function parseConfig(config: Config): StrictConfig {
   }));
 
   return {
-    log: parseLogConfig(config.log),
-    ethereum: config.ethereum,
-    oracleWorker: parseOracleWorkerConfig(config.oracleWorker),
+    id: config.id,
+    tickMs: config.tickMs,
+    ethereum: {
+      nodeUrl: config.ethereum.nodeUrl,
+      oraclePrivateKey: config.ethereum.oraclePrivateKey ?? ethereumConfig.oraclePrivateKey,
+    },
     tokens,
-    prices: config.prices,
     uniswapV3PoolMocks: config.uniswapV3PoolMocks,
+    updatePriceJobs: config.updatePriceJobs
+  };
+}
+
+export function parseConfig(config: Config): StrictConfig {
+  const workerIds = new Set<string>();
+
+  for (const workerConfig of config.oracleWorkers) {
+    if (workerIds.has(workerConfig.id)) {
+      throw new Error(`Duplicate worker id ${workerConfig.id}`);
+    }
+    workerIds.add(workerConfig.id);
+  }
+
+  const oracleWorkers = config.oracleWorkers.map(x => parseOracleWorkerConfig(x, config.ethereum));
+
+  return {
+    log: parseLogConfig(config.log),
+    pricesRepository: config.pricesRepository,
+    workerManager: config.workerManager,
+    oracleWorkers
   };
 }
