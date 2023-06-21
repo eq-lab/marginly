@@ -15,6 +15,7 @@ import * as ethers from 'ethers';
 import { ContractDescription, EthAddress } from '@marginly/common';
 import { using } from '@marginly/common/resource';
 import { PricesRepository } from '../repository/prices';
+import { BigNumber, Event } from 'ethers';
 
 function readUniswapMockContract(name: string): ContractDescription {
   return require(`@marginly/contracts-uniswap-mock/artifacts/contracts/${name}.sol/${name}.json`);
@@ -25,15 +26,16 @@ function readOpenzeppelinContract(name: string): ContractDescription {
 }
 
 type Token = StrictTokenConfig & {
-  contract: ethers.Contract,
-  symbol: string,
-  decimals: number
+  contract: ethers.Contract;
+  symbol: string;
+  decimals: number;
 };
 
 type PoolMock = UniswapV3PoolMockConfig & {
-  contract: ethers.Contract,
-  token0Address: EthAddress,
-  token1Address: EthAddress,
+  validated: boolean;
+  contract: ethers.Contract;
+  token0Address: EthAddress;
+  token1Address: EthAddress;
 }
 
 export class OracleWorker implements Worker {
@@ -127,14 +129,52 @@ export class OracleWorker implements Worker {
       const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
       logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
 
+      let tx;
       try {
-        await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
+        tx = await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
       } catch (error) {
-        if ((error as Record<string, unknown>)?.code === ethers.utils.Logger.errors.INSUFFICIENT_FUNDS) {
-          logger.warn('Unable to set price: insufficient funds');
+        if (poolMock.validated && (error as Record<string, unknown>)?.code === ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT) {
+          logger.warn('Unable to set price: unpredictable gas limit');
         } else {
           throw error;
         }
+      }
+
+      if (!poolMock.validated) {
+        logger.info('Validating setPrice call result');
+
+        if (tx === undefined) {
+          throw new Error('Invalid state: tx can not be undefined before successful mock validation');
+        }
+        const setPriceEvents: Event[] = (await tx.wait()).events.filter((x: Event) => x.event === 'SetPrice');
+
+        if (setPriceEvents.length === 0) {
+          throw new Error('SetPrice event is not found');
+        }
+
+        if (setPriceEvents.length > 1) {
+          throw new Error('Found multiple SetPrice events');
+        }
+
+        const event = setPriceEvents[0];
+
+        const actualPriceFp18 = event.args?.price;
+        if (actualPriceFp18 === undefined) {
+          throw new Error('SetPrice field actualPrice is not found');
+        }
+        if (!BigNumber.from(priceFp18).eq(actualPriceFp18)) {
+          throw new Error('Set price differs from actual');
+        }
+
+        const actualSqrtPriceX96 = event.args?.sqrtPriceX96;
+        if (actualSqrtPriceX96 === undefined) {
+          throw new Error('SetPrice field sqrtPriceX96 is not found');
+        }
+        if (!BigNumber.from(sqrtPriceX96).eq(actualSqrtPriceX96)) {
+          throw new Error('Set sqrtPriceX96 differs from actual');
+        }
+
+        poolMock.validated = true;
       }
 
       this.state.lastJobStartTimes.set(poolMockId, startTime);
@@ -178,6 +218,7 @@ export class OracleWorker implements Worker {
         const token1 = await contract.token1();
         poolMocks.set(poolMockConfig.id, {
           ...poolMockConfig,
+          validated: false,
           contract,
           token0Address: EthAddress.parse(token0),
           token1Address: EthAddress.parse(token1),
