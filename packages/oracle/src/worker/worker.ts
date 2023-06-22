@@ -52,6 +52,7 @@ export class OracleWorker implements Worker {
     lastJobStartTimes: Map<string, bigint>;
     poolMocks: Map<string, PoolMock>;
     tokens: Map<string, Token>;
+    chainId: number;
   };
 
   public constructor(
@@ -88,6 +89,24 @@ export class OracleWorker implements Worker {
       }
     }
     throw new Error(`Token with address ${address} not found`);
+  }
+
+  private isZkSyncEra(): boolean {
+    if (this.state === undefined) {
+      throw new Error('Worker is not started');
+    }
+    const zkSyncEraTestnetChainId = 280;
+    const zkSyncEraMainnetChainId = 324;
+
+    return this.state.chainId === zkSyncEraTestnetChainId || this.state.chainId === zkSyncEraMainnetChainId;
+  }
+
+  private isErrorMessageContains(error: unknown, text: string): boolean {
+    const slightlyTypedError = error as { message?: string; };
+    if (typeof slightlyTypedError?.message === 'string') {
+      return slightlyTypedError.message.match(new RegExp(text, 'i')) !== null;
+    }
+    return false;
   }
 
   private async processTick(logger: Logger, poolMockId: string, periodMs: bigint): Promise<void> {
@@ -134,7 +153,9 @@ export class OracleWorker implements Worker {
         tx = await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
       } catch (error) {
         if (poolMock.validated && (error as Record<string, unknown>)?.code === ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT) {
-          logger.warn('Unable to set price: unpredictable gas limit');
+          logger.warn(error, 'Unable to set price: unpredictable gas limit');
+        } else if (poolMock.validated && this.isZkSyncEra() && this.isErrorMessageContains(error, 'not enough balance')) {
+          logger.warn(error, 'Unable to set price: not enough balance');
         } else {
           throw error;
         }
@@ -225,11 +246,14 @@ export class OracleWorker implements Worker {
         });
       }
 
+      const { chainId } = await provider.getNetwork();
+
       this.state = {
         workerConfig,
         lastJobStartTimes: new Map<string, bigint>(),
         poolMocks,
         tokens,
+        chainId,
       };
 
       logger.info('Oracle worker started');
