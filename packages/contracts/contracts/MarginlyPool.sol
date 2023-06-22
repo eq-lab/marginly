@@ -105,7 +105,7 @@ contract MarginlyPool is IMarginlyPool {
     uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
-    MarginlyParams memory _params
+    MarginlyParams calldata _params
   ) external {
     require(factory == address(0), 'FB'); // Forbidden
 
