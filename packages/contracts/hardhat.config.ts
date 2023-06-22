@@ -17,7 +17,7 @@ const config = {
       url: 'https://rpc.ankr.com/polygon_mumbai',
     },
     arbitrumGoerli: {
-      url: '',
+      url: 'https://goerli-rollup.arbitrum.io/rpc',
     },
   },
   etherscan: {
