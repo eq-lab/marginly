@@ -29,15 +29,15 @@ contract RouterTestUniswapPool {
     bytes calldata data
   ) external returns (int256 amount0, int256 amount1) {
     bool exactInput = amountSpecified > 0;
-    uint256 amountSpecifiedAbs = uint256(amountSpecified >= 0 ? amountSpecified : - amountSpecified);
+    uint256 amountSpecifiedAbs = uint256(amountSpecified >= 0 ? amountSpecified : -amountSpecified);
 
     if (exactInput) {
       if (zeroForOne) {
         amount0 = amountSpecified;
-        amount1 = - int256(Math.mulDiv(amountSpecifiedAbs, price, 1));
+        amount1 = -int256(Math.mulDiv(amountSpecifiedAbs, price, 1));
       } else {
         amount1 = amountSpecified;
-        amount0 = - int256(Math.mulDiv(amountSpecifiedAbs, 1, price));
+        amount0 = -int256(Math.mulDiv(amountSpecifiedAbs, 1, price));
       }
     } else {
       if (zeroForOne) {
@@ -55,10 +55,10 @@ contract RouterTestUniswapPool {
 
     // do the transfers and collect payment
     if (zeroForOne) {
-      if (amount1 < 0) TransferHelper.safeTransfer(token1, recipient, uint256(- amount1));
+      if (amount1 < 0) TransferHelper.safeTransfer(token1, recipient, uint256(-amount1));
       IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
     } else {
-      if (amount0 < 0) TransferHelper.safeTransfer(token0, recipient, uint256(- amount0));
+      if (amount0 < 0) TransferHelper.safeTransfer(token0, recipient, uint256(-amount0));
       IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
     }
   }

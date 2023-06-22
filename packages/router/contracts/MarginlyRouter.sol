@@ -8,15 +8,8 @@ import './interfaces/IMarginlyRouter.sol';
 import './dex/dex.sol';
 import './dex/UniswapV3Swap.sol';
 
-
-contract MarginlyRouter is IMarginlyRouter, Ownable, IUniswapV3SwapCallback {
+contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
   error UnknownDex();
-
-  bool public debug;
-  int256 public debug0;
-  int256 public debug1;
-
-  address immutable uniswap;
 
   constructor(address _uniswap) {
     uniswap = _uniswap;
@@ -71,30 +64,6 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, IUniswapV3SwapCallback {
     //   WoofiSwap.woofiSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else {
       revert UnknownDex();
-    }
-  }
-
-  function uniswapV3SwapCallback(
-    int256 amount0Delta,
-    int256 amount1Delta,
-    bytes calldata _data
-  ) external override {
-    debug0 = amount0Delta;
-    debug1 = amount1Delta;
-    require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
-    UniswapV3Swap.SwapCallbackData memory data = abi.decode(_data, (UniswapV3Swap.SwapCallbackData));
-    (address tokenIn, address tokenOut) = (data.tokenIn, data.tokenOut);
-    require(msg.sender == uniswap);
-
-    (bool isExactInput, uint256 amountToPay) =
-      amount0Delta > 0
-        ? (tokenIn < tokenOut, uint256(amount0Delta))
-        : (tokenOut < tokenIn, uint256(amount1Delta));
-    debug = isExactInput;
-    if (isExactInput) {
-      TransferHelper.safeTransferFrom(tokenIn, data.payer, msg.sender, amountToPay);
-    } else {
-      TransferHelper.safeTransferFrom(tokenOut, data.payer, msg.sender, amountToPay);
     }
   }
 }
