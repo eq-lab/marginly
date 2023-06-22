@@ -300,13 +300,14 @@ describe('MarginlyPool.Base', () => {
       await (await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS)).wait();
 
       const firstDeposit = 1000;
-      const shortAmount = 200;
+      const shortAmount = 250;
       await (
         await marginlyPool
           .connect(signer)
           .execute(CallType.DepositQuote, firstDeposit, shortAmount, false, ZERO_ADDRESS)
       ).wait();
 
+      let positionRealBaseAmount = shortAmount;
       const initialPrice = await marginlyPool.initialPrice();
       let position = await marginlyPool.positions(signer.address);
       expect(position.heapPosition).to.be.equal(1);
@@ -323,9 +324,12 @@ describe('MarginlyPool.Base', () => {
       await (
         await marginlyPool.connect(signer).execute(CallType.DepositBase, baseDepositFirst, 0, false, ZERO_ADDRESS)
       ).wait();
+      const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
 
       position = await marginlyPool.positions(signer.address);
       expect(position._type).to.be.equal(PositionType.Short);
+      positionRealBaseAmount -= baseDepositFirst;
+      expect(position.discountedBaseAmount.mul(baseDebtCoeff).div(FP96.one)).to.be.equal(BigNumber.from(positionRealBaseAmount));
 
       const sortKeyAfter = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
       const expectedSortKeyAfter = calcShortSortKey(
@@ -337,16 +341,18 @@ describe('MarginlyPool.Base', () => {
       // leverage should be less after depositBase
       expect(sortKeyAfter).to.be.lessThan(sortKeyBefore);
 
-      const baseDepositSecond = 200;
+      const baseDepositSecond = positionRealBaseAmount * 2;
       await (
         await marginlyPool.connect(signer).execute(CallType.DepositBase, baseDepositSecond, 0, false, ZERO_ADDRESS)
       ).wait();
 
       {
         const position = await marginlyPool.positions(signer.address);
+        const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
         expect(position._type).to.be.equal(PositionType.Lend);
         expect(position.heapPosition).to.be.equal(0);
         expect((await marginlyPool.getShortHeapPosition(0))[0]).to.be.false;
+        expect(position.discountedBaseAmount.mul(baseCollateralCoeff).div(FP96.one)).to.be.equal(positionRealBaseAmount);
       }
     });
 
@@ -552,22 +558,38 @@ describe('MarginlyPool.Base', () => {
       await (
         await marginlyPool.connect(signer).execute(CallType.DepositBase, firstDeposit, 0, false, ZERO_ADDRESS)
       ).wait();
-      const longAmount = 63;
+      const longAmount = 100;
+      const price = (await marginlyPool.getBasePrice()).inner;
+      let positionRealQuoteAmount = price.mul(longAmount).div(FP96.one);
       await (await marginlyPool.connect(signer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS)).wait();
 
       const positionBefore = await marginlyPool.positions(signer.address);
       expect(positionBefore._type).to.be.equal(PositionType.Long);
       expect(positionBefore.heapPosition).to.be.equal(1);
 
-      const quoteDepositSecond = 300;
+      const quoteDepositFirst = 20;
+      positionRealQuoteAmount = positionRealQuoteAmount.sub(quoteDepositFirst);
+      expect(positionRealQuoteAmount).to.be.greaterThan(0);
+      await(await marginlyPool.connect(signer).execute(CallType.DepositQuote, quoteDepositFirst, 0, false, ZERO_ADDRESS)).wait();
+
+      {
+        const positionAfter = await marginlyPool.positions(signer.address);
+        const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
+        expect(positionAfter._type).to.be.equal(PositionType.Long);
+        expect(positionAfter.discountedQuoteAmount.mul(quoteDebtCoeff).div(FP96.one)).to.be.equal(positionRealQuoteAmount);
+      }
+
+      const quoteDepositSecond = positionRealQuoteAmount.mul(2);
       await (
         await marginlyPool.connect(signer).execute(CallType.DepositQuote, quoteDepositSecond, 0, false, ZERO_ADDRESS)
       ).wait();
 
       const positionAfter = await marginlyPool.positions(signer.address);
+      const quoteCollateralCoeff = await marginlyPool.quoteDebtCoeff();
       expect(positionAfter._type).to.be.equal(PositionType.Lend);
       expect(positionAfter.heapPosition).to.be.equal(0);
       expect((await marginlyPool.getLongHeapPosition(0))[0]).to.be.false;
+      expect(positionAfter.discountedQuoteAmount.mul(quoteCollateralCoeff).div(FP96.one)).to.be.equal(positionRealQuoteAmount);
     });
 
     it('depositQuote and open short position', async () => {

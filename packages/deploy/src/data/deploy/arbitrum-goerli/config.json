@@ -51,6 +51,25 @@
       "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
     },
     {
+      "id": "arb-usdc",
+      "label": "arb/usdc",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "arb/usdt",
+          "direction": "forward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+        }
+      ]
+    },
+    {
       "id": "arb-eth",
       "label": "arb/eth",
       "type": "composite",
@@ -124,6 +143,16 @@
         "tokenBBalance": "1_000_000",
         "priceId": "gmx-eth",
         "priceBaseTokenId": "gmx"
+      },
+      {
+        "id": "arb-usdc",
+        "tokenAId": "arb",
+        "tokenBId": "usdc",
+        "fee": "0.05%",
+        "tokenABalance": "2_180_000",
+        "tokenBBalance": "780_000",
+        "priceId": "arb-usdc",
+        "priceBaseTokenId": "arb"
       }
     ]
   },
@@ -185,6 +214,24 @@
         "positionMinAmount": "0.001",
         "baseLimit": "12_000",
         "quoteLimit": "500"
+      }
+    },
+    {
+      "id": "arb-usdc",
+      "uniswapPoolId": "arb-usdc",
+      "baseTokenId": "arb",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "1_000_000",
+        "quoteLimit": "500_000"
       }
     }
   ],
