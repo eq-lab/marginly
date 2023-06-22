@@ -100,7 +100,7 @@ contract MarginlyPool is IMarginlyPool {
     uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
-    MarginlyParams calldata _params
+    MarginlyParams memory _params
   ) {
     factory = msg.sender;
     quoteToken = _quoteToken;
@@ -126,7 +126,7 @@ contract MarginlyPool is IMarginlyPool {
     require(msg.sender == IMarginlyFactory(factory).WETH9(), 'NW9'); // Not WETH9
   }
 
-  function getTimestamp() internal virtual view returns (uint256) {
+  function getTimestamp() internal view virtual returns (uint256) {
     return block.timestamp;
   }
 

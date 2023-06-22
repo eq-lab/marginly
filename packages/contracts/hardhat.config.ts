@@ -49,20 +49,6 @@ const config: HardhatUserConfig & Record<string, unknown> = {
       },
     },
   },
-  networks: {
-    polygonMumbai: {
-      url: 'https://rpc.ankr.com/polygon_mumbai',
-    },
-    arbitrumGoerli: {
-      url: 'https://goerli-rollup.arbitrum.io/rpc',
-    },
-  },
-  etherscan: {
-    apiKey: {
-      polygonMumbai: '',
-      arbitrumGoerli: '',
-    },
-  },
   mocha: {
     timeout: 200_000,
   },

@@ -6,7 +6,7 @@
     },
     {
       "id": "fweth-usdc",
-      "address": "0x6Fe1030A59C2F22300A5Dc14111CBE36d5ec82c5"
+      "address": "0xc3300184480512a4e4BA0Ae527e5fD153Bf6E1C2"
     },
     {
       "id": "gmx-fweth",
@@ -14,6 +14,6 @@
     }
   ],
   "marginlyKeeper": {
-    "address": "0x5b21057Ff727C4d9F49301CD81a326b5b34D7DE4"
+    "address": "0xD24DC5766c0Fc7af4d501DB737971D6Ef6cc9A3b"
   }
 }
