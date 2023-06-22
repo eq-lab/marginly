@@ -28,7 +28,7 @@ import {
   DeployState,
   DeployConfig,
 } from '@marginly/deploy';
-import { deploySbt, SbtDeployment } from '@marginly/sbt/deploy';
+import { deploySbt } from '@marginly/sbt';
 
 const nodeUriParameter = {
   name: ['eth', 'node', 'uri'],
@@ -363,8 +363,7 @@ const deploySbtCommand = new Command('sbt')
         const logger = new SimpleLogger((x) => console.error(x));
         const stateStore = new StateFile('SBT', createDefaultBaseState, actualStateFile, logger).createStateStore();
         const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
-
-        const sbtDeployment = await deploySbt(signer, rawConfig); //, stateStore, logger);
+        const sbtDeployment = await deploySbt(signer, rawConfig, stateStore, logger);
 
         fs.writeFileSync(actualDeploymentFile, JSON.stringify(sbtDeployment, null, 2), { encoding: 'utf-8' });
       }

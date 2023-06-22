@@ -41,7 +41,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
 
     for (uint256 i = 0; i < ids.length; i++) {
       uint256 id = ids[i];
-      require(id != 0, 'zero id');
+      require(id == i, 'invalid id');
       require(_tokenBalanceLimits[id] == 0, 'id duplicate');
       _tokenBalanceLimits[id] = tokenBalanceLimits[i];
       _setURI(id, uri[i]);

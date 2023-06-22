@@ -16,9 +16,9 @@ describe('setURI', () => {
     params = {
       owner,
       tokens: [
+        { id: 0, uri: 'Token0', maxAmount: 2 },
         { id: 1, uri: 'Token1', maxAmount: 2 },
         { id: 2, uri: 'Token2', maxAmount: 2 },
-        { id: 3, uri: 'Token3', maxAmount: 2 },
       ],
     };
     contract = await deploySBT(params);
@@ -34,6 +34,6 @@ describe('setURI', () => {
   });
 
   it('not owner', async () => {
-    await expect(contract.connect(signers[2]).setURI(1, 'newToken2')).to.be.revertedWith('not owner');
+    await expect(contract.connect(signers[2]).setURI(0, 'newToken0')).to.be.revertedWith('not owner');
   });
 });

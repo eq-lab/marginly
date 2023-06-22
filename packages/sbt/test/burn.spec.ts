@@ -18,20 +18,20 @@ describe('burn', () => {
     params = {
       owner,
       tokens: [
+        { id: 0, uri: 'Token0', maxAmount: 2 },
         { id: 1, uri: 'Token1', maxAmount: 2 },
         { id: 2, uri: 'Token2', maxAmount: 2 },
-        { id: 3, uri: 'Token3', maxAmount: 2 },
       ],
     };
     contract = await deploySBT(params);
 
     mintParams = [
-      { acc: signers[0].address, tokenId: 1, amount: 0 },
-      { acc: signers[0].address, tokenId: 2, amount: 2 },
-      { acc: signers[0].address, tokenId: 3, amount: 1 },
-      { acc: signers[1].address, tokenId: 1, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 0 },
-      { acc: signers[1].address, tokenId: 3, amount: 2 },
+      { acc: signers[0].address, tokenId: 0, amount: 0 },
+      { acc: signers[0].address, tokenId: 1, amount: 2 },
+      { acc: signers[0].address, tokenId: 2, amount: 1 },
+      { acc: signers[1].address, tokenId: 0, amount: 1 },
+      { acc: signers[1].address, tokenId: 1, amount: 0 },
+      { acc: signers[1].address, tokenId: 2, amount: 2 },
     ];
 
     const callParams = makeMintBurnCallParams(mintParams);
@@ -46,12 +46,12 @@ describe('burn', () => {
 
   it('successful burn', async () => {
     const burnParams: MintParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 0 },
+      { acc: signers[0].address, tokenId: 0, amount: 0 },
+      { acc: signers[0].address, tokenId: 1, amount: 1 },
       { acc: signers[0].address, tokenId: 2, amount: 1 },
-      { acc: signers[0].address, tokenId: 3, amount: 1 },
+      { acc: signers[1].address, tokenId: 0, amount: 0 },
       { acc: signers[1].address, tokenId: 1, amount: 0 },
-      { acc: signers[1].address, tokenId: 2, amount: 0 },
-      { acc: signers[1].address, tokenId: 3, amount: 2 },
+      { acc: signers[1].address, tokenId: 2, amount: 2 },
     ];
 
     const callParams = makeMintBurnCallParams(burnParams);

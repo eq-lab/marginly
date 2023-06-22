@@ -17,9 +17,9 @@ describe('mint', () => {
     params = {
       owner,
       tokens: [
+        { id: 0, uri: 'Token0', maxAmount: 2 },
         { id: 1, uri: 'Token1', maxAmount: 2 },
         { id: 2, uri: 'Token2', maxAmount: 2 },
-        { id: 3, uri: 'Token3', maxAmount: 2 },
       ],
     };
     contract = await deploySBT(params);
@@ -27,12 +27,12 @@ describe('mint', () => {
 
   it('successful mint', async () => {
     const mintParams: MintParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 0 },
-      { acc: signers[0].address, tokenId: 2, amount: 2 },
-      { acc: signers[0].address, tokenId: 3, amount: 1 },
-      { acc: signers[1].address, tokenId: 1, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 0 },
-      { acc: signers[1].address, tokenId: 3, amount: 2 },
+      { acc: signers[0].address, tokenId: 0, amount: 0 },
+      { acc: signers[0].address, tokenId: 1, amount: 2 },
+      { acc: signers[0].address, tokenId: 2, amount: 1 },
+      { acc: signers[1].address, tokenId: 0, amount: 1 },
+      { acc: signers[1].address, tokenId: 1, amount: 0 },
+      { acc: signers[1].address, tokenId: 2, amount: 2 },
     ];
 
     const callParams = makeMintBurnCallParams(mintParams);
@@ -47,12 +47,12 @@ describe('mint', () => {
 
   it('balanceOfBatch', async () => {
     const mintParams: MintParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 0 },
-      { acc: signers[0].address, tokenId: 2, amount: 2 },
-      { acc: signers[0].address, tokenId: 3, amount: 1 },
-      { acc: signers[1].address, tokenId: 1, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 0 },
-      { acc: signers[1].address, tokenId: 3, amount: 2 },
+      { acc: signers[0].address, tokenId: 0, amount: 0 },
+      { acc: signers[0].address, tokenId: 1, amount: 2 },
+      { acc: signers[0].address, tokenId: 2, amount: 1 },
+      { acc: signers[1].address, tokenId: 0, amount: 1 },
+      { acc: signers[1].address, tokenId: 1, amount: 0 },
+      { acc: signers[1].address, tokenId: 2, amount: 2 },
     ];
 
     const callParams = makeMintBurnCallParams(mintParams);
@@ -72,12 +72,12 @@ describe('mint', () => {
 
   it('invalid array len', async () => {
     const mintParams: MintParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 0 },
-      { acc: signers[0].address, tokenId: 2, amount: 2 },
-      { acc: signers[0].address, tokenId: 3, amount: 1 },
-      { acc: signers[1].address, tokenId: 1, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 0 },
-      { acc: signers[1].address, tokenId: 3, amount: 2 },
+      { acc: signers[0].address, tokenId: 0, amount: 0 },
+      { acc: signers[0].address, tokenId: 1, amount: 2 },
+      { acc: signers[0].address, tokenId: 2, amount: 1 },
+      { acc: signers[1].address, tokenId: 0, amount: 1 },
+      { acc: signers[1].address, tokenId: 1, amount: 0 },
+      { acc: signers[1].address, tokenId: 2, amount: 2 },
     ];
 
     const callParams = makeMintBurnCallParams(mintParams);
@@ -88,7 +88,7 @@ describe('mint', () => {
   });
 
   it('user balance max cap', async () => {
-    const mintParams: MintParam[] = [{ acc: signers[0].address, tokenId: 1, amount: 3 }];
+    const mintParams: MintParam[] = [{ acc: signers[0].address, tokenId: 0, amount: 3 }];
 
     const callParams = makeMintBurnCallParams(mintParams);
 
@@ -96,7 +96,7 @@ describe('mint', () => {
   });
 
   it('not owner', async () => {
-    const mintParams: MintParam[] = [{ acc: signers[1].address, tokenId: 2, amount: 1 }];
+    const mintParams: MintParam[] = [{ acc: signers[1].address, tokenId: 1, amount: 1 }];
 
     const callParams = makeMintBurnCallParams(mintParams);
 

@@ -8,8 +8,8 @@ describe('constructor', () => {
     const params: SBTContractParams = {
       owner,
       tokens: [
+        { id: 0, uri: 'Token0', maxAmount: 2 },
         { id: 1, uri: 'Token1', maxAmount: 2 },
-        { id: 2, uri: 'Token2', maxAmount: 2 },
       ],
     };
     const contract = await deploySBT(params);
@@ -25,42 +25,56 @@ describe('constructor', () => {
   });
 
   it('tokenBalanceLimits invalid len', async () => {
-    const ids = [1, 2];
+    const ids = [0, 1];
     const maxAmounts = [2];
-    const uris = ['Token1', 'Token2'];
+    const uris = ['Token0', 'Token1'];
     await expect(deploySBTWithParams(ids, maxAmounts, uris)).to.be.revertedWith('tokenBalanceLimits invalid len');
   });
 
   it('uri invalid len', async () => {
-    const ids = [1, 2];
+    const ids = [0, 1];
     const maxAmounts = [2, 2];
     const uris = ['Token1'];
     await expect(deploySBTWithParams(ids, maxAmounts, uris)).to.be.revertedWith('uri invalid len');
   });
 
-  it('zero id', async () => {
-    const owner = (await ethers.getSigners())[0];
-    const params: SBTContractParams = {
-      owner,
-      tokens: [
-        { id: 0, uri: 'Token1', maxAmount: 2 },
-        { id: 1, uri: 'Token2', maxAmount: 2 },
-      ],
-    };
-
-    await expect(deploySBT(params)).to.be.revertedWith('zero id');
-  });
-
-  it('id duplicate', async () => {
+  it('incorrect sequence 1', async () => {
     const owner = (await ethers.getSigners())[0];
     const params: SBTContractParams = {
       owner,
       tokens: [
         { id: 1, uri: 'Token1', maxAmount: 2 },
-        { id: 1, uri: 'Token2', maxAmount: 2 },
+        { id: 0, uri: 'Token0', maxAmount: 2 },
       ],
     };
 
-    await expect(deploySBT(params)).to.be.revertedWith('id duplicate');
+    await expect(deploySBT(params)).to.be.revertedWith('invalid id');
+  });
+
+  it('incorrect sequence 2', async () => {
+    const owner = (await ethers.getSigners())[0];
+    const params: SBTContractParams = {
+      owner,
+      tokens: [
+        { id: 0, uri: 'Token1', maxAmount: 2 },
+        { id: 2, uri: 'Token2', maxAmount: 2 },
+        { id: 1, uri: 'Token1', maxAmount: 2 },
+      ],
+    };
+
+    await expect(deploySBT(params)).to.be.revertedWith('invalid id');
+  });
+
+  it('duplicate id', async () => {
+    const owner = (await ethers.getSigners())[0];
+    const params: SBTContractParams = {
+      owner,
+      tokens: [
+        { id: 0, uri: 'Token0', maxAmount: 2 },
+        { id: 0, uri: 'Token0', maxAmount: 2 },
+      ],
+    };
+
+    await expect(deploySBT(params)).to.be.revertedWith('invalid id');
   });
 });

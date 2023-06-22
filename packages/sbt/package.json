@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Marginly SBT contract",
   "license": "MIT",
+  "main": "dist/index.js",
   "directories": {
     "test": "test"
   },
@@ -14,6 +15,8 @@
   },
   "author": "EqLab",
   "devDependencies": {
+    "@marginly/deploy": "0.1.0",
+    "@marginly/common": "0.1.0",
     "@aave/core-v3": "1.17.2",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",

@@ -1,11 +1,11 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es2020",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "composite": true
-  }
+    "outDir": "dist",
+    "declaration": true,
+    "composite": true,
+    "rootDir": "deploy",
+    "resolveJsonModule": true
+  },
+  "include": ["deploy/*", "deploy/*.json"],
 }

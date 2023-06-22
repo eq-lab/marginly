@@ -16,9 +16,9 @@ describe('setNewOwner', () => {
     params = {
       owner,
       tokens: [
+        { id: 0, uri: 'Token0', maxAmount: 2 },
         { id: 1, uri: 'Token1', maxAmount: 2 },
         { id: 2, uri: 'Token2', maxAmount: 2 },
-        { id: 3, uri: 'Token3', maxAmount: 2 },
       ],
     };
     contract = await deploySBT(params);
