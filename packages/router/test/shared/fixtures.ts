@@ -33,7 +33,7 @@ export async function createUniswapV3Pool(token0: TestERC20Token, token1: TestER
 }> {
   const factory = await (await ethers.getContractFactory('RouterTestUniswapV3Factory')).deploy();
   const tx = await (await factory.createPool(token0.address, token1.address, 500)).wait();
-  const uniswapPoolAddress = tx.events?.find((x: { event: string }) => x.event === 'TestPoolCreated').args?.pool;
+  const uniswapPoolAddress = tx.events?.find((x) => x.event === 'TestPoolCreated')!.args?.pool;
   const uniswapV3Pool = await ethers.getContractAt('RouterTestUniswapV3Pool', uniswapPoolAddress);
   await token0.mint(uniswapV3Pool.address, parseUnits('100000', 18));
   await token1.mint(uniswapV3Pool.address, parseUnits('100000', 18));
@@ -54,6 +54,7 @@ export async function createUniswapV2Pair(token0: TestERC20Token, token1: TestER
   const uniswapV2Pair = await ethers.getContractAt('RouterTestUniswapV2Pair', uniswapPoolAddress);
   await token0.mint(uniswapV2Pair.address, parseUnits('100000', 18));
   await token1.mint(uniswapV2Pair.address, parseUnits('100000', 18));
+  await uniswapV2Pair.sync();
   return {
     uniswapV2Pair,
     uniswapV2Factory: factory,
@@ -62,17 +63,17 @@ export async function createUniswapV2Pair(token0: TestERC20Token, token1: TestER
 
 export async function createMarginlyRouter(): Promise<{
   marginlyRouter: MarginlyRouter;
-  quoteToken: TestERC20Token;
-  baseToken: TestERC20Token;
+  token0: TestERC20Token;
+  token1: TestERC20Token;
   uniswapV3Pool: RouterTestUniswapV3Pool;
-  uniswapV3Factory: RouterTestUniswapV3Factory;
+  uniswapV2Pair: RouterTestUniswapV2Pair
 }> {
   const tokenA = await createToken('TokenA', 'TKA');
   const tokenB = await createToken('TokenB', 'TKB');
   let token0;
   let token1;
 
-  if (tokenA.address < tokenB.address) {
+  if (tokenA.address.toLowerCase() < tokenB.address.toLowerCase()) {
     token0 = tokenA;
     token1 = tokenB;
   } else {
@@ -87,9 +88,9 @@ export async function createMarginlyRouter(): Promise<{
 
   return {
     marginlyRouter,
-    quoteToken: token0,
-    baseToken: token1,
+    token0,
+    token1,
     uniswapV3Pool,
-    uniswapV3Factory,
+    uniswapV2Pair,
   };
 }

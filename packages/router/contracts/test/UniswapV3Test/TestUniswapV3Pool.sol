@@ -12,6 +12,9 @@ contract RouterTestUniswapV3Pool {
   address public token1;
   uint160 public price = 10;
 
+  bool public debugZeroForOne;
+  bool public debugExactInput;
+
   constructor(address _token0, address _token1) {
     token0 = _token0;
     token1 = _token1;
@@ -24,7 +27,9 @@ contract RouterTestUniswapV3Pool {
     uint160 sqrtPriceLimitX96,
     bytes calldata data
   ) external returns (int256 amount0, int256 amount1) {
+    debugZeroForOne = zeroForOne;
     bool exactInput = amountSpecified > 0;
+    debugExactInput = exactInput;
     uint256 amountSpecifiedAbs = uint256(amountSpecified >= 0 ? amountSpecified : -amountSpecified);
 
     if (exactInput) {

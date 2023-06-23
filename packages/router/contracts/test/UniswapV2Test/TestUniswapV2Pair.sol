@@ -70,14 +70,17 @@ contract RouterTestUniswapV2Pair is IUniswapV2Pair {
       require(balance0Adjusted * balance1Adjusted >= uint(_reserve0) * _reserve1 * (1000 ** 2), 'UniswapV2: K');
     }
 
-    // _update(balance0, balance1, _reserve0, _reserve1);
-    // emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+    sync();
+  }
+
+  function sync() public {
+    reserve0 = uint112(IERC20(token0).balanceOf(address(this)));
+    reserve1 = uint112(IERC20(token1).balanceOf(address(this)));
   }
 
   function mint(address to) external returns (uint liquidity) {}
   function burn(address to) external returns (uint amount0, uint amount1) {}
   function skim(address to) external {}
-  function sync() external {}
   function DOMAIN_SEPARATOR() external view returns (bytes32) {}
   function PERMIT_TYPEHASH() external pure returns (bytes32) {}
   function allowance(address owner, address spender) external view returns (uint) {}
