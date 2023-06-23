@@ -24,27 +24,28 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * @dev Throws if called by any account other than the owner.
    */
   modifier onlyOwner() {
-    require(msg.sender == _owner, 'not owner');
+    _onlyOwner();
     _;
+  }
+
+  function _onlyOwner() private view {
+    require(msg.sender == _owner, 'not owner'); // Access denied
   }
 
   event TokenMinted(address indexed to, uint256 tokenId, uint256 newBalance);
   event TokenBurned(address indexed from, uint256 tokenId, uint256 newBalance);
 
-  /**
-   * @dev See {_setURI}.
-   */
-  constructor(uint256[] memory ids, uint256[] memory tokenBalanceLimits, string[] memory uri) {
+  constructor(uint256[] memory ids, uint256[] memory tokenBalanceLimits, string[] memory tokenUris) {
     uint256 idLength = ids.length;
     require(tokenBalanceLimits.length == idLength, 'tokenBalanceLimits invalid len');
-    require(uri.length == idLength, 'uri invalid len');
+    require(tokenUris.length == idLength, 'uri invalid len');
 
     for (uint256 i = 0; i < idLength; i++) {
       uint256 id = ids[i];
       require(id == i, 'invalid id');
       require(_tokenBalanceLimits[id] == 0, 'id duplicate');
       _tokenBalanceLimits[id] = tokenBalanceLimits[i];
-      _setURI(id, uri[i]);
+      _setURI(id, tokenUris[i]);
     }
 
     _owner = msg.sender;
@@ -93,8 +94,8 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * - `accounts` and `ids` must have the same length.
    */
   function balanceOfBatch(
-    address[] memory accounts,
-    uint256[] memory ids
+    address[] calldata accounts,
+    uint256[] calldata ids
   ) public view virtual returns (uint256[] memory) {
     uint256 accountsLen = accounts.length;
     require(accountsLen == ids.length, 'invalid array len');
@@ -148,9 +149,9 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
   }
 
   /**
-   * @dev Creates `amount` tokens of token type `id`, and assigns them to `to`.
+   * @dev Creates token with token type `id`, and assigns them to `to`.
    *
-   * Emits a {TransferSingle} event.
+   * Emits a {TokenMinted} event.
    *
    * Requirements:
    *
@@ -159,38 +160,44 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * acceptance magic value.
    */
   function _mint(address to, uint256 id) internal {
-    require(_balances[id][to] < _tokenBalanceLimits[id], 'user balance max cap');
-    _balances[id][to] += 1;
-    emit TokenMinted(to, id, _balances[id][to]);
+    require(to != address(0), 'zero address');
+    uint256 balance = _balances[id][to];
+    require(balance < _tokenBalanceLimits[id], 'user balance max cap');
+    balance += 1;
+    _balances[id][to] = balance;
+    emit TokenMinted(to, id, balance);
   }
 
   /**
-   * @dev Destroys `amount` tokens of token type `id` from `from`
+   * @dev Destroys token with type `id` from `from`
    *
-   * Emits a {TransferSingle} event.
+   * Emits a {TokenBurned} event.
    *
    * Requirements:
    *
    * - `from` cannot be the zero address.
-   * - `from` must have at least `amount` tokens of token type `id`.
+   * - `from` must have at least 1 token of token type `id`.
    */
   function _burn(address from, uint256 id) internal {
-    require(_balances[id][from] > 0, 'empty balance');
-    _balances[id][from] -= 1;
-    emit TokenBurned(from, id, _balances[id][from]);
+    require(from != address(0), 'zero address');
+    uint256 balance = _balances[id][from];
+    require(balance > 0, 'empty balance');
+    balance -= 1;
+    _balances[id][from] = balance;
+    emit TokenBurned(from, id, balance);
   }
 
   /**
    * @dev Set maximum amount of token balance for one user
    */
-  function setTokenBalanceLimit(uint256 id, uint256 newMax) public onlyOwner {
+  function setTokenBalanceLimit(uint256 id, uint256 newMax) external onlyOwner {
     _tokenBalanceLimits[id] = newMax;
   }
 
   /**
    * @dev Mint new tokens for accounts
    */
-  function mint(address[] memory recipients, uint256[] memory ids) public onlyOwner {
+  function mint(address[] calldata recipients, uint256[] calldata ids) external onlyOwner {
     uint256 recipientsLen = recipients.length;
     require(recipientsLen == ids.length, 'invalid array len');
     for (uint256 i = 0; i < recipientsLen; i++) {
@@ -201,7 +208,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
   /**
    * @dev Burn tokens from users
    */
-  function burn(address[] memory users, uint256[] memory ids) public onlyOwner {
+  function burn(address[] calldata users, uint256[] calldata ids) external onlyOwner {
     uint256 usersLen = users.length;
     require(usersLen == ids.length, 'invalid array len');
     for (uint256 i = 0; i < usersLen; i++) {
@@ -212,14 +219,14 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
   /**
    * @dev Set URI for token
    */
-  function setURI(uint256 id, string memory newUri) public onlyOwner {
+  function setURI(uint256 id, string calldata newUri) external onlyOwner {
     _setURI(id, newUri);
   }
 
   /**
    * @dev Set new contract owner
    */
-  function setNewOwner(address newOwner) public onlyOwner {
+  function setNewOwner(address newOwner) external onlyOwner {
     require(newOwner != address(0));
     _owner = newOwner;
   }
