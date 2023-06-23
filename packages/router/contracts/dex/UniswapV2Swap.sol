@@ -15,7 +15,7 @@ struct UniswapSwapV2CallbackData {
   address tokenOut;
 }
 
-abstract contract UniswapV2Swap is IUniswapV2Callee, DexFactoryList {
+abstract contract UniswapV2Swap is DexFactoryList {
   using LowGasSafeMath for uint256;
 
   function uniswapV2SwapExactInput(
@@ -25,7 +25,7 @@ abstract contract UniswapV2Swap is IUniswapV2Callee, DexFactoryList {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
+    address poolAddress = getV2PairAddress(dex, tokenIn, tokenOut);
     amountOut = getAmountOut(poolAddress, amountIn, tokenIn, tokenOut);
     require(amountOut > minAmountOut, 'Insufficient amount');
 
@@ -49,7 +49,7 @@ abstract contract UniswapV2Swap is IUniswapV2Callee, DexFactoryList {
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
+    address poolAddress = getV2PairAddress(dex, tokenIn, tokenOut);
     amountIn = getAmountIn(poolAddress, amountIn, tokenIn, tokenOut);
     require(amountIn <= maxAmountIn, 'Insufficient amount');
 
@@ -75,7 +75,7 @@ abstract contract UniswapV2Swap is IUniswapV2Callee, DexFactoryList {
   //   }
   // }
 
-  function getPoolAddress(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
+  function getV2PairAddress(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
     if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
     pool = IUniswapV2Factory(dexFactoryList[dex]).getPair(tokenA, tokenB);
     if (pool == address(0)) revert UnknownPool();

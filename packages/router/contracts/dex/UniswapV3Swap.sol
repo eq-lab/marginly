@@ -28,7 +28,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
   ) internal returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
-    address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
+    address poolAddress = getV3PoolAddress(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapV3CallbackData memory data = UniswapSwapV3CallbackData({
       dex: dex,
@@ -58,7 +58,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
   ) internal returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
-    address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
+    address poolAddress = getV3PoolAddress(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapV3CallbackData memory data = UniswapSwapV3CallbackData({
       dex: dex,
@@ -89,7 +89,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     UniswapSwapV3CallbackData memory data = abi.decode(_data, (UniswapSwapV3CallbackData));
     (address tokenIn, address tokenOut, Dex dex) = (data.tokenIn, data.tokenOut, data.dex);
-    require(msg.sender == getPoolAddress(dex, tokenIn, tokenOut));
+    require(msg.sender == getV3PoolAddress(dex, tokenIn, tokenOut));
 
     (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
       ? (tokenIn < tokenOut, uint256(amount0Delta))
@@ -101,7 +101,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
     }
   }
 
-  function getPoolAddress(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
+  function getV3PoolAddress(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
     // FIXME hardcoded fee = 500
     pool = IUniswapV3Factory(dexFactoryList[dex]).getPool(tokenA, tokenB, 500);
     if (pool == address(0)) revert UnknownPool();
