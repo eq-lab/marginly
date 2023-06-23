@@ -8,7 +8,7 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './dex.sol';
 
-struct UniswapSwapCallbackData {
+struct UniswapSwapV3CallbackData {
   Dex dex;
   address tokenIn;
   address tokenOut;
@@ -30,7 +30,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
 
     address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
-    UniswapSwapCallbackData memory data = UniswapSwapCallbackData({
+    UniswapSwapV3CallbackData memory data = UniswapSwapV3CallbackData({
       dex: dex,
       tokenIn: tokenIn,
       tokenOut: tokenOut,
@@ -60,7 +60,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
 
     address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
-    UniswapSwapCallbackData memory data = UniswapSwapCallbackData({
+    UniswapSwapV3CallbackData memory data = UniswapSwapV3CallbackData({
       dex: dex,
       tokenIn: tokenIn,
       tokenOut: tokenOut,
@@ -87,7 +87,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
 
   function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external override {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
-    UniswapSwapCallbackData memory data = abi.decode(_data, (UniswapSwapCallbackData));
+    UniswapSwapV3CallbackData memory data = abi.decode(_data, (UniswapSwapV3CallbackData));
     (address tokenIn, address tokenOut, Dex dex) = (data.tokenIn, data.tokenOut, data.dex);
     require(msg.sender == getPoolAddress(dex, tokenIn, tokenOut));
 
