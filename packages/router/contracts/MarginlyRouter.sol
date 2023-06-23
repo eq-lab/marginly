@@ -11,8 +11,9 @@ import './dex/UniswapV3Swap.sol';
 contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
   error UnknownDex();
 
-  constructor(address _uniswap) {
-    uniswap = _uniswap;
+  constructor(address uniswap) {
+    poolList[Dex.UniswapV3] = uniswap;
+    // sushiswap = _sushiswap;
   }
 
   function swapExactInput(
@@ -23,7 +24,7 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
     uint256 minAmountOut
   ) external returns (uint256) {
     if (dex == Dex.UniswapV3) {
-      return UniswapV3Swap.exactInput(uniswap, tokenIn, tokenOut, amountIn, minAmountOut);
+      return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     // } else if (dex == Dex.ApeSwap) {
     //   ApeSwap.apeSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
     // } else if (dex == Dex.Balancer) {
@@ -32,8 +33,8 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
     //   KyberSwap.kyberSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
     // } else if (dex == Dex.QuickSwap) {
     //   QuickSwap.quickSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
-    // } else if (dex == Dex.SushiSwap) {
-    //   SushiSwap.sushiSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
+    } else if (dex == Dex.SushiSwap) {
+      return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     // } else if (dex == Dex.Woofi) {
     //   WoofiSwap.woofiSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
     } else {
@@ -49,7 +50,7 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
     uint256 amountOut
   ) external returns (uint256) {
     if (dex == Dex.UniswapV3) {
-      return UniswapV3Swap.exactOutput(uniswap, tokenIn, tokenOut, maxAmountIn, amountOut);
+      return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     // } else if (dex == Dex.ApeSwap) {
     //   ApeSwap.apeSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
     // } else if (dex == Dex.Balancer) {
@@ -58,8 +59,8 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
     //   KyberSwap.kyberSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
     // } else if (dex == Dex.QuickSwap) {
     //   QuickSwap.quickSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
-    // } else if (dex == Dex.SushiSwap) {
-    //   SushiSwap.sushiSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
+    } else if (dex == Dex.SushiSwap) {
+      return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     // } else if (dex == Dex.Woofi) {
     //   WoofiSwap.woofiSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else {

@@ -5,20 +5,21 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
+import './dex.sol';
+
 struct UniswapSwapCallbackData {
+  Dex dex;
   address tokenIn;
   address tokenOut;
   address payer;
 }
 
-abstract contract UniswapV3Swap is IUniswapV3SwapCallback {
+abstract contract UniswapV3Swap is IUniswapV3SwapCallback, PoolList {
   uint160 constant MIN_SQRT_RATIO = 4295128739;
   uint160 constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
-  address uniswap;
-
-  function exactInput(
-    address uniswapPoolAddress,
+  function uniswapV3SwapExactInput(
+    Dex dex,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
@@ -26,14 +27,18 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback {
   ) internal returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
+    address poolAddress = poolList[dex];
+    if (poolAddress == address(0)) revert UnknownPool();
+
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapCallbackData memory data = UniswapSwapCallbackData({
+      dex: dex,
       tokenIn: tokenIn,
       tokenOut: tokenOut,
       payer: msg.sender
     });
 
-    (int256 amount0, int256 amount1) = IUniswapV3Pool(uniswapPoolAddress).swap(
+    (int256 amount0, int256 amount1) = IUniswapV3Pool(poolAddress).swap(
       msg.sender,
       zeroForOne,
       int256(amountIn),
@@ -45,8 +50,8 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback {
     require(amountOut > minAmountOut, 'Insufficient amount');
   }
 
-  function exactOutput(
-    address uniswapPoolAddress,
+  function uniswapV3SwapExactOutput(
+    Dex dex,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
@@ -54,14 +59,18 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback {
   ) internal returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
+    address poolAddress = poolList[dex];
+    if (poolAddress == address(0)) revert UnknownPool();
+  
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapCallbackData memory data = UniswapSwapCallbackData({
+      dex: dex,
       tokenIn: tokenIn,
       tokenOut: tokenOut,
       payer: msg.sender
     });
 
-    (int256 amount0Delta, int256 amount1Delta) = IUniswapV3Pool(uniswapPoolAddress).swap(
+    (int256 amount0Delta, int256 amount1Delta) = IUniswapV3Pool(poolAddress).swap(
       msg.sender,
       zeroForOne,
       -int256(amountOut),
@@ -82,8 +91,9 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback {
   function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external override {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     UniswapSwapCallbackData memory data = abi.decode(_data, (UniswapSwapCallbackData));
-    (address tokenIn, address tokenOut) = (data.tokenIn, data.tokenOut);
-    require(msg.sender == uniswap);
+    (address tokenIn, address tokenOut, Dex dex) = (data.tokenIn, data.tokenOut, data.dex);
+    require(msg.sender != address(0));
+    require(msg.sender == poolList[dex]);
 
     (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
       ? (tokenIn < tokenOut, uint256(amount0Delta))

@@ -11,7 +11,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test ./test/*.spec.ts",
-    "lint:write": "prettier --write ./contracts"
+    "lint:write": "prettier --write ./contracts ./test"
   },
   "author": "EqLab",
   "devDependencies": {
