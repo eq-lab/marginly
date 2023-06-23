@@ -39,7 +39,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
     require(tokenBalanceLimits.length == idLength, 'tokenBalanceLimits invalid len');
     require(uri.length == idLength, 'uri invalid len');
 
-    for (uint256 i = 0; i < ids.length; i++) {
+    for (uint256 i = 0; i < idLength; i++) {
       uint256 id = ids[i];
       require(id == i, 'invalid id');
       require(_tokenBalanceLimits[id] == 0, 'id duplicate');
@@ -71,9 +71,6 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * actual token type ID.
    */
   function uri(uint256 id) public view virtual returns (string memory) {
-    //    string
-    //      memory json = '{"name": "Testo","description":"desk2","image":"https://avatars.githubusercontent.com/u/43533945?v=4","external_url":"https://eips.ethereum.org/EIPS/eip-1155"}';
-    //    return string.concat('data:application/json;utf8,', json);
     return _uri[id];
   }
 
@@ -99,10 +96,10 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
     address[] memory accounts,
     uint256[] memory ids
   ) public view virtual returns (uint256[] memory) {
-    require(accounts.length == ids.length, 'invalid array len');
-    uint256[] memory batchBalances = new uint256[](accounts.length);
-
-    for (uint256 i = 0; i < accounts.length; ++i) {
+    uint256 accountsLen = accounts.length;
+    require(accountsLen == ids.length, 'invalid array len');
+    uint256[] memory batchBalances = new uint256[](accountsLen);
+    for (uint256 i = 0; i < accountsLen; ++i) {
       batchBalances[i] = balanceOf(accounts[i], ids[i]);
     }
 
@@ -194,8 +191,9 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * @dev Mint new tokens for accounts
    */
   function mint(address[] memory recipients, uint256[] memory ids) public onlyOwner {
-    require(recipients.length == ids.length, 'invalid array len');
-    for (uint256 i = 0; i < recipients.length; i++) {
+    uint256 recipientsLen = recipients.length;
+    require(recipientsLen == ids.length, 'invalid array len');
+    for (uint256 i = 0; i < recipientsLen; i++) {
       _mint(recipients[i], ids[i]);
     }
   }
@@ -204,8 +202,9 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * @dev Burn tokens from users
    */
   function burn(address[] memory users, uint256[] memory ids) public onlyOwner {
-    require(users.length == ids.length, 'invalid array len');
-    for (uint256 i = 0; i < users.length; i++) {
+    uint256 usersLen = users.length;
+    require(usersLen == ids.length, 'invalid array len');
+    for (uint256 i = 0; i < usersLen; i++) {
       _burn(users[i], ids[i]);
     }
   }
