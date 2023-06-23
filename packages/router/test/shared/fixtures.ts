@@ -70,11 +70,11 @@ export async function createUniswapFactory(): Promise<{
   };
 }
 
-export async function createMarginlyRouter(): Promise<{ 
-  marginlyRouter: MarginlyRouter, 
-  quoteToken: TestERC20Token, 
-  baseToken: TestERC20Token,
-  uniswapPool: RouterTestUniswapPool
+export async function createMarginlyRouter(): Promise<{
+  marginlyRouter: MarginlyRouter;
+  quoteToken: TestERC20Token;
+  baseToken: TestERC20Token;
+  uniswapPool: RouterTestUniswapPool;
 }> {
   const { uniswapPool, token0, token1 } = await createUniswapPool();
   const factory = await ethers.getContractFactory('MarginlyRouter');

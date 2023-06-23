@@ -12,10 +12,6 @@ contract RouterTestUniswapPool {
   address public token1;
   uint160 public price = 10;
 
-  bool public debug;
-  int256 public debug0;
-  int256 public debug1;
-
   constructor(address _token0, address _token1) {
     token0 = _token0;
     token1 = _token1;
@@ -48,10 +44,6 @@ contract RouterTestUniswapPool {
         amount0 = amountSpecified;
       }
     }
-
-    debug = zeroForOne;
-    debug0 = amount0;
-    debug1 = amount1;
 
     // do the transfers and collect payment
     if (zeroForOne) {
