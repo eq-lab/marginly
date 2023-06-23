@@ -27,6 +27,7 @@ export async function createToken(name: string, symbol: string): Promise<TestERC
 
 export async function createUniswapPool(): Promise<{
   uniswapPool: RouterTestUniswapPool;
+  uniswapFactory: RouterTestUniswapFactory;
   token0: TestERC20Token;
   token1: TestERC20Token;
 }> {
@@ -44,29 +45,17 @@ export async function createUniswapPool(): Promise<{
     token1 = tokenA;
   }
 
-  const pool = await ethers.getContractFactory('RouterTestUniswapPool');
-  const uniswapPool = await pool.deploy(token0.address, token1.address);
+  const factory = await (await ethers.getContractFactory('RouterTestUniswapFactory')).deploy();
+  const tx = await (await factory.createPool(token0.address, token1.address, 500)).wait();
+  const uniswapPoolAddress = (tx.events?.find((x: { event: string; }) => x.event === 'TestPoolCreated')).args?.pool;
+  const uniswapPool = await ethers.getContractAt("RouterTestUniswapPool", uniswapPoolAddress);
   await token0.mint(uniswapPool.address, parseUnits('100000', 18));
   await token1.mint(uniswapPool.address, parseUnits('100000', 18));
   return {
     uniswapPool,
+    uniswapFactory: factory,
     token0,
     token1,
-  };
-}
-
-export async function createUniswapFactory(): Promise<{
-  uniswapFactory: RouterTestUniswapFactory;
-  uniswapPoolInfo: UniswapPoolInfo;
-}> {
-  const factory = await ethers.getContractFactory('RouterTestUniswapFactory');
-  const contract = await factory.deploy();
-  const { uniswapPool: pool, token0, token1 } = await createUniswapPool();
-  await contract.addPool(pool.address);
-
-  return {
-    uniswapFactory: contract,
-    uniswapPoolInfo: { pool, token0: token0, token1: token1, fee: 0, address: pool.address },
   };
 }
 
@@ -75,15 +64,17 @@ export async function createMarginlyRouter(): Promise<{
   quoteToken: TestERC20Token;
   baseToken: TestERC20Token;
   uniswapPool: RouterTestUniswapPool;
+  uniswapFactory: RouterTestUniswapFactory;
 }> {
-  const { uniswapPool, token0, token1 } = await createUniswapPool();
+  const { uniswapPool, token0, token1, uniswapFactory } = await createUniswapPool();
   const factory = await ethers.getContractFactory('MarginlyRouter');
-  const marginlyRouter = await factory.deploy(uniswapPool.address);
+  const marginlyRouter = await factory.deploy(uniswapFactory.address);
 
   return {
     marginlyRouter,
     quoteToken: token0,
     baseToken: token1,
     uniswapPool,
+    uniswapFactory,
   };
 }

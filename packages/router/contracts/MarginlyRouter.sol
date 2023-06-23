@@ -11,8 +11,8 @@ import './dex/UniswapV3Swap.sol';
 contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap {
   error UnknownDex();
 
-  constructor(address uniswap) {
-    poolList[Dex.UniswapV3] = uniswap;
+  constructor(address uniswapV3Factory) {
+    dexFactoryList[Dex.UniswapV3] = uniswapV3Factory;
     // sushiswap = _sushiswap;
   }
 

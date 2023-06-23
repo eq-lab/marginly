@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
+import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
+import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './dex.sol';
@@ -14,7 +15,7 @@ struct UniswapSwapCallbackData {
   address payer;
 }
 
-abstract contract UniswapV3Swap is IUniswapV3SwapCallback, PoolList {
+abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexFactoryList {
   uint160 constant MIN_SQRT_RATIO = 4295128739;
   uint160 constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
@@ -27,9 +28,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, PoolList {
   ) internal returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
-    address poolAddress = poolList[dex];
-    if (poolAddress == address(0)) revert UnknownPool();
-
+    address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapCallbackData memory data = UniswapSwapCallbackData({
       dex: dex,
@@ -59,9 +58,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, PoolList {
   ) internal returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
-    address poolAddress = poolList[dex];
-    if (poolAddress == address(0)) revert UnknownPool();
-  
+    address poolAddress = getPoolAddress(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapCallbackData memory data = UniswapSwapCallbackData({
       dex: dex,
@@ -92,8 +89,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, PoolList {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     UniswapSwapCallbackData memory data = abi.decode(_data, (UniswapSwapCallbackData));
     (address tokenIn, address tokenOut, Dex dex) = (data.tokenIn, data.tokenOut, data.dex);
-    require(msg.sender != address(0));
-    require(msg.sender == poolList[dex]);
+    require(msg.sender == getPoolAddress(dex, tokenIn, tokenOut));
 
     (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
       ? (tokenIn < tokenOut, uint256(amount0Delta))
@@ -103,5 +99,11 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, PoolList {
     } else {
       TransferHelper.safeTransferFrom(tokenOut, data.payer, msg.sender, amountToPay);
     }
+  }
+
+  function getPoolAddress(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
+    // FIXME hardcoded fee = 500
+    pool = IUniswapV3Factory(dexFactoryList[dex]).getPool(tokenA, tokenB, 500);
+    if (pool == address(0)) revert UnknownPool();
   }
 }

@@ -3,31 +3,50 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol';
+import './TestUniswapPool.sol';
+
+struct Parameters {
+  address factory;
+  address token0;
+  address token1;
+  uint24 fee;
+  int24 tickSpacing;
+}
 
 /// @dev Stub of UniswapFactory
 contract RouterTestUniswapFactory is IUniswapV3Factory {
+  event TestPoolCreated(address pool);
+  address public override owner;
+  mapping(uint24 => int24) public override feeAmountTickSpacing;
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
 
-  function addPool(address pool) external {
-    IUniswapV3PoolImmutables uniswapPool = IUniswapV3PoolImmutables(pool);
-    address token0 = uniswapPool.token0();
-    address token1 = uniswapPool.token1();
-    uint24 fee = uniswapPool.fee();
+  constructor() {
+    owner = msg.sender;
+    feeAmountTickSpacing[0] = 0;
+    feeAmountTickSpacing[500] = 10;
+    feeAmountTickSpacing[3000] = 60;
+    feeAmountTickSpacing[10000] = 200;
+  }
 
+  function createPool(address tokenA, address tokenB, uint24 fee) external override returns (address pool) {
+    (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+    int24 tickSpacing = feeAmountTickSpacing[fee];
+    pool = deploy(address(this), token0, token1, fee, tickSpacing);
     getPool[token0][token1][fee] = pool;
     getPool[token1][token0][fee] = pool;
   }
 
-  function owner() external view override returns (address) {
-    return address(this);
-  }
-
-  function feeAmountTickSpacing(uint24) external pure override returns (int24) {
-    revert('not implemented');
-  }
-
-  function createPool(address, address, uint24) external pure override returns (address) {
-    revert('not implemented');
+  function deploy(
+    address factory,
+    address token0,
+    address token1,
+    uint24 fee,
+    int24 tickSpacing
+  ) private returns (address pool) {
+    // parameters = Parameters({factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing});
+    pool = address(new RouterTestUniswapPool{salt: keccak256(abi.encode(token0, token1, fee))}(token0, token1));
+    emit TestPoolCreated(pool);
+    // delete parameters;
   }
 
   function setOwner(address) external pure override {
