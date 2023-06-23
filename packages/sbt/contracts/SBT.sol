@@ -35,17 +35,13 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
   event TokenMinted(address indexed to, uint256 tokenId, uint256 newBalance);
   event TokenBurned(address indexed from, uint256 tokenId, uint256 newBalance);
 
-  constructor(uint256[] memory ids, uint256[] memory tokenBalanceLimits, string[] memory tokenUris) {
-    uint256 idLength = ids.length;
-    require(tokenBalanceLimits.length == idLength, 'tokenBalanceLimits invalid len');
-    require(tokenUris.length == idLength, 'uri invalid len');
+  constructor(uint256[] memory tokenBalanceLimits, string[] memory tokenUris) {
+    uint256 tokensLen = tokenBalanceLimits.length;
+    require(tokenUris.length == tokensLen, 'uri invalid len');
 
-    for (uint256 i = 0; i < idLength; i++) {
-      uint256 id = ids[i];
-      require(id == i, 'invalid id');
-      require(_tokenBalanceLimits[id] == 0, 'id duplicate');
-      _tokenBalanceLimits[id] = tokenBalanceLimits[i];
-      _setURI(id, tokenUris[i]);
+    for (uint256 id = 0; id < tokensLen; id++) {
+      _tokenBalanceLimits[id] = tokenBalanceLimits[id];
+      _setURI(id, tokenUris[id]);
     }
 
     _owner = msg.sender;
@@ -158,12 +154,13 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * - `to` cannot be the zero address.
    * - If `to` refers to a smart contract, it must implement {IERC1155Receiver-onERC1155Received} and return the
    * acceptance magic value.
+   * - `amount` cannot be the zero
    */
-  function _mint(address to, uint256 id) internal {
+  function _mint(address to, uint256 id, uint256 amount) internal {
     require(to != address(0), 'zero address');
-    uint256 balance = _balances[id][to];
-    require(balance < _tokenBalanceLimits[id], 'user balance max cap');
-    balance += 1;
+    require(amount != 0, 'zero amount');
+    uint256 balance = _balances[id][to] + amount;
+    require(balance <= _tokenBalanceLimits[id], 'user balance max cap');
     _balances[id][to] = balance;
     emit TokenMinted(to, id, balance);
   }
@@ -177,12 +174,14 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    *
    * - `from` cannot be the zero address.
    * - `from` must have at least 1 token of token type `id`.
+   * - `amount` cannot be the zero
    */
-  function _burn(address from, uint256 id) internal {
+  function _burn(address from, uint256 id, uint256 amount) internal {
     require(from != address(0), 'zero address');
+    require(amount != 0, 'zero amount');
     uint256 balance = _balances[id][from];
-    require(balance > 0, 'empty balance');
-    balance -= 1;
+    require(amount <= balance, 'burn amount > balance');
+    balance -= amount;
     _balances[id][from] = balance;
     emit TokenBurned(from, id, balance);
   }
@@ -197,22 +196,24 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
   /**
    * @dev Mint new tokens for accounts
    */
-  function mint(address[] calldata recipients, uint256[] calldata ids) external onlyOwner {
+  function mint(address[] calldata recipients, uint256[] calldata ids, uint256[] calldata amounts) external onlyOwner {
     uint256 recipientsLen = recipients.length;
     require(recipientsLen == ids.length, 'invalid array len');
+    require(recipientsLen == amounts.length, 'invalid array len');
     for (uint256 i = 0; i < recipientsLen; i++) {
-      _mint(recipients[i], ids[i]);
+      _mint(recipients[i], ids[i], amounts[i]);
     }
   }
 
   /**
    * @dev Burn tokens from users
    */
-  function burn(address[] calldata users, uint256[] calldata ids) external onlyOwner {
+  function burn(address[] calldata users, uint256[] calldata ids, uint256[] calldata amounts) external onlyOwner {
     uint256 usersLen = users.length;
     require(usersLen == ids.length, 'invalid array len');
+    require(usersLen == amounts.length, 'invalid array len');
     for (uint256 i = 0; i < usersLen; i++) {
-      _burn(users[i], ids[i]);
+      _burn(users[i], ids[i], amounts[i]);
     }
   }
 

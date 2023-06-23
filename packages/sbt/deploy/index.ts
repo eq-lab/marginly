@@ -116,11 +116,10 @@ export async function deploySbt(
 
   const deploy = deployTemplate(signer, config.ethConnection.ethOptions, contractReader, stateStore, logger);
 
-  const ids = config.tokens.map((x) => x.id);
   const limits = config.tokens.map((x) => x.tokenBalanceLimit);
   const uris = config.tokens.map((x) => x.uri);
 
-  const deployResult = await deploy(contractName, [ids, limits, uris], contractDeploymentId);
+  const deployResult = await deploy(contractName, [limits, uris], contractDeploymentId);
 
   logger.log(`Deploy address: ${deployResult.address}`);
   logger.log(`Deploy tx: ${deployResult.txHash}`);
@@ -237,6 +236,7 @@ async function initBalances(
 
   const accounts = [];
   const tokenIds = [];
+  const amounts = [];
 
   for (const b of config.balances) {
     if (!ethers.utils.isAddress(b.address)) {
@@ -249,18 +249,17 @@ async function initBalances(
           `Address: ${b.address}, tokenId: ${b.tokenId}, config balance: ${b.amount}, chain balance: ${balance}`
       );
     }
-    for (let i = 0; i < b.amount - balance; i++) {
+    if (balance !== b.amount) {
       accounts.push(b.address);
       tokenIds.push(b.tokenId);
+      amounts.push(b.amount - balance);
     }
   }
 
   if (accounts.length > 0) {
-    const tx = await sbtContract.mint(accounts, tokenIds, config.ethConnection.ethOptions);
+    const tx = await sbtContract.mint(accounts, tokenIds, amounts, config.ethConnection.ethOptions);
     logger.log(`Mint tx hash: ${tx.hash}`);
     await waitForTx(signer.provider!, tx.hash);
-  } else {
-    logger.log(`Bala`);
   }
 
   for (const b of config.balances) {

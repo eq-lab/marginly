@@ -1,6 +1,6 @@
 {
   "ethConnection": {
-    "assertChainId": 56,
+    "assertChainId": 97,
     "ethOptions": {
       "gasPrice": 5000000000,
       "gasLimit": 5000000

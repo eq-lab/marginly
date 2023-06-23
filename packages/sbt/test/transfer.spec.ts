@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { deploySBT, makeMintBurnCallParams, MintParam, SBTContractParams } from './shared';
+import { deploySBT, MintBurnParam, SBTContractParams } from './shared';
 import { ethers } from 'hardhat';
 import { SBT } from '../typechain-types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -10,7 +10,7 @@ describe('transfer', () => {
   let contract: SBT;
   let owner: SignerWithAddress;
   let signers: SignerWithAddress[];
-  let mintParams: MintParam[];
+  let mintParams: MintBurnParam[];
 
   beforeEach(async () => {
     owner = (await ethers.getSigners())[0];
@@ -26,17 +26,17 @@ describe('transfer', () => {
     contract = await deploySBT(params);
 
     mintParams = [
-      { acc: signers[0].address, tokenId: 0, amount: 0 },
       { acc: signers[0].address, tokenId: 1, amount: 2 },
       { acc: signers[0].address, tokenId: 2, amount: 1 },
       { acc: signers[1].address, tokenId: 0, amount: 1 },
-      { acc: signers[1].address, tokenId: 1, amount: 0 },
       { acc: signers[1].address, tokenId: 2, amount: 2 },
     ];
 
-    const callParams = makeMintBurnCallParams(mintParams);
-
-    await contract.mint(callParams.accounts, callParams.tokenIds);
+    await contract.mint(
+      mintParams.map((x) => x.acc),
+      mintParams.map((x) => x.tokenId),
+      mintParams.map((x) => x.amount)
+    );
 
     for (const { acc, tokenId, amount } of mintParams) {
       const balance = await contract.balanceOf(acc, BigNumber.from(tokenId));
