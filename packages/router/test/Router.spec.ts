@@ -5,7 +5,7 @@ import { BigNumber } from 'ethers';
 
 describe('MarginlyRouter UniswapV3', () => {
   it('swapExactInput quote to base, success', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -16,21 +16,21 @@ describe('MarginlyRouter UniswapV3', () => {
 
     await marginlyRouter.connect(user).swapExactInput(0, quoteToken.address, baseToken.address, amountToSwap, 0);
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
 
     expect(await quoteToken.balanceOf(user.address)).to.be.equal(0);
     expect(await baseToken.balanceOf(user.address)).to.be.equal(price.mul(amountToSwap));
   });
 
   it('swapExactInput quote to base, less than minimal amount', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
     await quoteToken.mint(user.address, amountToSwap);
     await quoteToken.connect(user).approve(marginlyRouter.address, amountToSwap);
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
     const amountToGetPlusOne = price.mul(amountToSwap).add(1);
 
     expect(
@@ -41,7 +41,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactInput base to quote, success', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -52,21 +52,21 @@ describe('MarginlyRouter UniswapV3', () => {
 
     await marginlyRouter.connect(user).swapExactInput(0, baseToken.address, quoteToken.address, amountToSwap, 0);
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
 
     expect(await baseToken.balanceOf(user.address)).to.be.equal(0);
     expect(await quoteToken.balanceOf(user.address)).to.be.equal(BigNumber.from(amountToSwap).div(price));
   });
 
   it('swapExactInput base to quote, less than minimal amount', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
     await baseToken.mint(user.address, amountToSwap);
     await baseToken.connect(user).approve(marginlyRouter.address, amountToSwap);
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
     const amountToGetPlusOne = BigNumber.from(amountToSwap).div(price).add(1);
 
     expect(
@@ -77,10 +77,10 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput quote to base, success', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
 
     const amountToGet = 1000;
     const amountToSwap = BigNumber.from(amountToGet).div(price);
@@ -99,10 +99,10 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput quote to base, more than maximal amount', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
 
     const amountToGet = 1000;
     const amountToSwap = BigNumber.from(amountToGet).div(price);
@@ -118,10 +118,10 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput base to quote, success', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
 
     const amountToGet = 1000;
     const amountToSwap = BigNumber.from(amountToGet).mul(price);
@@ -140,10 +140,10 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput base to quote, more than maximal amount', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
 
     const amountToGet = 1000;
     const amountToSwap = BigNumber.from(amountToGet).mul(price);
@@ -174,10 +174,10 @@ describe('MarginlyRouter UnknownDex', () => {
   });
 
   it('swapExactOutput UnknownDex', async () => {
-    const { marginlyRouter, quoteToken, baseToken, uniswapPool } = await createMarginlyRouter();
+    const { marginlyRouter, quoteToken, baseToken, uniswapV3Pool } = await createMarginlyRouter();
     const [_, user] = await ethers.getSigners();
 
-    const price = await uniswapPool.price();
+    const price = await uniswapV3Pool.price();
     const amountToGet = 1000;
     const amountToSwap = BigNumber.from(amountToGet).mul(price);
     await quoteToken.mint(user.address, amountToSwap);

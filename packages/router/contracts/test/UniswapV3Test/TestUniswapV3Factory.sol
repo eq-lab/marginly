@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol';
-import './TestUniswapPool.sol';
+import './TestUniswapV3Pool.sol';
 
 struct Parameters {
   address factory;
@@ -14,7 +14,7 @@ struct Parameters {
 }
 
 /// @dev Stub of UniswapFactory
-contract RouterTestUniswapFactory is IUniswapV3Factory {
+contract RouterTestUniswapV3Factory is IUniswapV3Factory {
   event TestPoolCreated(address pool);
   address public override owner;
   mapping(uint24 => int24) public override feeAmountTickSpacing;
@@ -44,7 +44,7 @@ contract RouterTestUniswapFactory is IUniswapV3Factory {
     int24 tickSpacing
   ) private returns (address pool) {
     // parameters = Parameters({factory: factory, token0: token0, token1: token1, fee: fee, tickSpacing: tickSpacing});
-    pool = address(new RouterTestUniswapPool{salt: keccak256(abi.encode(token0, token1, fee))}(token0, token1));
+    pool = address(new RouterTestUniswapV3Pool{salt: keccak256(abi.encode(token0, token1, fee))}(token0, token1));
     emit TestPoolCreated(pool);
     // delete parameters;
   }

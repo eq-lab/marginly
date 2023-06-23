@@ -7,7 +7,7 @@ import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.so
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
-contract RouterTestUniswapPool {
+contract RouterTestUniswapV3Pool {
   address public token0;
   address public token1;
   uint160 public price = 10;
