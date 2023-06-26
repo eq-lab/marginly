@@ -29,7 +29,7 @@ abstract contract UniswapV2Swap is DexFactoryList {
     amountOut = getAmountOut(poolAddress, amountIn, tokenIn, tokenOut);
     require(amountOut > minAmountOut, 'Insufficient amount');
 
-    TransferHelper.safeTransferFrom(tokenIn, poolAddress, msg.sender, amountIn);
+    TransferHelper.safeTransferFrom(tokenIn, msg.sender, poolAddress, amountIn);
     (uint256 amount0Out, uint256 amount1Out) = tokenIn < tokenOut ? (uint256(0), amountOut) : (amountOut, uint256(0));
     IUniswapV2Pair(poolAddress).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
 
@@ -50,10 +50,9 @@ abstract contract UniswapV2Swap is DexFactoryList {
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
     address poolAddress = getV2PairAddress(dex, tokenIn, tokenOut);
-    amountIn = getAmountIn(poolAddress, amountIn, tokenIn, tokenOut);
+    amountIn = getAmountIn(poolAddress, amountOut, tokenIn, tokenOut);
     require(amountIn <= maxAmountIn, 'Insufficient amount');
-
-    TransferHelper.safeTransferFrom(tokenOut, poolAddress, msg.sender, amountIn);
+    TransferHelper.safeTransferFrom(tokenIn, msg.sender, poolAddress, amountIn);
     (uint256 amount0Out, uint256 amount1Out) = tokenIn < tokenOut ? (uint256(0), amountOut) : (amountOut, uint256(0));
     IUniswapV2Pair(poolAddress).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
   }

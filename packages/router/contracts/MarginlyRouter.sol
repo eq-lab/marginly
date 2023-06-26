@@ -34,8 +34,8 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swa
     //   BalancerSwap.balancerSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
     // } else if (dex == Dex.KyberSwap) {
     //   KyberSwap.kyberSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
-    // } else if (dex == Dex.QuickSwap) {
-    //   QuickSwap.quickSwapExactInput(swapRouter, tokenIn, tokenOut, amountIn, minAmountOut);
+    } else if (dex == Dex.QuickSwap) {
+      return uniswapV2SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.SushiSwap) {
       return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     // } else if (dex == Dex.Woofi) {
@@ -56,14 +56,15 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swa
 
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-      // } else if (dex == Dex.ApeSwap) {
-      //   ApeSwap.apeSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
+    } else if (dex == Dex.ApeSwap) {
+      // FIXME fee 2%
+      return uniswapV2SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
       // } else if (dex == Dex.Balancer) {
       //   BalancerSwap.balancerSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
       // } else if (dex == Dex.KyberSwap) {
       //   KyberSwap.kyberSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
-      // } else if (dex == Dex.QuickSwap) {
-      //   QuickSwap.quickSwapExactOutput(swapRouter, tokenIn, tokenOut, maxAmountIn, amountOut);
+    } else if (dex == Dex.QuickSwap) {
+       return uniswapV2SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.SushiSwap) {
       return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
       // } else if (dex == Dex.Woofi) {
