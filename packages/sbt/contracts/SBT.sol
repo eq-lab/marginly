@@ -2,9 +2,7 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
-import '@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol';
 import '@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol';
-import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 
 contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
