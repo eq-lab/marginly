@@ -142,7 +142,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
   /**
    * @dev Sets a new URI for token type, by relying on the token type ID
    */
-  function _setURI(uint256 id, string memory newUri) internal virtual {
+  function _setURI(uint256 id, string memory newUri) private {
     _uri[id] = newUri;
   }
 
