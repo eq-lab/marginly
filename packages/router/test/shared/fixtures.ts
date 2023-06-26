@@ -52,8 +52,11 @@ export async function createUniswapV2Pair(token0: TestERC20Token, token1: TestER
   const tx = await (await factory.createPair(token0.address, token1.address)).wait();
   const uniswapPoolAddress = tx.events?.find((x) => x.event === 'TestPairCreated')!.args?.pair;
   const uniswapV2Pair = await ethers.getContractAt('RouterTestUniswapV2Pair', uniswapPoolAddress);
-  await token0.mint(uniswapV2Pair.address, parseUnits('100000', 18));
-  await token1.mint(uniswapV2Pair.address, parseUnits('100000', 18));
+  // random number between 10k and 1kk
+  const token0Supply = Math.floor(Math.random() * (1000000 - 10000)) + 10000;
+  const token1Supply = Math.floor(Math.random() * (1000000 - 10000)) + 10000;
+  await token0.mint(uniswapV2Pair.address, parseUnits(token0Supply.toString(), 18));
+  await token1.mint(uniswapV2Pair.address, parseUnits(token1Supply.toString(), 18));
   await uniswapV2Pair.sync();
   return {
     uniswapV2Pair,
