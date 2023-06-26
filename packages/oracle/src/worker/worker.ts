@@ -245,10 +245,17 @@ export class OracleWorker implements Worker {
       const uniswapV3PoolMockContractDescription = readUniswapMockContract('UniswapV3PoolMock');
 
       const poolMocks = new Map<string, PoolMock>();
-      if (this.transientState.length > 0) {
-        logger.info(`Assuming following mocks are already validated: ${this.transientState.join(', ')}`);
+
+      let alreadyValidatedPoolIds: Set<string>;
+      if (workerConfig.disableMockValidation) {
+        logger.info(`Mock validation is disabled so ignoring transient state if any`);
+        alreadyValidatedPoolIds = new Set(workerConfig.uniswapV3PoolMocks.map(x => x.id));
+      } else {
+        if (this.transientState.length > 0) {
+          logger.info(`Assuming following mocks are already validated: ${this.transientState.join(', ')}`);
+        }
+        alreadyValidatedPoolIds = new Set(this.transientState);
       }
-      const alreadyValidatedPoolIds = new Set(this.transientState);
 
       for (const poolMockConfig of workerConfig.uniswapV3PoolMocks) {
         const contract = new ethers.Contract(poolMockConfig.address, uniswapV3PoolMockContractDescription.abi, oracleSigner);

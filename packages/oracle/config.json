@@ -81,8 +81,8 @@
     ]
   },
   "workerManager": {
-    "sequentialFailsThresholdMs": 120000,
-    "restartDelayMs": 20000
+    "sequentialFailsThresholdMs": 180000,
+    "restartDelayMs": 30000
   },
   "oracleWorkers": [
     {
@@ -165,6 +165,7 @@
     {
       "id": "zksync-era-testnet",
       "tickMs": 1000,
+      "disableMockValidation": true,
       "ethereum": {
         "nodeUrl": "https://testnet.era.zksync.dev"
       },
