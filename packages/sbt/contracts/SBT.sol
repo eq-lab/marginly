@@ -6,6 +6,9 @@ import '@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 
 contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
+  // Amount of tokens types
+  uint256 public _tokensCount;
+
   // Mapping from token ID to account balances
   mapping(uint256 => mapping(address => uint256)) private _balances;
 
@@ -43,6 +46,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
     }
 
     _owner = msg.sender;
+    _tokensCount = tokensLen;
   }
 
   /**
@@ -154,7 +158,8 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * acceptance magic value.
    * - `amount` cannot be the zero
    */
-  function _mint(address to, uint256 id, uint256 amount) internal {
+  function _mint(address to, uint256 id, uint256 amount) private {
+    require(id < _tokensCount, 'id too high');
     require(to != address(0), 'zero address');
     require(amount != 0, 'zero amount');
     uint256 balance = _balances[id][to] + amount;
@@ -174,7 +179,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * - `from` must have at least 1 token of token type `id`.
    * - `amount` cannot be the zero
    */
-  function _burn(address from, uint256 id, uint256 amount) internal {
+  function _burn(address from, uint256 id, uint256 amount) private {
     require(from != address(0), 'zero address');
     require(amount != 0, 'zero amount');
     uint256 balance = _balances[id][from];
@@ -188,6 +193,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * @dev Set maximum amount of token balance for one user
    */
   function setTokenBalanceLimit(uint256 id, uint256 newMax) external onlyOwner {
+    require(id < _tokensCount, 'id too high');
     _tokenBalanceLimits[id] = newMax;
   }
 
@@ -219,7 +225,15 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    * @dev Set URI for token
    */
   function setURI(uint256 id, string calldata newUri) external onlyOwner {
+    require(id < _tokensCount, 'id too high');
     _setURI(id, newUri);
+  }
+
+  /**
+   * @dev Increase _tokensCount
+   */
+  function createTokens(uint256 increment) external onlyOwner {
+    _tokensCount += increment;
   }
 
   /**

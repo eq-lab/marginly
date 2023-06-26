@@ -116,7 +116,7 @@ describe('mint', () => {
   it('zero amount', async () => {
     const mintParams: MintBurnParam[] = [{ acc: signers[0].address, tokenId: 1, amount: 0 }];
     await expect(
-      contract.burn(
+      contract.mint(
         mintParams.map((x) => x.acc),
         mintParams.map((x) => x.tokenId),
         mintParams.map((x) => x.amount)
@@ -134,5 +134,18 @@ describe('mint', () => {
         mintParams.map((x) => x.amount)
       )
     ).to.be.revertedWith('not owner');
+  });
+
+  it('id too high', async () => {
+    const tokenId = params.tokens.length;
+    const mintParams: MintBurnParam[] = [{ acc: signers[1].address, tokenId, amount: 1 }];
+
+    await expect(
+      contract.mint(
+        mintParams.map((x) => x.acc),
+        mintParams.map((x) => x.tokenId),
+        mintParams.map((x) => x.amount)
+      )
+    ).to.be.revertedWith('id too high');
   });
 });

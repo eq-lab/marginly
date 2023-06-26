@@ -36,4 +36,11 @@ describe('setTokenBalanceLimit', () => {
   it('not owner', async () => {
     await expect(contract.connect(signers[2]).setTokenBalanceLimit(1, 1)).to.be.revertedWith('not owner');
   });
+
+  it('id too high', async () => {
+    const tokenId = params.tokens.length;
+    const newMax = 6;
+
+    await expect(contract.setTokenBalanceLimit(tokenId, newMax)).to.be.revertedWith('id too high');
+  });
 });

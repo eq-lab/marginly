@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { SBT } from '../typechain-types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-describe('setURI', () => {
+describe('createTokens', () => {
   let params: SBTContractParams;
   let contract: SBT;
   let owner: SignerWithAddress;
@@ -22,11 +22,19 @@ describe('setURI', () => {
       ],
     };
     contract = await deploySBT(params);
+    const tokensCount = await contract._tokensCount();
+    expect(tokensCount).to.be.equal(params.tokens.length);
   });
 
-  it('successful set', async () => {
-    const tokenId = 2;
-    const newUri = 'newToken2';
+  it('successful creation', async () => {
+    const increment = 1;
+    const tokenId = params.tokens.length;
+    const newUri = 'newToken';
+
+    await contract.createTokens(increment);
+    const tokensCount = await contract._tokensCount();
+    expect(tokensCount).to.be.equal(tokenId + increment);
+
     await contract.setURI(tokenId, newUri);
 
     const uri = await contract.uri(tokenId);
@@ -34,13 +42,6 @@ describe('setURI', () => {
   });
 
   it('not owner', async () => {
-    await expect(contract.connect(signers[2]).setURI(0, 'newToken0')).to.be.revertedWith('not owner');
-  });
-
-  it('id too high', async () => {
-    const tokenId = params.tokens.length;
-    const newUri = 'newToken20';
-
-    await expect(contract.setURI(tokenId, newUri)).to.be.revertedWith('id too high');
+    await expect(contract.connect(signers[2]).createTokens(1)).to.be.revertedWith('not owner');
   });
 });

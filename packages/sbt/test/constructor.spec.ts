@@ -16,12 +16,29 @@ describe('constructor', () => {
     const ownerFromContract = await contract._owner();
     expect(ownerFromContract.toLowerCase()).to.be.equal(owner.address.toLowerCase());
 
+    const tokensCount = await contract._tokensCount();
+    expect(tokensCount.toNumber()).to.be.equal(params.tokens.length);
+
     for (const token of params.tokens) {
       const maxFromContract = await contract._tokenBalanceLimits(token.id);
       const uriFromContract = await contract.uri(token.id);
       expect(maxFromContract.toNumber()).to.be.equal(token.maxAmount);
       expect(uriFromContract.toLowerCase()).to.be.equal(token.uri.toLowerCase());
     }
+  });
+
+  it('empty arrays as args', async () => {
+    const owner = (await ethers.getSigners())[0];
+    const params: SBTContractParams = {
+      owner,
+      tokens: [],
+    };
+    const contract = await deploySBT(params);
+    const ownerFromContract = await contract._owner();
+    expect(ownerFromContract.toLowerCase()).to.be.equal(owner.address.toLowerCase());
+
+    const tokensCount = await contract._tokensCount();
+    expect(tokensCount.toNumber()).to.be.equal(0);
   });
 
   it('uri invalid len', async () => {
