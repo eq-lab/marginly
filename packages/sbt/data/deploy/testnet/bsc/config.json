@@ -1,0 +1,42 @@
+{
+  "ethConnection": {
+    "assertChainId": 97,
+    "ethOptions": {
+      "gasPrice": 5000000000,
+      "gasLimit": 5000000
+    }
+  },
+  "tokens": [
+    {
+      "id": 0,
+      "uri": "data:application/json;utf8,{\"name\":\"overseven\",\"description\":\"avatar_badge\",\"image\":\"https://avatars.githubusercontent.com/u/43533945?v=4\",\"external_url\":\"https://github.com/Overseven\"}",
+      "tokenBalanceLimit": 1
+    },
+    {
+      "id": 1,
+      "uri": "data:application/json;utf8,{\"name\":\"eq\",\"description\":\"parachain\",\"image\":\"https://avatars.githubusercontent.com/u/48287027?s=48&v=4\",\"external_url\":\"https://github.com/equilibrium-eosdt/equilibrium-substrate-chain\"}",
+      "tokenBalanceLimit": 1
+    }
+  ],
+  "owner": {
+    "address": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+    "comment": "Metamask Test acc"
+  },
+  "balances": [
+    {
+      "address": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+      "tokenId": 0,
+      "amount": 1
+    },
+    {
+      "address": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+      "tokenId": 1,
+      "amount": 1
+    },
+    {
+      "address": "0x248e9ebE34E24CF332566d440e2b095Ec2cc97BD",
+      "tokenId": 0,
+      "amount": 1
+    }
+  ]
+}

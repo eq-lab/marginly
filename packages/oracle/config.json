@@ -81,8 +81,8 @@
     ]
   },
   "workerManager": {
-    "sequentialFailsThresholdMs": 600000,
-    "restartDelayMs": 10000
+    "sequentialFailsThresholdMs": 120000,
+    "restartDelayMs": 20000
   },
   "oracleWorkers": [
     {
