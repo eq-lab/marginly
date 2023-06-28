@@ -106,6 +106,25 @@
           "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
         }
       ]
+    },
+    {
+      "id": "gmx-usdc",
+      "label": "gmx/usdc",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "gmx/usdt",
+          "direction": "forward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+        }
+      ]
     }
   ],
   "uniswap": {
@@ -153,6 +172,16 @@
         "tokenBBalance": "780_000",
         "priceId": "arb-usdc",
         "priceBaseTokenId": "arb"
+      },
+      {
+        "id": "gmx-usdc",
+        "tokenAId": "gmx",
+        "tokenBId": "usdc",
+        "fee": "0.3%",
+        "tokenABalance": "100_000_000",
+        "tokenBBalance": "5_200_000_000",
+        "priceId": "gmx-usdc",
+        "priceBaseTokenId": "gmx"
       }
     ]
   },
@@ -220,6 +249,24 @@
       "id": "arb-usdc",
       "uniswapPoolId": "arb-usdc",
       "baseTokenId": "arb",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "1_000_000",
+        "quoteLimit": "500_000"
+      }
+    },
+    {
+      "id": "gmx-usdc",
+      "uniswapPoolId": "gmx-usdc",
+      "baseTokenId": "gmx",
       "params": {
         "interestRate": "5.4%",
         "maxLeverage": "20",
