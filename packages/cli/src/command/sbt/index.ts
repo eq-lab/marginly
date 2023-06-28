@@ -12,7 +12,16 @@ import * as ethers from 'ethers';
 import { log } from '@marginly/common';
 import * as ganache from 'ganache';
 import { Command } from 'commander';
-import { assertSbtBalances, mintSbt, SbtBalance } from '@marginly/sbt';
+import {
+  assertSbtBalances,
+  mintSbt,
+  burnSbt,
+  SbtBalance,
+  createTokensSbt,
+  setUriSbt,
+  setNewOwnerSbt,
+  setTokenBalanceLimitSbt,
+} from '@marginly/sbt';
 import { sbtContractName, SbtDeployment } from '@marginly/sbt';
 import * as fs from 'fs';
 import path from 'path';
@@ -116,22 +125,115 @@ const readSbt = async (command: Command): Promise<ReadWriteSbt> => {
   return await readReadWriteSbtFromContext(systemContext);
 };
 
-const mintCommand = new Command('mint').requiredOption('--amounts <amounts>', '').action(
+const mintCommand = new Command('mint')
+  .requiredOption('--amounts <amounts>', 'Array of struct {address:<address>, tokenId:<tokenId>, amount:<amount>}')
+  .action(
+    async (
+      {
+        amounts,
+      }: {
+        amounts: string;
+      },
+      command: Command
+    ) => {
+      const { deployment, contractRoot, signer } = await readSbt(command);
+      const sbtContract = createSbtContract(signer, contractRoot, deployment.address);
+      const balances = JSON.parse(amounts) as SbtBalance[];
+      assertSbtBalances(balances, deployment.tokens);
+      await mintSbt(signer, sbtContract, balances);
+    }
+  );
+
+const burnCommand = new Command('burn')
+  .requiredOption('--amounts <amounts>', 'Array of struct {address:<address>, tokenId:<tokenId>, amount:<amount>}')
+  .action(
+    async (
+      {
+        amounts,
+      }: {
+        amounts: string;
+      },
+      command: Command
+    ) => {
+      const { deployment, contractRoot, signer } = await readSbt(command);
+      const sbtContract = createSbtContract(signer, contractRoot, deployment.address);
+      const balances = JSON.parse(amounts) as SbtBalance[];
+      assertSbtBalances(balances, deployment.tokens);
+      await burnSbt(signer, sbtContract, balances);
+    }
+  );
+
+const setUriCommand = new Command('set-uri')
+  .requiredOption('--token-id <tokenId>', 'Token id')
+  .requiredOption('--new-uri <newUri>', 'New uri')
+  .action(
+    async (
+      {
+        tokenId,
+        newUri,
+      }: {
+        tokenId: string;
+        newUri: string;
+      },
+      command: Command
+    ) => {
+      const { deployment, contractRoot, signer } = await readSbt(command);
+      const sbtContract = createSbtContract(signer, contractRoot, deployment.address);
+      await setUriSbt(signer, sbtContract, Number.parseInt(tokenId), newUri);
+    }
+  );
+
+const createTokensCommand = new Command('create-tokens').requiredOption('--tokens <tokens>', 'Tokens count').action(
   async (
     {
-      amounts,
+      tokens,
     }: {
-      amounts: string;
+      tokens: string;
     },
     command: Command
   ) => {
     const { deployment, contractRoot, signer } = await readSbt(command);
     const sbtContract = createSbtContract(signer, contractRoot, deployment.address);
-    const balances = JSON.parse(amounts) as SbtBalance[];
-    assertSbtBalances(balances, deployment.tokens);
-    await mintSbt(signer, sbtContract, balances);
+    await createTokensSbt(signer, sbtContract, Number.parseInt(tokens));
   }
 );
+
+const setNewOwnerCommand = new Command('set-new-owner')
+  .requiredOption('--owner-address <ownerAddress>', 'New owner eth address')
+  .action(
+    async (
+      {
+        ownerAddress,
+      }: {
+        ownerAddress: string;
+      },
+      command: Command
+    ) => {
+      const { deployment, contractRoot, signer } = await readSbt(command);
+      const sbtContract = createSbtContract(signer, contractRoot, deployment.address);
+      await setNewOwnerSbt(signer, sbtContract, ownerAddress);
+    }
+  );
+
+const setTokenBalanceLimitCommand = new Command('set-token-limit')
+  .requiredOption('--token-id <tokenId>', 'Token id')
+  .requiredOption('--new-limit <newLimit>', 'New token balance limit for one account')
+  .action(
+    async (
+      {
+        tokenId,
+        newLimit,
+      }: {
+        tokenId: string;
+        newLimit: string;
+      },
+      command: Command
+    ) => {
+      const { deployment, contractRoot, signer } = await readSbt(command);
+      const sbtContract = createSbtContract(signer, contractRoot, deployment.address);
+      await setTokenBalanceLimitSbt(signer, sbtContract, Number.parseInt(tokenId), Number.parseInt(newLimit));
+    }
+  );
 
 export const registerReadOnlyEthParameters = (command: Command): Command => {
   return command.option(getCommanderForm(ethNodeUriParameter), ethNodeUriParameter.description);
@@ -145,4 +247,10 @@ export const registerReadWriteEthParameters = (command: Command): Command => {
     .option(getCommanderForm(contractRootParameter), contractRootParameter.description);
 };
 
-export const sbtCommand = registerReadWriteEthParameters(new Command('sbt')).addCommand(mintCommand);
+export const sbtCommand = registerReadWriteEthParameters(new Command('sbt'))
+  .addCommand(mintCommand)
+  .addCommand(burnCommand)
+  .addCommand(setUriCommand)
+  .addCommand(createTokensCommand)
+  .addCommand(setNewOwnerCommand)
+  .addCommand(setTokenBalanceLimitCommand);

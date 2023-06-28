@@ -55,3 +55,10 @@ export function assertSbtBalances(balances: SbtBalance[], tokens: TokenInfo[]) {
 export async function balanceOfBatch(sbtContract: ethers.Contract, addresses: string[], tokenIds: number[]) {
   return ((await sbtContract.balanceOfBatch(addresses, tokenIds)) as BigNumber[]).map((x) => x.toNumber());
 }
+
+export async function assertSignerHasOwnerRights(signer: ethers.Signer, sbtContract: ethers.Contract) {
+  const currentOwner = (await sbtContract._owner()).toString();
+  if ((await signer.getAddress()).toLowerCase() !== currentOwner.toLowerCase()) {
+    throw new Error(`Signer has no owner right! Owner address: ${currentOwner}`);
+  }
+}
