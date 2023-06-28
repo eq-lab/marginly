@@ -4,26 +4,16 @@ import { Contract, ContractFactory, Signer } from 'ethers';
 import { ContractDescription, waitForTx } from '@marginly/common';
 import fs from 'fs';
 import path from 'path';
+import { assertSbtBalances, SbtBalance, sbtContractName, SbtDeployment, TokenInfo } from '../common';
 
 const contractsDir = '../../../../artifacts/contracts/SBT.sol';
-const contractName = 'SBT';
-const contractDeploymentId = contractName + 'Implementation';
+const contractDeploymentId = sbtContractName + 'Implementation';
 
 export interface SbtDeployConfig {
   ethConnection: EthConnectionConfig;
   tokens: TokenInfo[];
   owner?: ContractOwnerInfo;
-  balances: Balance[];
-}
-
-export interface SbtDeployment {
-  sbt: { address: string; tokens: TokenInfo[]; owner: string };
-}
-
-interface TokenInfo {
-  id: number;
-  uri: string;
-  tokenBalanceLimit: number;
+  balances: SbtBalance[];
 }
 
 export interface EthOptions {
@@ -39,12 +29,6 @@ export interface EthConnectionConfig {
 export interface ContractOwnerInfo {
   address: string;
   comment: string;
-}
-
-export interface Balance {
-  address: string;
-  tokenId: number;
-  amount: number;
 }
 
 interface DeployResult extends DeployState {
@@ -107,7 +91,7 @@ export async function deploySbt(
   assertOwnerFromConfig(config);
   await assertNetworkFromConfig(config, signer.provider!);
   assertTokensFromConfig(config);
-  assertBalancesFromConfig(config);
+  assertSbtBalances(config.balances, config.tokens);
 
   const signerBalance = await signer.getBalance();
   console.log(`Signer balance: ${ethers.utils.formatUnits(signerBalance)} ETH`);
@@ -119,19 +103,19 @@ export async function deploySbt(
   const limits = config.tokens.map((x) => x.tokenBalanceLimit);
   const uris = config.tokens.map((x) => x.uri);
 
-  const deployResult = await deploy(contractName, [limits, uris], contractDeploymentId);
+  const deployResult = await deploy(sbtContractName, [limits, uris], contractDeploymentId);
 
   logger.log(`Deploy address: ${deployResult.address}`);
   logger.log(`Deploy tx: ${deployResult.txHash}`);
 
-  const sbtContractDescription = contractReader(contractName);
+  const sbtContractDescription = contractReader(sbtContractName);
   const sbtContractFactory = new ethers.ContractFactory(sbtContractDescription.abi, sbtContractDescription.bytecode);
   const sbtContract = sbtContractFactory.attach(deployResult.address).connect(signer);
 
   await initBalances(config, signer, sbtContract, logger);
   const owner = await setNewOwner(config, signer, sbtContract, logger);
 
-  return { sbt: { address: deployResult.address, tokens: config.tokens, owner } };
+  return { address: deployResult.address, tokens: config.tokens, owner };
 }
 
 function assertOwnerFromConfig(config: SbtDeployConfig): void {
@@ -184,35 +168,6 @@ function assertTokensFromConfig(config: SbtDeployConfig): void {
     }
     if (token.uri.length === 0) {
       throw new Error(`Empty uri for token with id ${token.id}`);
-    }
-  }
-}
-
-function assertBalancesFromConfig(config: SbtDeployConfig): void {
-  if (config.tokens.length === 0) {
-    return;
-  }
-
-  for (const balance of config.balances) {
-    const duplicates = config.balances.filter(
-      (x) => x.address.toLowerCase() === balance.address.toLowerCase() && x.tokenId === balance.tokenId
-    );
-    if (duplicates.length > 1) {
-      throw new Error(`Config has duplicates of balances. Address: ${balance.address}, tokenId: ${balance.tokenId}`);
-    }
-    const token = config.tokens.find((x) => x.id === balance.tokenId);
-    if (token === undefined) {
-      throw new Error(
-        `Config has balance with unknown token. Address: ${balance.address}, tokenId: ${balance.tokenId}`
-      );
-    }
-
-    if (balance.amount > token.tokenBalanceLimit) {
-      throw new Error(
-        `Config has balance which exceeds the limit. ` +
-          `Address: ${balance.address}, tokenId: ${balance.tokenId}, ` +
-          `balance: ${balance.amount}, limit: ${token.tokenBalanceLimit}`
-      );
     }
   }
 }
@@ -286,7 +241,7 @@ async function setNewOwner(
     return await signer.getAddress();
   }
   const currentOwner = await sbtContract._owner();
-  logger.log(`currentOwner: ${currentOwner}, config.owner.address: ${config.owner.address}`);
+  logger.log(`Current owner: ${currentOwner}, config.owner.address: ${config.owner.address}`);
   if (currentOwner.toLowerCase() === config.owner.address.toLowerCase()) {
     logger.log('Contract owner already set. Skip');
     return config.owner.address;

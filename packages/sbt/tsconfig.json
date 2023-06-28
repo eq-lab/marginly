@@ -4,8 +4,13 @@
     "outDir": "dist",
     "declaration": true,
     "composite": true,
-    "rootDir": "deploy",
+    "rootDir": "src",
     "resolveJsonModule": true
   },
-  "include": ["deploy/*", "deploy/*.json"],
+  "include": [
+    "src/*",
+    "src/*.json",
+    "src/*/*",
+    "src/*/*.json"
+  ],
 }

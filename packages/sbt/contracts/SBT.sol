@@ -33,8 +33,9 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
     require(msg.sender == _owner, 'not owner'); // Access denied
   }
 
-  event TokenMinted(address indexed to, uint256 tokenId, uint256 newBalance);
-  event TokenBurned(address indexed from, uint256 tokenId, uint256 newBalance);
+  event Mint(address indexed to, uint256 tokenId, uint256 newBalance);
+  event Burn(address indexed from, uint256 tokenId, uint256 newBalance);
+  event CreateTokens(uint256 increment, uint256 totalAmount);
 
   constructor(uint256[] memory tokenBalanceLimits, string[] memory tokenUris) {
     uint256 tokensLen = tokenBalanceLimits.length;
@@ -47,6 +48,10 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
 
     _owner = msg.sender;
     _tokensCount = tokensLen;
+
+    if (tokensLen > 0) {
+      emit CreateTokens(tokensLen, tokensLen);
+    }
   }
 
   /**
@@ -144,12 +149,13 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    */
   function _setURI(uint256 id, string memory newUri) private {
     _uri[id] = newUri;
+    emit URI(newUri, id);
   }
 
   /**
    * @dev Creates token with token type `id`, and assigns them to `to`.
    *
-   * Emits a {TokenMinted} event.
+   * Emits a {Mint} event.
    *
    * Requirements:
    *
@@ -165,7 +171,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
     uint256 balance = _balances[id][to] + amount;
     require(balance <= _tokenBalanceLimits[id], 'user balance max cap');
     _balances[id][to] = balance;
-    emit TokenMinted(to, id, balance);
+    emit Mint(to, id, balance);
   }
 
   /**
@@ -186,7 +192,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
     require(amount <= balance, 'burn amount > balance');
     balance -= amount;
     _balances[id][from] = balance;
-    emit TokenBurned(from, id, balance);
+    emit Burn(from, id, balance);
   }
 
   /**
@@ -234,6 +240,7 @@ contract SBT is ERC165, IERC1155, IERC1155MetadataURI {
    */
   function createTokens(uint256 increment) external onlyOwner {
     _tokensCount += increment;
+    emit CreateTokens(increment, _tokensCount);
   }
 
   /**
