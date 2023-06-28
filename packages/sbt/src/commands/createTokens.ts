@@ -10,7 +10,7 @@ export async function createTokensSbt(signer: ethers.Signer, sbtContract: ethers
   await assertSignerHasOwnerRights(signer, sbtContract);
 
   const tokensBefore = (await sbtContract._tokensCount()).toNumber();
-  console.log(`Actual Tokens count: ${tokensCount}`);
+  console.log(`Actual Tokens count: ${tokensBefore}`);
 
   const tx = await sbtContract.createTokens(tokensCount);
   console.log(`Create tokens tx hash: ${tx.hash}`);
