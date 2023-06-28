@@ -79,19 +79,34 @@ contract RouterTestUniswapV2Pair is IUniswapV2Pair {
   }
 
   function mint(address to) external returns (uint liquidity) {}
+
   function burn(address to) external returns (uint amount0, uint amount1) {}
+
   function skim(address to) external {}
+
   function DOMAIN_SEPARATOR() external view returns (bytes32) {}
+
   function PERMIT_TYPEHASH() external pure returns (bytes32) {}
+
   function allowance(address owner, address spender) external view returns (uint) {}
+
   function approve(address spender, uint value) external returns (bool) {}
+
   function balanceOf(address owner) external view returns (uint) {}
+
   function decimals() external pure returns (uint8) {}
+
   function name() external pure returns (string memory) {}
+
   function nonces(address owner) external view returns (uint) {}
+
   function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {}
+
   function symbol() external pure returns (string memory) {}
+
   function totalSupply() external view returns (uint) {}
+
   function transfer(address to, uint value) external returns (bool) {}
+
   function transferFrom(address from, address to, uint value) external returns (bool) {}
 }
