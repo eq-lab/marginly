@@ -1,0 +1,16 @@
+{
+    "address": "0x710DfEE357f0FC4E53d685dA61ef95fB616069bC",
+    "tokens": [
+      {
+        "id": 0,
+        "uri": "data:application/json;utf8,{\"name\":\"overseven\",\"description\":\"avatar_badge\",\"image\":\"https://avatars.githubusercontent.com/u/43533945?v=4\",\"external_url\":\"https://github.com/Overseven\"}",
+        "tokenBalanceLimit": 1
+      },
+      {
+        "id": 1,
+        "uri": "data:application/json;utf8,{\"name\":\"eq\",\"description\":\"parachain\",\"image\":\"https://avatars.githubusercontent.com/u/48287027?s=48&v=4\",\"external_url\":\"https://github.com/equilibrium-eosdt/equilibrium-substrate-chain\"}",
+        "tokenBalanceLimit": 1
+      }
+    ],
+    "owner": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688"
+}
