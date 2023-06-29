@@ -30,6 +30,8 @@ contract TestWooPPV2 {
 
   mapping(address => TokenInfo) public tokenInfos;
 
+  address[] tokenList;
+  
   address public immutable quoteToken;
 
   constructor(address _quoteToken) {
@@ -78,10 +80,11 @@ contract TestWooPPV2 {
 
   function sync(address token) external {
     tokenInfos[token].reserve = uint192(IERC20(token).balanceOf(address(this)));
+    tokenList.push(token);
   }
 
   function _tryQuerySellBase(address baseToken, uint256 baseAmount) private view returns (uint256 quoteAmount) {
-    State memory state = defaultState();
+    State memory state = getTokenState(baseToken);
     (quoteAmount, ) = _calcQuoteAmountSellBase(baseToken, baseAmount, state);
     uint256 fee = (quoteAmount * tokenInfos[baseToken].feeRate) / 1e5;
     quoteAmount = quoteAmount - fee;
@@ -90,7 +93,7 @@ contract TestWooPPV2 {
   function _tryQuerySellQuote(address baseToken, uint256 quoteAmount) private view returns (uint256 baseAmount) {
     uint256 swapFee = (quoteAmount * tokenInfos[baseToken].feeRate) / 1e5;
     quoteAmount = quoteAmount - swapFee;
-    State memory state = defaultState();
+    State memory state = getTokenState(baseToken);
     (baseAmount, ) = _calcBaseAmountSellQuote(baseToken, quoteAmount, state);
   }
 
@@ -103,8 +106,8 @@ contract TestWooPPV2 {
       return (0, 0);
     }
 
-    State memory state1 = defaultState();
-    State memory state2 = defaultState();
+    State memory state1 = getTokenState(baseToken1);
+    State memory state2 = getTokenState(baseToken2);
 
     uint64 spread = _maxUInt64(state1.spread, state2.spread) / 2;
     uint16 feeRate = _maxUInt16(tokenInfos[baseToken1].feeRate, tokenInfos[baseToken2].feeRate);
@@ -138,7 +141,7 @@ contract TestWooPPV2 {
 
     {
       uint256 newPrice;
-      State memory state = defaultState();
+      State memory state = getTokenState(baseToken);
       (quoteAmount, newPrice) = _calcQuoteAmountSellBase(baseToken, baseAmount, state);
     }
 
@@ -178,7 +181,7 @@ contract TestWooPPV2 {
 
     {
       uint256 newPrice;
-      State memory state = defaultState();
+      State memory state = getTokenState(baseToken);
       (baseAmount, newPrice) = _calcBaseAmountSellQuote(baseToken, quoteAmount, state);
       // console.log('Post new price:', newPrice, newPrice/1e8);
       require(baseAmount >= minBaseAmount, 'WooPPV2: baseAmount_LT_minBaseAmount');
@@ -209,8 +212,8 @@ contract TestWooPPV2 {
     //   'WooPPV2: !BASE1_BALANCE'
     // );
 
-    State memory state1 = defaultState();
-    State memory state2 = defaultState();
+    State memory state1 = getTokenState(baseToken1);
+    State memory state2 = getTokenState(baseToken2);
 
     uint256 swapFee;
     uint256 quoteAmount;
@@ -311,8 +314,14 @@ contract TestWooPPV2 {
     return a > b ? a : b;
   }
 
-  function defaultState() public pure returns(State memory) {
-    return State({price: 10, spread: 0, coeff: 1, woFeasible: true});
+  function getTokenState(address token) public view returns(State memory) {
+    uint128 price;
+    if (tokenList[0] == token) {
+      price = 10;
+    } else if (tokenList[1] == token) {
+      price = 100;
+    } else revert();
+    return State({price: price, spread: 0, coeff: 1, woFeasible: true});
   }
 
   function defaultDecs() private pure returns(DecimalInfo memory) {

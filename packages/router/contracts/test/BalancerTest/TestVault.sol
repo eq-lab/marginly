@@ -31,6 +31,7 @@ contract TestVault is IVault {
     uint256 amountOut;
 
     (amountCalculated, amountIn, amountOut) = _swapWithPool(poolRequest);
+    require(singleSwap.kind == SwapKind.GIVEN_IN ? amountOut >= limit : amountIn <= limit, 'SWAP_LIMIT');
 
     // _receiveAsset(singleSwap.assetIn, amountIn, funds.sender, funds.fromInternalBalance);
     TransferHelper.safeTransferFrom(address(singleSwap.assetIn), msg.sender, address(this), amountIn);
