@@ -74,8 +74,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "10_000",
-        "quoteLimit": "20_000_000"
+        "baseLimit": "50_000",
+        "quoteLimit": "100_000_000"
       }
     }
   ],
