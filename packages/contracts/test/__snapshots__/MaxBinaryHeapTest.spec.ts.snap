@@ -59,13 +59,13 @@ Object {
 exports[`MaxBinaryHeapTest should create max binary heap and remove items in right order 2`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 112796,
+  "gasUsed": 112848,
 }
 `;
 
 exports[`MaxBinaryHeapTest should remove item by index 1`] = `
 Object {
   "calldataByteLength": 36,
-  "gasUsed": 41464,
+  "gasUsed": 41516,
 }
 `;
