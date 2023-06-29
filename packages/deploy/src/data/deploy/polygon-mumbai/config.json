@@ -1,6 +1,6 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://rpc.ankr.com/polygon_mumbai"
+    "ethNodeUri": "https://rpc-mumbai.maticvigil.com/"
   },
   "connection": {
     "assertChainId": 80001,
@@ -72,8 +72,8 @@
         "tokenAId": "fmatic",
         "tokenBId": "usdc",
         "fee": "0.05%",
-        "tokenABalance": "40_000_000",
-        "tokenBBalance": "32_00_0000",
+        "tokenABalance": "4_000_000",
+        "tokenBBalance": "3_200_000",
         "priceId": "matic-usdc",
         "priceBaseTokenId": "fmatic"
       }
