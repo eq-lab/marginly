@@ -45,6 +45,7 @@ interface UpdatePriceJobConfig {
 export interface OracleWorkerConfig {
   id: string;
   tickMs: number,
+  disableMockValidation: boolean | undefined;
   ethereum: OracleWorkerEthereumConfig,
   tokens: TokenConfig[],
   uniswapV3PoolMocks: UniswapV3PoolMockConfig[];
@@ -84,6 +85,7 @@ interface StrictOracleWorkerEthereumConfig {
 export interface StrictOracleWorkerConfig {
   id: string;
   tickMs: number,
+  disableMockValidation: boolean;
   ethereum: StrictOracleWorkerEthereumConfig,
   tokens: StrictTokenConfig[],
   uniswapV3PoolMocks: UniswapV3PoolMockConfig[];
@@ -161,6 +163,7 @@ function parseOracleWorkerConfig(
   return {
     id: config.id,
     tickMs: config.tickMs,
+    disableMockValidation: config.disableMockValidation ?? false,
     ethereum: {
       nodeUrl: config.ethereum.nodeUrl,
       oraclePrivateKey: config.ethereum.oraclePrivateKey ?? ethereumConfig.oraclePrivateKey,

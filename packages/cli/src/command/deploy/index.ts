@@ -23,6 +23,7 @@ import {
 } from '@marginly/deploy';
 import { readZkWalletFromContext, registerZkWalletParameters } from '@marginly/cli-common/signer-zk';
 import { Provider, Wallet } from 'zksync-web3';
+import { deploySbt } from '@marginly/sbt';
 
 const nodeUriParameter = {
   name: ['eth', 'node', 'uri'],
@@ -94,8 +95,8 @@ async function deployCommandTemplate(
     signer: Wallet,
     actualConfigFile: string,
     actualStateFile: string,
-    actualDeploymentFile: string,
-  ) => Promise<void>,
+    actualDeploymentFile: string
+  ) => Promise<void>
 ) {
   const statesDirName = 'states';
 
@@ -321,14 +322,32 @@ const deployMarginlyCommand = new Command('marginly')
           'Marginly',
           createDefaultBaseState,
           actualStateFile,
-          logger,
+          logger
         ).createStateStore();
         const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
 
         const marginlyDeployment = await deployMarginly(signer, rawConfig, stateStore, logger);
 
         updateDeploymentFile(actualDeploymentFile, marginlyDeployment, logger);
-      },
+      }
+    );
+  });
+
+const deploySbtCommand = new Command('sbt')
+  .requiredOption('--state-mode <stateMode>', 'Mode to process state: new, latest, existing')
+  .option('--state-file <stateFile>', 'State file name for new and existing state modes')
+  .action(async (deployCommandArgs: DeployCommandArgs, command: Command) => {
+    await deployCommandTemplate(
+      command,
+      deployCommandArgs,
+      async (signer, actualConfigFile, actualStateFile, actualDeploymentFile) => {
+        const logger = new SimpleLogger((x) => console.error(x));
+        const stateStore = new StateFile('SBT', createDefaultBaseState, actualStateFile, logger).createStateStore();
+        const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
+        const sbtDeployment = await deploySbt(signer, rawConfig, stateStore, logger);
+
+        fs.writeFileSync(actualDeploymentFile, JSON.stringify(sbtDeployment, null, 2), { encoding: 'utf-8' });
+      }
     );
   });
 
@@ -381,7 +400,7 @@ export const readReadOnlyZkFromContext = async (
 };
 
 export const readReadWriteEthFromContext = async (
-  systemContext: SystemContext,
+  systemContext: SystemContext
 ): Promise<{
   signer: Wallet;
 }> => {
@@ -407,4 +426,6 @@ export const registerReadWriteEthParameters = (command: Command): Command => {
   return registerZkWalletParameters(registerReadOnlyEthParameters(command));
 };
 
-export const deployCommand = registerReadWriteEthParameters(new Command('deploy')).addCommand(deployMarginlyCommand);
+export const deployCommand = registerReadWriteEthParameters(new Command('deploy'))
+  .addCommand(deployMarginlyCommand)
+  .addCommand(deploySbtCommand);
