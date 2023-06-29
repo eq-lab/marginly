@@ -7,6 +7,7 @@ import { RouterTestUniswapV3Pool } from '../../typechain-types/contracts/test/Un
 import { RouterTestUniswapV2Factory } from '../../typechain-types/contracts/test/UniswapV2Test/TestUniswapV2Factory.sol';
 import { RouterTestUniswapV2Pair } from '../../typechain-types/contracts/test/UniswapV2Test/TestUniswapV2Pair.sol';
 import { TestVault } from '../../typechain-types/contracts/test/BalancerTest/TestVault.sol';
+import { TestWooPPV2 } from '../../typechain-types/contracts/test/WooFi/TestWooPool.sol';
 
 export interface UniswapPoolInfo {
   token0: TestERC20Token;
@@ -85,6 +86,24 @@ export async function createBalancerVault(
   };
 }
 
+export async function createWooPool(
+  token0: TestERC20Token,
+  token1: TestERC20Token
+): Promise<{
+  wooPool: TestWooPPV2,
+}> {
+  const quoteToken = await createToken('WooQuoteToken', 'WQT');
+  const wooPool = await (await ethers.getContractFactory('TestWooPPV2')).deploy(quoteToken.address);
+  await token0.mint(wooPool.address, parseUnits('100000', 18));
+  await token1.mint(wooPool.address, parseUnits('100000', 18));
+  await wooPool.sync(token0.address);
+  await wooPool.sync(token1.address);
+
+  return {
+    wooPool,
+  };
+}
+
 export async function createMarginlyRouter(): Promise<{
   marginlyRouter: MarginlyRouter;
   token0: TestERC20Token;
@@ -92,6 +111,7 @@ export async function createMarginlyRouter(): Promise<{
   uniswapV3Pool: RouterTestUniswapV3Pool;
   uniswapV2Pair: RouterTestUniswapV2Pair;
   balancerVault: TestVault;
+  wooPool: TestWooPPV2
 }> {
   const tokenA = await createToken('TokenA', 'TKA');
   const tokenB = await createToken('TokenB', 'TKB');
@@ -109,11 +129,13 @@ export async function createMarginlyRouter(): Promise<{
   const { uniswapV3Pool, uniswapV3Factory } = await createUniswapV3Pool(token0, token1);
   const { uniswapV2Pair, uniswapV2Factory } = await createUniswapV2Pair(token0, token1);
   const { balancerVault } = await createBalancerVault(token0, token1);
+  const { wooPool } = await createWooPool(token0, token1);
   const factory = await ethers.getContractFactory('MarginlyRouter');
   const marginlyRouter = await factory.deploy(
     uniswapV3Factory.address,
     uniswapV2Factory.address,
-    balancerVault.address
+    balancerVault.address,
+    wooPool.address,
   );
 
   return {
@@ -123,5 +145,6 @@ export async function createMarginlyRouter(): Promise<{
     uniswapV3Pool,
     uniswapV2Pair,
     balancerVault,
+    wooPool,
   };
 }

@@ -1,11 +1,12 @@
 import { expect } from 'chai';
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { createMarginlyRouter } from './shared/fixtures';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
 
 describe('MarginlyRouter UniswapV3', () => {
   it('swapExactInput 0 to 1, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -26,7 +27,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactInput 0 to 1, less than minimal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -42,7 +43,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactInput 1 to 0, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -61,7 +62,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactInput 1 to 0, less than minimal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -77,7 +78,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput 0 to 1, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await uniswapV3Pool.price();
@@ -101,7 +102,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput 0 to 1, more than maximal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await uniswapV3Pool.price();
@@ -118,7 +119,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput 1 to 0, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await uniswapV3Pool.price();
@@ -141,7 +142,7 @@ describe('MarginlyRouter UniswapV3', () => {
   });
 
   it('swapExactOutput 1 to 0, more than maximal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await uniswapV3Pool.price();
@@ -160,7 +161,7 @@ describe('MarginlyRouter UniswapV3', () => {
 
 describe('MarginlyRouter UniswapV2', () => {
   it('swapExactInput 0 to 1, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -180,7 +181,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactInput 0 to 1, less than minimal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -197,7 +198,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactInput 1 to 0, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -216,7 +217,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactInput 1 to 0, less than minimal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -233,7 +234,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactOutput 0 to 1, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const [reserve0, reserve1] = await uniswapV2Pair.getReserves();
@@ -253,7 +254,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactOutput 0 to 1, more than maximal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await uniswapV3Pool.price();
@@ -270,7 +271,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactOutput 1 to 0, success', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const [reserve0, reserve1] = await uniswapV2Pair.getReserves();
@@ -289,7 +290,7 @@ describe('MarginlyRouter UniswapV2', () => {
   });
 
   it('swapExactOutput 1 to 0, more than maximal amount', async () => {
-    const { marginlyRouter, token0, token1, uniswapV2Pair } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV2Pair } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = 1;
@@ -308,7 +309,7 @@ describe('MarginlyRouter UniswapV2', () => {
 
 describe('MarginlyRouter Balancer Vault', () => {
   it('swapExactInput 0 to 1, success', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -326,7 +327,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactInput 0 to 1, less than minimal amount', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -342,7 +343,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactInput 1 to 0, success', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -359,7 +360,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactInput 1 to 0, less than minimal amount', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 1000;
@@ -375,7 +376,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactOutput 0 to 1, success', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await balancerVault.price();
@@ -396,7 +397,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactOutput 0 to 1, more than maximal amount', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await balancerVault.price();
@@ -413,7 +414,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactOutput 1 to 0, success', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await balancerVault.price();
@@ -433,7 +434,7 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 
   it('swapExactOutput 1 to 0, more than maximal amount', async () => {
-    const { marginlyRouter, token0, token1, balancerVault } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, balancerVault } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await balancerVault.price();
@@ -450,9 +451,177 @@ describe('MarginlyRouter Balancer Vault', () => {
   });
 });
 
+describe('MarginlyRouter WooFi', () => {
+  it('swapExactInput 0 to 1, success', async () => {
+    const { marginlyRouter, token0, token1, wooPool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token0.mint(user.address, amountToSwap);
+    await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
+    expect(await token0.balanceOf(user.address)).to.be.equal(amountToSwap);
+    expect(await token1.balanceOf(user.address)).to.be.equal(0);
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    await marginlyRouter.connect(user).swapExactInput(8, token0.address, token1.address, amountToSwap, 0);
+
+    const price = BigNumber.from(10); // await uniswapV3Pool.price();
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    // expect(await token0.balanceOf(user.address)).to.be.equal(0);
+    // expect(await token1.balanceOf(user.address)).to.be.equal(price.mul(amountToSwap));
+  });
+
+  it('swapExactInput 0 to 1, less than minimal amount', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token0.mint(user.address, amountToSwap);
+    await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
+
+    const price = await uniswapV3Pool.price();
+    const amountToGetPlusOne = price.mul(amountToSwap).add(1);
+
+    expect(
+      marginlyRouter.connect(user).swapExactInput(8, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
+    ).to.be.revertedWith('Insufficient amount');
+  });
+
+  it('swapExactInput 1 to 0, success', async () => {
+    const { marginlyRouter, token0, token1, wooPool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token1.mint(user.address, amountToSwap);
+    await token1.connect(user).approve(marginlyRouter.address, amountToSwap);
+    expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
+    expect(await token0.balanceOf(user.address)).to.be.equal(0);
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    await marginlyRouter.connect(user).swapExactInput(8, token1.address, token0.address, amountToSwap, 0);
+    const price = 10; // await uniswapV3Pool.price();
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    // expect(await token1.balanceOf(user.address)).to.be.equal(0);
+    // expect(await token0.balanceOf(user.address)).to.be.equal(BigNumber.from(amountToSwap).div(price));
+  });
+
+  it('swapExactInput 1 to 0, less than minimal amount', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token1.mint(user.address, amountToSwap);
+    await token1.connect(user).approve(marginlyRouter.address, amountToSwap);
+
+    const price = await uniswapV3Pool.price();
+    const amountToGetPlusOne = BigNumber.from(amountToSwap).div(price).add(1);
+
+    expect(
+      marginlyRouter.connect(user).swapExactInput(8, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
+    ).to.be.revertedWith('Insufficient amount');
+  });
+
+  it('swapExactOutput 0 to 1, success', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price = await uniswapV3Pool.price();
+
+    const amountToGet = 1000;
+    const amountTransferred = BigNumber.from(amountToGet).div(price);
+    const initialAmount0 = amountTransferred.mul(100);
+    await token0.mint(user.address, initialAmount0);
+    await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0);
+    expect(await token1.balanceOf(user.address)).to.be.equal(0);
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    await marginlyRouter.connect(user).swapExactOutput(8, token0.address, token1.address, initialAmount0, amountToGet);
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    // expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0.sub(amountTransferred));
+    // expect(await token1.balanceOf(user.address)).to.be.equal(amountToGet);
+  });
+
+  it('swapExactOutput 0 to 1, more than maximal amount', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price = await uniswapV3Pool.price();
+
+    const amountToGet = 1000;
+    const amountToSwap = BigNumber.from(amountToGet).div(price);
+    const initialAmount0 = amountToSwap.mul(100);
+    await token0.mint(user.address, initialAmount0);
+    await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
+
+    expect(
+      marginlyRouter.connect(user).swapExactOutput(8, token0.address, token1.address, amountToSwap.sub(1), amountToGet)
+    ).to.be.revertedWith('Too much requested');
+  });
+
+  it('swapExactOutput 1 to 0, success', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price = await uniswapV3Pool.price();
+
+    const amountToGet = 1000;
+    const amountToSwap = BigNumber.from(amountToGet).mul(price);
+    const initialAmount1 = amountToSwap.mul(100);
+    await token1.mint(user.address, initialAmount1);
+    await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
+    expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
+    expect(await token0.balanceOf(user.address)).to.be.equal(0);
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    await marginlyRouter.connect(user).swapExactOutput(8, token1.address, token0.address, initialAmount1, amountToGet);
+
+    console.log(await token0.balanceOf(user.address));
+    console.log(await token1.balanceOf(user.address));
+
+    // expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1.sub(amountToSwap));
+    // expect(await token0.balanceOf(user.address)).to.be.equal(amountToGet);
+  });
+
+  it('swapExactOutput 1 to 0, more than maximal amount', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price = await uniswapV3Pool.price();
+
+    const amountToGet = 1000;
+    const amountToSwap = BigNumber.from(amountToGet).mul(price);
+    const initialAmount1 = amountToSwap.mul(100);
+    await token1.mint(user.address, initialAmount1);
+    await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
+
+    expect(
+      marginlyRouter.connect(user).swapExactOutput(8, token1.address, token0.address, amountToSwap.add(1), amountToGet)
+    ).to.be.revertedWith('Too much requested');
+  });
+});
+
 describe('MarginlyRouter UnknownDex', () => {
   it('swapExactInput UnknownDex', async () => {
-    const { marginlyRouter, token0, token1 } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1 } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const amountToSwap = 10;
@@ -465,7 +634,7 @@ describe('MarginlyRouter UnknownDex', () => {
   });
 
   it('swapExactOutput UnknownDex', async () => {
-    const { marginlyRouter, token0, token1, uniswapV3Pool } = await createMarginlyRouter();
+    const { marginlyRouter, token0, token1, uniswapV3Pool } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
     const price = await uniswapV3Pool.price();
@@ -475,7 +644,7 @@ describe('MarginlyRouter UnknownDex', () => {
     await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
 
     expect(
-      marginlyRouter.connect(user).swapExactOutput(0, token1.address, token0.address, amountToSwap, amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(255, token1.address, token0.address, amountToSwap, amountToGet)
     ).to.be.revertedWithCustomError(marginlyRouter, 'UnknownDex');
   });
 });
