@@ -31,7 +31,9 @@ abstract contract WooFiSwap is DexFactoryList {
     IWooPoolV2 wooPool = IWooPoolV2(dexFactoryList[dex]);
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), maxAmountIn);
-    amountOut = wooPool.swap(tokenIn, tokenOut, maxAmountIn, amountOut, msg.sender, address(0));
+    uint256 actualAmountOut = wooPool.swap(tokenIn, tokenOut, maxAmountIn, amountOut, msg.sender, address(0));
+    require(actualAmountOut > amountOut, 'Too much requested');
+    amountIn = maxAmountIn;
   }
 }
 

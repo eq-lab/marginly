@@ -56,9 +56,9 @@ abstract contract BalancerSwap is DexFactoryList {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
     TransferHelper.safeApprove(tokenIn, dexFactoryList[dex], maxAmountIn);
     amountIn = IVault(dexFactoryList[dex]).swap(swap, funds, maxAmountIn, block.timestamp);
+    require(amountIn <= maxAmountIn, 'Too much requested');
     TransferHelper.safeApprove(tokenIn, dexFactoryList[dex], 0);
     TransferHelper.safeTransfer(tokenIn, msg.sender, maxAmountIn - amountIn);
-    require(amountIn <= maxAmountIn, 'Insufficient amount');
   }
 }
 
