@@ -205,8 +205,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "10_000",
-        "quoteLimit": "20_000_000"
+        "baseLimit": "50_000",
+        "quoteLimit": "10_000_000"
       }
     },
     {
@@ -259,8 +259,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "1_000_000",
-        "quoteLimit": "500_000"
+        "baseLimit": "10_000_000",
+        "quoteLimit": "10_000_000"
       }
     },
     {
@@ -277,8 +277,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "1_000_000",
-        "quoteLimit": "500_000"
+        "baseLimit": "2_000_000",
+        "quoteLimit": "10_000_000"
       }
     }
   ],
