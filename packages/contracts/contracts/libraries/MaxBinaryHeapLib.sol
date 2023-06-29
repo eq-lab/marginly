@@ -82,7 +82,7 @@ library MaxBinaryHeapLib {
 
     positions[self.nodes[index].account].heapPosition = 0;
 
-    if (length != 1) {
+    if (length != 1 && last != index) {
       self.nodes[index] = self.nodes[last];
       positions[self.nodes[index].account].heapPosition = index + 1;
       heapifyDown(self, positions, index);
