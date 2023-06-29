@@ -206,43 +206,7 @@
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
         "baseLimit": "50_000",
-        "quoteLimit": "10_000_000"
-      }
-    },
-    {
-      "id": "arb-fweth",
-      "uniswapPoolId": "arb-fweth",
-      "baseTokenId": "arb",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.001",
-        "baseLimit": "700_000",
-        "quoteLimit": "500"
-      }
-    },
-    {
-      "id": "gmx-fweth",
-      "uniswapPoolId": "gmx-fweth",
-      "baseTokenId": "gmx",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.001",
-        "baseLimit": "12_000",
-        "quoteLimit": "500"
+        "quoteLimit": "100_000_000"
       }
     },
     {
@@ -259,8 +223,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "10_000_000",
-        "quoteLimit": "10_000_000"
+        "baseLimit": "100_000_000",
+        "quoteLimit": "100_000_000"
       }
     },
     {
@@ -278,7 +242,7 @@
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
         "baseLimit": "2_000_000",
-        "quoteLimit": "10_000_000"
+        "quoteLimit": "100_000_000"
       }
     }
   ],

@@ -72,8 +72,8 @@
         "tokenAId": "fmatic",
         "tokenBId": "usdc",
         "fee": "0.05%",
-        "tokenABalance": "4_000_000",
-        "tokenBBalance": "3_200_000",
+        "tokenABalance": "40_000_000",
+        "tokenBBalance": "32_00_0000",
         "priceId": "matic-usdc",
         "priceBaseTokenId": "fmatic"
       }
@@ -99,8 +99,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500_000",
-        "quoteLimit": "1_000_000"
+        "baseLimit": "50_000",
+        "quoteLimit": "100_000_000"
       }
     },
     {
@@ -117,8 +117,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500_000",
-        "quoteLimit": "400_000"
+        "baseLimit": "100_000_000",
+        "quoteLimit": "100_000_000"
       }
     }
   ],
