@@ -5,7 +5,7 @@ import '../dex/dex.sol';
 
 interface IMarginlyRouter {
   function swapExactInput(
-    Dex dex,
+    bytes calldata swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
@@ -13,7 +13,7 @@ interface IMarginlyRouter {
   ) external returns (uint256);
 
   function swapExactOutput(
-    Dex dex,
+    bytes calldata swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,

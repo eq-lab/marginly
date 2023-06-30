@@ -22,13 +22,15 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swa
   }
 
   function swapExactInput(
-    Dex dex,
+    bytes calldata swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
   ) external returns (uint256) {
     require(amountIn != 0, 'zero amount');
+
+    Dex dex = abi.decode(swapCalldata, (Dex));
 
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
@@ -54,13 +56,15 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swa
   }
 
   function swapExactOutput(
-    Dex dex,
+    bytes calldata swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
   ) external returns (uint256) {
     require(amountOut != 0, 'zero amount');
+
+    Dex dex = abi.decode(swapCalldata, (Dex));
 
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);

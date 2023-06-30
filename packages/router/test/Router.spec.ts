@@ -3,6 +3,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { createMarginlyRouter } from './shared/fixtures';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
+import { defaultAbiCoder as AbiCoder } from 'ethers/lib/utils';
 
 describe('MarginlyRouter UniswapV3', () => {
   it('swapExactInput 0 to 1, success', async () => {
@@ -15,7 +16,8 @@ describe('MarginlyRouter UniswapV3', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(0, token0.address, token1.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, 0);
 
     expect(await uniswapV3Pool.debugZeroForOne()).to.be.true;
     expect(await uniswapV3Pool.debugExactInput()).to.be.true;
@@ -37,8 +39,9 @@ describe('MarginlyRouter UniswapV3', () => {
     const price = await uniswapV3Pool.price();
     const amountToGetPlusOne = price.mul(amountToSwap).add(1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(0, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
     ).to.be.revertedWith('Insufficient amount');
   });
 
@@ -52,7 +55,8 @@ describe('MarginlyRouter UniswapV3', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(0, token1.address, token0.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, 0);
     expect(await uniswapV3Pool.debugZeroForOne()).to.be.false;
     expect(await uniswapV3Pool.debugExactInput()).to.be.true;
     const price = await uniswapV3Pool.price();
@@ -72,8 +76,9 @@ describe('MarginlyRouter UniswapV3', () => {
     const price = await uniswapV3Pool.price();
     const amountToGetPlusOne = BigNumber.from(amountToSwap).div(price).add(1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(0, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
     ).to.be.revertedWith('Insufficient amount');
   });
 
@@ -92,7 +97,8 @@ describe('MarginlyRouter UniswapV3', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(0, token0.address, token1.address, initialAmount0, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, initialAmount0, amountToGet);
 
     expect(await uniswapV3Pool.debugZeroForOne()).to.be.true;
     expect(await uniswapV3Pool.debugExactInput()).to.be.false;
@@ -113,8 +119,9 @@ describe('MarginlyRouter UniswapV3', () => {
     await token0.mint(user.address, initialAmount0);
     await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(0, token0.address, token1.address, amountToSwap.sub(1), amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, amountToSwap.sub(1), amountToGet)
     ).to.be.revertedWith('Too much requested');
   });
 
@@ -132,7 +139,8 @@ describe('MarginlyRouter UniswapV3', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(0, token1.address, token0.address, initialAmount1, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, initialAmount1, amountToGet);
 
     expect(await uniswapV3Pool.debugZeroForOne()).to.be.false;
     expect(await uniswapV3Pool.debugExactInput()).to.be.false;
@@ -153,8 +161,9 @@ describe('MarginlyRouter UniswapV3', () => {
     await token1.mint(user.address, initialAmount1);
     await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [0]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(0, token1.address, token0.address, amountToSwap.sub(1), amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, amountToSwap.sub(1), amountToGet)
     ).to.be.revertedWith('Too much requested');
   });
 });
@@ -170,7 +179,8 @@ describe('MarginlyRouter UniswapV2', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(1, token0.address, token1.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, 0);
 
     const [reserve0, reserve1] = await uniswapV2Pair.getReserves();
     const amountToSwapWithFee = BigNumber.from(amountToSwap).mul(997);
@@ -192,8 +202,9 @@ describe('MarginlyRouter UniswapV2', () => {
     const amountToSwapWithFee = BigNumber.from(amountToSwap).mul(997);
     const amountToGet = reserve1.mul(amountToSwapWithFee).div(reserve0.mul(1000).add(amountToSwapWithFee));
 
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(1, token0.address, token1.address, amountToSwap, amountToGet.add(1))
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, amountToGet.add(1))
     ).to.be.revertedWith('Insufficient amount');
   });
 
@@ -207,7 +218,8 @@ describe('MarginlyRouter UniswapV2', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(1, token1.address, token0.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, 0);
     const [reserve0, reserve1] = await uniswapV2Pair.getReserves();
     const amountToSwapWithFee = BigNumber.from(amountToSwap).mul(997);
     const amountToGet = reserve0.mul(amountToSwapWithFee).div(reserve1.mul(1000).add(amountToSwapWithFee));
@@ -228,8 +240,9 @@ describe('MarginlyRouter UniswapV2', () => {
     const amountToSwapWithFee = BigNumber.from(amountToSwap).mul(997);
     const amountToGet = reserve0.mul(amountToSwapWithFee).div(reserve1.mul(1000).add(amountToSwapWithFee));
 
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(1, token1.address, token0.address, amountToSwap, amountToGet.add(1))
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, amountToGet.add(1))
     ).to.be.revertedWith('Insufficient amount');
   });
 
@@ -247,7 +260,8 @@ describe('MarginlyRouter UniswapV2', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(1, token0.address, token1.address, initialAmount0, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, initialAmount0, amountToGet);
 
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0.sub(amountTransferred));
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToGet);
@@ -265,8 +279,9 @@ describe('MarginlyRouter UniswapV2', () => {
     await token0.mint(user.address, initialAmount0);
     await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(1, token0.address, token1.address, amountTransferred.sub(1), amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred.sub(1), amountToGet)
     ).to.be.revertedWith('Too much requested');
   });
 
@@ -283,7 +298,8 @@ describe('MarginlyRouter UniswapV2', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(1, token1.address, token0.address, initialAmount1, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, initialAmount1, amountToGet);
 
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1.sub(amountToSwap));
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToGet);
@@ -301,8 +317,9 @@ describe('MarginlyRouter UniswapV2', () => {
     await token1.mint(user.address, initialAmount1);
     await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [1]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(1, token1.address, token0.address, amountToSwap.sub(1), amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, amountToSwap.sub(1), amountToGet)
     ).to.be.revertedWith('Too much requested');
   });
 });
@@ -318,7 +335,8 @@ describe('MarginlyRouter Balancer Vault', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(2, token0.address, token1.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, 0);
 
     const price = await balancerVault.price();
 
@@ -337,8 +355,9 @@ describe('MarginlyRouter Balancer Vault', () => {
     const price = await balancerVault.price();
     const amountToGetPlusOne = price.mul(amountToSwap).add(1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(2, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
     ).to.be.revertedWith('SWAP_LIMIT');
   });
 
@@ -352,7 +371,8 @@ describe('MarginlyRouter Balancer Vault', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(2, token1.address, token0.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, 0);
     const price = await balancerVault.price();
 
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
@@ -370,8 +390,9 @@ describe('MarginlyRouter Balancer Vault', () => {
     const price = await balancerVault.price();
     const amountToGetPlusOne = BigNumber.from(amountToSwap).div(price).add(1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(2, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
     ).to.be.revertedWith('SWAP_LIMIT');
   });
 
@@ -390,7 +411,8 @@ describe('MarginlyRouter Balancer Vault', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(2, token0.address, token1.address, initialAmount0, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, initialAmount0, amountToGet);
 
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0.sub(amountTransferred));
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToGet);
@@ -408,8 +430,9 @@ describe('MarginlyRouter Balancer Vault', () => {
     await token0.mint(user.address, initialAmount0);
     await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(2, token0.address, token1.address, amountToSwap.sub(1), amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, amountToSwap.sub(1), amountToGet)
     ).to.be.revertedWith('SWAP_LIMIT');
   });
 
@@ -427,7 +450,8 @@ describe('MarginlyRouter Balancer Vault', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(2, token1.address, token0.address, initialAmount1, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, initialAmount1, amountToGet);
 
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1.sub(amountToSwap));
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToGet);
@@ -445,8 +469,9 @@ describe('MarginlyRouter Balancer Vault', () => {
     await token1.mint(user.address, initialAmount1);
     await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [2]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(2, token1.address, token0.address, amountToSwap.sub(1), amountToGet)
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, amountToSwap.sub(1), amountToGet)
     ).to.be.revertedWith('SWAP_LIMIT');
   });
 });
@@ -462,7 +487,8 @@ describe('MarginlyRouter WooFi', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(8, token0.address, token1.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, 0);
 
     const price0 = (await wooPool.getTokenState(token0.address)).price;
     const price1 = (await wooPool.getTokenState(token1.address)).price;
@@ -484,8 +510,9 @@ describe('MarginlyRouter WooFi', () => {
     const price1 = (await wooPool.getTokenState(token1.address)).price;
     const amountToGetPlusOne = price0.mul(amountToSwap).div(price1).add(1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(8, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
     ).to.be.revertedWith('WooPPV2: base2Amount_LT_minBase2Amount');
   });
 
@@ -499,7 +526,8 @@ describe('MarginlyRouter WooFi', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactInput(8, token1.address, token0.address, amountToSwap, 0);
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, 0);
     const price0 = (await wooPool.getTokenState(token0.address)).price;
     const price1 = (await wooPool.getTokenState(token1.address)).price;
 
@@ -521,8 +549,9 @@ describe('MarginlyRouter WooFi', () => {
   
     const amountToGetPlusOne = price1.mul(amountToSwap).div(price0).add(1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
     await expect(
-      marginlyRouter.connect(user).swapExactInput(8, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
+      marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
     ).to.be.revertedWith('WooPPV2: base2Amount_LT_minBase2Amount');
   });
 
@@ -542,7 +571,8 @@ describe('MarginlyRouter WooFi', () => {
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0);
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(8, token0.address, token1.address, amountTransferred, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred, amountToGet);
 
     expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0.sub(amountTransferred));
     const expectedAmount = amountTransferred.mul(price0).div(price1).sub(2);
@@ -562,8 +592,9 @@ describe('MarginlyRouter WooFi', () => {
     await token0.mint(user.address, initialAmount0);
     await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(8, token0.address, token1.address, amountTransferred, amountToGet.mul(2))
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred, amountToGet.mul(2))
     ).to.be.revertedWith('WooPPV2: base2Amount_LT_minBase2Amount');
   });
 
@@ -582,7 +613,8 @@ describe('MarginlyRouter WooFi', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
 
-    await marginlyRouter.connect(user).swapExactOutput(8, token1.address, token0.address, amountTransferred, amountToGet);
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
+    await marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, amountTransferred, amountToGet);
 
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1.sub(amountTransferred));
     const expectedAmount = amountTransferred.mul(price1).div(price0).sub(2);
@@ -602,8 +634,9 @@ describe('MarginlyRouter WooFi', () => {
     await token1.mint(user.address, initialAmount1);
     await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
 
+    const swapCalldata = AbiCoder.encode(["uint"], [8]);
     await expect(
-      marginlyRouter.connect(user).swapExactOutput(8, token1.address, token0.address, amountTransferred, amountToGet.mul(2))
+      marginlyRouter.connect(user).swapExactOutput(swapCalldata, token1.address, token0.address, amountTransferred, amountToGet.mul(2))
     ).to.be.revertedWith('WooPPV2: base2Amount_LT_minBase2Amount');
   });
 });

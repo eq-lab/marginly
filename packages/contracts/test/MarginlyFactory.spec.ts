@@ -3,7 +3,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { MarginlyParamsStruct } from '../typechain-types/contracts/MarginlyFactory';
 import { createMarginlyFactory } from './shared/fixtures';
 import snapshotGasCost from '@uniswap/snapshot-gas-cost';
-import { MarginlyPool, MarginlyPool } from '../typechain-types';
+import { MarginlyPool } from '../typechain-types';
 import { ethers } from 'hardhat';
 import { PositionType } from './shared/utils';
 

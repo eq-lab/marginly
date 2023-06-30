@@ -15,7 +15,7 @@ import {
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { generateWallets, CallType, ZERO_ADDRESS } from './utils';
+import { generateWallets, CallType, ZERO_ADDRESS, uniswapV3Swapdata } from './utils';
 import { Wallet } from 'ethers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
@@ -227,18 +227,30 @@ export async function getInitializedPool(): Promise<{
   const longers = accounts.slice(15, 20);
 
   for (let i = 0; i < lenders.length; i++) {
-    await marginlyPool.connect(lenders[i]).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lenders[i]).execute(CallType.DepositQuote, 5000, 0, false, ZERO_ADDRESS);
+    await marginlyPool
+      .connect(lenders[i])
+      .execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool
+      .connect(lenders[i])
+      .execute(CallType.DepositQuote, 5000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
   }
 
   for (let i = 0; i < longers.length; i++) {
-    await marginlyPool.connect(longers[i]).execute(CallType.DepositBase, 1000 + i * 100, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(longers[i]).execute(CallType.Long, 500 + i * 20, 0, false, ZERO_ADDRESS);
+    await marginlyPool
+      .connect(longers[i])
+      .execute(CallType.DepositBase, 1000 + i * 100, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool
+      .connect(longers[i])
+      .execute(CallType.Long, 500 + i * 20, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
   }
 
   for (let i = 0; i < shorters.length; i++) {
-    await marginlyPool.connect(shorters[i]).execute(CallType.DepositQuote, 1000 + i * 100, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(shorters[i]).execute(CallType.Short, 500 + i * 20, 0, false, ZERO_ADDRESS);
+    await marginlyPool
+      .connect(shorters[i])
+      .execute(CallType.DepositQuote, 1000 + i * 100, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool
+      .connect(shorters[i])
+      .execute(CallType.Short, 500 + i * 20, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
   }
 
   // shift time to 1 day

@@ -5,10 +5,11 @@ import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
 import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
+
+import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
@@ -163,24 +164,20 @@ contract MarginlyPool is IMarginlyPool {
   function swapExactOutput(
     bool quoteIn,
     uint256 amountInMaximum,
-    uint256 amountOut
+    uint256 amountOut,
+    bytes memory swapCalldata
   ) private returns (uint256 amountInActual) {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
 
     TransferHelper.safeApprove(tokenIn, swapRouter, amountInMaximum);
 
-    amountInActual = ISwapRouter(swapRouter).exactOutputSingle(
-      ISwapRouter.ExactOutputSingleParams({
-        tokenIn: tokenIn,
-        tokenOut: tokenOut,
-        fee: uniswapFee,
-        recipient: address(this),
-        deadline: block.timestamp,
-        amountInMaximum: amountInMaximum,
-        amountOut: amountOut,
-        sqrtPriceLimitX96: 0
-      })
+    amountInActual = IMarginlyRouter(swapRouter).swapExactOutput(
+      swapCalldata,
+      tokenIn,
+      tokenOut,
+      amountInMaximum,
+      amountOut
     );
 
     TransferHelper.safeApprove(tokenIn, swapRouter, 0);
@@ -190,24 +187,20 @@ contract MarginlyPool is IMarginlyPool {
   function swapExactInput(
     bool quoteIn,
     uint256 amountIn,
-    uint256 amountOutMinimum
+    uint256 amountOutMinimum,
+    bytes memory swapCalldata
   ) private returns (uint256 amountOutActual) {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
 
     TransferHelper.safeApprove(tokenIn, swapRouter, amountIn);
 
-    amountOutActual = ISwapRouter(swapRouter).exactInputSingle(
-      ISwapRouter.ExactInputSingleParams({
-        tokenIn: tokenIn,
-        tokenOut: tokenOut,
-        fee: uniswapFee,
-        recipient: address(this),
-        deadline: block.timestamp,
-        amountIn: amountIn,
-        amountOutMinimum: amountOutMinimum,
-        sqrtPriceLimitX96: 0
-      })
+    amountOutActual = IMarginlyRouter(swapRouter).swapExactInput(
+      swapCalldata,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      amountOutMinimum
     );
   }
 
@@ -224,7 +217,7 @@ contract MarginlyPool is IMarginlyPool {
       uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
         getCurrentBasePrice().recipMul(realQuoteCollateral)
       );
-      uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum);
+      uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, new bytes(0));
       swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       // baseCollateralCoeff += rcd * (rqc - sqc) / sqc
       if (swappedBaseDebt >= realBaseDebt) {
@@ -250,7 +243,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
         getCurrentBasePrice().mul(realBaseCollateral)
       );
-      uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum);
+      uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, new bytes(0));
       swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       // quoteCollateralCoef += rqd * (rbc - sbc) / sbc
       if (swappedQuoteDebt >= realQuoteDebt) {
@@ -311,7 +304,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amount,
     uint256 longAmount,
     FP96.FixedPoint memory basePrice,
-    Position storage position
+    Position storage position,
+    bytes calldata swapCalldata
   ) private {
     require(amount != 0, 'ZA'); // Zero amount
 
@@ -370,7 +364,7 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
 
     if (longAmount != 0) {
-      long(longAmount, basePrice, position);
+      long(longAmount, basePrice, position, swapCalldata);
     }
   }
 
@@ -383,7 +377,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amount,
     uint256 shortAmount,
     FP96.FixedPoint memory basePrice,
-    Position storage position
+    Position storage position,
+    bytes calldata swapCalldata
   ) private {
     require(amount != 0, 'ZA'); //Zero amount
 
@@ -445,7 +440,7 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
 
     if (shortAmount != 0) {
-      short(shortAmount, basePrice, position);
+      short(shortAmount, basePrice, position, swapCalldata);
     }
   }
 
@@ -551,7 +546,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Close position
   /// @param position msg.sender position
-  function closePosition(Position storage position) private {
+  function closePosition(Position storage position, bytes calldata swapCalldata) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -564,7 +559,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realQuoteCollateral = quoteCollateralCoeff.mul(position.discountedQuoteAmount);
       uint256 realBaseDebt = _baseDebtCoeff.mul(positionDiscountedBaseDebtPrev);
 
-      realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt);
+      realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
       swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
 
       {
@@ -600,7 +595,7 @@ contract MarginlyPool is IMarginlyPool {
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
-      realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut);
+      realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
       swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
 
       {
@@ -664,7 +659,12 @@ contract MarginlyPool is IMarginlyPool {
   /// @param realBaseAmount Amount of base token
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function short(uint256 realBaseAmount, FP96.FixedPoint memory basePrice, Position storage position) private {
+  function short(
+    uint256 realBaseAmount,
+    FP96.FixedPoint memory basePrice,
+    Position storage position,
+    bytes calldata swapCalldata
+  ) private {
     require(realBaseAmount >= params.positionMinAmount, 'MA'); //Less than min amount
 
     require(
@@ -677,7 +677,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 quoteOutMinimum = getCurrentBasePrice()
       .mul(FP96.fromRatio(WHOLE_ONE - params.positionSlippage, WHOLE_ONE))
       .mul(realBaseAmount);
-    uint256 realQuoteCollateralChangeWithFee = swapExactInput(false, realBaseAmount, quoteOutMinimum);
+    uint256 realQuoteCollateralChangeWithFee = swapExactInput(false, realBaseAmount, quoteOutMinimum, swapCalldata);
     uint256 swapPriceX96 = getSwapPrice(realQuoteCollateralChangeWithFee, realBaseAmount);
 
     uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteCollateralChangeWithFee, WHOLE_ONE);
@@ -720,7 +720,12 @@ contract MarginlyPool is IMarginlyPool {
   /// @param realBaseAmount Amount of base token
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function long(uint256 realBaseAmount, FP96.FixedPoint memory basePrice, Position storage position) private {
+  function long(
+    uint256 realBaseAmount,
+    FP96.FixedPoint memory basePrice,
+    Position storage position,
+    bytes calldata swapCalldata
+  ) private {
     require(realBaseAmount >= params.positionMinAmount, 'MA'); //Less than min amount
 
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff;
@@ -743,7 +748,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 realQuoteInMaximum = getCurrentBasePrice()
       .mul(FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE))
       .mul(realBaseAmount);
-    uint256 realQuoteAmount = swapExactOutput(true, realQuoteInMaximum, realBaseAmount);
+    uint256 realQuoteAmount = swapExactOutput(true, realQuoteInMaximum, realBaseAmount, swapCalldata);
     uint256 swapPriceX96 = getSwapPrice(realQuoteAmount, realBaseAmount);
 
     uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteAmount, WHOLE_ONE);
@@ -1059,7 +1064,7 @@ contract MarginlyPool is IMarginlyPool {
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
-      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0);
+      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, new bytes(0));
 
       newCollateral = newCollateral.add(collateralSurplus);
     }
@@ -1182,7 +1187,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amount1,
     uint256 amount2,
     bool unwrapWETH,
-    address receivePositionAddress
+    address receivePositionAddress,
+    bytes calldata swapCalldata
   ) external payable override lock {
     if (call == CallType.ReceivePosition) {
       receivePosition(receivePositionAddress, amount1, amount2);
@@ -1205,19 +1211,19 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     if (call == CallType.DepositBase) {
-      depositBase(amount1, amount2, basePrice, position);
+      depositBase(amount1, amount2, basePrice, position, swapCalldata);
     } else if (call == CallType.DepositQuote) {
-      depositQuote(amount1, amount2, basePrice, position);
+      depositQuote(amount1, amount2, basePrice, position, swapCalldata);
     } else if (call == CallType.WithdrawBase) {
       withdrawBase(amount1, unwrapWETH, basePrice, position);
     } else if (call == CallType.WithdrawQuote) {
       withdrawQuote(amount1, unwrapWETH, basePrice, position);
     } else if (call == CallType.Short) {
-      short(amount1, basePrice, position);
+      short(amount1, basePrice, position, swapCalldata);
     } else if (call == CallType.Long) {
-      long(amount1, basePrice, position);
+      long(amount1, basePrice, position, swapCalldata);
     } else if (call == CallType.ClosePosition) {
-      closePosition(position);
+      closePosition(position, swapCalldata);
     } else if (call != CallType.Reinit) {
       // reinit already happened
       revert('UC'); // unknown call
