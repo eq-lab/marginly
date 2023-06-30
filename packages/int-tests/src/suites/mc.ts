@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
-import { CallType, decodeSwapEvent } from '../utils/chain-ops';
+import { CallType, decodeSwapEvent, uniswapV3Swapdata } from '../utils/chain-ops';
 import { FP96, toHumanString } from '../utils/fixed-point';
 import { changeWethPrice } from '../utils/uniswap-ops';
 import { ZERO_ADDRESS } from '../utils/const';
@@ -28,7 +28,7 @@ export async function mc(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(lenders[i])
-        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     );
 
     await (await usdc.connect(treasury).transfer(lenders[i].address, quoteAmount)).wait();
@@ -38,7 +38,7 @@ export async function mc(sut: SystemUnderTest) {
       'depositQuote',
       marginlyPool
         .connect(lenders[i])
-        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     );
   }
 
@@ -56,7 +56,7 @@ export async function mc(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, initialLongerBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, initialLongerBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     );
 
     const longAmount = parseUnits('18', 18).mul(i + 1);
@@ -64,7 +64,7 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'long',
-      marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 })
+      marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
     );
   }
 
@@ -87,7 +87,7 @@ export async function mc(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositBase, initialShorterBalance, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, initialShorterBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     );
 
     const shortAmount = parseUnits('18', 18).mul(i + 1);
@@ -97,7 +97,7 @@ export async function mc(sut: SystemUnderTest) {
       'short',
       marginlyPool
         .connect(shorter)
-        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, { gasLimit: 1_500_000 })
+        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
     );
   }
 
@@ -116,7 +116,7 @@ export async function mc(sut: SystemUnderTest) {
     'depositBase',
     marginlyPool
       .connect(depositor)
-      .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, { gasLimit: 500_000 })
+      .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
   );
 
   const mcEventsNumber = txReceipt.events?.filter((e) => e.event == 'EnactMarginCall').length;

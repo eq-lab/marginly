@@ -5,6 +5,7 @@ import { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { BigNumber, ethers, ContractReceipt } from 'ethers';
 import { FP96, powTaylor } from './fixed-point';
 import { TechnicalPositionOwner } from '../suites';
+import { defaultAbiCoder } from 'ethers/lib/utils';
 
 export const PositionType = {
   Uninitialized: 0,
@@ -12,6 +13,10 @@ export const PositionType = {
   Short: 2,
   Long: 3,
 };
+
+export function uniswapV3Swapdata() {
+  return defaultAbiCoder.encode(['uint'], [0]);
+}
 
 export async function waitBlocks(blocks: number): Promise<void> {
   logger.info(`Waiting for ${blocks} blocks`);

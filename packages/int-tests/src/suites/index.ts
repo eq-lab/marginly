@@ -27,6 +27,8 @@ import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
+import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
+import { ZERO_ADDRESS } from '../utils/const';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -37,7 +39,7 @@ export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB
 export type SystemUnderTest = {
   uniswap: UniswapV3PoolContract;
   uniswapFactory: UniswapV3FactoryContract;
-  swapRouter: SwapRouterContract;
+  swapRouter: MarginlyRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
   keeper: MarginlyKeeperContract;
@@ -77,7 +79,7 @@ async function initializeTestSystem(
   const nonFungiblePositionManager = nonFungiblePositionManagerContract(treasury);
   logger.info(`nonFungiblePositionManager: ${nonFungiblePositionManager.address}`);
 
-  const swapRouter = swapRouterContract(treasury);
+  const swapRouter = await MarginlyRouter.deploy(uniswapFactory.address, ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);

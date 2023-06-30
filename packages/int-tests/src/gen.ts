@@ -77,6 +77,13 @@ const defsKeeperContract = genDefinitions(
 );
 writeFileSync(`./src/contract-api/MarginlyKeeper.ts`, defsKeeperContract);
 
+const defsMarginlyRouter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`),
+  `@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/MarginlyRouter.ts`, defsMarginlyRouter);
+
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),
 //   `@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`,
