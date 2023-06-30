@@ -165,7 +165,7 @@ contract MarginlyPool is IMarginlyPool {
     bool quoteIn,
     uint256 amountInMaximum,
     uint256 amountOut,
-    bytes memory swapCalldata
+    bytes calldata swapCalldata
   ) private returns (uint256 amountInActual) {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
@@ -217,7 +217,7 @@ contract MarginlyPool is IMarginlyPool {
       uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
         getCurrentBasePrice().recipMul(realQuoteCollateral)
       );
-      uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, new bytes(0));
+      uint256 swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, new bytes(32));
       swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       // baseCollateralCoeff += rcd * (rqc - sqc) / sqc
       if (swappedBaseDebt >= realBaseDebt) {
@@ -243,7 +243,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
         getCurrentBasePrice().mul(realBaseCollateral)
       );
-      uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, new bytes(0));
+      uint256 swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, new bytes(32));
       swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       // quoteCollateralCoef += rqd * (rbc - sbc) / sbc
       if (swappedQuoteDebt >= realQuoteDebt) {
@@ -1064,7 +1064,7 @@ contract MarginlyPool is IMarginlyPool {
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
-      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, new bytes(0));
+      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, new bytes(32));
 
       newCollateral = newCollateral.add(collateralSurplus);
     }

@@ -4,9 +4,9 @@ pragma solidity ^0.8.17;
 import '@aave/core-v3/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol';
 import '@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol';
 import '@aave/core-v3/contracts/interfaces/IPool.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/Call.sol';
@@ -97,23 +97,23 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     address collateralToken;
     if (quoteToken == asset) {
       IERC20(quoteToken).approve(params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate, new bytes(0));
+      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate, new bytes(32));
       collateralToken = baseToken;
     } else if (baseToken == asset) {
       IERC20(baseToken).approve(params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate, new bytes(0));
+      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate, new bytes(32));
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');
     }
 
-    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0), new bytes(0));
-    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0), new bytes(0));
+    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0), new bytes(32));
+    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0), new bytes(32));
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 
     uint256 dust = IERC20(asset).balanceOf(address(this));
-    uint256 amountOut = exactInputSwap(marginlyFactory.swapRouter(), collateralToken, asset, marginlyPool.uniswapFee());
+    uint256 amountOut = exactInputSwap(marginlyFactory.swapRouter(), collateralToken, asset);
     uint256 paybackAmount = amount + premium;
     require(amountOut + dust > paybackAmount, 'Insufficient funds to cover flashloan');
 
@@ -131,24 +131,12 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   function exactInputSwap(
     address swapRouter,
     address tokenIn,
-    address tokenOut,
-    uint24 swapFee
+    address tokenOut
   ) private returns (uint256) {
     uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
     IERC20(tokenIn).safeApprove(swapRouter, amountIn);
 
     return
-      ISwapRouter(swapRouter).exactInputSingle(
-        ISwapRouter.ExactInputSingleParams({
-          tokenIn: tokenIn,
-          tokenOut: tokenOut,
-          fee: swapFee,
-          recipient: address(this),
-          deadline: block.timestamp,
-          amountIn: amountIn,
-          amountOutMinimum: 0,
-          sqrtPriceLimitX96: 0
-        })
-      );
+      IMarginlyRouter(swapRouter).swapExactInput(new bytes(32), tokenIn, tokenOut, amountIn, 0);
   }
 }
