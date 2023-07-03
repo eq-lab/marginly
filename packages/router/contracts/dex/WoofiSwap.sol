@@ -5,7 +5,7 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './dex.sol';
 
-abstract contract WooFiSwap is DexFactoryList {
+abstract contract WooFiSwap is DexPoolMapping {
   function wooFiSwapExactInput(
     Dex dex,
     address tokenIn,
@@ -13,7 +13,7 @@ abstract contract WooFiSwap is DexFactoryList {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    IWooPoolV2 wooPool = IWooPoolV2(dexFactoryList[dex]);
+    IWooPoolV2 wooPool = IWooPoolV2(dexPoolMapping[dex][tokenIn][tokenOut].pool);
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
     amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));
@@ -28,7 +28,7 @@ abstract contract WooFiSwap is DexFactoryList {
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    IWooPoolV2 wooPool = IWooPoolV2(dexFactoryList[dex]);
+    IWooPoolV2 wooPool = IWooPoolV2(dexPoolMapping[dex][tokenIn][tokenOut].pool);
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), maxAmountIn);
     uint256 actualAmountOut = wooPool.swap(tokenIn, tokenOut, maxAmountIn, amountOut, msg.sender, address(0));

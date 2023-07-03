@@ -15,7 +15,7 @@ struct UniswapSwapV2CallbackData {
   address tokenOut;
 }
 
-abstract contract UniswapV2Swap is DexFactoryList {
+abstract contract UniswapV2Swap is DexPoolMapping {
   using LowGasSafeMath for uint256;
 
   function uniswapV2SwapExactInput(
@@ -25,21 +25,13 @@ abstract contract UniswapV2Swap is DexFactoryList {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    address poolAddress = getV2PairAddress(dex, tokenIn, tokenOut);
-    amountOut = getAmountOut(poolAddress, amountIn, tokenIn, tokenOut);
+    PoolInfo memory poolInfo = dexPoolMapping[dex][tokenIn][tokenOut];
+    amountOut = getAmountOut(poolInfo, amountIn, tokenIn, tokenOut);
     require(amountOut > minAmountOut, 'Insufficient amount');
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, poolAddress, amountIn);
+    TransferHelper.safeTransferFrom(tokenIn, msg.sender, poolInfo.pool, amountIn);
     (uint256 amount0Out, uint256 amount1Out) = tokenIn < tokenOut ? (uint256(0), amountOut) : (amountOut, uint256(0));
-    IUniswapV2Pair(poolAddress).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
-
-    // bool zeroForOne = tokenIn < tokenOut;
-    // UniswapSwapV2CallbackData memory data = UniswapSwapV2CallbackData({
-    //   dex: dex,
-    //   tokenIn: tokenIn,
-    //   tokenOut: tokenOut
-    // });
-    // IUniswapV2Pair(poolAddress).swap(amount0Out, amount1Out, msg.sender, abi.encode(data));
+    IUniswapV2Pair(poolInfo.pool).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
   }
 
   function uniswapV2SwapExactOutput(
@@ -49,59 +41,36 @@ abstract contract UniswapV2Swap is DexFactoryList {
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    address poolAddress = getV2PairAddress(dex, tokenIn, tokenOut);
-    amountIn = getAmountIn(poolAddress, amountOut, tokenIn, tokenOut);
+    PoolInfo memory poolInfo = dexPoolMapping[dex][tokenIn][tokenOut];
+    amountIn = getAmountIn(poolInfo, amountOut, tokenIn, tokenOut);
     require(amountIn <= maxAmountIn, 'Too much requested');
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, poolAddress, amountIn);
+    TransferHelper.safeTransferFrom(tokenIn, msg.sender, poolInfo.pool, amountIn);
     (uint256 amount0Out, uint256 amount1Out) = tokenIn < tokenOut ? (uint256(0), amountOut) : (amountOut, uint256(0));
-    IUniswapV2Pair(poolAddress).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
-  }
-
-  // function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata _data) external override {
-  //   UniswapSwapV2CallbackData memory data = abi.decode(_data, (UniswapSwapV2CallbackData));
-  //   (address token0, address token1) = data.tokenIn < data.tokenOut
-  //     ? (data.tokenIn, data.tokenOut)
-  //     : (data.tokenOut, data.tokenIn);
-  //   require(msg.sender == getPoolAddress(data.dex, token0, token1));
-
-  //   (bool isExactInput, uint256 amountToPay) = amount0 > 0
-  //     ? (data.tokenIn < data.tokenOut, uint256(amount0))
-  //     : (data.tokenOut < data.tokenIn, uint256(amount1));
-  //   if (isExactInput) {
-  //     TransferHelper.safeTransferFrom(data.tokenIn, sender, msg.sender, amountToPay);
-  //   } else {
-  //     TransferHelper.safeTransferFrom(data.tokenOut, sender, msg.sender, amountToPay);
-  //   }
-  // }
-
-  function getV2PairAddress(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
-    if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
-    pool = IUniswapV2Factory(dexFactoryList[dex]).getPair(tokenA, tokenB);
-    if (pool == address(0)) revert UnknownPool();
+    IUniswapV2Pair(poolInfo.pool).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
   }
 
   function getAmountOut(
-    address pool,
+    PoolInfo memory poolInfo,
     uint amountIn,
     address tokenIn,
     address tokenOut
   ) private view returns (uint amountOut) {
-    (uint reserveIn, uint reserveOut) = getReserves(pool, tokenIn, tokenOut);
-    uint amountInWithFee = amountIn.mul(997);
+    (uint reserveIn, uint reserveOut) = getReserves(poolInfo.pool, tokenIn, tokenOut);
+    uint amountInWithFee = amountIn.mul(poolInfo.fee);
     uint numerator = amountInWithFee.mul(reserveOut);
     uint denominator = reserveIn.mul(1000).add(amountInWithFee);
     amountOut = numerator / denominator;
   }
 
   function getAmountIn(
-    address pool,
+    PoolInfo memory poolInfo,
     uint amountOut,
     address tokenIn,
     address tokenOut
   ) private view returns (uint amountIn) {
-    (uint reserveIn, uint reserveOut) = getReserves(pool, tokenIn, tokenOut);
+    (uint reserveIn, uint reserveOut) = getReserves(poolInfo.pool, tokenIn, tokenOut);
     uint numerator = reserveIn.mul(amountOut).mul(1000);
-    uint denominator = reserveOut.sub(amountOut).mul(997);
+    uint denominator = reserveOut.sub(amountOut).mul(poolInfo.fee);
     amountIn = (numerator / denominator).add(1);
   }
 

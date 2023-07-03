@@ -1,13 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { genDefinitions } from './utils/api-gen';
 
-// const defsERC20 = genDefinitions(
-//   require(`@muctep/erc20/artifacts/contracts/ERC20.sol/ERC20.json`),
-//   `@muctep/erc20/artifacts/contracts/ERC20.sol/ERC20.json`,
-//   {}
-// );
-// writeFileSync(`./src/contract-api/ERC20.ts`, defsERC20);
-
 const defsWETH = genDefinitions(
   require(`@uniswap/v2-periphery/build/WETH9.json`),
   `@uniswap/v2-periphery/build/WETH9.json`,

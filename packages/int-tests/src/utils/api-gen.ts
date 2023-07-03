@@ -49,6 +49,9 @@ export function genDefinitions(
     } else if (arg.type == `tuple`) {
       const components = arg.components!;
       jsType = `{${stringifyInputs(components.map((x) => convertType(x, inputs))).reduce((a, b) => `${a}${b},`, ``)}}`;
+    } else if (arg.type == `tuple[]`) {
+      const components = arg.components!;
+      jsType = `{${stringifyInputs(components.map((x) => convertType(x, inputs))).reduce((a, b) => `${a}${b},`, ``)}}[]`;
     }
     return {
       name: arg.name != `` ? arg.name : undefined,

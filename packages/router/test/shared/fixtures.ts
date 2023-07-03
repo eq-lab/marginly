@@ -34,7 +34,6 @@ export async function createUniswapV3Pool(
   token1: TestERC20Token
 ): Promise<{
   uniswapV3Pool: RouterTestUniswapV3Pool;
-  uniswapV3Factory: RouterTestUniswapV3Factory;
 }> {
   const factory = await (await ethers.getContractFactory('RouterTestUniswapV3Factory')).deploy();
   const tx = await (await factory.createPool(token0.address, token1.address, 500)).wait();
@@ -44,7 +43,6 @@ export async function createUniswapV3Pool(
   await token1.mint(uniswapV3Pool.address, parseUnits('100000', 18));
   return {
     uniswapV3Pool,
-    uniswapV3Factory: factory,
   };
 }
 
@@ -53,7 +51,6 @@ export async function createUniswapV2Pair(
   token1: TestERC20Token
 ): Promise<{
   uniswapV2Pair: RouterTestUniswapV2Pair;
-  uniswapV2Factory: RouterTestUniswapV2Factory;
 }> {
   const factory = await (await ethers.getContractFactory('RouterTestUniswapV2Factory')).deploy();
   const tx = await (await factory.createPair(token0.address, token1.address)).wait();
@@ -67,7 +64,6 @@ export async function createUniswapV2Pair(
   await uniswapV2Pair.sync();
   return {
     uniswapV2Pair,
-    uniswapV2Factory: factory,
   };
 }
 
@@ -126,17 +122,20 @@ export async function createMarginlyRouter(): Promise<{
     token1 = tokenA;
   }
 
-  const { uniswapV3Pool, uniswapV3Factory } = await createUniswapV3Pool(token0, token1);
-  const { uniswapV2Pair, uniswapV2Factory } = await createUniswapV2Pair(token0, token1);
+  const { uniswapV3Pool } = await createUniswapV3Pool(token0, token1);
+  const { uniswapV2Pair } = await createUniswapV2Pair(token0, token1);
   const { balancerVault } = await createBalancerVault(token0, token1);
   const { wooPool } = await createWooPool(token0, token1);
   const factory = await ethers.getContractFactory('MarginlyRouter');
-  const marginlyRouter = await factory.deploy(
-    uniswapV3Factory.address,
-    uniswapV2Factory.address,
-    balancerVault.address,
-    wooPool.address,
-  );
+
+  let constructorInput = [];
+
+  constructorInput.push({dex: 0, fee: 0, token0: token0.address, token1: token1.address, pool: uniswapV3Pool.address});
+  constructorInput.push({dex: 1, fee: 997, token0: token0.address, token1: token1.address, pool: uniswapV2Pair.address});
+  constructorInput.push({dex: 2, fee: 0, token0: token0.address, token1: token1.address, pool: balancerVault.address});
+  constructorInput.push({dex: 8, fee: 0, token0: token0.address, token1: token1.address, pool: wooPool.address});
+
+  const marginlyRouter = await factory.deploy(constructorInput);
 
   return {
     marginlyRouter,

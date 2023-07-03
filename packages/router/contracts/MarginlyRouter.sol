@@ -14,12 +14,7 @@ import './dex/WoofiSwap.sol';
 contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swap, BalancerSwap, WooFiSwap {
   error UnknownDex();
 
-  constructor(address uniswapV3Factory, address apeSwapFactory, address balancerVault, address wooPool) {
-    dexFactoryList[Dex.UniswapV3] = uniswapV3Factory;
-    dexFactoryList[Dex.ApeSwap] = apeSwapFactory;
-    dexFactoryList[Dex.Balancer] = balancerVault;
-    dexFactoryList[Dex.Woofi] = wooPool;
-  }
+  constructor(ConstructorInput[] memory pools) DexPoolMapping(pools) {}
 
   function swapExactInput(
     bytes calldata swapCalldata,
@@ -30,7 +25,12 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swa
   ) external returns (uint256) {
     require(amountIn != 0, 'zero amount');
 
-    Dex dex = abi.decode(swapCalldata, (Dex));
+    Dex dex;
+    if (swapCalldata.length == 0) {
+      dex = Dex.UniswapV3;
+    } else {
+      dex = abi.decode(swapCalldata, (Dex));
+    }
 
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
@@ -64,7 +64,12 @@ contract MarginlyRouter is IMarginlyRouter, Ownable, UniswapV3Swap, UniswapV2Swa
   ) external returns (uint256) {
     require(amountOut != 0, 'zero amount');
 
-    Dex dex = abi.decode(swapCalldata, (Dex));
+    Dex dex;
+    if (swapCalldata.length == 0) {
+      dex = Dex.UniswapV3;
+    } else {
+      dex = abi.decode(swapCalldata, (Dex));
+    }
 
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);

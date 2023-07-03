@@ -5,7 +5,7 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './dex.sol';
 
-abstract contract BalancerSwap is DexFactoryList {
+abstract contract BalancerSwap is DexPoolMapping {
   function balancerSwapExactInput(
     Dex dex,
     address tokenIn,
@@ -25,13 +25,12 @@ abstract contract BalancerSwap is DexFactoryList {
     funds.sender = msg.sender;
     funds.recipient = payable(msg.sender);
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
-    TransferHelper.safeApprove(tokenIn, dexFactoryList[dex], amountIn);
-    amountOut = IVault(dexFactoryList[dex]).swap(swap, funds, minAmountOut, block.timestamp);
-    require(amountOut > minAmountOut, 'Insufficient amount');
+    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut].pool;
 
-    // receiveAsset(tokenIn, amountIn, funds.sender, funds.fromInternalBalance);
-    // sendAsset(tokenOut, amountOut, funds.recipient, funds.toInternalBalance);
+    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
+    TransferHelper.safeApprove(tokenIn, vaultAddress, amountIn);
+    amountOut = IVault(vaultAddress).swap(swap, funds, minAmountOut, block.timestamp);
+    require(amountOut > minAmountOut, 'Insufficient amount');
   }
 
   function balancerSwapExactOutput(
@@ -53,11 +52,13 @@ abstract contract BalancerSwap is DexFactoryList {
     funds.sender = address(this);
     funds.recipient = payable(msg.sender);
 
+    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut].pool;
+
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
-    TransferHelper.safeApprove(tokenIn, dexFactoryList[dex], maxAmountIn);
-    amountIn = IVault(dexFactoryList[dex]).swap(swap, funds, maxAmountIn, block.timestamp);
+    TransferHelper.safeApprove(tokenIn, vaultAddress, maxAmountIn);
+    amountIn = IVault(vaultAddress).swap(swap, funds, maxAmountIn, block.timestamp);
     require(amountIn <= maxAmountIn, 'Too much requested');
-    TransferHelper.safeApprove(tokenIn, dexFactoryList[dex], 0);
+    TransferHelper.safeApprove(tokenIn, vaultAddress, 0);
     TransferHelper.safeTransfer(tokenIn, msg.sender, maxAmountIn - amountIn);
   }
 }

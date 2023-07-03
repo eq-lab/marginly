@@ -19,7 +19,7 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
-    'dexFactoryList(uint8)': utils.FunctionFragment;
+    'dexPoolMapping(uint8,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
     'swapExactInput(bytes,address,address,uint256,uint256)': utils.FunctionFragment;
@@ -30,7 +30,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | 'dexFactoryList'
+      | 'dexPoolMapping'
       | 'owner'
       | 'renounceOwnership'
       | 'swapExactInput'
@@ -47,7 +47,12 @@ export interface MarginlyRouterContract extends BaseContract {
 
   interface: MarginlyRouterInterface;
 
-  dexFactoryList(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<string>;
+  dexPoolMapping(
+    arg0: PromiseOrValue<BigNumberish>,
+    arg1: PromiseOrValue<string>,
+    arg2: PromiseOrValue<string>,
+    override?: CallOverrides
+  ): Promise<{ fee: BigNumber; pool: string }>;
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapExactInput(
@@ -78,7 +83,12 @@ export interface MarginlyRouterContract extends BaseContract {
   ): Promise<ContractTransaction>;
 
   functions: {
-    dexFactoryList(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[string]>;
+    dexPoolMapping(
+      arg0: PromiseOrValue<BigNumberish>,
+      arg1: PromiseOrValue<string>,
+      arg2: PromiseOrValue<string>,
+      override?: CallOverrides
+    ): Promise<{ fee: BigNumber; pool: string }>;
     owner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
@@ -171,14 +181,11 @@ export interface MarginlyRouterContract extends BaseContract {
 }
 
 export async function deploy(
-  uniswapV3Factory: string,
-  apeSwapFactory: string,
-  balancerVault: string,
-  wooPool: string,
+  pools: { dex: BigNumberish; fee: BigNumberish; token0: string; token1: string; pool: string }[],
   signer?: Signer
 ): Promise<MarginlyRouterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(uniswapV3Factory, apeSwapFactory, balancerVault, wooPool);
+  const contract = await factory.deploy(pools);
   return (await contract.deployed()) as any;
 }
 

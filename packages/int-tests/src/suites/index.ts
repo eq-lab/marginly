@@ -79,7 +79,12 @@ async function initializeTestSystem(
   const nonFungiblePositionManager = nonFungiblePositionManagerContract(treasury);
   logger.info(`nonFungiblePositionManager: ${nonFungiblePositionManager.address}`);
 
-  const swapRouter = await MarginlyRouter.deploy(uniswapFactory.address, ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, treasury);
+  const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
+  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
+
+  let routerConstructorInput = [];
+  routerConstructorInput.push({dex: 0, fee: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
+  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
@@ -96,9 +101,6 @@ async function initializeTestSystem(
   );
   logger.info(`marginlyFactory: ${marginlyFactory.address}`);
   logger.info(`marginly owner: ${await marginlyFactory.owner()}`);
-
-  const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
-  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
 
   const initialParams = {
     interestRate: 54000, // 5.4%
