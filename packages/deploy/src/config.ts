@@ -43,7 +43,6 @@ export function isMarginlyDeployConfigMintableToken(token: MarginlyDeployConfigT
 interface MarginlyDeployConfigUniswapGenuine {
   type: 'genuine' | undefined;
   factory: string;
-  swapRouter: string;
   pools: {
     id: string;
     tokenAId: string;
@@ -80,11 +79,30 @@ export function isMarginlyDeployConfigUniswapMock(uniswap: MarginlyDeployConfigU
   return uniswap.type === 'mock';
 }
 
+export enum Dex {
+  UniswapV3,
+  ApeSwap,
+  Balancer,
+  Camelot,
+  KyberSwap,
+  QuickSwap,
+  SushiSwap,
+  TraderJoe,
+  Woofi
+}
+
 export interface MarginlyDeployConfig {
   connection: EthConnectionConfig;
   tokens: MarginlyDeployConfigToken[];
   prices: RootPriceConfig[];
   uniswap: MarginlyDeployConfigUniswap;
+  routerPools: {
+    dex: Dex;
+    tokenAId: string;
+    tokenBId: string;
+    fee?: number;
+    assertAddress?: string;
+  };
   marginlyFactory: {
     feeHolder: string;
     techPositionOwner: string;

@@ -235,6 +235,7 @@
       }
     }
   ],
+  "routerPools": [],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0x4EEE0BB72C2717310318f27628B3c8a708E4951C"
