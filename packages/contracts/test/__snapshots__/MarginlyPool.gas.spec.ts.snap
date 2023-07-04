@@ -24,14 +24,14 @@ Object {
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 289392,
+  "gasUsed": 289444,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 297662,
+  "gasUsed": 297714,
 }
 `;
 
@@ -59,7 +59,7 @@ Object {
 exports[`System initialized: closePosition 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 224064,
+  "gasUsed": 222172,
 }
 `;
 
@@ -122,76 +122,76 @@ Object {
 exports[`mc happens: closePosition with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 353096,
+  "gasUsed": 353180,
 }
 `;
 
 exports[`mc happens: depositBase with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 242233,
+  "gasUsed": 242259,
 }
 `;
 
 exports[`mc happens: depositBase with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 339372,
+  "gasUsed": 339413,
 }
 `;
 
 exports[`mc happens: depositQuote with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 236044,
+  "gasUsed": 236064,
 }
 `;
 
 exports[`mc happens: depositQuote with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 271545,
+  "gasUsed": 271571,
 }
 `;
 
 exports[`mc happens: long closePosition with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 248772,
+  "gasUsed": 248835,
 }
 `;
 
 exports[`mc happens: long initialized heap with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 270974,
+  "gasUsed": 271000,
 }
 `;
 
 exports[`mc happens: long with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 348118,
+  "gasUsed": 348144,
 }
 `;
 
 exports[`mc happens: long with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 367328,
+  "gasUsed": 367370,
 }
 `;
 
 exports[`mc happens: short with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 316343,
+  "gasUsed": 316369,
 }
 `;
 
 exports[`mc happens: short with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 362839,
+  "gasUsed": 362880,
 }
 `;

@@ -28,6 +28,7 @@ import {
   DeployState,
   DeployConfig,
 } from '@marginly/deploy';
+import { deploySbt } from '@marginly/sbt';
 
 const nodeUriParameter = {
   name: ['eth', 'node', 'uri'],
@@ -41,7 +42,7 @@ export const dryRunParameter = {
 
 export const dryRunOptsParameter = {
   name: ['dry', 'run', 'opts'],
-  description: 'Dry run options. You can specify \'fund\' to fund deployer account',
+  description: "Dry run options. You can specify 'fund' to fund deployer account",
 };
 
 const readEthDeploy = async (command: Command, config: DeployConfig) => {
@@ -104,8 +105,8 @@ async function deployCommandTemplate(
     signer: ethers.Signer,
     actualConfigFile: string,
     actualStateFile: string,
-    actualDeploymentFile: string,
-  ) => Promise<void>,
+    actualDeploymentFile: string
+  ) => Promise<void>
 ) {
   const statesDirName = 'states';
 
@@ -340,14 +341,32 @@ const deployMarginlyCommand = new Command('marginly')
           'Marginly',
           createDefaultBaseState,
           actualStateFile,
-          logger,
+          logger
         ).createStateStore();
         const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
 
         const marginlyDeployment = await deployMarginly(signer, rawConfig, stateStore, logger);
 
         updateDeploymentFile(actualDeploymentFile, marginlyDeployment, logger);
-      },
+      }
+    );
+  });
+
+const deploySbtCommand = new Command('sbt')
+  .requiredOption('--state-mode <stateMode>', 'Mode to process state: new, latest, existing')
+  .option('--state-file <stateFile>', 'State file name for new and existing state modes')
+  .action(async (deployCommandArgs: DeployCommandArgs, command: Command) => {
+    await deployCommandTemplate(
+      command,
+      deployCommandArgs,
+      async (signer, actualConfigFile, actualStateFile, actualDeploymentFile) => {
+        const logger = new SimpleLogger((x) => console.error(x));
+        const stateStore = new StateFile('SBT', createDefaultBaseState, actualStateFile, logger).createStateStore();
+        const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
+        const sbtDeployment = await deploySbt(signer, rawConfig, stateStore, logger);
+
+        fs.writeFileSync(actualDeploymentFile, JSON.stringify(sbtDeployment, null, 2), { encoding: 'utf-8' });
+      }
     );
   });
 
@@ -370,7 +389,7 @@ function updateDeploymentFile(deploymentFile: string, currentDeployment: Marginl
 }
 
 export const readReadOnlyEthFromContext = async (
-  systemContext: SystemContext,
+  systemContext: SystemContext
 ): Promise<{ nodeUri: { parameter: Parameter; value: string } }> => {
   const nodeUri = readParameter(nodeUriParameter, systemContext);
 
@@ -387,7 +406,7 @@ export const readReadOnlyEthFromContext = async (
 };
 
 export const readReadWriteEthFromContext = async (
-  systemContext: SystemContext,
+  systemContext: SystemContext
 ): Promise<{
   signer: ethers.Signer;
   dryRun: boolean;
@@ -418,7 +437,7 @@ export const readReadWriteEthFromContext = async (
       fork: { url: nodeUri.nodeUri.value },
     };
     provider = new ethers.providers.Web3Provider(
-      ganache.provider(options) as unknown as ethers.providers.ExternalProvider,
+      ganache.provider(options) as unknown as ethers.providers.ExternalProvider
     );
     const blockNumber = await provider.getBlockNumber();
     log(`Fork block number: ${blockNumber}`);
@@ -446,13 +465,11 @@ export const registerReadOnlyEthParameters = (command: Command): Command => {
 };
 
 export const registerReadWriteEthParameters = (command: Command): Command => {
-  return registerEthSignerParameters(registerReadOnlyEthParameters(command)).option(
-    getCommanderFlagForm(dryRunParameter),
-    dryRunParameter.description,
-  ).option(
-    getCommanderForm(dryRunOptsParameter),
-    dryRunOptsParameter.description,
-  );
+  return registerEthSignerParameters(registerReadOnlyEthParameters(command))
+    .option(getCommanderFlagForm(dryRunParameter), dryRunParameter.description)
+    .option(getCommanderForm(dryRunOptsParameter), dryRunOptsParameter.description);
 };
 
-export const deployCommand = registerReadWriteEthParameters(new Command('deploy')).addCommand(deployMarginlyCommand);
+export const deployCommand = registerReadWriteEthParameters(new Command('deploy'))
+  .addCommand(deployMarginlyCommand)
+  .addCommand(deploySbtCommand);

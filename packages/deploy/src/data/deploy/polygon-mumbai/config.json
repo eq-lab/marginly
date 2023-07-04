@@ -1,6 +1,6 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://rpc.ankr.com/polygon_mumbai"
+    "ethNodeUri": "https://rpc-mumbai.maticvigil.com/"
   },
   "connection": {
     "assertChainId": 80001,
@@ -99,8 +99,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500_000",
-        "quoteLimit": "1_000_000"
+        "baseLimit": "50_000",
+        "quoteLimit": "100_000_000"
       }
     },
     {
@@ -117,8 +117,8 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500_000",
-        "quoteLimit": "400_000"
+        "baseLimit": "100_000_000",
+        "quoteLimit": "100_000_000"
       }
     }
   ],

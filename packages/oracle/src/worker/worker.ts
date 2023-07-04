@@ -46,6 +46,7 @@ export class OracleWorker implements Worker {
   private readonly executor;
   private readonly pricesRepository: PricesRepository;
   private readonly workerId;
+  private readonly transientState;
 
   private state?: {
     workerConfig: StrictOracleWorkerConfig,
@@ -60,7 +61,8 @@ export class OracleWorker implements Worker {
     logger: Logger,
     executor: Executor,
     pricesRepository: PricesRepository,
-    workerId: string) {
+    workerId: string,
+    transientState: string[] = []) {
     this.cancellationTokenSource = new CancellationTokenSource();
 
     this.config = config;
@@ -68,11 +70,14 @@ export class OracleWorker implements Worker {
     this.executor = executor;
     this.pricesRepository = pricesRepository;
     this.workerId = workerId;
+    this.transientState = transientState;
   }
 
   public requestStop(): void {
-    this.logger.info('Stop requested');
-    this.cancellationTokenSource.cancel();
+    using(this.logger.scope(this.workerId), logger => {
+      logger.info('Stop requested');
+      this.cancellationTokenSource.cancel();
+    });
   }
 
   private getNowMs(): bigint {
@@ -143,7 +148,7 @@ export class OracleWorker implements Worker {
         throw new Error(`Price base token ${priceBaseToken.id} is neither token0 nor token1`);
       }
 
-      logger.info(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
+      logger.debug(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
       const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
       const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
       logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
@@ -152,12 +157,20 @@ export class OracleWorker implements Worker {
       try {
         tx = await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
       } catch (error) {
-        if (poolMock.validated && (error as Record<string, unknown>)?.code === ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT) {
-          logger.warn(error, 'Unable to set price: unpredictable gas limit');
-        } else if (poolMock.validated && this.isZkSyncEra() && this.isErrorMessageContains(error, 'not enough balance')) {
-          logger.warn(error, 'Unable to set price: not enough balance');
-        } else {
+        const errorRecord = error as Record<string, unknown>;
+
+        if (!poolMock.validated) {
           throw error;
+        } else {
+          if (errorRecord?.code === ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT) {
+            logger.warn(error, 'Unable to set price: unpredictable gas limit');
+          } else if (errorRecord?.code === ethers.utils.Logger.errors.INSUFFICIENT_FUNDS) {
+            logger.warn(error, 'Unable to set price: insufficient funds');
+          } else if (this.isZkSyncEra() && this.isErrorMessageContains(error, 'not enough balance')) {
+            logger.warn(error, 'Unable to set price: not enough balance');
+          } else {
+            throw error;
+          }
         }
       }
 
@@ -233,13 +246,24 @@ export class OracleWorker implements Worker {
 
       const poolMocks = new Map<string, PoolMock>();
 
+      let alreadyValidatedPoolIds: Set<string>;
+      if (workerConfig.disableMockValidation) {
+        logger.info(`Mock validation is disabled so ignoring transient state if any`);
+        alreadyValidatedPoolIds = new Set(workerConfig.uniswapV3PoolMocks.map(x => x.id));
+      } else {
+        if (this.transientState.length > 0) {
+          logger.info(`Assuming following mocks are already validated: ${this.transientState.join(', ')}`);
+        }
+        alreadyValidatedPoolIds = new Set(this.transientState);
+      }
+
       for (const poolMockConfig of workerConfig.uniswapV3PoolMocks) {
         const contract = new ethers.Contract(poolMockConfig.address, uniswapV3PoolMockContractDescription.abi, oracleSigner);
         const token0 = await contract.token0();
         const token1 = await contract.token1();
         poolMocks.set(poolMockConfig.id, {
           ...poolMockConfig,
-          validated: false,
+          validated: alreadyValidatedPoolIds.has(poolMockConfig.id),
           contract,
           token0Address: EthAddress.parse(token0),
           token1Address: EthAddress.parse(token1),
@@ -274,5 +298,17 @@ export class OracleWorker implements Worker {
         );
       }
     });
+  }
+
+  public getTransientState(): string[] {
+    const validatedMockIds: string[] = [];
+    if (this.state !== undefined) {
+      for (const mock of this.state.poolMocks.values()) {
+        if (mock.validated) {
+          validatedMockIds.push(mock.id);
+        }
+      }
+    }
+    return validatedMockIds;
   }
 }

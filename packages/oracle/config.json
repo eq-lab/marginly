@@ -77,12 +77,31 @@
         "type": "http-get",
         "direction": "forward",
         "query": "json(https://www.mexc.com/open/api/v2/market/ticker?symbol=MATIC_USDC).data[0].last"
+      },
+      {
+        "id": "gmx-usdc",
+        "label": "gmx/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "gmx/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          }
+        ]
       }
     ]
   },
   "workerManager": {
-    "sequentialFailsThresholdMs": 600000,
-    "restartDelayMs": 10000
+    "sequentialFailsThresholdMs": 180000,
+    "restartDelayMs": 30000
   },
   "oracleWorkers": [
     {
@@ -125,106 +144,29 @@
           "priceBaseTokenId": "fweth"
         },
         {
-          "id": "arb-fweth",
-          "address": "0xf97c7F7ccBB90ba32d3fb01aF18c8FFf5A94Bd65",
-          "priceId": "arb-eth",
-          "priceBaseTokenId": "arb"
-        },
-        {
-          "id": "gmx-fweth",
-          "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
-          "priceId": "gmx-eth",
-          "priceBaseTokenId": "gmx"
-        },
-        {
           "id": "arb-usdc",
           "address": "0x9C653a10e4C51e9A784FeE3D5495de91cf3e1c51",
           "priceId": "arb-usdc",
           "priceBaseTokenId": "arb"
+        },
+        {
+          "id": "gmx-usdc",
+          "address": "0x32859f88bB45fa5e25453Ba044D8fF5Fc243a8D9",
+          "priceId": "gmx-usdc",
+          "priceBaseTokenId": "gmx"
         }
       ],
       "updatePriceJobs": [
         {
           "poolMockId": "fweth-usdc",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "arb-fweth",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "gmx-fweth",
           "periodMs": 60000
         },
         {
           "poolMockId": "arb-usdc",
           "periodMs": 60000
-        }
-      ]
-    },
-    {
-      "id": "zksync-era-testnet",
-      "tickMs": 1000,
-      "ethereum": {
-        "nodeUrl": "https://testnet.era.zksync.dev"
-      },
-      "tokens": [
-        {
-          "id": "fweth",
-          "address": "0x09573DED24a47b02B3e2bFc10d8855c5ed17625c",
-          "assertSymbol": "FWETH",
-          "assertDecimals": 18
         },
         {
-          "id": "usdc",
-          "address": "0xdFC1848B817fad895fC4560aEEB5C12Ecf1eB14f",
-          "assertSymbol": "USDC",
-          "assertDecimals": 6
-        },
-        {
-          "id": "arb",
-          "address": "0x7e3cf272219CfaA812E874A52956B1EafB893fd1",
-          "assertSymbol": "ARB",
-          "assertDecimals": 18
-        },
-        {
-          "id": "gmx",
-          "address": "0x8aD8248342D3a83622301c35FA482aE2B71366A2",
-          "assertSymbol": "GMX",
-          "assertDecimals": 18
-        }
-      ],
-      "uniswapV3PoolMocks": [
-        {
-          "id": "fweth-usdc",
-          "address": "0x334AFd1b43239EcE0b1E78a559ac9A304A343268",
-          "priceId": "eth-usdc",
-          "priceBaseTokenId": "fweth"
-        },
-        {
-          "id": "arb-fweth",
-          "address": "0x6baa27CaA7E32c372a16e072dfd0047cDFAdd605",
-          "priceId": "arb-eth",
-          "priceBaseTokenId": "arb"
-        },
-        {
-          "id": "gmx-fweth",
-          "address": "0x98d9Ab78D3608b201BB7b41FDe9D9C7FB13Dad49",
-          "priceId": "gmx-eth",
-          "priceBaseTokenId": "gmx"
-        }
-      ],
-      "updatePriceJobs": [
-        {
-          "poolMockId": "fweth-usdc",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "arb-fweth",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "gmx-fweth",
+          "poolMockId": "gmx-usdc",
           "periodMs": 60000
         }
       ]
