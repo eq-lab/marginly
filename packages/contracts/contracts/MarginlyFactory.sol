@@ -13,19 +13,19 @@ import './MarginlyPool.sol';
 /// @title Marginly contract factory
 /// @notice Deploys Marginly and manages ownership and control over pool
 contract MarginlyFactory is IMarginlyFactory {
-  address public marginlyPoolImplementation;
+  address public immutable marginlyPoolImplementation;
   /// @inheritdoc IOwnable
   address public override owner;
   /// @notice Address of uniswap factory
-  address public uniswapFactory;
+  address public immutable uniswapFactory;
   /// @notice Address of uniswap swap router
-  address public override swapRouter;
+  address public immutable override swapRouter;
   /// @notice Swap fee holder
-  address public override feeHolder;
+  address public immutable override feeHolder;
   /// @notice Address of wrapped ETH
-  address public override WETH9;
+  address public immutable override WETH9;
   /// @notice Technical position address
-  address public override techPositionOwner;
+  address public immutable override techPositionOwner;
 
   /// @inheritdoc IMarginlyFactory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
@@ -53,7 +53,7 @@ contract MarginlyFactory is IMarginlyFactory {
   function setOwner(address _owner) external override {
     require(msg.sender == owner, 'NO'); // Not an owner
     owner = _owner;
-    emit OwnerChanged(owner, _owner);
+    emit OwnerChanged(msg.sender, _owner);
   }
 
   /// @inheritdoc IMarginlyFactory

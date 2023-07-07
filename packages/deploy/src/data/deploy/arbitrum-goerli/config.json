@@ -1,0 +1,196 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://goerli-rollup.arbitrum.io/rpc"
+  },
+  "connection": {
+    "assertChainId": 421613,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "fweth",
+      "name": "Fake Wrapped ETH",
+      "symbol": "FWETH",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "usdc",
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    {
+      "type": "mintable",
+      "id": "arb",
+      "name": "Arbitrum",
+      "symbol": "ARB",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "gmx",
+      "name": "GMX",
+      "symbol": "GMX",
+      "decimals": 18
+    }
+  ],
+  "prices": [
+    {
+      "id": "eth-usdc",
+      "label": "eth/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+    },
+    {
+      "id": "arb-usdc",
+      "label": "arb/usdc",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "arb/usdt",
+          "direction": "forward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+        }
+      ]
+    },
+    {
+      "id": "gmx-usdc",
+      "label": "gmx/usdc",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "gmx/usdt",
+          "direction": "forward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+        }
+      ]
+    }
+  ],
+  "uniswap": {
+    "type": "mock",
+    "oracle": "0xa1Cc678Ff30Fe601023Dbe6b62271fbf26E4760f",
+    "weth9TokenId": "weth",
+    "priceLogSize": 60,
+    "pools": [
+      {
+        "id": "fweth-usdc",
+        "tokenAId": "fweth",
+        "tokenBId": "usdc",
+        "fee": "0.05%",
+        "tokenABalance": "1_000_000",
+        "tokenBBalance": "2_000_000_000",
+        "priceId": "eth-usdc",
+        "priceBaseTokenId": "fweth"
+      },
+      {
+        "id": "arb-usdc",
+        "tokenAId": "arb",
+        "tokenBId": "usdc",
+        "fee": "0.05%",
+        "tokenABalance": "2_180_000",
+        "tokenBBalance": "780_000",
+        "priceId": "arb-usdc",
+        "priceBaseTokenId": "arb"
+      },
+      {
+        "id": "gmx-usdc",
+        "tokenAId": "gmx",
+        "tokenBId": "usdc",
+        "fee": "0.3%",
+        "tokenABalance": "100_000_000",
+        "tokenBBalance": "5_200_000_000",
+        "priceId": "gmx-usdc",
+        "priceBaseTokenId": "gmx"
+      }
+    ]
+  },
+  "marginlyFactory": {
+    "feeHolder": "0xfee4F33f95ec3E63a774fCfa80171Ca2d76428A1",
+    "techPositionOwner": "0xaaaaE8DD2F7d0b31e8464C65F8D8721CD231b0D6",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "fweth-usdc",
+      "uniswapPoolId": "fweth-usdc",
+      "baseTokenId": "fweth",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "50_000",
+        "quoteLimit": "100_000_000"
+      }
+    },
+    {
+      "id": "arb-usdc",
+      "uniswapPoolId": "arb-usdc",
+      "baseTokenId": "arb",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "100_000_000",
+        "quoteLimit": "100_000_000"
+      }
+    },
+    {
+      "id": "gmx-usdc",
+      "uniswapPoolId": "gmx-usdc",
+      "baseTokenId": "gmx",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.001",
+        "baseLimit": "2_000_000",
+        "quoteLimit": "100_000_000"
+      }
+    }
+  ],
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0x4EEE0BB72C2717310318f27628B3c8a708E4951C"
+    }
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "log": {
+    "level": 3,
+    "format": "json"
+  },
+  "ethereum": {},
+  "pricesRepository": {
+    "priceCachePeriodMs": 50000,
+    "prices": [
+      {
+        "id": "eth-usdc",
+        "label": "eth/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+      },
+      {
+        "id": "arb-usdc",
+        "label": "arb/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "arb/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          }
+        ]
+      },
+      {
+        "id": "arb-eth",
+        "label": "arb/eth",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "arb/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/eth",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+          }
+        ]
+      },
+      {
+        "id": "gmx-eth",
+        "label": "gmx/eth",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "gmx/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/eth",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+          }
+        ]
+      },
+      {
+        "id": "matic-usdc",
+        "label": "matic/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://www.mexc.com/open/api/v2/market/ticker?symbol=MATIC_USDC).data[0].last"
+      },
+      {
+        "id": "gmx-usdc",
+        "label": "gmx/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "gmx/usdt",
+            "direction": "forward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          }
+        ]
+      }
+    ]
+  },
+  "workerManager": {
+    "sequentialFailsThresholdMs": 180000,
+    "restartDelayMs": 30000
+  },
+  "oracleWorkers": [
+    {
+      "id": "arbitrum-goerli",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0xd87f0fb191580e3bB59e3ab612DeeB28e74d7812",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "arb",
+          "address": "0x4223950D11c535cE136299cd6a9Ddf88ace69F1b",
+          "assertSymbol": "ARB",
+          "assertDecimals": 18
+        },
+        {
+          "id": "gmx",
+          "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD",
+          "assertSymbol": "GMX",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x035b26AF837e78798AD7c89050939B9AB2E192A0",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "arb-usdc",
+          "address": "0x9C653a10e4C51e9A784FeE3D5495de91cf3e1c51",
+          "priceId": "arb-usdc",
+          "priceBaseTokenId": "arb"
+        },
+        {
+          "id": "gmx-usdc",
+          "address": "0x32859f88bB45fa5e25453Ba044D8fF5Fc243a8D9",
+          "priceId": "gmx-usdc",
+          "priceBaseTokenId": "gmx"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "arb-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "gmx-usdc",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "polygon-mumbai",
+      "ticksMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://rpc-mumbai.maticvigil.com"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0x230f4447F79DC52a5Bc8031Dfdd49da6929Ca290",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x33544752A157AeE7e78AD83DC61E95EF7aAe52a1",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "fmatic",
+          "address": "0x6ea7a8FecbFf190D6B504263BDD81b7F2B07700A",
+          "assertSymbol": "FMATIC",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x64BF3213666bC357155DDb21aD2404d3Df04e0A1",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "fmatic-usdc",
+          "address": "0xC931D0D6BDCc8b264983533a58ED80F1a3b99ef7",
+          "priceId": "matic-usdc",
+          "priceBaseTokenId": "fmatic"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "fmatic-usdc",
+          "periodMs": 60000
+        }
+      ]
+    }
+  ]
+}

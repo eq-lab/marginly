@@ -1,0 +1,37 @@
+{
+  "name": "@marginly/oracle",
+  "version": "0.1.0",
+  "description": "Marginly oracle service",
+  "main": "dist/index.js",
+  "author": "EqLab",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "start": "node dist/index.js",
+    "build-n-start": "yarn build && yarn start",
+    "lint": "eslint src --ext .ts",
+    "prettify": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "18",
+    "@types/yargs": "^17.0.19",
+    "@types/node-fetch": "^2.6.3",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.6.0",
+    "prettier": "^2.8.2",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@marginly/logger": "^1.0.0",
+    "@marginly/logger-node": "^1.0.0",
+    "@marginly/common": "^0.1.0",
+    "@marginly/contracts-uniswap-mock": "^0.1.0",
+    "@openzeppelin/contracts": "^4.8.0",
+    "yargs": "^13.3.2",
+    "node-fetch": "^2.6.9",
+    "ethers": "^5.7.2",
+    "async-mutex": "^0.4.0"
+  }
+}

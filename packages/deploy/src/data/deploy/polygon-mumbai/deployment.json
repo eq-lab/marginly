@@ -1,0 +1,15 @@
+{
+  "marginlyPools": [
+    {
+      "id": "fmatic-usdc",
+      "address": "0xF94BD9F6Fb3357857AbBe92608C13cf8728864cf"
+    },
+    {
+      "id": "fweth-usdc",
+      "address": "0x007eAcaCD91A39A0AF9F0BB9E7603c0d761391Ef"
+    }
+  ],
+  "marginlyKeeper": {
+    "address": "0x2c00BD8905d38a648f39c6108A1BD19ff9dC58C8"
+  }
+}

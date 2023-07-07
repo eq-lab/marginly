@@ -1,0 +1,17 @@
+{
+    "name": "@marginly/logger-node",
+    "version": "1.0.0",
+    "description": "Node JS Specific Logger Extensions",
+    "main": "dist/index.js",
+    "author": "EqLab",
+    "license": "MIT",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc --build",
+        "lint": "eslint src --ext .ts",
+        "prettify": "prettier --write ."
+    },
+    "dependencies": {
+        "@marginly/logger": "1.0.0"
+    }
+}

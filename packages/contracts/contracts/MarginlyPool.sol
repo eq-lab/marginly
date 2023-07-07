@@ -109,7 +109,7 @@ contract MarginlyPool is IMarginlyPool {
     uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
-    MarginlyParams memory _params
+    MarginlyParams calldata _params
   ) external {
     require(factory == address(0), 'FB'); // Forbidden
 
@@ -128,6 +128,9 @@ contract MarginlyPool is IMarginlyPool {
     lastReinitTimestampSeconds = block.timestamp;
     unlocked = true;
     initialPrice = getBasePrice();
+
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    techPosition._type = PositionType.Lend;
   }
 
   receive() external payable {
@@ -349,7 +352,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseDebt = discountedBaseDebt.sub(position.discountedBaseAmount);
 
       //remove position
-      shortHeap.remove(positions, 0);
+      shortHeap.remove(positions, position.heapPosition - 1);
     } else {
       uint256 realBaseCollateral = calcRealBaseCollateral(
         position.discountedBaseAmount,
@@ -392,7 +395,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteDebt = discountedQuoteDebt.sub(position.discountedQuoteAmount);
 
       //remove position
-      longHeap.remove(positions, 0);
+      longHeap.remove(positions, position.heapPosition - 1);
     }
 
     delete positions[user];
@@ -467,8 +470,7 @@ contract MarginlyPool is IMarginlyPool {
         discountedBaseCollateral = _discountedBaseCollateral.add(discountedBaseCollateralDelta);
       } else {
         // Short position, debt > depositAmount, decrease debt
-        // discountedBaseDebtDelta = (realDebt - amount) / coeff
-        discountedBaseDebtDelta = _baseDebtCoeff.recipMul(realBaseDebt.sub(amount));
+        discountedBaseDebtDelta = _baseDebtCoeff.recipMul(amount);
         position.discountedBaseAmount = positionDiscountedBaseAmountPrev.sub(discountedBaseDebtDelta);
       }
 
@@ -485,8 +487,6 @@ contract MarginlyPool is IMarginlyPool {
       // update aggregates
       discountedBaseCollateral = _discountedBaseCollateral.add(discountedCollateralDelta);
     }
-
-    updateSystemLeverageLong(basePrice);
 
     wrapAndTransferFrom(baseToken, msg.sender, amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
@@ -538,8 +538,7 @@ contract MarginlyPool is IMarginlyPool {
         discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
       } else {
         // Long position, debt > depositAmount, decrease debt on delta
-        // discountedQuoteDebtDelta -= (realDebt - amount) / coeff
-        discountedQuoteDebtDelta = _quoteDebtCoeff.recipMul(realQuoteDebt.sub(amount));
+        discountedQuoteDebtDelta = _quoteDebtCoeff.recipMul(amount);
         position.discountedQuoteAmount = positionDiscountedQuoteAmountPrev.sub(discountedQuoteDebtDelta);
       }
 
@@ -556,8 +555,6 @@ contract MarginlyPool is IMarginlyPool {
       // update aggregates
       discountedQuoteCollateral = _discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
     }
-
-    updateSystemLeverageShort(basePrice);
 
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
@@ -582,7 +579,7 @@ contract MarginlyPool is IMarginlyPool {
 
     PositionType _type = position._type;
     require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
-    require(_type != PositionType.Short);
+    require(_type != PositionType.Short, 'WPT'); // Wrong position type
 
     FP96.FixedPoint memory _baseCollateralCoeff = baseCollateralCoeff;
     uint256 positionBaseAmount = position.discountedBaseAmount;
@@ -606,8 +603,6 @@ contract MarginlyPool is IMarginlyPool {
 
     position.discountedBaseAmount = positionBaseAmount.sub(discountedBaseCollateralDelta);
     discountedBaseCollateral = discountedBaseCollateral.sub(discountedBaseCollateralDelta);
-
-    updateSystemLeverageLong(basePrice);
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
 
@@ -635,7 +630,7 @@ contract MarginlyPool is IMarginlyPool {
 
     PositionType _type = position._type;
     require(_type != PositionType.Uninitialized, 'U'); // Uninitialized position
-    require(_type != PositionType.Long);
+    require(_type != PositionType.Long, 'WPT'); // Wrong position type
 
     FP96.FixedPoint memory _quoteCollateralCoeff = quoteCollateralCoeff;
     uint256 positionQuoteAmount = position.discountedQuoteAmount;
@@ -660,8 +655,6 @@ contract MarginlyPool is IMarginlyPool {
     position.discountedQuoteAmount = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
     discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedQuoteCollateralDelta);
 
-    updateSystemLeverageShort(basePrice);
-
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
 
     if (needToDeletePosition) {
@@ -674,9 +667,8 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @notice Close position
-  /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function closePosition(FP96.FixedPoint memory basePrice, Position storage position) private {
+  function closePosition(Position storage position) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -720,8 +712,6 @@ contract MarginlyPool is IMarginlyPool {
 
       uint32 heapIndex = position.heapPosition - 1;
       shortHeap.remove(positions, heapIndex);
-
-      updateSystemLeverageShort(basePrice);
     } else if (position._type == PositionType.Long) {
       collateralToken = baseToken;
 
@@ -761,8 +751,6 @@ contract MarginlyPool is IMarginlyPool {
 
       uint32 heapIndex = position.heapPosition - 1;
       longHeap.remove(positions, heapIndex);
-
-      updateSystemLeverageLong(basePrice);
 
       collateralToken = baseToken;
     } else {
@@ -839,13 +827,11 @@ contract MarginlyPool is IMarginlyPool {
     chargeFee(realSwapFee);
 
     if (position._type == PositionType.Lend) {
-      //init heap with default value 1.0
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
-      shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
+      // init heap with default value 0, it will be updated by 'updateHeap' function later
+      shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
       position._type = PositionType.Short;
     }
-
-    updateSystemLeverageShort(basePrice);
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
 
@@ -893,12 +879,10 @@ contract MarginlyPool is IMarginlyPool {
 
     if (position._type == PositionType.Lend) {
       require(position.heapPosition == 0, 'WP'); // Wrong position heap index
-      //init heap with default value 1.0
-      longHeap.insert(positions, MaxBinaryHeapLib.Node({key: FP48.Q48, account: msg.sender}));
+      // init heap with default value 0, it will be updated by 'updateHeap' function later
+      longHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
       position._type = PositionType.Long;
     }
-
-    updateSystemLeverageLong(basePrice);
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); //Margin call
 
@@ -972,7 +956,6 @@ contract MarginlyPool is IMarginlyPool {
       Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
       techPosition.discountedBaseAmount = techPosition.discountedBaseAmount.add(discountedBaseFee);
       techPosition.discountedQuoteAmount = techPosition.discountedQuoteAmount.add(discountedQuoteFee);
-      techPosition._type = PositionType.Lend;
 
       discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseFee);
       discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteFee);
@@ -989,9 +972,6 @@ contract MarginlyPool is IMarginlyPool {
     if (!accrueInterest()) {
       return (callerMarginCalled, basePrice); // (false, basePrice)
     }
-
-    updateSystemLeverageLong(basePrice);
-    updateSystemLeverageShort(basePrice);
 
     (bool success, MaxBinaryHeapLib.Node memory root) = shortHeap.getNodeByIndex(0);
     if (success) {
@@ -1393,12 +1373,15 @@ contract MarginlyPool is IMarginlyPool {
     } else if (call == CallType.Long) {
       long(amount1, basePrice, position);
     } else if (call == CallType.ClosePosition) {
-      closePosition(basePrice, position);
+      closePosition(position);
     } else if (call != CallType.Reinit) {
       // reinit already happened
       revert('UC'); // unknown call
     }
 
     updateHeap(position);
+
+    updateSystemLeverageLong(basePrice);
+    updateSystemLeverageShort(basePrice);
   }
 }
