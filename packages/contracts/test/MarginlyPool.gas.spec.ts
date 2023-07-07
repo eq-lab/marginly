@@ -3,7 +3,7 @@ import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { ethers } from 'hardhat';
 import snapshotGasCost from '@uniswap/snapshot-gas-cost';
 import { BigNumber } from 'ethers';
-import { CallType, toHumanString, ZERO_ADDRESS } from './shared/utils';
+import { CallType, paramsDefaultLeverageWithoutIr, paramsLowLeverageWithIr, toHumanString, ZERO_ADDRESS } from './shared/utils';
 import { expect } from 'chai';
 
 describe('Open position:', () => {
@@ -336,6 +336,119 @@ describe('mc happens:', async () => {
     );
     expect((await marginlyPool.positions(shorter.address)).discountedBaseAmount).to.be.equal(BigNumber.from(0));
     expect((await marginlyPool.positions(longer.address)).discountedQuoteAmount).to.be.equal(BigNumber.from(0));
+  });
+
+  it('MC long position with deleverage', async () => {
+    const {
+      marginlyPool,
+      factoryOwner,
+    } = await loadFixture(createMarginlyPool);
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
+
+    const accounts = await ethers.getSigners();
+
+    const lender = accounts[0];
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS); 
+
+    const longer = accounts[1];
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS);
+
+    const shorter = accounts[2];
+
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS);
+
+    const quoteDelevCoeffBefore = await marginlyPool.quoteDelevCoeff();
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithIr);
+    await snapshotGasCost(
+      await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS)
+    );
+
+    expect(await marginlyPool.quoteDelevCoeff()).to.be.greaterThan(quoteDelevCoeffBefore);
+  });
+
+  it('MC short position with deleverage', async () => {
+    const {
+      marginlyPool,
+      factoryOwner,
+    } = await loadFixture(createMarginlyPool);
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
+
+    const accounts = await ethers.getSigners();
+
+    const lender = accounts[0];
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS); 
+
+    const shorter = accounts[1];
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100, 7200, false, ZERO_ADDRESS);
+
+    const longer = accounts[2];
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 10000, 8000, false, ZERO_ADDRESS);
+
+    const baseDelevCoeffBefore = await marginlyPool.quoteDelevCoeff();
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithIr);
+    await snapshotGasCost(
+      await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS)
+    );
+
+    expect(await marginlyPool.baseDelevCoeff()).to.be.greaterThan(baseDelevCoeffBefore);
+  });
+
+  it('MC long reinit', async () => {
+    const {
+      marginlyPool,
+      factoryOwner,
+    } = await loadFixture(createMarginlyPool);
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
+
+    const accounts = await ethers.getSigners();
+
+    const lender = accounts[0];
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS); 
+
+    const longer = accounts[1];
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS);
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithIr);
+    await snapshotGasCost(
+      await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS)
+    );
+
+    const position = await marginlyPool.positions(longer.address);
+    expect(position._type).to.be.equal(0);
+  });
+
+  it('MC short reinit', async () => {
+    const {
+      marginlyPool,
+      factoryOwner,
+    } = await loadFixture(createMarginlyPool);
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
+
+    const accounts = await ethers.getSigners();
+
+    const lender = accounts[0];
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS); 
+
+    const shorter = accounts[1];
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100, 7200, false, ZERO_ADDRESS);
+
+    await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithIr);
+    await snapshotGasCost(
+      await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS)
+    );
+
+    const position = await marginlyPool.positions(shorter.address);
+    expect(position._type).to.be.equal(0);
   });
 });
 

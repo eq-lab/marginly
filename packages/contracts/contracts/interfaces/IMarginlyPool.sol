@@ -13,6 +13,12 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
   event EnactMarginCall(address indexed user, uint256 swapPriceX96);
 
+  /// @dev Emitted when deleverage took place
+  /// @param positionType deleveraged positions type
+  /// @param totalCollateralReduced total collateral reduced from all positions
+  /// @param totalDebtReduced total debt reduced from all positions
+  event Deleverage(PositionType positionType, uint256 totalCollateralReduced, uint256 totalDebtReduced);
+
   /// @dev Emitted when user deposited base token
   /// @param user Depositor
   /// @param amount Amount of token user deposited

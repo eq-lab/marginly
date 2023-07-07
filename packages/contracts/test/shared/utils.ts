@@ -140,6 +140,47 @@ export function calcLeverageLong(
   return collateral.mul(FP96.one).div(collateral.sub(debt));
 }
 
+export const YEAR = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
+
+export const paramsDefaultLeverageWithoutIr = {
+  interestRate: 0,
+  maxLeverage: 20,
+  swapFee: 1000, // 0.1%
+  fee: 0,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
+export const paramsLowLeverageWithoutIr = {
+  interestRate: 0,
+  maxLeverage: 19,
+  swapFee: 1000, // 0.1%
+  fee: 0,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
+export const paramsLowLeverageWithIr = {
+  interestRate: 54000,
+  maxLeverage: 19,
+  swapFee: 1000, // 0.1%
+  fee: 20000,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
 export const WHOLE_ONE = 1e6;
 export const SECONDS_IN_YEAR_X96 = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
 
