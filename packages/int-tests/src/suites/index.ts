@@ -27,6 +27,8 @@ import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
+import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
+import { ZERO_ADDRESS } from '../utils/const';
 import {
   deleveragePrecisionLong,
   deleveragePrecisionShort,
@@ -45,7 +47,7 @@ export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB
 export type SystemUnderTest = {
   uniswap: UniswapV3PoolContract;
   uniswapFactory: UniswapV3FactoryContract;
-  swapRouter: SwapRouterContract;
+  swapRouter: MarginlyRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
   keeper: MarginlyKeeperContract;
@@ -85,7 +87,12 @@ async function initializeTestSystem(
   const nonFungiblePositionManager = nonFungiblePositionManagerContract(treasury);
   logger.info(`nonFungiblePositionManager: ${nonFungiblePositionManager.address}`);
 
-  const swapRouter = swapRouterContract(treasury);
+  const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
+  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
+
+  let routerConstructorInput = [];
+  routerConstructorInput.push({dex: 0, fee: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
+  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
@@ -102,9 +109,6 @@ async function initializeTestSystem(
   );
   logger.info(`marginlyFactory: ${marginlyFactory.address}`);
   logger.info(`marginly owner: ${await marginlyFactory.owner()}`);
-
-  const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
-  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
 
   const initialParams = {
     interestRate: 54000, // 5.4%

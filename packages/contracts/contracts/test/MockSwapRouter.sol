@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 
-contract MockSwapRouter is ISwapRouter {
+contract MockSwapRouter is IMarginlyRouter {
   uint256 public price = 1500;
 
   address quoteToken;
@@ -20,18 +20,12 @@ contract MockSwapRouter is ISwapRouter {
     price = _price;
   }
 
-  function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut) {
-    IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
+  function swapExactInput(bytes calldata swapCalldata, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut) {
+    IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
 
-    amountOut = params.tokenIn == quoteToken ? params.amountIn / price : params.amountIn * price;
-    IERC20(params.tokenOut).transfer(msg.sender, amountOut);
+    amountOut = tokenIn == quoteToken ? amountIn / price : amountIn * price;
+    IERC20(tokenOut).transfer(msg.sender, amountOut);
   }
 
-  function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut) {}
-
-  function exactOutputSingle(ExactOutputSingleParams calldata params) external payable returns (uint256 amountIn) {}
-
-  function exactOutput(ExactOutputParams calldata params) external payable returns (uint256 amountIn) {}
-
-  function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {}
+  function swapExactOutput(bytes calldata swapCalldata, address tokenIn, address tokenOut, uint256 maxAmountIn, uint256 amountOut) external returns (uint256 amountIn) {}
 }

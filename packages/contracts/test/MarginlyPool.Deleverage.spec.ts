@@ -2,7 +2,7 @@ import { createMarginlyPool, getDeleveragedPool } from './shared/fixtures';
 import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { CallType, FP96, paramsDefaultLeverageWithoutIr, paramsLowLeverageWithoutIr, ZERO_ADDRESS } from './shared/utils';
+import { CallType, FP96, paramsDefaultLeverageWithoutIr, paramsLowLeverageWithoutIr, ZERO_ADDRESS, uniswapV3Swapdata } from './shared/utils';
 import { BigNumber } from 'ethers';
 
 describe('Deleverage', () => {
@@ -14,15 +14,15 @@ describe('Deleverage', () => {
     const accounts = await ethers.getSigners();
 
     const lender = accounts[0];
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS); 
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata()); 
 
     const longer = accounts[1];
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const shorter = accounts[2];
 
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const baseCollCoeff = await marginlyPool.baseCollateralCoeff();
     const discountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
@@ -36,7 +36,7 @@ describe('Deleverage', () => {
     const posDisDebt = (await marginlyPool.positions(longer.address)).discountedQuoteAmount;
 
     await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithoutIr);
-    await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const poolBaseBalance = baseCollCoeff.mul(discountedBaseCollateral).sub(
       baseDebtCoeff.mul(discountedBaseDebt)
@@ -84,14 +84,14 @@ describe('Deleverage', () => {
     const accounts = await ethers.getSigners();
 
     const lender = accounts[0];
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS); 
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata()); 
 
     const shorter = accounts[1];
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100, 7200, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100, 7200, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const longer = accounts[2];
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, 10000, 8000, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 10000, 8000, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const quoteCollCoeff = await marginlyPool.quoteCollateralCoeff();
     const discountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
@@ -105,7 +105,7 @@ describe('Deleverage', () => {
     const posDisDebt = (await marginlyPool.positions(shorter.address)).discountedBaseAmount;
 
     await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithoutIr);
-    await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const poolQuoteBalance = quoteCollCoeff.mul(discountedQuoteCollateral).sub(
       quoteDebtCoeff.mul(discountedQuoteDebt)
@@ -150,16 +150,16 @@ describe('Deleverage', () => {
 
     const [_, lender, shorter] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(shorter.address);
     const disQuoteCollateralBefore = await marginlyPool.discountedQuoteCollateral(); 
 
     const shortAmount = 1000;
-    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const price = (await marginlyPool.getBasePrice()).inner;
     const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
@@ -184,16 +184,16 @@ describe('Deleverage', () => {
 
     const [_, lender, longer] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(longer.address);
     const disBaseCollateralBefore = await marginlyPool.discountedBaseCollateral();
 
     const longAmount = 1000;
-    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const price = (await marginlyPool.getBasePrice()).inner;
     const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
@@ -218,19 +218,19 @@ describe('Deleverage', () => {
 
     const [_, lender, shorter] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const shortAmount = 1000;
-    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(shorter.address);
     const disQuoteCollateralBefore = await marginlyPool.discountedQuoteCollateral(); 
 
     const quoteDepositAmount = 500;
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, quoteDepositAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, quoteDepositAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionAfter = await marginlyPool.positions(shorter.address);
     const disQuoteCollateralAfter = await marginlyPool.discountedQuoteCollateral(); 
@@ -249,19 +249,19 @@ describe('Deleverage', () => {
 
     const [_, lender, longer] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const longAmount = 1000;
-    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(longer.address);
     const disBaseCollateralBefore = await marginlyPool.discountedBaseCollateral(); 
 
     const baseDepositAmount = 500;
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, baseDepositAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, baseDepositAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionAfter = await marginlyPool.positions(longer.address);
     const disBaseCollateralAfter = await marginlyPool.discountedBaseCollateral(); 
@@ -280,19 +280,19 @@ describe('Deleverage', () => {
 
     const [_, lender, shorter] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const shortAmount = 1000;
-    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(shorter.address);
     const disQuoteCollateralBefore = await marginlyPool.discountedQuoteCollateral(); 
 
     const quoteAmountWithdrawn = 500;
-    await marginlyPool.connect(shorter).execute(CallType.WithdrawQuote, quoteAmountWithdrawn, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.WithdrawQuote, quoteAmountWithdrawn, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionAfter = await marginlyPool.positions(shorter.address);
     const disQuoteCollateralAfter = await marginlyPool.discountedQuoteCollateral(); 
@@ -311,19 +311,19 @@ describe('Deleverage', () => {
 
     const [_, lender, longer] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const longAmount = 1000;
-    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(longer.address);
     const disBaseCollateralBefore = await marginlyPool.discountedBaseCollateral(); 
 
     const baseAmountWithdrawn = 500;
-    await marginlyPool.connect(longer).execute(CallType.WithdrawBase, baseAmountWithdrawn, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.WithdrawBase, baseAmountWithdrawn, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionAfter = await marginlyPool.positions(longer.address);
     const disBaseCollateralAfter = await marginlyPool.discountedBaseCollateral(); 
@@ -342,20 +342,20 @@ describe('Deleverage', () => {
 
     const [_, lender, longer] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const longAmount = 1000;
-    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(longer.address);
     const disBaseCollateralBefore = await marginlyPool.discountedBaseCollateral();
     const disQuoteDebtBefore = await marginlyPool.discountedQuoteDebt();
 
     await time.increase(10 * 24 * 60 * 60);
-    await marginlyPool.connect(longer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(longer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionAfter = await marginlyPool.positions(longer.address);
 
@@ -390,20 +390,20 @@ describe('Deleverage', () => {
 
     const [_, lender, shorter] = await ethers.getSigners();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 1000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const shortAmount = 1000;
-    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionBefore = await marginlyPool.positions(shorter.address);
     const disQuoteCollateralBefore = await marginlyPool.discountedQuoteCollateral();
     const disBaseDebtBefore = await marginlyPool.discountedBaseDebt();
 
     await time.increase(10 * 24 * 60 * 60);
-    await marginlyPool.connect(shorter).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS);
+    await marginlyPool.connect(shorter).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const positionAfter = await marginlyPool.positions(shorter.address);
 

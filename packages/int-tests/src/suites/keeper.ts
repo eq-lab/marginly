@@ -2,7 +2,7 @@ import { BigNumber, BigNumberish } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SystemUnderTest } from '.';
 import { MarginlyPoolContract } from '../contract-api/MarginlyPool';
-import { CallType } from '../utils/chain-ops';
+import { CallType, uniswapV3Swapdata } from '../utils/chain-ops';
 import { ZERO_ADDRESS } from '../utils/const';
 import { logger } from '../utils/logger';
 
@@ -65,8 +65,8 @@ export async function keeper(sut: SystemUnderTest) {
     await (await weth.connect(treasury).transfer(lender.address, baseAmount)).wait();
     await (await weth.connect(lender).approve(marginlyPool.address, baseAmount)).wait();
 
-    await marginlyPool.connect(lender).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, ethArgs);
-    await marginlyPool.connect(lender).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, ethArgs);
+    await marginlyPool.connect(lender).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs);
+    await marginlyPool.connect(lender).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs);
   }
 
   const longer = accounts[1];
@@ -79,10 +79,10 @@ export async function keeper(sut: SystemUnderTest) {
     await (await weth.connect(longer).approve(marginlyPool.address, baseAmount)).wait();
 
     await (
-      await marginlyPool.connect(longer).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, ethArgs)
+      await marginlyPool.connect(longer).execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
     await (
-      await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, ethArgs)
+      await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
   }
 
@@ -95,10 +95,10 @@ export async function keeper(sut: SystemUnderTest) {
     await (await usdc.connect(shorter).approve(marginlyPool.address, quoteAmount)).wait();
 
     await (
-      await marginlyPool.connect(shorter).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, ethArgs)
+      await marginlyPool.connect(shorter).execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
     await (
-      await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, ethArgs)
+      await marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
   }
 

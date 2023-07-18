@@ -13,9 +13,14 @@ jobs:
           uses: actions/setup-node@v3
           with:
             node-version: 18.14.2
-        - name: Build for testing
+        - name: Build for testing contracts
           run: |
             cd packages/contracts
+            yarn
+            yarn test
+        - name: Build for testing router
+          run: |
+            cd packages/router
             yarn
             yarn test
         

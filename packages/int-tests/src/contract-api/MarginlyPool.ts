@@ -28,7 +28,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'discountedQuoteCollateral()': utils.FunctionFragment;
     'discountedQuoteDebt()': utils.FunctionFragment;
     'emergencyWithdrawCoeff()': utils.FunctionFragment;
-    'execute(uint8,uint256,uint256,bool,address)': utils.FunctionFragment;
+    'execute(uint8,uint256,uint256,bool,address,bytes)': utils.FunctionFragment;
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getCurrentBasePrice()': utils.FunctionFragment;
@@ -114,6 +114,7 @@ export interface MarginlyPoolContract extends BaseContract {
     amount2: BigNumberish,
     unwrapWETH: boolean,
     receivePositionAddress: string,
+    swapCalldata: BytesLike,
     override?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   factory(override?: CallOverrides): Promise<string>;
@@ -264,6 +265,7 @@ export interface MarginlyPoolContract extends BaseContract {
       amount2: BigNumberish,
       unwrapWETH: boolean,
       receivePositionAddress: string,
+      swapCalldata: BytesLike,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     initialize(
@@ -311,6 +313,7 @@ export interface MarginlyPoolContract extends BaseContract {
       amount2: BigNumberish,
       unwrapWETH: boolean,
       receivePositionAddress: string,
+      swapCalldata: BytesLike,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     initialize(
@@ -358,6 +361,7 @@ export interface MarginlyPoolContract extends BaseContract {
       amount2: BigNumberish,
       unwrapWETH: boolean,
       receivePositionAddress: string,
+      swapCalldata: BytesLike,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     initialize(

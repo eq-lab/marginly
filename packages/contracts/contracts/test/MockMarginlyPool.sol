@@ -64,7 +64,8 @@ contract MockMarginlyPool is IMarginlyPool {
     uint256 amount1,
     uint256 amount2,
     bool unwrapWETH,
-    address receivePositionAddress
+    address receivePositionAddress,
+    bytes calldata swapCalldata
   ) external payable override {
     if (call == CallType.ReceivePosition) {
       require(receivePositionAddress == badPositionAddress);

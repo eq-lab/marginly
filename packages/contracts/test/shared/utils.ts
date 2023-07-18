@@ -4,6 +4,7 @@ import bn from 'bignumber.js';
 import { MarginlyPool } from '../../typechain-types';
 import { expect } from 'chai';
 import { TechnicalPositionOwner } from './fixtures';
+import { defaultAbiCoder } from 'ethers/lib/utils';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -297,4 +298,8 @@ export async function assertAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBl
   expect(techPositionPrev.discountedQuoteAmount.add(expectedCoeffs.discountedQuoteDebtFee)).to.be.eq(
     techPosition.discountedQuoteAmount
   );
+}
+
+export function uniswapV3Swapdata() {
+  return defaultAbiCoder.encode(['uint'], [0]);
 }

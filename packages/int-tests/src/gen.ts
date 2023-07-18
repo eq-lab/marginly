@@ -1,13 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { genDefinitions } from './utils/api-gen';
 
-// const defsERC20 = genDefinitions(
-//   require(`@muctep/erc20/artifacts/contracts/ERC20.sol/ERC20.json`),
-//   `@muctep/erc20/artifacts/contracts/ERC20.sol/ERC20.json`,
-//   {}
-// );
-// writeFileSync(`./src/contract-api/ERC20.ts`, defsERC20);
-
 const defsWETH = genDefinitions(
   require(`@uniswap/v2-periphery/build/WETH9.json`),
   `@uniswap/v2-periphery/build/WETH9.json`,
@@ -76,6 +69,13 @@ const defsKeeperContract = genDefinitions(
   { ignoreImportError: true }
 );
 writeFileSync(`./src/contract-api/MarginlyKeeper.ts`, defsKeeperContract);
+
+const defsMarginlyRouter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`),
+  `@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/MarginlyRouter.ts`, defsMarginlyRouter);
 
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),
