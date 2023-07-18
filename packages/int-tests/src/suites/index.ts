@@ -29,6 +29,14 @@ import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/Marginly
 import { keeper } from './keeper';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
 import { ZERO_ADDRESS } from '../utils/const';
+import {
+  deleveragePrecisionLong,
+  deleveragePrecisionShort,
+  deleveragePrecisionLongCollateral,
+  deleveragePrecisionShortCollateral,
+  deleveragePrecisionLongReinit,
+  deleveragePrecisionShortReinit,
+} from './deleveragePrecision';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -164,6 +172,12 @@ export async function startSuite(
     shortEmergency,
     longEmergency,
     keeper,
+    deleveragePrecisionLong,
+    deleveragePrecisionShort,
+    deleveragePrecisionLongCollateral,
+    deleveragePrecisionShortCollateral,
+    deleveragePrecisionLongReinit,
+    deleveragePrecisionShortReinit,
   };
 
   const suite = suits[suitName];

@@ -20,16 +20,16 @@ export async function shortEmergency(sut: SystemUnderTest) {
   await prepareAccounts(sut);
 
   const lender = accounts[0];
-  const shorter = accounts[1];
-  const longer = accounts[2];
+  const longer = accounts[1];
+  const shorters = accounts.slice(2, 4);
 
   const params = await marginlyPool.params();
   await (
     await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 20 }, { gasLimit: 400_000 })
   ).wait();
 
-  // lender deposit 2.0 ETH
-  const lenderDepositBaseAmount = parseUnits('2', 18);
+  // lender deposit 4.0 ETH
+  const lenderDepositBaseAmount = parseUnits('4', 18);
   logger.info(`Lender deposit ${formatUnits(lenderDepositBaseAmount, 18)} WETH`);
   await (await weth.connect(lender).approve(marginlyPool.address, lenderDepositBaseAmount)).wait();
   await (
@@ -39,24 +39,19 @@ export async function shortEmergency(sut: SystemUnderTest) {
   ).wait();
   await showSystemAggregates(sut);
 
-  //shorter deposit 250 USDC
-  const shorterDepositQuote = parseUnits('250', 6);
-  logger.info(`Shorter deposit ${formatUnits(shorterDepositQuote, 6)} USDC`);
-  await (await usdc.connect(shorter).approve(marginlyPool.address, shorterDepositQuote)).wait();
-  await (
-    await marginlyPool
-      .connect(shorter)
-      .execute(CallType.DepositQuote, shorterDepositQuote, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
-  ).wait();
-
-  //shorter make short on 2.0 ETH
-  const shortAmount = parseUnits('2', 18);
-  await (
-    await marginlyPool
-      .connect(shorter)
-      .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
-  ).wait();
-  logger.info(`Short to ${formatUnits(shortAmount, 18)} WETH`);
+  // shorter deposit 250 USDC
+  for (const shorter of shorters) {
+    const shorterDepositQuote = parseUnits('250', 6);
+    const shortAmount = parseUnits('2', 18);
+    logger.info(`Shorter deposit ${formatUnits(shorterDepositQuote, 6)} USDC`);
+    logger.info(`Short to ${formatUnits(shortAmount, 18)} WETH`);
+    await (await usdc.connect(shorter).approve(marginlyPool.address, shorterDepositQuote)).wait();
+    await (
+      await marginlyPool
+        .connect(shorter)
+        .execute(CallType.DepositQuote, shorterDepositQuote, shortAmount, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
+    ).wait();
+  }
   await showSystemAggregates(sut);
 
   // longer deposit 0.1 ETH
@@ -105,7 +100,6 @@ export async function shortEmergency(sut: SystemUnderTest) {
     } catch {
       // we are in  liquidity shortage state try to receive position and continue
       logger.warn(`⛔️ Pool liquidity not enough to cover position debt`);
-      logger.info(`   bad position ${shorter.address}`);
 
       await showSystemAggregates(sut);
 
@@ -153,11 +147,11 @@ export async function longEmergency(sut: SystemUnderTest) {
 
   const lender = accounts[0];
   const shorter = accounts[1];
-  const longer = accounts[2];
+  const longers = accounts.slice(2, 4);
 
-  // lender deposit 3200 USDC
+  // lender deposit 3300 USDC
   const lenderDepositQuoteAmount = parseUnits('3300', 6);
-  logger.info(`Lender deposit ${formatUnits(lenderDepositQuoteAmount, 6)} UDSC`);
+  logger.info(`Lender deposit ${formatUnits(lenderDepositQuoteAmount, 6)} USDC`);
   await (await usdc.connect(lender).approve(marginlyPool.address, lenderDepositQuoteAmount)).wait();
   await (
     await marginlyPool
@@ -166,22 +160,20 @@ export async function longEmergency(sut: SystemUnderTest) {
   ).wait();
   await showSystemAggregates(sut);
 
-  // longer deposit 0.3 ETH
-  const longDepositBase = parseUnits('0.2', 18);
-  logger.info(`Longer deposit ${formatUnits(longDepositBase, 18)} WETH`);
-  await (await weth.connect(longer).approve(marginlyPool.address, longDepositBase)).wait();
-  await (
-    await marginlyPool
-      .connect(longer)
-      .execute(CallType.DepositBase, longDepositBase, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
-  ).wait();
-
-  // longer make long on 1.8 ETH
-  const longAmount = parseUnits('1.8', 18);
-  logger.info(`Long to ${formatUnits(longAmount, 18)} WETH`);
-  await (
-    await marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
-  ).wait();
+  for (const longer of longers) {
+    // longer deposit 0.1 ETH
+    // longer make long on 0.9 ETH
+    const longDepositBase = parseUnits('0.1', 18);
+    logger.info(`Longer deposit ${formatUnits(longDepositBase, 18)} WETH`);
+    const longAmount = parseUnits('0.9', 18);
+    logger.info(`Long to ${formatUnits(longAmount, 18)} WETH`);
+    await (await weth.connect(longer).approve(marginlyPool.address, longDepositBase)).wait();
+    await (
+      await marginlyPool
+        .connect(longer)
+        .execute(CallType.DepositBase, longDepositBase, longAmount, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
+    ).wait();
+  }
   await showSystemAggregates(sut);
 
   //shorter deposit 300 USDC
@@ -232,7 +224,6 @@ export async function longEmergency(sut: SystemUnderTest) {
     } catch {
       // we are in  liquidity shortage state try to receive position and continue
       logger.warn(`⛔️ Pool liquidity not enough to cover position debt`);
-      logger.info(`   bad position ${longer.address}`);
 
       await showSystemAggregates(sut);
       logger.info(`Before shutdown`);

@@ -3,195 +3,223 @@
 exports[`Deposit into existing position: depositBase 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 131198,
+  "gasUsed": 136731,
 }
 `;
 
 exports[`Deposit into existing position: depositQuote 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 131333,
+  "gasUsed": 136889,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new long position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 260950,
+  "gasUsed": 271509,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 289444,
+  "gasUsed": 299355,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 297714,
+  "gasUsed": 307682,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new short position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 271856,
+  "gasUsed": 282528,
 }
 `;
 
 exports[`Open position: depositBase 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 214555,
+  "gasUsed": 218058,
 }
 `;
 
 exports[`Open position: depositQuote 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 214672,
+  "gasUsed": 218189,
 }
 `;
 
 exports[`System initialized: closePosition 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 222172,
+  "gasUsed": 234946,
 }
 `;
 
 exports[`System initialized: depositBase 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 205222,
+  "gasUsed": 216923,
 }
 `;
 
 exports[`System initialized: depositBase and long 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 351496,
+  "gasUsed": 365308,
 }
 `;
 
 exports[`System initialized: depositQuote 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 205345,
+  "gasUsed": 217008,
 }
 `;
 
 exports[`System initialized: depositQuote and short 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 330329,
+  "gasUsed": 344174,
 }
 `;
 
 exports[`System initialized: long 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 293362,
+  "gasUsed": 306081,
 }
 `;
 
 exports[`System initialized: short 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 272013,
+  "gasUsed": 284800,
 }
 `;
 
 exports[`System initialized: withdrawBase 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 173538,
+  "gasUsed": 186465,
 }
 `;
 
 exports[`System initialized: withdrawQuote 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 181837,
+  "gasUsed": 194882,
+}
+`;
+
+exports[`mc happens: MC long position with deleverage 1`] = `
+Object {
+  "calldataByteLength": 260,
+  "gasUsed": 224653,
+}
+`;
+
+exports[`mc happens: MC long reinit 1`] = `
+Object {
+  "calldataByteLength": 260,
+  "gasUsed": 193948,
+}
+`;
+
+exports[`mc happens: MC short position with deleverage 1`] = `
+Object {
+  "calldataByteLength": 260,
+  "gasUsed": 224708,
+}
+`;
+
+exports[`mc happens: MC short reinit 1`] = `
+Object {
+  "calldataByteLength": 260,
+  "gasUsed": 193902,
 }
 `;
 
 exports[`mc happens: closePosition with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 353180,
+  "gasUsed": 373093,
 }
 `;
 
 exports[`mc happens: depositBase with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 242259,
+  "gasUsed": 259215,
 }
 `;
 
 exports[`mc happens: depositBase with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 339413,
+  "gasUsed": 358339,
 }
 `;
 
 exports[`mc happens: depositQuote with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 236064,
+  "gasUsed": 250173,
 }
 `;
 
 exports[`mc happens: depositQuote with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 271571,
+  "gasUsed": 288410,
 }
 `;
 
 exports[`mc happens: long closePosition with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 248835,
+  "gasUsed": 263324,
 }
 `;
 
 exports[`mc happens: long initialized heap with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 271000,
+  "gasUsed": 288975,
 }
 `;
 
 exports[`mc happens: long with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 348144,
+  "gasUsed": 366128,
 }
 `;
 
 exports[`mc happens: long with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 367370,
+  "gasUsed": 387112,
 }
 `;
 
 exports[`mc happens: short with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 316369,
+  "gasUsed": 334335,
 }
 `;
 
 exports[`mc happens: short with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 362880,
+  "gasUsed": 382679,
 }
 `;
