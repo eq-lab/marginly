@@ -24,6 +24,7 @@
     "code": "FB",
     "description": "Forbidden",
     "fileNames": [
+      "FullMarginlyPool.sol",
       "MarginlyPool.sol"
     ]
   },
@@ -66,6 +67,7 @@
     "code": "NO",
     "description": "Not an owner",
     "fileNames": [
+      "FullMarginlyFactory.sol",
       "MarginlyFactory.sol"
     ]
   },
@@ -73,6 +75,7 @@
     "code": "PC",
     "description": "Pool already created",
     "fileNames": [
+      "FullMarginlyFactory.sol",
       "MarginlyFactory.sol"
     ]
   },
@@ -115,6 +118,7 @@
     "code": "UNF",
     "description": "Uniswap pool not found",
     "fileNames": [
+      "FullMarginlyFactory.sol",
       "MarginlyFactory.sol"
     ]
   },
