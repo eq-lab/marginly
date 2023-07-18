@@ -103,17 +103,14 @@ contract MarginlyPool is IMarginlyPool {
     factory = address(0xdead);
   }
 
-  /// @inheritdoc IMarginlyPool
-  function initialize(
+  function _initializeMarginlyPool(
     address _quoteToken,
     address _baseToken,
     uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
-    MarginlyParams calldata _params
-  ) external {
-    require(factory == address(0), 'FB'); // Forbidden
-
+    MarginlyParams memory _params
+  ) internal {
     factory = msg.sender;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
@@ -126,12 +123,33 @@ contract MarginlyPool is IMarginlyPool {
     baseDebtCoeff = FP96.one();
     quoteCollateralCoeff = FP96.one();
     quoteDebtCoeff = FP96.one();
-    lastReinitTimestampSeconds = block.timestamp;
+    lastReinitTimestampSeconds = getTimestamp();
     unlocked = true;
     initialPrice = getBasePrice();
 
     Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
     techPosition._type = PositionType.Lend;
+  }
+
+  /// @inheritdoc IMarginlyPool
+  function initialize(
+    address _quoteToken,
+    address _baseToken,
+    uint24 _uniswapFee,
+    bool _quoteTokenIsToken0,
+    address _uniswapPool,
+    MarginlyParams calldata _params
+  ) external virtual {
+    require(factory == address(0), 'FB'); // Forbidden
+
+    _initializeMarginlyPool(
+        _quoteToken,
+        _baseToken,
+        _uniswapFee,
+        _quoteTokenIsToken0,
+        _uniswapPool,
+        _params
+      );
   }
 
   receive() external payable {
@@ -894,11 +912,11 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Update collateral and debt coeffs in system
   function accrueInterest() private returns (bool) {
-    uint256 secondsPassed = block.timestamp - lastReinitTimestampSeconds;
+    uint256 secondsPassed = getTimestamp() - lastReinitTimestampSeconds;
     if (secondsPassed == 0) {
       return false;
     }
-    lastReinitTimestampSeconds = block.timestamp;
+    lastReinitTimestampSeconds = getTimestamp();
 
     FP96.FixedPoint memory secondsInYear = FP96.FixedPoint({inner: SECONDS_IN_YEAR_X96});
     FP96.FixedPoint memory interestRate = FP96.fromRatio(params.interestRate, WHOLE_ONE);
@@ -1387,5 +1405,9 @@ contract MarginlyPool is IMarginlyPool {
 
     updateSystemLeverageLong(basePrice);
     updateSystemLeverageShort(basePrice);
+  }
+
+  function getTimestamp() internal virtual view returns (uint256) {
+    return block.timestamp;
   }
 }
