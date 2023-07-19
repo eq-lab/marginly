@@ -10,6 +10,32 @@ import './UniswapV2Swap.sol';
 abstract contract KyberSwap is UniswapV2Swap {
   using LowGasSafeMath for uint256;
 
+  function kyberSwapExactInput(
+    Dex dex,
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut
+  ) internal returns (uint256 amountOut) {
+    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
+    amountOut = kyberSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
+    require(amountOut > minAmountOut, 'Insufficient amount');
+    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+  }
+
+  function kyberSwapExactOutput(
+    Dex dex,
+    address tokenIn,
+    address tokenOut,
+    uint256 maxAmountIn,
+    uint256 amountOut
+  ) internal returns (uint256 amountIn) {
+    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
+    amountIn = kyberSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
+    require(amountIn <= maxAmountIn, 'Too much requested');
+    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+  }
+
   function kyberSwapGetAmountOut(
     address pool,
     uint amountIn,

@@ -20,7 +20,6 @@ contract MarginlyRouter is
   IMarginlyRouter,
   Ownable,
   UniswapV3Swap,
-  UniswapV2Swap,
   ApeSwap,
   BalancerSwap,
   CamelotSwap,
@@ -52,41 +51,21 @@ contract MarginlyRouter is
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.ApeSwap) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountOut = apeSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-      require(amountOut > minAmountOut, 'Insufficient amount');
-      uniswapV2SwapExactInput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountOut;
+      return apeSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.Balancer) {
       return balancerSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.KyberSwap) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountOut = kyberSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-      require(amountOut > minAmountOut, 'Insufficient amount');
-      uniswapV2SwapExactInput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountOut;
+      return kyberSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.QuickSwap) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountOut = quickSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-      require(amountOut > minAmountOut, 'Insufficient amount');
-      uniswapV2SwapExactInput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountOut;
+      return quickSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.SushiSwap) {
       return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.Woofi) {
       return wooFiSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.TraderJoe) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountOut = traderJoeSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-      require(amountOut > minAmountOut, 'Insufficient amount');
-      uniswapV2SwapExactInput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountOut;
+      return traderJoeSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.Camelot) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountOut = camelotSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-      require(amountOut > minAmountOut, 'Insufficient amount');
-      uniswapV2SwapExactInput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountOut;
+      return camelotSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else {
       revert UnknownDex();
     }
@@ -111,41 +90,21 @@ contract MarginlyRouter is
     if (dex == Dex.UniswapV3) {
       return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.ApeSwap) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountIn = apeSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
-      require(amountIn <= maxAmountIn, 'Too much requested');
-      uniswapV2SwapExactOutput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountIn;
+      return apeSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.Balancer) {
       return balancerSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.KyberSwap) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountIn = kyberSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
-      require(amountIn <= maxAmountIn, 'Too much requested');
-      uniswapV2SwapExactOutput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountIn;
+      return kyberSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.QuickSwap) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountIn = quickSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
-      require(amountIn <= maxAmountIn, 'Too much requested');
-      uniswapV2SwapExactOutput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountIn;
+      return quickSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.SushiSwap) {
       return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.Woofi) {
       return wooFiSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.TraderJoe) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountIn = traderJoeSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
-      require(amountIn <= maxAmountIn, 'Too much requested');
-      uniswapV2SwapExactOutput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountIn;
+      return traderJoeSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.Camelot) {
-      address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-      uint256 amountIn = camelotSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
-      require(amountIn <= maxAmountIn, 'Too much requested');
-      uniswapV2SwapExactOutput(pool, tokenIn, tokenOut, amountIn, amountOut);
-      return amountIn;
+      return camelotSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else {
       revert UnknownDex();
     }

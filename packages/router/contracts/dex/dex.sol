@@ -34,7 +34,7 @@ abstract contract DexPoolMapping {
     }
   }
 
-  function addPools(PoolInput[] memory pools) external {
+  function addPools(PoolInput[] calldata pools) external {
     PoolInput memory input;
     for (uint256 i = 0; i < pools.length; ++i) {
       input = pools[i];
