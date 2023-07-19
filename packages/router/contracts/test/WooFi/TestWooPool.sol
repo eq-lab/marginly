@@ -31,7 +31,7 @@ contract TestWooPPV2 {
   mapping(address => TokenInfo) public tokenInfos;
 
   address[] tokenList;
-  
+
   address public immutable quoteToken;
 
   constructor(address _quoteToken) {
@@ -314,7 +314,7 @@ contract TestWooPPV2 {
     return a > b ? a : b;
   }
 
-  function getTokenState(address token) public view returns(State memory) {
+  function getTokenState(address token) public view returns (State memory) {
     uint128 price;
     if (tokenList[0] == token) {
       price = 10;
@@ -324,7 +324,7 @@ contract TestWooPPV2 {
     return State({price: price, spread: 0, coeff: 1, woFeasible: true});
   }
 
-  function defaultDecs() private pure returns(DecimalInfo memory) {
+  function defaultDecs() private pure returns (DecimalInfo memory) {
     return DecimalInfo({priceDec: 1, quoteDec: 1, baseDec: 1});
   }
 }

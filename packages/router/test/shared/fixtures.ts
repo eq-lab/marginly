@@ -86,7 +86,7 @@ export async function createWooPool(
   token0: TestERC20Token,
   token1: TestERC20Token
 ): Promise<{
-  wooPool: TestWooPPV2,
+  wooPool: TestWooPPV2;
 }> {
   const quoteToken = await createToken('WooQuoteToken', 'WQT');
   const wooPool = await (await ethers.getContractFactory('TestWooPPV2')).deploy(quoteToken.address);
@@ -107,7 +107,7 @@ export async function createMarginlyRouter(): Promise<{
   uniswapV3Pool: RouterTestUniswapV3Pool;
   uniswapV2Pair: RouterTestUniswapV2Pair;
   balancerVault: TestVault;
-  wooPool: TestWooPPV2
+  wooPool: TestWooPPV2;
 }> {
   const tokenA = await createToken('TokenA', 'TKA');
   const tokenB = await createToken('TokenB', 'TKB');
@@ -130,10 +130,25 @@ export async function createMarginlyRouter(): Promise<{
 
   let constructorInput = [];
 
-  constructorInput.push({dex: 0, fee: 0, token0: token0.address, token1: token1.address, pool: uniswapV3Pool.address});
-  constructorInput.push({dex: 1, fee: 997, token0: token0.address, token1: token1.address, pool: uniswapV2Pair.address});
-  constructorInput.push({dex: 2, fee: 0, token0: token0.address, token1: token1.address, pool: balancerVault.address});
-  constructorInput.push({dex: 8, fee: 0, token0: token0.address, token1: token1.address, pool: wooPool.address});
+  constructorInput.push({
+    dex: 0,
+    token0: token0.address,
+    token1: token1.address,
+    pool: uniswapV3Pool.address,
+  });
+  constructorInput.push({
+    dex: 5,
+    token0: token0.address,
+    token1: token1.address,
+    pool: uniswapV2Pair.address,
+  });
+  constructorInput.push({
+    dex: 2,
+    token0: token0.address,
+    token1: token1.address,
+    pool: balancerVault.address,
+  });
+  constructorInput.push({ dex: 8, token0: token0.address, token1: token1.address, pool: wooPool.address });
 
   const marginlyRouter = await factory.deploy(constructorInput);
 

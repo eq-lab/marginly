@@ -91,7 +91,7 @@ async function initializeTestSystem(
   logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
 
   let routerConstructorInput = [];
-  routerConstructorInput.push({dex: 0, fee: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
+  routerConstructorInput.push({dex: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 

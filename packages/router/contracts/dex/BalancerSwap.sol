@@ -25,7 +25,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     funds.sender = msg.sender;
     funds.recipient = payable(msg.sender);
 
-    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut].pool;
+    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut];
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
     TransferHelper.safeApprove(tokenIn, vaultAddress, amountIn);
@@ -52,7 +52,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     funds.sender = address(this);
     funds.recipient = payable(msg.sender);
 
-    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut].pool;
+    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut];
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
     TransferHelper.safeApprove(tokenIn, vaultAddress, maxAmountIn);

@@ -28,7 +28,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexPoolMapping {
   ) internal returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
-    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut].pool;
+    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut];
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapV3CallbackData memory data = UniswapSwapV3CallbackData({
       dex: dex,
@@ -58,7 +58,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexPoolMapping {
   ) internal returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
-    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut].pool;
+    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut];
     bool zeroForOne = tokenIn < tokenOut;
     UniswapSwapV3CallbackData memory data = UniswapSwapV3CallbackData({
       dex: dex,
@@ -90,7 +90,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexPoolMapping {
     UniswapSwapV3CallbackData memory data = abi.decode(_data, (UniswapSwapV3CallbackData));
     (address tokenIn, address tokenOut, Dex dex) = (data.tokenIn, data.tokenOut, data.dex);
     require(msg.sender != address(0));
-    require(msg.sender == dexPoolMapping[dex][tokenIn][tokenOut].pool);
+    require(msg.sender == dexPoolMapping[dex][tokenIn][tokenOut]);
 
     (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
       ? (tokenIn < tokenOut, uint256(amount0Delta))

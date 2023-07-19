@@ -865,7 +865,6 @@ interface MarginlyConfigMarginlyPool {
 
 interface MarginlyRouterConstructorParam {
   dex: Dex;
-  fee: RationalNumber;
   token0: MarginlyConfigToken;
   token1: MarginlyConfigToken;
   assertAddress: EthAddress | undefined;
@@ -996,7 +995,6 @@ class StrictMarginlyDeployConfig {
 
         const routerPoolInfo: MarginlyRouterConstructorParam = {
           dex: Dex.UniswapV3,
-          fee: fee,
           token0: tokenA,
           token1: tokenB,
           assertAddress: assertAddress,
@@ -1314,8 +1312,7 @@ export async function deployMarginly(
                 routerPools.push({
                   dex: Dex.UniswapV3, 
                   token0: pool.tokenA, 
-                  token1: pool.tokenB, 
-                  fee: pool.fee, 
+                  token1: pool.tokenB,
                   assertAddress: pool.assertAddress
                 });
                 const uniswapPoolDeploymentResult = await marginlyDeployer.getOrCreateUniswapPoolGenuine(uniswapConfig.factory, pool, tokenRepository);
@@ -1340,8 +1337,7 @@ export async function deployMarginly(
                 dex: Dex.UniswapV3, 
                 token0: pool.tokenA, 
                 token1: pool.tokenB, 
-                fee: pool.fee, assertAddress: 
-                EthAddress.parse(uniswapPoolDeploymentResult.address)
+                assertAddress: EthAddress.parse(uniswapPoolDeploymentResult.address)
               });
               const { address: tokenAAddress } = tokenRepository.getTokenInfo(pool.tokenA.id);
               const { address: tokenBAddress } = tokenRepository.getTokenInfo(pool.tokenB.id);
