@@ -42,8 +42,6 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPool
   address public override baseToken;
   /// @inheritdoc IMarginlyPool
-  uint24 public override uniswapFee;
-  /// @inheritdoc IMarginlyPool
   address public override uniswapPool;
   /// @inheritdoc IMarginlyPool
   bool public override quoteTokenIsToken0;
@@ -106,7 +104,6 @@ contract MarginlyPool is IMarginlyPool {
   function _initializeMarginlyPool(
     address _quoteToken,
     address _baseToken,
-    uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
     MarginlyParams memory _params
@@ -114,7 +111,6 @@ contract MarginlyPool is IMarginlyPool {
     factory = msg.sender;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
-    uniswapFee = _uniswapFee;
     quoteTokenIsToken0 = _quoteTokenIsToken0;
     uniswapPool = _uniswapPool;
     params = _params;
@@ -135,7 +131,6 @@ contract MarginlyPool is IMarginlyPool {
   function initialize(
     address _quoteToken,
     address _baseToken,
-    uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
     MarginlyParams calldata _params
@@ -145,7 +140,6 @@ contract MarginlyPool is IMarginlyPool {
     _initializeMarginlyPool(
         _quoteToken,
         _baseToken,
-        _uniswapFee,
         _quoteTokenIsToken0,
         _uniswapPool,
         _params

@@ -26,7 +26,6 @@ describe('MarginlyPool.Base', () => {
 
     const quoteToken = await pool.quoteToken();
     const baseToken = await pool.baseToken();
-    const uniswapFee = await pool.uniswapFee();
     const uniswapPool = await pool.uniswapPool();
 
     const marginlyParams = {
@@ -43,7 +42,7 @@ describe('MarginlyPool.Base', () => {
     };
 
     await expect(
-      pool.connect(factoryOwner).initialize(quoteToken, baseToken, uniswapFee, true, uniswapPool, marginlyParams)
+      pool.connect(factoryOwner).initialize(quoteToken, baseToken, true, uniswapPool, marginlyParams)
     ).to.be.revertedWith('FB');
   });
 

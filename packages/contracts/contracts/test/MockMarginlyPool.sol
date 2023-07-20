@@ -41,7 +41,6 @@ contract MockMarginlyPool is IMarginlyPool {
   function initialize(
     address _quoteToken,
     address _baseToken,
-    uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
     MarginlyParams memory _params
@@ -54,8 +53,6 @@ contract MockMarginlyPool is IMarginlyPool {
   function setRecoveryMode(bool set) external {}
 
   function uniswapPool() external pure returns (address pool) {}
-
-  function uniswapFee() external pure returns (uint24 fee) {}
 
   function quoteTokenIsToken0() external pure returns (bool) {}
 

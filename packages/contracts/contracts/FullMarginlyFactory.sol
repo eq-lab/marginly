@@ -68,12 +68,12 @@ contract FullMarginlyFactory is IMarginlyFactory {
         address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
         require(uniswapPool != address(0), 'UNF'); // Uniswap pool not found
 
-        bool quoteTokenIsToken0 = quoteToken == IUniswapV3Pool(uniswapPool).token0();
+        // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
+        bool quoteTokenIsToken0 = quoteToken < baseToken;
 
         pool = address(new FullMarginlyPool{salt: keccak256(abi.encode(uniswapPool))}(
             quoteToken,
             baseToken,
-            uniswapFee,
             quoteTokenIsToken0,
             uniswapPool,
             params

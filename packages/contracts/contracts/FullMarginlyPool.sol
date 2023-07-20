@@ -7,7 +7,6 @@ contract FullMarginlyPool is MarginlyPool {
     constructor(
         address _quoteToken,
         address _baseToken,
-        uint24 _uniswapFee,
         bool _quoteTokenIsToken0,
         address _uniswapPool,
         MarginlyParams memory _params
@@ -15,7 +14,6 @@ contract FullMarginlyPool is MarginlyPool {
         _initializeMarginlyPool(
             _quoteToken,
             _baseToken,
-            _uniswapFee,
             _quoteTokenIsToken0,
             _uniswapPool,
             _params
@@ -25,7 +23,6 @@ contract FullMarginlyPool is MarginlyPool {
     function initialize(
         address _quoteToken,
         address _baseToken,
-        uint24 _uniswapFee,
         bool _quoteTokenIsToken0,
         address _uniswapPool,
         MarginlyParams calldata _params
