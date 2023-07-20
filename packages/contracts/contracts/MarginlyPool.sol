@@ -681,16 +681,12 @@ contract MarginlyPool is IMarginlyPool {
     if (position._type == PositionType.Short) {
       collateralToken = quoteToken;
 
-      FP96.FixedPoint memory _baseDebtCoeff = baseDebtCoeff;
       uint256 positionDiscountedBaseDebtPrev = position.discountedBaseAmount;
       uint256 realQuoteCollateral = calcRealQuoteCollateral(
         position.discountedQuoteAmount,
         position.discountedBaseAmount
       );
-      uint256 realBaseDebt = _baseDebtCoeff.mul(positionDiscountedBaseDebtPrev, Math.Rounding.Up);
-
-      realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
-      swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
+      uint256 realBaseDebt = baseDebtCoeff.mul(positionDiscountedBaseDebtPrev, Math.Rounding.Up);
 
       {
         //Check slippage below params.positionSlippage
@@ -699,6 +695,9 @@ contract MarginlyPool is IMarginlyPool {
         );
         require(realCollateralDelta <= quoteInMaximum, 'SL'); // Slippage above maximum
       }
+
+      realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
+      swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realCollateralDelta, WHOLE_ONE);
       chargeFee(realFeeAmount);
@@ -720,18 +719,15 @@ contract MarginlyPool is IMarginlyPool {
     } else if (position._type == PositionType.Long) {
       collateralToken = baseToken;
 
-      FP96.FixedPoint memory _quoteDebtCoeff = quoteDebtCoeff;
       uint256 positionDiscountedQuoteDebtPrev = position.discountedQuoteAmount;
       uint256 realBaseCollateral = calcRealBaseCollateral(
         position.discountedBaseAmount,
         position.discountedQuoteAmount
       );
-      uint256 realQuoteDebt = _quoteDebtCoeff.mul(positionDiscountedQuoteDebtPrev, Math.Rounding.Up);
+      uint256 realQuoteDebt = quoteDebtCoeff.mul(positionDiscountedQuoteDebtPrev, Math.Rounding.Up);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
-      realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
-      swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
 
       {
         //Check slippage below params.positionSlippage
@@ -740,6 +736,9 @@ contract MarginlyPool is IMarginlyPool {
         );
         require(realCollateralDelta <= baseInMaximum, 'SL'); // Slippage above maximum
       }
+
+      realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
+      swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
 
       chargeFee(realFeeAmount);
 
