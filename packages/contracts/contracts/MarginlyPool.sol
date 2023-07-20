@@ -137,13 +137,7 @@ contract MarginlyPool is IMarginlyPool {
   ) external virtual {
     require(factory == address(0), 'FB'); // Forbidden
 
-    _initializeMarginlyPool(
-        _quoteToken,
-        _baseToken,
-        _quoteTokenIsToken0,
-        _uniswapPool,
-        _params
-      );
+    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _uniswapPool, _params);
   }
 
   receive() external payable {
@@ -1383,7 +1377,7 @@ contract MarginlyPool is IMarginlyPool {
     updateSystemLeverageShort(basePrice);
   }
 
-  function getTimestamp() internal virtual view returns (uint256) {
+  function getTimestamp() internal view virtual returns (uint256) {
     return block.timestamp;
   }
 }
