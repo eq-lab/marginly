@@ -1278,23 +1278,27 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Wraps ETH into WETH if need and makes transfer from `payer`
   function wrapAndTransferFrom(address token, address payer, uint256 value) private {
-    address WETH9 = IMarginlyFactory(factory).WETH9();
-    if (token == WETH9 && address(this).balance >= value) {
-      IWETH9(WETH9).deposit{value: value}();
-    } else {
-      TransferHelper.safeTransferFrom(token, payer, address(this), value);
+    if (msg.value >= value) {
+      address WETH9 = IMarginlyFactory(factory).WETH9();
+      if(token == WETH9) {
+        IWETH9(WETH9).deposit{value: value}();
+        return;
+      }
     }
+    TransferHelper.safeTransferFrom(token, payer, address(this), value);
   }
 
   /// @dev Unwraps WETH to ETH and makes transfer to `recipient`
   function unwrapAndTransfer(bool unwrapWETH, address token, address recipient, uint256 value) private {
-    address WETH9 = IMarginlyFactory(factory).WETH9();
-    if (unwrapWETH && token == WETH9) {
-      IWETH9(WETH9).withdraw(value);
-      TransferHelper.safeTransferETH(recipient, value);
-    } else {
-      TransferHelper.safeTransfer(token, recipient, value);
+    if (unwrapWETH){
+      address WETH9 = IMarginlyFactory(factory).WETH9();
+      if(token == WETH9) {
+        IWETH9(WETH9).withdraw(value);
+        TransferHelper.safeTransferETH(recipient, value);
+        return;
+      }
     }
+    TransferHelper.safeTransfer(token, recipient, value);
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
