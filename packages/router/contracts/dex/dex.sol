@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
+
 enum Dex {
   UniswapV3,
   ApeSwap,
@@ -20,7 +22,7 @@ struct PoolInput {
   address pool;
 }
 
-abstract contract DexPoolMapping {
+abstract contract DexPoolMapping is Ownable {
   error UnknownPool();
 
   mapping(Dex => mapping(address => mapping(address => address))) public dexPoolMapping;
@@ -34,7 +36,7 @@ abstract contract DexPoolMapping {
     }
   }
 
-  function addPools(PoolInput[] calldata pools) external {
+  function addPools(PoolInput[] calldata pools) external onlyOwner() {
     PoolInput memory input;
     for (uint256 i = 0; i < pools.length; ++i) {
       input = pools[i];
