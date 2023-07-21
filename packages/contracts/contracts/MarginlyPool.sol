@@ -1019,7 +1019,6 @@ contract MarginlyPool is IMarginlyPool {
   ) private view returns (bool) {
     uint256 realTotalCollateral;
     uint256 realTotalDebt;
-    uint256 maxLeverageX96 = uint256(params.maxLeverage) << FP96.RESOLUTION;
     if (position._type == PositionType.Short) {
       realTotalCollateral = calcRealQuoteCollateral(position.discountedQuoteAmount, position.discountedBaseAmount);
       realTotalDebt = baseDebtCoeff.mul(basePrice).mul(position.discountedBaseAmount);
@@ -1032,6 +1031,7 @@ contract MarginlyPool is IMarginlyPool {
       return false;
     }
 
+    uint256 maxLeverageX96 = uint256(params.maxLeverage) << FP96.RESOLUTION;
     uint256 leverageX96 = calcLeverage(realTotalCollateral, realTotalDebt);
     return leverageX96 > maxLeverageX96;
   }
@@ -1130,9 +1130,8 @@ contract MarginlyPool is IMarginlyPool {
     delete positions[badPositionAddress];
 
     require(!positionHasBadLeverage(position, basePrice), 'MC'); // Margin call
-
-    TransferHelper.safeTransferFrom(baseToken, msg.sender, address(this), baseAmount);
-    TransferHelper.safeTransferFrom(quoteToken, msg.sender, address(this), quoteAmount);
+    wrapAndTransferFrom(baseToken, msg.sender, baseAmount);
+    wrapAndTransferFrom(quoteToken, msg.sender, quoteAmount);
 
     emit ReceivePosition(
       msg.sender,
