@@ -18,7 +18,7 @@ abstract contract WooFiSwap is DexPoolMapping {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
     amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));
 
-    require(amountOut > minAmountOut, 'Insufficient amount');
+    require(amountOut >= minAmountOut, 'Insufficient amount');
   }
 
   function wooFiSwapExactOutput(
@@ -32,7 +32,7 @@ abstract contract WooFiSwap is DexPoolMapping {
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), maxAmountIn);
     uint256 actualAmountOut = wooPool.swap(tokenIn, tokenOut, maxAmountIn, amountOut, msg.sender, address(0));
-    require(actualAmountOut > amountOut, 'Too much requested');
+    require(actualAmountOut >= amountOut, 'Too much requested');
     amountIn = maxAmountIn;
   }
 }

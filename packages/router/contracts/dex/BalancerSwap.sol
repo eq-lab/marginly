@@ -30,7 +30,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
     TransferHelper.safeApprove(tokenIn, vaultAddress, amountIn);
     amountOut = IVault(vaultAddress).swap(swap, funds, minAmountOut, block.timestamp);
-    require(amountOut > minAmountOut, 'Insufficient amount');
+    require(amountOut >= minAmountOut, 'Insufficient amount');
   }
 
   function balancerSwapExactOutput(

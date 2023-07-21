@@ -46,7 +46,7 @@ abstract contract UniswapV3Swap is IUniswapV3SwapCallback, DexPoolMapping {
     );
 
     amountOut = uint256(-(zeroForOne ? amount1 : amount0));
-    require(amountOut > minAmountOut, 'Insufficient amount');
+    require(amountOut >= minAmountOut, 'Insufficient amount');
   }
 
   function uniswapV3SwapExactOutput(

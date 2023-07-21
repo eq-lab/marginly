@@ -19,7 +19,7 @@ abstract contract TraderJoeSwap is UniswapV2Swap {
   ) internal returns (uint256 amountOut) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     amountOut = traderJoeSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-    require(amountOut > minAmountOut, 'Insufficient amount');
+    require(amountOut >= minAmountOut, 'Insufficient amount');
     uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
