@@ -72,10 +72,11 @@ contract MarginlyFactory is IMarginlyFactory {
     address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
     require(uniswapPool != address(0), 'UNF'); // Uniswap pool not found
 
-    bool quoteTokenIsToken0 = quoteToken == IUniswapV3Pool(uniswapPool).token0();
+    // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
+    bool quoteTokenIsToken0 = quoteToken < baseToken;
 
     pool = Clones.cloneDeterministic(marginlyPoolImplementation, keccak256(abi.encode(uniswapPool)));
-    IMarginlyPool(pool).initialize(quoteToken, baseToken, uniswapFee, quoteTokenIsToken0, uniswapPool, params);
+    IMarginlyPool(pool).initialize(quoteToken, baseToken, quoteTokenIsToken0, uniswapPool, params);
 
     getPool[quoteToken][baseToken][uniswapFee] = pool;
     getPool[baseToken][quoteToken][uniswapFee] = pool;

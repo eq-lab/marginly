@@ -20,12 +20,24 @@ contract MockSwapRouter is IMarginlyRouter {
     price = _price;
   }
 
-  function swapExactInput(bytes calldata swapCalldata, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut) {
+  function swapExactInput(
+    bytes calldata swapCalldata,
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut
+  ) external returns (uint256 amountOut) {
     IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
 
     amountOut = tokenIn == quoteToken ? amountIn / price : amountIn * price;
     IERC20(tokenOut).transfer(msg.sender, amountOut);
   }
 
-  function swapExactOutput(bytes calldata swapCalldata, address tokenIn, address tokenOut, uint256 maxAmountIn, uint256 amountOut) external returns (uint256 amountIn) {}
+  function swapExactOutput(
+    bytes calldata swapCalldata,
+    address tokenIn,
+    address tokenOut,
+    uint256 maxAmountIn,
+    uint256 amountOut
+  ) external returns (uint256 amountIn) {}
 }
