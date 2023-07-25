@@ -677,23 +677,23 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realBaseDebt = baseDebtCoeff.mul(positionDiscountedBaseDebtPrev, Math.Rounding.Up);
 
       {
-        //Check slippage below params.positionSlippage
+        // Check slippage below params.positionSlippage
         uint256 quoteInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
           getCurrentBasePrice().mul(realBaseDebt)
         );
+
+        realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
         require(realCollateralDelta <= quoteInMaximum, 'SL'); // Slippage above maximum
+        swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
+
+        uint256 realFeeAmount = Math.mulDiv(params.swapFee, realCollateralDelta, WHOLE_ONE);
+        chargeFee(realFeeAmount);
+
+        realCollateralDelta = realCollateralDelta.add(realFeeAmount);
+        discountedCollateralDelta = quoteCollateralCoeff.recipMul(
+          realCollateralDelta.add(quoteDelevCoeff.mul(position.discountedBaseAmount))
+        );
       }
-
-      realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
-      swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
-
-      uint256 realFeeAmount = Math.mulDiv(params.swapFee, realCollateralDelta, WHOLE_ONE);
-      chargeFee(realFeeAmount);
-
-      realCollateralDelta = realCollateralDelta.add(realFeeAmount);
-      discountedCollateralDelta = quoteCollateralCoeff.recipMul(
-        realCollateralDelta.add(quoteDelevCoeff.mul(position.discountedBaseAmount))
-      );
 
       discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedCollateralDelta);
       discountedBaseDebt = discountedBaseDebt.sub(positionDiscountedBaseDebtPrev);
@@ -718,21 +718,21 @@ contract MarginlyPool is IMarginlyPool {
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
 
       {
-        //Check slippage below params.positionSlippage
+        // Check slippage below params.positionSlippage
         uint256 baseInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
           getCurrentBasePrice().recipMul(exactQuoteOut)
         );
+
+        realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
         require(realCollateralDelta <= baseInMaximum, 'SL'); // Slippage above maximum
+        swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
+
+        chargeFee(realFeeAmount);
+
+        discountedCollateralDelta = baseCollateralCoeff.recipMul(
+          realCollateralDelta.add(baseDelevCoeff.mul(position.discountedQuoteAmount))
+        );
       }
-
-      realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
-      swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
-
-      chargeFee(realFeeAmount);
-
-      discountedCollateralDelta = baseCollateralCoeff.recipMul(
-        realCollateralDelta.add(baseDelevCoeff.mul(position.discountedQuoteAmount))
-      );
 
       discountedBaseCollateral = discountedBaseCollateral.sub(discountedCollateralDelta);
       discountedQuoteDebt = discountedQuoteDebt.sub(positionDiscountedQuoteDebtPrev);
