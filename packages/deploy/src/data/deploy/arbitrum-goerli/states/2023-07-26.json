@@ -1,0 +1,36 @@
+{
+  "contracts": {
+    "token_FWETH": {
+      "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
+      "txHash": "0x647181185eea5e559e103e78d209fd3cab86d601d9646d7d2568cff1f889591c"
+    },
+    "token_USDC": {
+      "address": "0xd87f0fb191580e3bB59e3ab612DeeB28e74d7812",
+      "txHash": "0xc5f806afae28503c33e8e968e6fafb06c2b224adc6c176b07f3acddaf6ecb0c3"
+    },
+    "swapRouterMock": {
+      "address": "0x567a1147086A5041a621366b75e1df6d3b06349E",
+      "txHash": "0x065a1c66dda03a1655c110fa5156ba1ab1f6ef0ad5e24e49bf74de0521cd1ad5"
+    },
+    "uniswapV3PoolMock_fweth-usdc": {
+      "address": "0x035b26AF837e78798AD7c89050939B9AB2E192A0",
+      "txHash": "0xe476b448187a0be50134fb01596499d5f24b03c7166081f80007bf76fa53f3e9"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x373F6F84c5608a3B808D17A7C6547a0952E7Ec09",
+      "txHash": "0x69520d242b02ba21fbb49119c496cea26548bb7ac57acbd77126e67a00b8ef48"
+    },
+    "marginlyFactory": {
+      "address": "0xbaB566D29b98195A355c6dBc64fC4e10a06c8228",
+      "txHash": "0x829ffa401ba7406fa4a249566b889f7c4a02aa1d3d846f2a1fc40e7f1b705eec"
+    },
+    "marginlyPool_fweth-usdc": {
+      "address": "0xE4e54aB53148ACA8F62034B6e30021F97200b206",
+      "txHash": "0x05dac167c7f7ab4778691125aa3fa5ec9358e7d642fa3c0f6681a4cc2f6ee59c"
+    },
+    "marginlyKeeper": {
+      "address": "0x264C568c0609F6a53EeD3EE1Fa9A6617Fb4E8220",
+      "txHash": "0x078105c969b446a21bac7ff53e064a94eed860479bfbd78f88c4a1f61ca4d6f1"
+    }
+  }
+}
