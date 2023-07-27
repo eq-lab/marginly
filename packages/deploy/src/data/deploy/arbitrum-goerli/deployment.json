@@ -6,11 +6,11 @@
     },
     {
       "id": "arb-usdc",
-      "address": "0x41c3810dC55c22F9C6194647B297b36504d8e8aB"
+      "address": "0x2241E32DA4F1721ded54aDE36dEA9e2084c2Acec"
     },
     {
       "id": "fweth-usdc",
-      "address": "0x204e65331A76509324cF5f1D2FcdE51E749bD724"
+      "address": "0x40b2C3202ba0eb2507a5b1Ff501D0644FBeAbf66"
     },
     {
       "id": "gmx-fweth",
@@ -18,10 +18,10 @@
     },
     {
       "id": "gmx-usdc",
-      "address": "0x4D005dc006DD1339Da4A2AB9FEA0f573208a2c4b"
+      "address": "0xdba25C0e4FDBedFf0eB65c62636EAe3f21C50751"
     }
   ],
   "marginlyKeeper": {
-    "address": "0xF8B479c5C318C096007aeeFA3a4293de4272C177"
+    "address": "0x777Ea2232a3b7BeA1b052c8fAe8b387fde739Bae"
   }
 }
