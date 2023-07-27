@@ -7,6 +7,7 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 /// @notice Provides functions to integrate with V3 pool oracle
 library OracleLib {
   error T();
+  error ZeroSeconds();
 
   /// @dev The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
   int24 private constant MAX_TICK = 887272;
@@ -15,7 +16,7 @@ library OracleLib {
   /// @param pool Address of the pool that we want to observe
   /// @param secondsAgo Number of seconds in the past from which to calculate the time-weighted means
   function getSqrtPriceX96(address pool, uint32 secondsAgo) internal view returns (uint256 priceX96) {
-    require(secondsAgo != 0, 'ZS'); // Zero seconds
+    if(secondsAgo == 0) revert ZeroSeconds();
 
     uint32[] memory secondsAgos = new uint32[](2);
     secondsAgos[0] = secondsAgo;
