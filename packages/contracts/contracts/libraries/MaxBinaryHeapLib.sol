@@ -48,7 +48,7 @@ library MaxBinaryHeapLib {
     uint32 index,
     uint96 newKey
   ) internal returns (uint32 newIndex) {
-    if(index >= self.length) revert Errors.WrongIndex();
+    if (index >= self.length) revert Errors.WrongIndex();
 
     Node storage node = self.nodes[index];
     if (node.key < newKey) {
@@ -76,7 +76,7 @@ library MaxBinaryHeapLib {
   /// @dev Removes node by account
   function remove(Heap storage self, mapping(address => Position) storage positions, uint32 index) internal {
     uint32 length = self.length;
-    if(index >= length) revert Errors.WrongIndex();
+    if (index >= length) revert Errors.WrongIndex();
 
     uint32 last = length - 1;
     self.length = last;

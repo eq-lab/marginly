@@ -48,7 +48,7 @@ contract FullMarginlyFactory is IMarginlyFactory {
 
   /// @inheritdoc IOwnable
   function setOwner(address _owner) external override {
-    if(msg.sender != owner) revert Errors.NotOwner();
+    if (msg.sender != owner) revert Errors.NotOwner();
     owner = _owner;
     emit OwnerChanged(msg.sender, _owner);
   }
@@ -60,13 +60,13 @@ contract FullMarginlyFactory is IMarginlyFactory {
     uint24 uniswapFee,
     MarginlyParams calldata params
   ) external override returns (address pool) {
-    if(msg.sender != owner) revert Errors.NotOwner();
+    if (msg.sender != owner) revert Errors.NotOwner();
     require(quoteToken != baseToken);
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
-    if(existingPool != address(0)) revert Errors.PoolAlreadyCreated();
+    if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
     address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
-    if(uniswapPool == address(0)) revert Errors.UniswapPoolNotFound();
+    if (uniswapPool == address(0)) revert Errors.UniswapPoolNotFound();
 
     // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
     bool quoteTokenIsToken0 = quoteToken < baseToken;

@@ -22,7 +22,7 @@ contract FullMarginlyPool is MarginlyPool {
     address _uniswapPool,
     MarginlyParams calldata _params
   ) external override {
-    if(factory != address(0)) revert Errors.Forbidden();
+    if (factory != address(0)) revert Errors.Forbidden();
   }
 
   function getParams()

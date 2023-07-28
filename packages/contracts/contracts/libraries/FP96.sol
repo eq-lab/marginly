@@ -81,7 +81,7 @@ library FP96 {
   /// @return result The Exponentiation of self and rhs
   function powTaylor(FixedPoint memory self, uint256 exponent) internal pure returns (FixedPoint memory result) {
     uint256 x = self.inner - Q96;
-    if(x >= Q96) revert Errors.WrongValue();
+    if (x >= Q96) revert Errors.WrongValue();
 
     uint256 resultX96 = Q96;
     uint256 multiplier;

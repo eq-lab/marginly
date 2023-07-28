@@ -16,7 +16,7 @@ library OracleLib {
   /// @param pool Address of the pool that we want to observe
   /// @param secondsAgo Number of seconds in the past from which to calculate the time-weighted means
   function getSqrtPriceX96(address pool, uint32 secondsAgo) internal view returns (uint256 priceX96) {
-    if(secondsAgo == 0) revert ZeroSeconds();
+    if (secondsAgo == 0) revert ZeroSeconds();
 
     uint32[] memory secondsAgos = new uint32[](2);
     secondsAgos[0] = secondsAgo;
