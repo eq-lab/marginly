@@ -32,8 +32,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getCurrentBasePrice()': utils.FunctionFragment;
-    'getLongHeapPosition(uint32)': utils.FunctionFragment;
-    'getShortHeapPosition(uint32)': utils.FunctionFragment;
+    'getHeapPosition(uint32,bool)': utils.FunctionFragment;
     'initialize(address,address,uint24,bool,address,tuple)': utils.FunctionFragment;
     'initialPrice()': utils.FunctionFragment;
     'lastReinitTimestampSeconds()': utils.FunctionFragment;
@@ -51,7 +50,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'systemLeverage()': utils.FunctionFragment;
     'uniswapFee()': utils.FunctionFragment;
     'uniswapPool()': utils.FunctionFragment;
-    'unlocked()': utils.FunctionFragment;
   };
 
   getFunction(
@@ -69,8 +67,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'factory'
       | 'getBasePrice'
       | 'getCurrentBasePrice'
-      | 'getLongHeapPosition'
-      | 'getShortHeapPosition'
+      | 'getHeapPosition'
       | 'initialize'
       | 'initialPrice'
       | 'lastReinitTimestampSeconds'
@@ -88,7 +85,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'systemLeverage'
       | 'uniswapFee'
       | 'uniswapPool'
-      | 'unlocked'
   ): utils.FunctionFragment;
 }
 
@@ -119,12 +115,9 @@ export interface MarginlyPoolContract extends BaseContract {
   factory(override?: CallOverrides): Promise<string>;
   getBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
   getCurrentBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
-  getLongHeapPosition(
+  getHeapPosition(
     index: PromiseOrValue<BigNumberish>,
-    override?: CallOverrides
-  ): Promise<[boolean, { key: BigNumber; account: string }]>;
-  getShortHeapPosition(
-    index: PromiseOrValue<BigNumberish>,
+    _short: PromiseOrValue<boolean>,
     override?: CallOverrides
   ): Promise<[boolean, { key: BigNumber; account: string }]>;
   initialize(
@@ -198,7 +191,6 @@ export interface MarginlyPoolContract extends BaseContract {
   systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
   uniswapFee(override?: CallOverrides): Promise<BigNumber>;
   uniswapPool(override?: CallOverrides): Promise<string>;
-  unlocked(override?: CallOverrides): Promise<boolean>;
 
   functions: {
     baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
@@ -213,12 +205,9 @@ export interface MarginlyPoolContract extends BaseContract {
     factory(override?: CallOverrides): Promise<[string]>;
     getBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
     getCurrentBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
-    getLongHeapPosition(
+    getHeapPosition(
       index: PromiseOrValue<BigNumberish>,
-      override?: CallOverrides
-    ): Promise<[boolean, { key: BigNumber; account: string }]>;
-    getShortHeapPosition(
-      index: PromiseOrValue<BigNumberish>,
+      _short: PromiseOrValue<boolean>,
       override?: CallOverrides
     ): Promise<[boolean, { key: BigNumber; account: string }]>;
     initialPrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
@@ -255,7 +244,6 @@ export interface MarginlyPoolContract extends BaseContract {
     systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
     uniswapFee(override?: CallOverrides): Promise<[BigNumber]>;
     uniswapPool(override?: CallOverrides): Promise<[string]>;
-    unlocked(override?: CallOverrides): Promise<[boolean]>;
   };
   estimateGas: {
     execute(

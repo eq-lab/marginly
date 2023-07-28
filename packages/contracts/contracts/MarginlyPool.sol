@@ -47,7 +47,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPool
   bool public override quoteTokenIsToken0;
   /// @dev reentrancy guard
-  bool public unlocked;
+  bool public locked;
 
   Mode public mode;
 
@@ -126,7 +126,6 @@ contract MarginlyPool is IMarginlyPool {
     quoteCollateralCoeff = FP96.one();
     quoteDebtCoeff = FP96.one();
     lastReinitTimestampSeconds = block.timestamp;
-    unlocked = true;
     initialPrice = getBasePrice();
 
     Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
@@ -141,15 +140,15 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function _lock() private view {
-    require(unlocked, 'LOK'); // Locked for reentrant call
+    require(!locked, 'LOK'); // Locked for reentrant call
   }
 
   /// @dev Protects against reentrancy
   modifier lock() {
     _lock();
-    unlocked = false;
+    locked = true;
     _;
-    unlocked = true;
+    delete locked;
   }
 
   function _onlyFactoryOwner() private view {
@@ -1316,14 +1315,49 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @dev for testing purposes
-  function getShortHeapPosition(uint32 index) external view returns (bool success, MaxBinaryHeapLib.Node memory) {
-    return shortHeap.getNodeByIndex(index);
+  function getERC20Balance(address token) private view returns (uint256) {
+    return IERC20(token).balanceOf(address(this));
+  }
+
+  function syncBaseBalance() private {
+    uint256 baseBalance = getERC20Balance(baseToken);
+    uint256 actualBaseCollateral = baseDebtCoeff.mul(discountedBaseDebt).add(baseBalance);
+    uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    if (actualBaseCollateral > baseCollateral) {
+      uint256 discountedBaseDelta = baseCollateralCoeff.recipMul(actualBaseCollateral.sub(baseCollateral));
+      techPosition.discountedBaseAmount += discountedBaseDelta;
+      discountedBaseCollateral += discountedBaseDelta;
+    } else {
+      uint256 discountedBaseDelta = quoteCollateralCoeff.recipMul(baseCollateral.sub(actualBaseCollateral));
+      techPosition.discountedBaseAmount -= discountedBaseDelta;
+      discountedBaseCollateral -= discountedBaseDelta;
+    }
+  }
+
+  function syncQuoteBalance() private {
+    uint256 quoteBalance = getERC20Balance(quoteToken);
+    uint256 actualQuoteCollateral = quoteDebtCoeff.mul(discountedQuoteDebt).add(quoteBalance);
+    uint256 quoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    if (actualQuoteCollateral > quoteCollateral) {
+      uint256 discountedQuoteDelta = quoteCollateralCoeff.recipMul(actualQuoteCollateral.sub(quoteCollateral));
+      techPosition.discountedQuoteAmount += discountedQuoteDelta;
+      discountedQuoteCollateral += discountedQuoteDelta;
+    } else {
+      uint256 discountedQuoteDelta = quoteCollateralCoeff.recipMul(quoteCollateral.sub(actualQuoteCollateral));
+      techPosition.discountedQuoteAmount -= discountedQuoteDelta;
+      discountedQuoteCollateral -= discountedQuoteDelta;
+    }
   }
 
   /// @dev for testing purposes
-  function getLongHeapPosition(uint32 index) external view returns (bool success, MaxBinaryHeapLib.Node memory) {
-    return longHeap.getNodeByIndex(index);
+  function getHeapPosition(uint32 index, bool _short) external view returns (bool success, MaxBinaryHeapLib.Node memory) {
+    if (_short) {
+      return shortHeap.getNodeByIndex(index);
+    } else {
+      return longHeap.getNodeByIndex(index);
+    }
   }
 
   /// @dev Returns Uniswap SwapRouter address
@@ -1377,9 +1411,10 @@ contract MarginlyPool is IMarginlyPool {
       long(amount1, basePrice, position);
     } else if (call == CallType.ClosePosition) {
       closePosition(position);
-    } else if (call != CallType.Reinit) {
-      // reinit already happened
-      revert('UC'); // unknown call
+    } else if (call == CallType.Reinit) {
+      syncBaseBalance();
+      syncQuoteBalance();
+      emit BalanceSync();
     }
 
     updateHeap(position);

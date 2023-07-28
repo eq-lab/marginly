@@ -35,6 +35,7 @@ import {
   deleveragePrecisionLongReinit,
   deleveragePrecisionShortReinit,
 } from './deleveragePrecision';
+import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -174,6 +175,9 @@ export async function startSuite(
     deleveragePrecisionShortCollateral,
     deleveragePrecisionLongReinit,
     deleveragePrecisionShortReinit,
+    balanceSync,
+    balanceSyncWithdrawBase,
+    balanceSyncWithdrawQuote,
   };
 
   const suite = suits[suitName];

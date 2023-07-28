@@ -463,17 +463,17 @@ describe('mc heap tests', () => {
     await marginlyPool.connect(longer2).execute(CallType.DepositBase, depositAmount, 18400, false, ZERO_ADDRESS);
     await marginlyPool.connect(longer3).execute(CallType.DepositBase, depositAmount, 18300, false, ZERO_ADDRESS);
 
-    expect((await marginlyPool.getLongHeapPosition(0))[1].account).to.be.equal(longer1.address);
-    expect((await marginlyPool.getLongHeapPosition(1))[1].account).to.be.equal(longer2.address);
-    expect((await marginlyPool.getLongHeapPosition(2))[1].account).to.be.equal(longer3.address);
+    expect((await marginlyPool.getHeapPosition(0, false))[1].account).to.be.equal(longer1.address);
+    expect((await marginlyPool.getHeapPosition(1, false))[1].account).to.be.equal(longer2.address);
+    expect((await marginlyPool.getHeapPosition(2, false))[1].account).to.be.equal(longer3.address);
 
     await time.increase(24 * 60 * 60);
 
     // should happen 2 MCs: longer1 as as the one with the worst leverage and longer3 as the caller with bad leverage
     await marginlyPool.connect(longer3).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
 
-    expect((await marginlyPool.getLongHeapPosition(0))[1].account).to.be.equal(longer2.address);
-    expect((await marginlyPool.getLongHeapPosition(1))[1].account).to.be.equal(ZERO_ADDRESS);
+    expect((await marginlyPool.getHeapPosition(0, false))[1].account).to.be.equal(longer2.address);
+    expect((await marginlyPool.getHeapPosition(1, false))[1].account).to.be.equal(ZERO_ADDRESS);
   });
 
   it('remove short caller', async () => {
@@ -487,16 +487,16 @@ describe('mc heap tests', () => {
     await marginlyPool.connect(shorter2).execute(CallType.DepositQuote, depositAmount, 18400, false, ZERO_ADDRESS);
     await marginlyPool.connect(shorter3).execute(CallType.DepositQuote, depositAmount, 18300, false, ZERO_ADDRESS);
 
-    expect((await marginlyPool.getShortHeapPosition(0))[1].account).to.be.equal(shorter1.address);
-    expect((await marginlyPool.getShortHeapPosition(1))[1].account).to.be.equal(shorter2.address);
-    expect((await marginlyPool.getShortHeapPosition(2))[1].account).to.be.equal(shorter3.address);
+    expect((await marginlyPool.getHeapPosition(0, true))[1].account).to.be.equal(shorter1.address);
+    expect((await marginlyPool.getHeapPosition(1, true))[1].account).to.be.equal(shorter2.address);
+    expect((await marginlyPool.getHeapPosition(2, true))[1].account).to.be.equal(shorter3.address);
 
     await time.increase(24 * 60 * 60);
 
     // should happen 2 MCs: shorter1 as the one with the worst leverage and shorter3 as the caller with bad leverage
     await marginlyPool.connect(shorter3).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS);
 
-    expect((await marginlyPool.getShortHeapPosition(0))[1].account).to.be.equal(shorter2.address);
-    expect((await marginlyPool.getShortHeapPosition(1))[1].account).to.be.equal(ZERO_ADDRESS);
+    expect((await marginlyPool.getHeapPosition(0, true))[1].account).to.be.equal(shorter2.address);
+    expect((await marginlyPool.getHeapPosition(1, true))[1].account).to.be.equal(ZERO_ADDRESS);
   });
 });

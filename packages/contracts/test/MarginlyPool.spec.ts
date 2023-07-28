@@ -256,7 +256,7 @@ describe('MarginlyPool.Base', () => {
       let position = await marginlyPool.positions(signer.address);
       expect(position.heapPosition).to.be.equal(1);
 
-      const sortKeyBefore = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
+      const sortKeyBefore = (await marginlyPool.getHeapPosition(position.heapPosition - 1, true))[1].key;
       const expectedShortKeyBefore = calcShortSortKey(
         initialPrice,
         position.discountedQuoteAmount,
@@ -273,7 +273,7 @@ describe('MarginlyPool.Base', () => {
       positionRealBaseAmount -= baseDepositFirst;
       expect(position.discountedBaseAmount.mul(baseDebtCoeff).div(FP96.one)).to.be.equal(BigNumber.from(positionRealBaseAmount));
 
-      const sortKeyAfter = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
+      const sortKeyAfter = (await marginlyPool.getHeapPosition(position.heapPosition - 1, true))[1].key;
       const expectedSortKeyAfter = calcShortSortKey(
         initialPrice,
         position.discountedQuoteAmount,
@@ -291,7 +291,7 @@ describe('MarginlyPool.Base', () => {
         const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
         expect(position._type).to.be.equal(PositionType.Lend);
         expect(position.heapPosition).to.be.equal(0);
-        expect((await marginlyPool.getShortHeapPosition(0))[0]).to.be.false;
+        expect((await marginlyPool.getHeapPosition(0, true))[0]).to.be.false;
         expect(position.discountedBaseAmount.mul(baseCollateralCoeff).div(FP96.one)).to.be.equal(positionRealBaseAmount);
       }
     });
@@ -494,7 +494,7 @@ describe('MarginlyPool.Base', () => {
       const quoteCollateralCoeff = await marginlyPool.quoteDebtCoeff();
       expect(positionAfter._type).to.be.equal(PositionType.Lend);
       expect(positionAfter.heapPosition).to.be.equal(0);
-      expect((await marginlyPool.getLongHeapPosition(0))[0]).to.be.false;
+      expect((await marginlyPool.getHeapPosition(0, false))[0]).to.be.false;
       expect(positionAfter.discountedQuoteAmount.mul(quoteCollateralCoeff).div(FP96.one)).to.be.equal(positionRealQuoteAmount);
     });
 
@@ -962,7 +962,7 @@ describe('MarginlyPool.Base', () => {
 
       const basePrice = await marginlyPool.getBasePrice();
       const position = await marginlyPool.positions(shorter.address);
-      const shortHeapPositionKey = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
+      const shortHeapPositionKey = (await marginlyPool.getHeapPosition(position.heapPosition - 1, true))[1].key;
 
       const expectedShortKey = calcShortSortKey(
         basePrice.inner,
@@ -1190,7 +1190,7 @@ describe('MarginlyPool.Base', () => {
       const basePrice = await marginlyPool.getBasePrice();
       const initialPrice = await marginlyPool.initialPrice();
 
-      const longHeapPositionKey = (await marginlyPool.getLongHeapPosition(position.heapPosition - 1))[1].key;
+      const longHeapPositionKey = (await marginlyPool.getHeapPosition(position.heapPosition - 1, false))[1].key;
 
       const expectedSortKey = calcLongSortKey(
         initialPrice,
@@ -1373,7 +1373,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(longer1).execute(CallType.Long, amountToLong, 0, false, ZERO_ADDRESS);
 
       const position1 = await marginlyPool.positions(longer1.address);
-      const [success, node] = await marginlyPool.getLongHeapPosition(position1.heapPosition - 1);
+      const [success, node] = await marginlyPool.getHeapPosition(position1.heapPosition - 1, false);
       expect(success).to.be.true;
 
       const longSortKeyX48 = node.key;
@@ -1399,7 +1399,7 @@ describe('MarginlyPool.Base', () => {
       await marginlyPool.connect(shorter1).execute(CallType.Short, amountToLong, 0, false, ZERO_ADDRESS);
 
       const position1 = await marginlyPool.positions(shorter1.address);
-      const [success, node] = await marginlyPool.getShortHeapPosition(position1.heapPosition - 1);
+      const [success, node] = await marginlyPool.getHeapPosition(position1.heapPosition - 1, true);
       expect(success).to.be.true;
 
       const shortSortKeyX48 = node.key;
