@@ -43,7 +43,7 @@ describe('MarginlyPool.Base', () => {
 
     await expect(
       pool.connect(factoryOwner).initialize(quoteToken, baseToken, true, uniswapPool, marginlyParams)
-    ).to.be.revertedWith('FB');
+    ).to.be.revertedWithCustomError(pool, 'Forbidden');
   });
 
   it('should revert when somebody trying to send value', async () => {
@@ -56,14 +56,14 @@ describe('MarginlyPool.Base', () => {
         to: marginlyPool.address,
         value: valueToSend,
       })
-    ).to.be.revertedWith('NW9');
+    ).to.be.revertedWithCustomError(marginlyPool, 'NotWETH9');
   });
 
   it('sweepETH should revert when sender is not admin', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [_, signer] = await ethers.getSigners();
 
-    await expect(marginlyPool.connect(signer).sweepETH()).to.be.revertedWith('AD');
+    await expect(marginlyPool.connect(signer).sweepETH()).to.be.revertedWithCustomError(marginlyPool, 'AccessDenied');
   });
 
   it('sweepETH should be called by admin', async () => {
@@ -149,7 +149,7 @@ describe('MarginlyPool.Base', () => {
         baseLimit: 1_000_000_000,
         quoteLimit: 1_000_000_000,
       })
-    ).to.be.revertedWith('AD');
+    ).to.be.revertedWithCustomError(pool, 'AccessDenied');
   });
 
   describe('Deposit base', async () => {
@@ -159,7 +159,7 @@ describe('MarginlyPool.Base', () => {
 
       await expect(
         marginlyPool.connect(otherSigner).execute(CallType.DepositBase, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('ZA');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ZeroAmount');
     });
 
     it('exceeds limit', async () => {
@@ -170,7 +170,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(otherSigner)
           .execute(CallType.DepositBase, 2_000_000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('EL');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
     it('first deposit should create position', async () => {
@@ -268,11 +268,11 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositQuote, firstDeposit, shortAmount, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       let positionRealBaseAmount = shortAmount;
-      const initialPrice = await marginlyPool.initialPrice();
+      const initialPrice = (await marginlyPool.getBasePrice()).inner;
       let position = await marginlyPool.positions(signer.address);
       expect(position.heapPosition).to.be.equal(1);
 
-      const sortKeyBefore = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
+      const sortKeyBefore = (await marginlyPool.getHeapPosition(position.heapPosition - 1, true))[1].key;
       const expectedShortKeyBefore = calcShortSortKey(
         initialPrice,
         position.discountedQuoteAmount,
@@ -293,7 +293,7 @@ describe('MarginlyPool.Base', () => {
         BigNumber.from(positionRealBaseAmount)
       );
 
-      const sortKeyAfter = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
+      const sortKeyAfter = (await marginlyPool.getHeapPosition(position.heapPosition - 1, true))[1].key;
       const expectedSortKeyAfter = calcShortSortKey(
         initialPrice,
         position.discountedQuoteAmount,
@@ -313,7 +313,7 @@ describe('MarginlyPool.Base', () => {
         const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
         expect(position._type).to.be.equal(PositionType.Lend);
         expect(position.heapPosition).to.be.equal(0);
-        expect((await marginlyPool.getShortHeapPosition(0))[0]).to.be.false;
+        expect((await marginlyPool.getHeapPosition(0, true))[0]).to.be.false;
         expect(position.discountedBaseAmount.mul(baseCollateralCoeff).div(FP96.one)).to.be.equal(
           positionRealBaseAmount
         );
@@ -386,7 +386,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(signer)
           .execute(CallType.DepositBase, baseDepositFirst, longAmount, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
 
     it('depositBase should wrap ETH into WETH', async () => {
@@ -417,7 +417,7 @@ describe('MarginlyPool.Base', () => {
 
       await expect(
         marginlyPool.connect(otherSigner).execute(CallType.DepositQuote, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('ZA');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ZeroAmount');
     });
 
     it('exceeds limit', async () => {
@@ -428,7 +428,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(otherSigner)
           .execute(CallType.DepositQuote, 2_000_000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('EL');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
     it('first deposit should create position', async () => {
@@ -562,7 +562,7 @@ describe('MarginlyPool.Base', () => {
       const quoteCollateralCoeff = await marginlyPool.quoteDebtCoeff();
       expect(positionAfter._type).to.be.equal(PositionType.Lend);
       expect(positionAfter.heapPosition).to.be.equal(0);
-      expect((await marginlyPool.getLongHeapPosition(0))[0]).to.be.false;
+      expect((await marginlyPool.getHeapPosition(0, false))[0]).to.be.false;
       expect(positionAfter.discountedQuoteAmount.mul(quoteCollateralCoeff).div(FP96.one)).to.be.equal(
         positionRealQuoteAmount
       );
@@ -610,7 +610,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(signer)
           .execute(CallType.DepositQuote, quoteDepositSecond, shortAmount, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
 
     it('depositQuote and short into short position', async () => {
@@ -664,7 +664,7 @@ describe('MarginlyPool.Base', () => {
 
       await expect(
         marginlyPool.connect(signer).execute(CallType.WithdrawBase, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('ZA');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ZeroAmount');
     });
 
     it('should raise error when position not initialized', async () => {
@@ -680,7 +680,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(signer2)
           .execute(CallType.WithdrawBase, amountToWithdraw, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('U');
+      ).to.be.revertedWithCustomError(marginlyPool, 'UninitializedPosition');
     });
 
     it('should decrease base position', async () => {
@@ -793,7 +793,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(shorter)
           .execute(CallType.WithdrawBase, amountToWithdraw, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
   });
 
@@ -804,7 +804,7 @@ describe('MarginlyPool.Base', () => {
 
       await expect(
         marginlyPool.connect(signer).execute(CallType.WithdrawQuote, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('ZA');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ZeroAmount');
     });
 
     it('should raise error when position not initialized', async () => {
@@ -820,7 +820,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(signer2)
           .execute(CallType.WithdrawQuote, amountToWithdraw, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('U');
+      ).to.be.revertedWithCustomError(marginlyPool, 'UninitializedPosition');
     });
 
     it('should decrease quote position', async () => {
@@ -966,7 +966,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(longer)
           .execute(CallType.WithdrawQuote, amountToWithdraw, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
   });
 
@@ -976,7 +976,7 @@ describe('MarginlyPool.Base', () => {
       const [_, signer] = await ethers.getSigners();
       await expect(
         marginlyPool.execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
 
       const amountToDeposit = 1000;
       await marginlyPool
@@ -984,7 +984,7 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
       await expect(
         marginlyPool.connect(signer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
 
     it('should close short position', async () => {
@@ -1064,7 +1064,7 @@ describe('MarginlyPool.Base', () => {
       const shortAmount = 1000;
       expect(
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
 
       await marginlyPool
         .connect(shorter)
@@ -1075,7 +1075,7 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
       expect(
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('WPT');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
 
     it('short minAmount violation', async () => {
@@ -1095,7 +1095,7 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
       await expect(
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.rejectedWith('MA');
+      ).to.be.rejectedWith('LessThanMinimalAmount()');
     });
 
     it('exceeds limit', async () => {
@@ -1118,7 +1118,7 @@ describe('MarginlyPool.Base', () => {
       // 450 + 450 + 200 > 1000
       await expect(
         marginlyPool.connect(shorter).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('EL');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
     it('short should update leverageShort', async () => {
@@ -1142,7 +1142,7 @@ describe('MarginlyPool.Base', () => {
 
       const basePrice = await marginlyPool.getBasePrice();
       const position = await marginlyPool.positions(shorter.address);
-      const shortHeapPositionKey = (await marginlyPool.getShortHeapPosition(position.heapPosition - 1))[1].key;
+      const shortHeapPositionKey = (await marginlyPool.getHeapPosition(position.heapPosition - 1, true))[1].key;
 
       const expectedShortKey = calcShortSortKey(
         basePrice.inner,
@@ -1342,7 +1342,7 @@ describe('MarginlyPool.Base', () => {
       const longAmount = 1000;
       expect(
         marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('U');
+      ).to.be.revertedWithCustomError(marginlyPool, 'UninitializedPosition');
     });
 
     it('long minAmount violation', async () => {
@@ -1362,7 +1362,7 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
       await expect(
         marginlyPool.connect(longer).execute(CallType.Long, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.rejectedWith('MA');
+      ).to.be.rejectedWith('LessThanMinimalAmount()');
     });
 
     it('exceeds limit', async () => {
@@ -1384,7 +1384,7 @@ describe('MarginlyPool.Base', () => {
         marginlyPool
           .connect(longer)
           .execute(CallType.Long, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWith('EL');
+      ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
     it('long should update leverageLong', async () => {
@@ -1408,9 +1408,9 @@ describe('MarginlyPool.Base', () => {
 
       const position = await marginlyPool.positions(longer.address);
       const basePrice = await marginlyPool.getBasePrice();
-      const initialPrice = await marginlyPool.initialPrice();
+      const initialPrice = (await marginlyPool.getBasePrice()).inner;
 
-      const longHeapPositionKey = (await marginlyPool.getLongHeapPosition(position.heapPosition - 1))[1].key;
+      const longHeapPositionKey = (await marginlyPool.getHeapPosition(position.heapPosition - 1, false))[1].key;
 
       const expectedSortKey = calcLongSortKey(
         initialPrice,
@@ -1613,12 +1613,12 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.Long, amountToLong, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       const position1 = await marginlyPool.positions(longer1.address);
-      const [success, node] = await marginlyPool.getLongHeapPosition(position1.heapPosition - 1);
+      const [success, node] = await marginlyPool.getHeapPosition(position1.heapPosition - 1, false);
       expect(success).to.be.true;
 
       const longSortKeyX48 = node.key;
 
-      const initialPrice = await marginlyPool.initialPrice();
+      const initialPrice = (await marginlyPool.getBasePrice()).inner;
 
       const expectedLongSortKeyX48 = position1.discountedQuoteAmount
         .mul(FP48.Q48)
@@ -1645,12 +1645,12 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.Short, amountToLong, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       const position1 = await marginlyPool.positions(shorter1.address);
-      const [success, node] = await marginlyPool.getShortHeapPosition(position1.heapPosition - 1);
+      const [success, node] = await marginlyPool.getHeapPosition(position1.heapPosition - 1, true);
       expect(success).to.be.true;
 
       const shortSortKeyX48 = node.key;
 
-      const initialPrice = await marginlyPool.initialPrice();
+      const initialPrice = (await marginlyPool.getBasePrice()).inner;
 
       const expectedShortSortKeyX48 = initialPrice
         .mul(position1.discountedBaseAmount)

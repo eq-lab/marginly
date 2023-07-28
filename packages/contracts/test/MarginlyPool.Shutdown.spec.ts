@@ -14,7 +14,7 @@ describe('MarginlyPool.Shutdown', () => {
       .connect(depositor)
       .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    await expect(marginlyPool.connect(owner).shutDown()).to.be.rejectedWith('NE');
+    await expect(marginlyPool.connect(owner).shutDown()).to.be.rejectedWith('NotEmergency()');
   });
 
   it('should switch system in ShortEmergency mode', async () => {
@@ -55,7 +55,7 @@ describe('MarginlyPool.Shutdown', () => {
     expect(await marginlyPool.emergencyWithdrawCoeff()).not.to.be.equal(0);
 
     // can't switch second time to emergency mode
-    await expect(marginlyPool.shutDown()).to.be.rejectedWith('EM');
+    await expect(marginlyPool.shutDown()).to.be.rejectedWith('EmergencyMode()');
   });
 
   it('should switch system in LongEmergency mode', async () => {
@@ -96,7 +96,7 @@ describe('MarginlyPool.Shutdown', () => {
     expect(await marginlyPool.emergencyWithdrawCoeff()).not.to.be.equal(0);
 
     // can't switch second time to emergency mode
-    await expect(marginlyPool.shutDown()).to.be.rejectedWith('EM');
+    await expect(marginlyPool.shutDown()).to.be.rejectedWith('EmergencyMode()');
   });
 
   it('withdraw tokens for Long/Lend position in ShortEmergency mode', async () => {
@@ -360,7 +360,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     await expect(
       marginlyPool.connect(shorter).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-    ).to.be.rejectedWith('SE');
+    ).to.be.rejectedWith('ShortEmergency()');
   });
 
   it('should revert withdraw tokens from Long position in LongEmergency mode', async () => {
@@ -393,6 +393,6 @@ describe('MarginlyPool.Shutdown', () => {
 
     await expect(
       marginlyPool.connect(longer).execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
-    ).to.be.rejectedWith('LE');
+    ).to.be.rejectedWith('LongEmergency()');
   });
 });
