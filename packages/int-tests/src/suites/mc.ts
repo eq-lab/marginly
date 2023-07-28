@@ -56,7 +56,9 @@ export async function mc(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, initialLongerBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, initialLongerBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     );
 
     const longAmount = parseUnits('18', 18).mul(i + 1);
@@ -64,7 +66,9 @@ export async function mc(sut: SystemUnderTest) {
 
     await gasReporter.saveGasUsage(
       'long',
-      marginlyPool.connect(longer).execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
+      marginlyPool
+        .connect(longer)
+        .execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
     );
   }
 
@@ -87,7 +91,9 @@ export async function mc(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositBase, initialShorterBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, initialShorterBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     );
 
     const shortAmount = parseUnits('18', 18).mul(i + 1);

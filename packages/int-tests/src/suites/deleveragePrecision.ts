@@ -85,7 +85,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
   const depositQuoteTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
 
   await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
@@ -107,7 +109,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
   const depositBaseTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositBase', depositBaseTx);
   await addToLogs(
@@ -139,7 +143,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
       const depositQuoteTx = await (
         await marginlyPool
           .connect(lender)
-          .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
       await addToLogs(
@@ -160,7 +166,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
       const depositBaseTx = await (
         await marginlyPool
           .connect(lender)
-          .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('depositBase', depositBaseTx);
       await addToLogs(
@@ -187,7 +195,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
     logger.info(`  Longer deposits base`);
     const depositBaseTx = await marginlyPool
       .connect(liquidatedLong)
-      .execute(CallType.DepositBase, longerBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 });
+      .execute(CallType.DepositBase, longerBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      });
     await gasReporter.saveGasUsage('depositBase', depositBaseTx);
     await addToLogs(
       sut,
@@ -236,7 +246,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
       const depositQuoteTx = await (
         await marginlyPool
           .connect(shorters[j])
-          .execute(CallType.DepositQuote, shortersQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.DepositQuote, shortersQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
       await addToLogs(
@@ -257,7 +269,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
       const shortTx = await (
         await marginlyPool
           .connect(shorters[j])
-          .execute(CallType.Short, shortersBaseDebt[j], 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.Short, shortersBaseDebt[j], 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('short', shortTx);
       const swapPrice = BigNumber.from(shortTx.events?.find((e) => e.event == 'Short')?.args?.swapPriceX96).mul(
@@ -291,7 +305,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
     nextDate += timeDelta;
     await provider.mineAtTimestamp(nextDate);
     const reinitTx = await (
-      await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      await marginlyPool
+        .connect(treasury)
+        .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     ).wait();
     await gasReporter.saveGasUsage('reinit', reinitTx);
     await addToLogs(sut, 1, 1, shortersNum, `Liquidation ${i}`, `0`, '0', coeffsTable, aggregates, balances, positions);
@@ -337,7 +353,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
       const withdrawQuoteTx = await (
         await marginlyPool
           .connect(shorters[j])
-          .execute(CallType.WithdrawQuote, parseUnits('200000', 6), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.WithdrawQuote, parseUnits('200000', 6), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('withdrawQuote', withdrawQuoteTx);
       await addToLogs(
@@ -401,7 +419,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
   const depositQuoteTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
   await addToLogs(
@@ -422,7 +442,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
   const depositBaseTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositBase', depositBaseTx);
   await addToLogs(
@@ -452,7 +474,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     const depositBaseTx = await (
       await marginlyPool
         .connect(liquidatedLong)
-        .execute(CallType.DepositBase, longerBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, longerBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('depositBase', depositBaseTx);
     await addToLogs(
@@ -499,7 +523,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     const depositQuoteTx = await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositQuote, shortersQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, shortersQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
     await addToLogs(
@@ -552,7 +578,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     now += timeDelta;
     await provider.mineAtTimestamp(now);
     const reinitTx = await (
-      await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      await marginlyPool
+        .connect(treasury)
+        .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     ).wait();
     await gasReporter.saveGasUsage('deleverage reinit', reinitTx);
     await addToLogs(sut, 1, 1, 1, `Liquidation ${i}`, `0`, '0', coeffsTable, aggregates, balances, positions);
@@ -621,7 +649,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     const withdrawQuoteTx = await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.WithdrawQuote, parseUnits('200000', 6), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.WithdrawQuote, parseUnits('200000', 6), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('withdrawQuote', withdrawQuoteTx);
     await addToLogs(
@@ -686,7 +716,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
   const depositQuoteTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
   await addToLogs(
@@ -707,7 +739,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
   const depositBaseTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositBase', depositBaseTx);
   await addToLogs(
@@ -739,7 +773,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
       const depositQuoteTx = await (
         await marginlyPool
           .connect(lender)
-          .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
       await addToLogs(
@@ -760,7 +796,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
       const depositBaseTx = await (
         await marginlyPool
           .connect(lender)
-          .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('depositBase', depositBaseTx);
       await addToLogs(
@@ -790,7 +828,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
     const depositQuoteTx = await (
       await marginlyPool
         .connect(liquidatedShort)
-        .execute(CallType.DepositQuote, shorterQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, shorterQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
     await addToLogs(
@@ -841,7 +881,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
       const depositBaseTx = await (
         await marginlyPool
           .connect(longers[j])
-          .execute(CallType.DepositBase, longersBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.DepositBase, longersBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('depositBase', depositBaseTx);
       await addToLogs(
@@ -906,7 +948,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
     nextDate += timeDelta;
     await provider.mineAtTimestamp(nextDate);
     const reinitTx = await (
-      await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      await marginlyPool
+        .connect(treasury)
+        .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     ).wait();
     await gasReporter.saveGasUsage('reinit', reinitTx);
     await addToLogs(sut, 1, longersNum, 1, `Liquidation ${i}`, '0', '0', coeffsTable, aggregates, balances, positions);
@@ -952,7 +996,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
       const withdrawBaseTx = await (
         await marginlyPool
           .connect(longers[j])
-          .execute(CallType.WithdrawBase, parseUnits('200000', 18), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.WithdrawBase, parseUnits('200000', 18), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('withdrawBase', withdrawBaseTx);
       await addToLogs(
@@ -1017,7 +1063,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
   const depositQuoteTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositQuote, lenderQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
   await addToLogs(
@@ -1038,7 +1086,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
   const depositBaseTx = await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositBase, lenderBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   ).wait();
   await gasReporter.saveGasUsage('depositBase', depositBaseTx);
   await addToLogs(
@@ -1069,7 +1119,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     const depositQuoteTx = await (
       await marginlyPool
         .connect(liquidatedShort)
-        .execute(CallType.DepositQuote, shorterQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, shorterQuoteDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('depositQuote', depositQuoteTx);
     await addToLogs(
@@ -1116,7 +1168,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     const depositBaseTx = await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, longersBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, longersBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('depositBase', depositBaseTx);
     await addToLogs(
@@ -1171,7 +1225,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     now += timeDelta;
     await provider.mineAtTimestamp(now);
     const reinitTx = await (
-      await marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      await marginlyPool
+        .connect(treasury)
+        .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     ).wait();
     await gasReporter.saveGasUsage('deleverage reinit', reinitTx);
     await addToLogs(sut, 1, 1, 1, `Liquidation ${i}`, '0', '0', coeffsTable, aggregates, balances, positions);
@@ -1240,7 +1296,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     const withdrawBaseTx = await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.WithdrawBase, parseUnits('200000', 18), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.WithdrawBase, parseUnits('200000', 18), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('withdrawBase', withdrawBaseTx);
     await addToLogs(
