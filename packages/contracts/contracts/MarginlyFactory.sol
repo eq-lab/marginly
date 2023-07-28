@@ -7,6 +7,7 @@ import '@openzeppelin/contracts/proxy/Clones.sol';
 
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
+import './libraries/Errors.sol';
 
 import './MarginlyPool.sol';
 
@@ -51,7 +52,7 @@ contract MarginlyFactory is IMarginlyFactory {
 
   /// @inheritdoc IOwnable
   function setOwner(address _owner) external override {
-    require(msg.sender == owner, 'NO'); // Not an owner
+    if(msg.sender != owner) revert Errors.NotOwner();
     owner = _owner;
     emit OwnerChanged(msg.sender, _owner);
   }
@@ -63,14 +64,14 @@ contract MarginlyFactory is IMarginlyFactory {
     uint24 uniswapFee,
     MarginlyParams calldata params
   ) external override returns (address pool) {
-    require(msg.sender == owner, 'NO'); // Not an owner
+    if(msg.sender != owner) revert Errors.NotOwner();
     require(quoteToken != baseToken);
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
-    require(existingPool == address(0), 'PC'); // Pool already created
+    if(existingPool != address(0)) revert Errors.PoolAlreadyCreated();
 
     address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
-    require(uniswapPool != address(0), 'UNF'); // Uniswap pool not found
+    if(uniswapPool == address(0)) revert Errors.UniswapPoolNotFound();
 
     // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
     bool quoteTokenIsToken0 = quoteToken < baseToken;
