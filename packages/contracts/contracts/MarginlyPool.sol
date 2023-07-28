@@ -132,8 +132,8 @@ contract MarginlyPool is IMarginlyPool {
     Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
     techPosition._type = PositionType.Lend;
 
-    baseDelevCoeff = FP96.fromRatio(1, 100).mul(initialPrice);
-    quoteDelevCoeff = FP96.fromRatio(1, 100).div(initialPrice);
+    quoteDelevCoeff = FP96.fromRatio(1, 100).mul(initialPrice);
+    baseDelevCoeff = FP96.fromRatio(1, 100).div(initialPrice);
   }
 
   receive() external payable {
