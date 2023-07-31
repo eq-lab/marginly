@@ -124,7 +124,7 @@ contract MarginlyPool is IMarginlyPool {
     lastReinitTimestampSeconds = getTimestamp();
     initialPrice = getBasePrice();
 
-    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    Position storage techPosition = getTechPosition();
     techPosition._type = PositionType.Lend;
   }
 
@@ -142,7 +142,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   receive() external payable {
-    if (msg.sender != IMarginlyFactory(factory).WETH9()) revert Errors.NotWETH9();
+    if (msg.sender != getWETH9Address()) revert Errors.NotWETH9();
   }
 
   function _lock() private view {
@@ -946,7 +946,7 @@ contract MarginlyPool is IMarginlyPool {
 
     // keep debt fee in technical position
     if (discountedBaseFee != 0 || discountedQuoteFee != 0) {
-      Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+      Position storage techPosition = getTechPosition();
       techPosition.discountedBaseAmount = techPosition.discountedBaseAmount.add(discountedBaseFee);
       techPosition.discountedQuoteAmount = techPosition.discountedQuoteAmount.add(discountedQuoteFee);
 
@@ -1276,7 +1276,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Wraps ETH into WETH if need and makes transfer from `payer`
   function wrapAndTransferFrom(address token, address payer, uint256 value) private {
     if (msg.value >= value) {
-      if (token == IMarginlyFactory(factory).WETH9()) {
+      if (token == getWETH9Address()) {
         IWETH9(token).deposit{value: value}();
         return;
       }
@@ -1287,7 +1287,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Unwraps WETH to ETH and makes transfer to `recipient`
   function unwrapAndTransfer(bool unwrapWETH, address token, address recipient, uint256 value) private {
     if (unwrapWETH) {
-      if (token == IMarginlyFactory(factory).WETH9()) {
+      if (token == getWETH9Address()) {
         IWETH9(token).withdraw(value);
         TransferHelper.safeTransferETH(recipient, value);
         return;
@@ -1303,11 +1303,12 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
+  /// @dev Changes tech position base collateral so total calculated base balance to be equal to actual
   function syncBaseBalance() private {
-    uint256 baseBalance = IERC20(baseToken).balanceOf(address(this));
+    uint256 baseBalance = getBalance(baseToken);
     uint256 actualBaseCollateral = baseDebtCoeff.mul(discountedBaseDebt).add(baseBalance);
     uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
-    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    Position storage techPosition = getTechPosition();
     if (actualBaseCollateral > baseCollateral) {
       uint256 discountedBaseDelta = baseCollateralCoeff.recipMul(actualBaseCollateral.sub(baseCollateral));
       techPosition.discountedBaseAmount += discountedBaseDelta;
@@ -1319,11 +1320,12 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
+  /// @dev Changes tech position quote collateral so total calculated quote balance to be equal to actual
   function syncQuoteBalance() private {
-    uint256 quoteBalance = IERC20(quoteToken).balanceOf(address(this));
+    uint256 quoteBalance = getBalance(quoteToken);
     uint256 actualQuoteCollateral = quoteDebtCoeff.mul(discountedQuoteDebt).add(quoteBalance);
     uint256 quoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
-    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    Position storage techPosition = getTechPosition();
     if (actualQuoteCollateral > quoteCollateral) {
       uint256 discountedQuoteDelta = quoteCollateralCoeff.recipMul(actualQuoteCollateral.sub(quoteCollateral));
       techPosition.discountedQuoteAmount += discountedQuoteDelta;
@@ -1350,6 +1352,21 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Returns Uniswap SwapRouter address
   function getSwapRouter() private view returns (address) {
     return IMarginlyFactory(factory).swapRouter();
+  }
+
+  /// @dev Returns tech position
+  function getTechPosition() private view returns (Position storage) {
+    return positions[IMarginlyFactory(factory).techPositionOwner()];
+  }
+
+  /// @dev Returns WETH9 address
+  function getWETH9Address() private view returns (address) {
+    return IMarginlyFactory(factory).WETH9();
+  }
+
+  /// @dev returns ERC20 token balance of this contract
+  function getBalance(address erc20Token) private view returns (uint256) {
+    return IERC20(erc20Token).balanceOf(address(this));
   }
 
   function execute(

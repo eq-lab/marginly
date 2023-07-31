@@ -17,28 +17,28 @@ Object {
 exports[`Liquidation liquidate long position and create new long position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 266664,
+  "gasUsed": 266749,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 294320,
+  "gasUsed": 294405,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 307729,
+  "gasUsed": 307776,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new short position 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 282765,
+  "gasUsed": 282812,
 }
 `;
 
@@ -122,35 +122,35 @@ Object {
 exports[`mc happens: MC long position with deleverage 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 238496,
+  "gasUsed": 238582,
 }
 `;
 
 exports[`mc happens: MC long reinit 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 205146,
+  "gasUsed": 205215,
 }
 `;
 
 exports[`mc happens: MC short position with deleverage 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 238564,
+  "gasUsed": 238650,
 }
 `;
 
 exports[`mc happens: MC short reinit 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 205100,
+  "gasUsed": 205168,
 }
 `;
 
 exports[`mc happens: closePosition with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 372236,
+  "gasUsed": 372274,
 }
 `;
 
@@ -164,7 +164,7 @@ Object {
 exports[`mc happens: depositBase with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 357034,
+  "gasUsed": 357072,
 }
 `;
 
@@ -178,7 +178,7 @@ Object {
 exports[`mc happens: depositQuote with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 287102,
+  "gasUsed": 287149,
 }
 `;
 
@@ -199,14 +199,14 @@ Object {
 exports[`mc happens: long with one mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 365549,
+  "gasUsed": 365596,
 }
 `;
 
 exports[`mc happens: long with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 386403,
+  "gasUsed": 386440,
 }
 `;
 
@@ -220,6 +220,6 @@ Object {
 exports[`mc happens: short with two mc 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 381984,
+  "gasUsed": 382021,
 }
 `;
