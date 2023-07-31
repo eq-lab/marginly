@@ -1369,11 +1369,12 @@ contract MarginlyPool is IMarginlyPool {
     return IERC20(erc20Token).balanceOf(address(this));
   }
 
+  /// @param flag unwrapETH in case of withdraw calls or syncBalance in case of reinit call
   function execute(
     CallType call,
     uint256 amount1,
     uint256 amount2,
-    bool unwrapWETH,
+    bool flag,
     address receivePositionAddress,
     bytes calldata swapCalldata
   ) external payable override lock {
@@ -1381,7 +1382,7 @@ contract MarginlyPool is IMarginlyPool {
       receivePosition(receivePositionAddress, amount1, amount2);
       return;
     } else if (call == CallType.EmergencyWithdraw) {
-      emergencyWithdraw(unwrapWETH);
+      emergencyWithdraw(flag);
       return;
     }
 
@@ -1402,16 +1403,16 @@ contract MarginlyPool is IMarginlyPool {
     } else if (call == CallType.DepositQuote) {
       depositQuote(amount1, amount2, basePrice, position, swapCalldata);
     } else if (call == CallType.WithdrawBase) {
-      withdrawBase(amount1, unwrapWETH, basePrice, position);
+      withdrawBase(amount1, flag, basePrice, position);
     } else if (call == CallType.WithdrawQuote) {
-      withdrawQuote(amount1, unwrapWETH, basePrice, position);
+      withdrawQuote(amount1, flag, basePrice, position);
     } else if (call == CallType.Short) {
       short(amount1, basePrice, position, swapCalldata);
     } else if (call == CallType.Long) {
       long(amount1, basePrice, position, swapCalldata);
     } else if (call == CallType.ClosePosition) {
       closePosition(position, swapCalldata);
-    } else if (call == CallType.Reinit) {
+    } else if (call == CallType.Reinit && flag) {
       // reinit itself has already taken place
       syncBaseBalance();
       syncQuoteBalance();

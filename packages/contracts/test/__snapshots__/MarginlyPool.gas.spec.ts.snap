@@ -122,28 +122,28 @@ Object {
 exports[`mc happens: MC long position with deleverage 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 238582,
+  "gasUsed": 224413,
 }
 `;
 
 exports[`mc happens: MC long reinit 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 205215,
+  "gasUsed": 193722,
 }
 `;
 
 exports[`mc happens: MC short position with deleverage 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 238650,
+  "gasUsed": 224468,
 }
 `;
 
 exports[`mc happens: MC short reinit 1`] = `
 Object {
   "calldataByteLength": 260,
-  "gasUsed": 205168,
+  "gasUsed": 193676,
 }
 `;
 
