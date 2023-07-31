@@ -1416,6 +1416,7 @@ contract MarginlyPool is IMarginlyPool {
       // reinit itself has already taken place
       syncBaseBalance();
       syncQuoteBalance();
+      emit BalanceSync();
     }
 
     updateHeap(position);
