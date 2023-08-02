@@ -12,6 +12,7 @@ import './dex/ApeSwap.sol';
 import './dex/BalancerSwap.sol';
 import './dex/CamelotSwap.sol';
 import './dex/KyberSwap.sol';
+import './dex/SushiSwap.sol';
 import './dex/QuickSwap.sol';
 import './dex/TraderJoeSwap.sol';
 import './dex/WoofiSwap.sol';
@@ -25,6 +26,7 @@ contract MarginlyRouter is
   CamelotSwap,
   KyberSwap,
   QuickSwap,
+  SushiSwap,
   TraderJoeSwap,
   WooFiSwap
 {
@@ -59,7 +61,7 @@ contract MarginlyRouter is
     } else if (dex == Dex.QuickSwap) {
       return quickSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.SushiSwap) {
-      return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
+      return sushiSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.Woofi) {
       return wooFiSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
     } else if (dex == Dex.TraderJoe) {
@@ -98,7 +100,7 @@ contract MarginlyRouter is
     } else if (dex == Dex.QuickSwap) {
       return quickSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.SushiSwap) {
-      return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
+      return sushiSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.Woofi) {
       return wooFiSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
     } else if (dex == Dex.TraderJoe) {
