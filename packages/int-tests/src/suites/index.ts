@@ -37,6 +37,7 @@ import {
   deleveragePrecisionLongReinit,
   deleveragePrecisionShortReinit,
 } from './deleveragePrecision';
+import { routerSwaps } from './router';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -88,10 +89,13 @@ async function initializeTestSystem(
   logger.info(`nonFungiblePositionManager: ${nonFungiblePositionManager.address}`);
 
   const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
-  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
+  logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
 
-  let routerConstructorInput = [];
+  const routerConstructorInput = [];
   routerConstructorInput.push({dex: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
+  routerConstructorInput.push({dex: 2, token0: weth.address, token1: usdc.address, pool: '0xBA12222222228d8Ba445958a75a0704d566BF2C8'});
+  routerConstructorInput.push({dex: 4, token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76'});
+  routerConstructorInput.push({dex: 6, token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0'});
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
@@ -178,6 +182,7 @@ export async function startSuite(
     deleveragePrecisionShortCollateral,
     deleveragePrecisionLongReinit,
     deleveragePrecisionShortReinit,
+    routerSwaps,
   };
 
   const suite = suits[suitName];
