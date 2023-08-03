@@ -10,6 +10,8 @@ import './UniswapV2Swap.sol';
 abstract contract KyberSwap is UniswapV2Swap {
   using LowGasSafeMath for uint256;
 
+  uint256 constant PRECISION = 1e18;
+
   function kyberSwapExactInput(
     Dex dex,
     address tokenIn,
@@ -38,29 +40,32 @@ abstract contract KyberSwap is UniswapV2Swap {
 
   function kyberSwapGetAmountOut(
     address pool,
-    uint amountIn,
+    uint256 amountIn,
     address tokenIn,
     address tokenOut
-  ) internal view returns (uint amountOut) {
-    (uint reserve0, uint reserve1, , , uint fee) = IKC(pool).getTradeInfo();
-    (uint reserveIn, uint reserveOut) = tokenIn < tokenOut ? (reserve0, reserve1) : (reserve1, reserve0);
-    uint amountInWithFee = amountIn.mul(fee);
-    uint numerator = amountInWithFee.mul(reserveOut);
-    uint denominator = reserveIn.mul(1e18).add(amountInWithFee);
+  ) internal view returns (uint256 amountOut) {
+    ( , , uint256 vReserve0, uint256 vReserve1, uint256 fee) = IKC(pool).getTradeInfo();
+    (uint256 vReserveIn, uint256 vReserveOut) = tokenIn < tokenOut ? (vReserve0, vReserve1) : (vReserve1, vReserve0);
+    uint256 amountInWithFee = amountIn.mul(PRECISION.sub(fee)) / PRECISION;
+    uint256 numerator = amountInWithFee.mul(vReserveOut);
+    uint256 denominator = vReserveIn.add(amountInWithFee);
     amountOut = numerator / denominator;
   }
 
   function kyberSwapGetAmountIn(
     address pool,
-    uint amountOut,
+    uint256 amountOut,
     address tokenIn,
     address tokenOut
-  ) internal view returns (uint amountIn) {
-    (uint reserve0, uint reserve1, , , uint fee) = IKC(pool).getTradeInfo();
-    (uint reserveIn, uint reserveOut) = tokenIn < tokenOut ? (reserve0, reserve1) : (reserve1, reserve0);
-    uint numerator = reserveIn.mul(amountOut).mul(1e18);
-    uint denominator = reserveOut.sub(amountOut).mul(fee);
+  ) internal view returns (uint256 amountIn) {
+    ( , , uint256 vReserve0, uint256 vReserve1, uint256 fee) = IKC(pool).getTradeInfo();
+    (uint256 vReserveIn, uint256 vReserveOut) = tokenIn < tokenOut ? (vReserve0, vReserve1) : (vReserve1, vReserve0);
+    uint256 numerator = vReserveIn.mul(amountOut);
+    uint256 denominator = vReserveOut.sub(amountOut);
     amountIn = (numerator / denominator).add(1);
+    numerator = amountIn.mul(PRECISION);
+    denominator = PRECISION.sub(fee);
+    amountIn = numerator.add(denominator - 1) / denominator;
   }
 }
 
