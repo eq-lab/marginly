@@ -47,11 +47,14 @@ export async function routerSwaps(sut: SystemUnderTest) {
       const poolWethDelta = currentPoolWethBalance.sub(oldPoolWethBalance);
       const wethDelta = oldWethBalance.sub(currentWethBalance);
       assert(wethDelta.eq(poolWethDelta));
+      assert(!wethDelta.eq(0));
+      assert(wethDelta.lte(wethAmount));
 
       logger.info(`Checking usdc balances`);
-      const poolUsdcDelta = currentPoolUsdcBalance.sub(oldPoolUsdcBalance);
-      const usdcDelta = oldUsdcBalance.sub(currentUsdcBalance);
+      const poolUsdcDelta = oldPoolUsdcBalance.sub(currentPoolUsdcBalance);
+      const usdcDelta = currentUsdcBalance.sub(oldUsdcBalance);
       assert(usdcDelta.eq(poolUsdcDelta));
+      assert(usdcDelta.eq(usdcAmount));
     }
 
     {
@@ -65,7 +68,7 @@ export async function routerSwaps(sut: SystemUnderTest) {
       await weth.connect(treasury).approve(swapRouter.address, wethAmount);
       await (
         await swapRouter.swapExactInput(
-          dex, weth.address, usdc.address, wethAmount, 0, { gasLimit: 1_000_000 }
+          dex, weth.address, usdc.address, wethAmount, usdcAmount, { gasLimit: 1_000_000 }
         )
       ).wait();
 
@@ -79,11 +82,13 @@ export async function routerSwaps(sut: SystemUnderTest) {
       const poolWethDelta = currentPoolWethBalance.sub(oldPoolWethBalance);
       const wethDelta = oldWethBalance.sub(currentWethBalance);
       assert(wethDelta.eq(poolWethDelta));
+      assert(!wethDelta.eq(0));
 
       logger.info(`Checking usdc balances`);
-      const poolUsdcDelta = currentPoolUsdcBalance.sub(oldPoolUsdcBalance);
-      const usdcDelta = oldUsdcBalance.sub(currentUsdcBalance);
+      const poolUsdcDelta = oldPoolUsdcBalance.sub(currentPoolUsdcBalance);
+      const usdcDelta = currentUsdcBalance.sub(oldUsdcBalance);
       assert(usdcDelta.eq(poolUsdcDelta));
+      assert(usdcDelta.gte(usdcAmount));
     }
   }
 }
