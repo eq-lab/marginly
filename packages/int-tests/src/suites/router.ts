@@ -4,6 +4,7 @@ import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
 import { defaultAbiCoder } from 'ethers/lib/utils';
 import { ZERO_ADDRESS } from '../utils/const';
+import { Dex } from '../utils/chain-ops';
 
 export async function routerSwaps(sut: SystemUnderTest) {
   logger.info(`Starting shortIncome test suite`);
@@ -15,15 +16,15 @@ export async function routerSwaps(sut: SystemUnderTest) {
   const wethAmount = parseUnits('0.01', 18);
   const usdcAmount = parseUnits('10', 6);
 
-  for(let dexNumber = 0; dexNumber < 9; ++dexNumber) {
-    const dexPoolAddress = await swapRouter.dexPoolMapping(dexNumber, weth.address, usdc.address);
+  for(const dexInfo of Object.entries(Dex)) {
+    const dexPoolAddress = await swapRouter.dexPoolMapping(dexInfo[1], weth.address, usdc.address);
     if(dexPoolAddress == ZERO_ADDRESS) continue;
-    logger.info(`Testing ${dexNumber} dex`);
+    logger.info(`Testing ${dexInfo[0]} dex`);
 
-    const dex = defaultAbiCoder.encode(['uint'], [dexNumber]);
+    const dex = defaultAbiCoder.encode(['uint'], [dexInfo[1]]);
 
     {
-      logger.info(`Testing swapExactOutput`);
+      logger.info(`  Testing swapExactOutput`);
       const oldWethBalance = currentWethBalance;
       const oldUsdcBalance = currentUsdcBalance;
 
@@ -43,14 +44,14 @@ export async function routerSwaps(sut: SystemUnderTest) {
       const currentPoolWethBalance = await weth.balanceOf(dexPoolAddress);
       const currentPoolUsdcBalance = await usdc.balanceOf(dexPoolAddress);
 
-      logger.info(`Checking weth balances`);
+      logger.info(`    Checking weth balances`);
       const poolWethDelta = currentPoolWethBalance.sub(oldPoolWethBalance);
       const wethDelta = oldWethBalance.sub(currentWethBalance);
       assert(wethDelta.eq(poolWethDelta));
       assert(!wethDelta.eq(0));
       assert(wethDelta.lte(wethAmount));
 
-      logger.info(`Checking usdc balances`);
+      logger.info(`    Checking usdc balances`);
       const poolUsdcDelta = oldPoolUsdcBalance.sub(currentPoolUsdcBalance);
       const usdcDelta = currentUsdcBalance.sub(oldUsdcBalance);
       assert(usdcDelta.eq(poolUsdcDelta));
@@ -58,7 +59,7 @@ export async function routerSwaps(sut: SystemUnderTest) {
     }
 
     {
-      logger.info(`Testing swapExactInput`);
+      logger.info(`  Testing swapExactInput`);
       const oldWethBalance = currentWethBalance;
       const oldUsdcBalance = currentUsdcBalance;
 
@@ -78,13 +79,13 @@ export async function routerSwaps(sut: SystemUnderTest) {
       const currentPoolWethBalance = await weth.balanceOf(dexPoolAddress);
       const currentPoolUsdcBalance = await usdc.balanceOf(dexPoolAddress);
 
-      logger.info(`Checking weth balances`);
+      logger.info(`    Checking weth balances`);
       const poolWethDelta = currentPoolWethBalance.sub(oldPoolWethBalance);
       const wethDelta = oldWethBalance.sub(currentWethBalance);
       assert(wethDelta.eq(poolWethDelta));
       assert(!wethDelta.eq(0));
 
-      logger.info(`Checking usdc balances`);
+      logger.info(`    Checking usdc balances`);
       const poolUsdcDelta = oldPoolUsdcBalance.sub(currentPoolUsdcBalance);
       const usdcDelta = currentUsdcBalance.sub(oldUsdcBalance);
       assert(usdcDelta.eq(poolUsdcDelta));

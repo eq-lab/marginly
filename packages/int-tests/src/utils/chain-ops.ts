@@ -14,8 +14,20 @@ export const PositionType = {
   Long: 3,
 };
 
+export const Dex = {
+  UniswapV3: 0,
+  ApeSwap: 1,
+  Balancer: 2,
+  Camelot: 3,
+  KyberSwap: 4,
+  QuickSwap: 5,
+  SushiSwap: 6,
+  TraderJoe: 7,
+  Woofi: 8,
+};
+
 export function uniswapV3Swapdata() {
-  return defaultAbiCoder.encode(['uint'], [0]);
+  return defaultAbiCoder.encode(['uint'], [Dex.UniswapV3]);
 }
 
 export async function waitBlocks(blocks: number): Promise<void> {
