@@ -30,9 +30,7 @@ contract MarginlyRouter is
   TraderJoeSwap,
   WooFiSwap
 {
-  error UnknownDex();
-
-  constructor(PoolInput[] memory pools) DexPoolMapping(pools) {}
+  constructor(PoolInput[] memory pools, address balancerVault) DexPoolMapping(pools) BalancerSwap(balancerVault) {}
 
   function swapExactInput(
     bytes calldata swapCalldata,

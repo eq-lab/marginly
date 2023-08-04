@@ -23,7 +23,7 @@ struct PoolInput {
 }
 
 abstract contract DexPoolMapping is Ownable {
-  error UnknownPool();
+  error UnknownDex();
 
   mapping(Dex => mapping(address => mapping(address => address))) public dexPoolMapping;
 

@@ -102,7 +102,7 @@ async function initializeTestSystem(
     dex: Dex.Balancer,
     token0: weth.address,
     token1: usdc.address,
-    pool: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+    pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8',
   });
   routerConstructorInput.push({
     dex: Dex.KyberSwap,
@@ -116,7 +116,8 @@ async function initializeTestSystem(
     token1: usdc.address,
     pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0',
   });
-  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
+  const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
+  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, balancerVault, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);

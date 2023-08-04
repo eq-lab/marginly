@@ -20,6 +20,7 @@ import { PromiseOrValue } from '../utils/api-gen';
 export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
     'addPools(tuple[])': utils.FunctionFragment;
+    'balancerVault()': utils.FunctionFragment;
     'dexPoolMapping(uint8,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
@@ -32,6 +33,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | 'addPools'
+      | 'balancerVault'
       | 'dexPoolMapping'
       | 'owner'
       | 'renounceOwnership'
@@ -53,6 +55,7 @@ export interface MarginlyRouterContract extends BaseContract {
     pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+  balancerVault(override?: CallOverrides): Promise<string>;
   dexPoolMapping(
     arg0: PromiseOrValue<BigNumberish>,
     arg1: PromiseOrValue<string>,
@@ -89,6 +92,7 @@ export interface MarginlyRouterContract extends BaseContract {
   ): Promise<ContractTransaction>;
 
   functions: {
+    balancerVault(override?: CallOverrides): Promise<[string]>;
     dexPoolMapping(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
@@ -200,10 +204,11 @@ export interface MarginlyRouterContract extends BaseContract {
 
 export async function deploy(
   pools: { dex: BigNumberish; token0: string; token1: string; pool: string }[],
+  balancerVault: string,
   signer?: Signer
 ): Promise<MarginlyRouterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(pools);
+  const contract = await factory.deploy(pools, balancerVault);
   return (await contract.deployed()) as any;
 }
 

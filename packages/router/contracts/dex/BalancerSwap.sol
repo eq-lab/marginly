@@ -6,6 +6,12 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import './dex.sol';
 
 abstract contract BalancerSwap is DexPoolMapping {
+  address public immutable balancerVault;
+
+  constructor(address _balancerVault) {
+    balancerVault = _balancerVault;
+  }
+
   function balancerSwapExactInput(
     Dex dex,
     address tokenIn,
@@ -13,23 +19,21 @@ abstract contract BalancerSwap is DexPoolMapping {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
+    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     SingleSwap memory swap;
-    // poolRequest.poolId = poolId;
-    swap.poolId = bytes32(0);
+    swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_IN;
     swap.amount = amountIn;
     swap.assetIn = IAsset(tokenIn);
     swap.assetOut = IAsset(tokenOut);
 
     FundManagement memory funds;
-    funds.sender = msg.sender;
+    funds.sender = address(this);
     funds.recipient = payable(msg.sender);
 
-    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut];
-
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
-    TransferHelper.safeApprove(tokenIn, vaultAddress, amountIn);
-    amountOut = IVault(vaultAddress).swap(swap, funds, minAmountOut, block.timestamp);
+    TransferHelper.safeApprove(tokenIn, balancerVault, amountIn);
+    amountOut = IVault(balancerVault).swap(swap, funds, minAmountOut, block.timestamp);
     require(amountOut >= minAmountOut, 'Insufficient amount');
   }
 
@@ -40,9 +44,9 @@ abstract contract BalancerSwap is DexPoolMapping {
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
+    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     SingleSwap memory swap;
-    // poolRequest.poolId = poolId;
-    swap.poolId = bytes32(0);
+    swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_OUT;
     swap.amount = amountOut;
     swap.assetIn = IAsset(tokenIn);
@@ -52,13 +56,11 @@ abstract contract BalancerSwap is DexPoolMapping {
     funds.sender = address(this);
     funds.recipient = payable(msg.sender);
 
-    address vaultAddress = dexPoolMapping[dex][tokenIn][tokenOut];
-
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
-    TransferHelper.safeApprove(tokenIn, vaultAddress, maxAmountIn);
-    amountIn = IVault(vaultAddress).swap(swap, funds, maxAmountIn, block.timestamp);
+    TransferHelper.safeApprove(tokenIn, balancerVault, maxAmountIn);
+    amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
     require(amountIn <= maxAmountIn, 'Too much requested');
-    TransferHelper.safeApprove(tokenIn, vaultAddress, 0);
+    TransferHelper.safeApprove(tokenIn, balancerVault, 0);
     TransferHelper.safeTransfer(tokenIn, msg.sender, maxAmountIn - amountIn);
   }
 }
@@ -95,4 +97,8 @@ interface IVault {
 
 interface IAsset {
   // solhint-disable-previous-line no-empty-blocks
+}
+
+interface IBasePool {
+  function getPoolId() external view returns (bytes32);
 }

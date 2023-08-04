@@ -17,7 +17,10 @@ export async function routerSwaps(sut: SystemUnderTest) {
   const usdcAmount = parseUnits('10', 6);
 
   for (const dexInfo of Object.entries(Dex)) {
-    const dexPoolAddress = await swapRouter.dexPoolMapping(dexInfo[1], weth.address, usdc.address);
+    const dexPoolAddress =
+      dexInfo[0] == 'Balancer'
+        ? await swapRouter.balancerVault()
+        : await swapRouter.dexPoolMapping(dexInfo[1], weth.address, usdc.address);
     if (dexPoolAddress == ZERO_ADDRESS) continue;
     logger.info(`Testing ${dexInfo[0]} dex`);
 
