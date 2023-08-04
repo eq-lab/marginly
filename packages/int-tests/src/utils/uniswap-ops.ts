@@ -173,7 +173,9 @@ export async function changeWethPrice(
     }
 
     await (
-      await swapRouter.connect(treasury).swapExactInput(uniswapV3Swapdata(), tokenIn, tokenOut, amountIn, 0, { gasLimit: 1_000_000 })
+      await swapRouter
+        .connect(treasury)
+        .swapExactInput(uniswapV3Swapdata(), tokenIn, tokenOut, amountIn, 0, { gasLimit: 1_000_000 })
     ).wait();
 
     const { tick } = await uniswap.connect(provider).slot0();

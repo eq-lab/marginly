@@ -16,9 +16,9 @@ export async function routerSwaps(sut: SystemUnderTest) {
   const wethAmount = parseUnits('0.01', 18);
   const usdcAmount = parseUnits('10', 6);
 
-  for(const dexInfo of Object.entries(Dex)) {
+  for (const dexInfo of Object.entries(Dex)) {
     const dexPoolAddress = await swapRouter.dexPoolMapping(dexInfo[1], weth.address, usdc.address);
-    if(dexPoolAddress == ZERO_ADDRESS) continue;
+    if (dexPoolAddress == ZERO_ADDRESS) continue;
     logger.info(`Testing ${dexInfo[0]} dex`);
 
     const dex = defaultAbiCoder.encode(['uint'], [dexInfo[1]]);
@@ -33,9 +33,9 @@ export async function routerSwaps(sut: SystemUnderTest) {
 
       await weth.connect(treasury).approve(swapRouter.address, wethAmount);
       await (
-        await swapRouter.swapExactOutput(
-          dex, weth.address, usdc.address, wethAmount, usdcAmount, { gasLimit: 1_000_000 }
-        )
+        await swapRouter.swapExactOutput(dex, weth.address, usdc.address, wethAmount, usdcAmount, {
+          gasLimit: 1_000_000,
+        })
       ).wait();
 
       currentWethBalance = await weth.balanceOf(treasury.address);
@@ -68,9 +68,9 @@ export async function routerSwaps(sut: SystemUnderTest) {
 
       await weth.connect(treasury).approve(swapRouter.address, wethAmount);
       await (
-        await swapRouter.swapExactInput(
-          dex, weth.address, usdc.address, wethAmount, usdcAmount, { gasLimit: 1_000_000 }
-        )
+        await swapRouter.swapExactInput(dex, weth.address, usdc.address, wethAmount, usdcAmount, {
+          gasLimit: 1_000_000,
+        })
       ).wait();
 
       currentWethBalance = await weth.balanceOf(treasury.address);

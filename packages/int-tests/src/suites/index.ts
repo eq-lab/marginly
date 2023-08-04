@@ -8,7 +8,7 @@ import {
   swapRouterContract,
   nonFungiblePositionManagerContract,
 } from '../utils/known-contracts';
-import { Web3ProviderDecorator } from '../utils/chain-ops';
+import { Dex, Web3ProviderDecorator } from '../utils/chain-ops';
 import MarginlyFactory, { MarginlyFactoryContract } from '../contract-api/MarginlyFactory';
 import MarginlyPool, { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { UniswapV3PoolContract } from '../contract-api/UniswapV3Pool';
@@ -92,10 +92,30 @@ async function initializeTestSystem(
   logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
 
   const routerConstructorInput = [];
-  routerConstructorInput.push({dex: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
-  routerConstructorInput.push({dex: 2, token0: weth.address, token1: usdc.address, pool: '0xBA12222222228d8Ba445958a75a0704d566BF2C8'});
-  routerConstructorInput.push({dex: 4, token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76'});
-  routerConstructorInput.push({dex: 6, token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0'});
+  routerConstructorInput.push({
+    dex: Dex.UniswapV3,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: uniswap.address,
+  });
+  routerConstructorInput.push({
+    dex: Dex.Balancer,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+  });
+  routerConstructorInput.push({
+    dex: Dex.KyberSwap,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76',
+  });
+  routerConstructorInput.push({
+    dex: Dex.SushiSwap,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0',
+  });
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 

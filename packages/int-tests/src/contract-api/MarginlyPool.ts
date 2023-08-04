@@ -151,9 +151,7 @@ export interface MarginlyPoolContract extends BaseContract {
   initialPrice(override?: CallOverrides): Promise<BigNumber>;
   lastReinitTimestampSeconds(override?: CallOverrides): Promise<BigNumber>;
   mode(override?: CallOverrides): Promise<number>;
-  params(
-    override?: CallOverrides
-  ): Promise<{
+  params(override?: CallOverrides): Promise<{
     maxLeverage: number;
     priceSecondsAgo: BigNumber;
     interestRate: BigNumber;
@@ -225,9 +223,7 @@ export interface MarginlyPoolContract extends BaseContract {
     initialPrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumber]>;
     mode(override?: CallOverrides): Promise<[number]>;
-    params(
-      override?: CallOverrides
-    ): Promise<{
+    params(override?: CallOverrides): Promise<{
       maxLeverage: number;
       priceSecondsAgo: BigNumber;
       interestRate: BigNumber;
