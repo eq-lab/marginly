@@ -2,9 +2,12 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './interfaces/IMarginlyRouter.sol';
+import './libraries/SwapsDecoder.sol';
+
 import './dex/dex.sol';
 import './dex/UniswapV3Swap.sol';
 import './dex/UniswapV2Swap.sol';
@@ -33,80 +36,83 @@ contract MarginlyRouter is
   constructor(PoolInput[] memory pools, address balancerVault) DexPoolMapping(pools) BalancerSwap(balancerVault) {}
 
   function swapExactInput(
-    bytes calldata swapCalldata,
+    uint256 swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
-  ) external returns (uint256) {
+  ) external returns (uint256 amountOut) {
     require(amountIn != 0, 'zero amount');
 
-    Dex dex;
-    if (swapCalldata.length == 0) {
-      dex = Dex.UniswapV3;
-    } else {
-      dex = abi.decode(swapCalldata, (Dex));
+    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
+
+    for(uint256 i; i < swapsNumber; ++i){
+      Dex dex = swapInfos[i].dex;
+      uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
+      uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
+
+      if (dex == Dex.UniswapV3) {
+        amountOut += uniswapV3SwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.ApeSwap) {
+        amountOut += apeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.Balancer) {
+        amountOut += balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.KyberSwap) {
+        amountOut += kyberSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.QuickSwap) {
+        amountOut += quickSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.SushiSwap) {
+        amountOut += sushiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.Woofi) {
+        amountOut += wooFiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.TraderJoe) {
+        amountOut += traderJoeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.Camelot) {
+        amountOut += camelotSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else {
+        revert UnknownDex();
+      }
     }
 
-    if (dex == Dex.UniswapV3) {
-      return uniswapV3SwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.ApeSwap) {
-      return apeSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.Balancer) {
-      return balancerSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.KyberSwap) {
-      return kyberSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.QuickSwap) {
-      return quickSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.SushiSwap) {
-      return sushiSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.Woofi) {
-      return wooFiSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.TraderJoe) {
-      return traderJoeSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else if (dex == Dex.Camelot) {
-      return camelotSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
-    } else {
-      revert UnknownDex();
-    }
   }
 
   function swapExactOutput(
-    bytes calldata swapCalldata,
+    uint256 swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
-  ) external returns (uint256) {
+  ) external returns (uint256 amountIn) {
     require(amountOut != 0, 'zero amount');
 
-    Dex dex;
-    if (swapCalldata.length == 0) {
-      dex = Dex.UniswapV3;
-    } else {
-      dex = abi.decode(swapCalldata, (Dex));
-    }
+    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    if (dex == Dex.UniswapV3) {
-      return uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.ApeSwap) {
-      return apeSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.Balancer) {
-      return balancerSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.KyberSwap) {
-      return kyberSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.QuickSwap) {
-      return quickSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.SushiSwap) {
-      return sushiSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.Woofi) {
-      return wooFiSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.TraderJoe) {
-      return traderJoeSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else if (dex == Dex.Camelot) {
-      return camelotSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
-    } else {
-      revert UnknownDex();
+    for(uint256 i; i < swapsNumber; ++i){
+      Dex dex = swapInfos[i].dex;
+      uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
+      uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
+
+      if (dex == Dex.UniswapV3) {
+        amountIn += uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.ApeSwap) {
+        amountIn += apeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.Balancer) {
+        amountIn += balancerSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.KyberSwap) {
+        amountIn += kyberSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.QuickSwap) {
+        amountIn += quickSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.SushiSwap) {
+        amountIn += sushiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.Woofi) {
+        amountIn += wooFiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.TraderJoe) {
+        amountIn += traderJoeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.Camelot) {
+        amountIn += camelotSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else {
+        revert UnknownDex();
+      }
     }
   }
 }

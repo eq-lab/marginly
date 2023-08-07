@@ -1,5 +1,7 @@
 import { BigNumber } from "ethers";
 
+export const SWAP_ONE = 1 << 15;
+
 export const Dex = {
   UniswapV3: 0,
   ApeSwap: 1,

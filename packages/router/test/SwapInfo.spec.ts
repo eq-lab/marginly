@@ -1,9 +1,7 @@
 import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { createTestSwapInfo } from './shared/fixtures';
-import { constructSwap, Dex } from './shared/utils';
-
-const ONE = 1 << 15;
+import { constructSwap, Dex, SWAP_ONE } from './shared/utils';
 
 describe('SwapInfo decoding', () => {
   it('default', async () => {
@@ -19,7 +17,7 @@ describe('SwapInfo decoding', () => {
 
   it('only uniswapV3', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
-    const onlyUniswapV3Swap = constructSwap([Dex.UniswapV3], [ONE]);
+    const onlyUniswapV3Swap = constructSwap([Dex.UniswapV3], [SWAP_ONE]);
     const decodingResult = await swapInfoTest.decodeSwapInfo(onlyUniswapV3Swap);
     expect(decodingResult[1]).to.be.equal(1);
 
@@ -31,8 +29,8 @@ describe('SwapInfo decoding', () => {
   it('split randomly between 2 Dexs', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
 
-    const firstDexRatio = Math.floor(Math.random() * ONE);
-    const secondDexRatio = ONE - firstDexRatio;
+    const firstDexRatio = Math.floor(Math.random() * SWAP_ONE);
+    const secondDexRatio = SWAP_ONE - firstDexRatio;
 
     const dexNumber = Object.entries(Dex).length;
     const firstDex = Math.floor(Math.random() * dexNumber);
@@ -61,11 +59,11 @@ describe('SwapInfo decoding', () => {
   it('Wrong swap ratios', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
 
-    const firstDexRatio = Math.floor(Math.random() * ONE);
+    const firstDexRatio = Math.floor(Math.random() * SWAP_ONE);
     let secondDexRatio;
     do {
-      secondDexRatio = Math.floor(Math.random() * ONE);
-    } while(secondDexRatio === ONE - firstDexRatio);
+      secondDexRatio = Math.floor(Math.random() * SWAP_ONE);
+    } while(secondDexRatio === SWAP_ONE - firstDexRatio);
 
     const dexNumber = Object.entries(Dex).length;
     const firstDex = Math.floor(Math.random() * dexNumber);
@@ -85,8 +83,8 @@ describe('SwapInfo decoding', () => {
   it('Wrong swap ratios', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
 
-    const firstDexRatio = Math.floor(Math.random() * ONE);
-    const secondDexRatio = ONE - firstDexRatio;
+    const firstDexRatio = Math.floor(Math.random() * SWAP_ONE);
+    const secondDexRatio = SWAP_ONE - firstDexRatio;
 
     const dexNumber = Object.entries(Dex).length;
     const firstDex = Math.floor(Math.random() * dexNumber);

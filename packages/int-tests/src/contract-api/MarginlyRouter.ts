@@ -24,8 +24,8 @@ export interface MarginlyRouterInterface extends utils.Interface {
     'dexPoolMapping(uint8,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
-    'swapExactInput(bytes,address,address,uint256,uint256)': utils.FunctionFragment;
-    'swapExactOutput(bytes,address,address,uint256,uint256)': utils.FunctionFragment;
+    'swapExactInput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
+    'swapExactOutput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
     'uniswapV3SwapCallback(int256,int256,bytes)': utils.FunctionFragment;
   };
@@ -65,7 +65,7 @@ export interface MarginlyRouterContract extends BaseContract {
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapExactInput(
-    swapCalldata: PromiseOrValue<BytesLike>,
+    swapCalldata: PromiseOrValue<BigNumberish>,
     tokenIn: PromiseOrValue<string>,
     tokenOut: PromiseOrValue<string>,
     amountIn: PromiseOrValue<BigNumberish>,
@@ -73,7 +73,7 @@ export interface MarginlyRouterContract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   swapExactOutput(
-    swapCalldata: PromiseOrValue<BytesLike>,
+    swapCalldata: PromiseOrValue<BigNumberish>,
     tokenIn: PromiseOrValue<string>,
     tokenOut: PromiseOrValue<string>,
     maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -108,7 +108,7 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<BigNumber>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
@@ -116,7 +116,7 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -141,7 +141,7 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
@@ -149,7 +149,7 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -174,7 +174,7 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<void>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
@@ -182,7 +182,7 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,

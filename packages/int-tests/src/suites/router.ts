@@ -4,7 +4,7 @@ import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
 import { defaultAbiCoder } from 'ethers/lib/utils';
 import { ZERO_ADDRESS } from '../utils/const';
-import { Dex } from '../utils/chain-ops';
+import { constructSwap, Dex, SWAP_ONE } from '../utils/chain-ops';
 
 export async function routerSwaps(sut: SystemUnderTest) {
   logger.info(`Starting shortIncome test suite`);
@@ -24,7 +24,7 @@ export async function routerSwaps(sut: SystemUnderTest) {
     if (dexPoolAddress == ZERO_ADDRESS) continue;
     logger.info(`Testing ${dexInfo[0]} dex`);
 
-    const dex = defaultAbiCoder.encode(['uint'], [dexInfo[1]]);
+    const dex = constructSwap([dexInfo[1]], [SWAP_ONE]);
 
     {
       logger.info(`  Testing swapExactOutput`);

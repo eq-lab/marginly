@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import '../dex/dex.sol';
 
-library Swaps {
+library SwapsDecoder {
   struct SwapInfo {
     Dex dex;
     uint16 swapRatio;
