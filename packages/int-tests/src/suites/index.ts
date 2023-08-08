@@ -35,7 +35,7 @@ import {
   deleveragePrecisionShortReinit,
 } from './deleveragePrecision';
 import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
-import { routerSwaps } from './router';
+import { routerSwaps, routerMultipleSwaps } from './router';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -205,6 +205,7 @@ export async function startSuite(
     balanceSyncWithdrawBase,
     balanceSyncWithdrawQuote,
     routerSwaps,
+    routerMultipleSwaps,
   };
 
   const suite = suits[suitName];
