@@ -52,8 +52,11 @@ export async function createUniswapPool(): Promise<{
   token0: TestERC20;
   token1: TestERC20;
 }> {
-  const token0 = await createToken('Token0', 'TK0');
-  const token1 = await createToken('Token1', 'TK1');
+  const tokenA = await createToken('Token0', 'TKA');
+  const tokenB = await createToken('Token1', 'TKB');
+
+  const token0 = tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB;
+  const token1 = tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenB : tokenA;
 
   const pool = await ethers.getContractFactory('TestUniswapPool');
   return {

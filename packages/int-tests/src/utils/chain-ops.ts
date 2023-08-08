@@ -108,7 +108,7 @@ export async function getLongSortKeyX48(
   const position = await marginlyPool.positions(accountAddress);
   const index = BigNumber.from(position.heapPosition).sub(1);
   logger.debug(`  heap position is ${position.heapPosition}`);
-  const [, leverage] = await marginlyPool.getLongHeapPosition(index);
+  const [, leverage] = await marginlyPool.getHeapPosition(index, false);
   return BigNumber.from(leverage.key);
 }
 
@@ -119,7 +119,7 @@ export async function getShortSortKeyX48(
   const position = await marginlyPool.positions(accountAddress);
   const index = BigNumber.from(position.heapPosition).sub(1);
   logger.debug(`  heap position is ${position.heapPosition}`);
-  const [, leverage] = await marginlyPool.getShortHeapPosition(index);
+  const [, leverage] = await marginlyPool.getHeapPosition(index, true);
   return BigNumber.from(leverage.key);
 }
 

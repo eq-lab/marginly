@@ -35,7 +35,7 @@ describe('MarginlyPool.Liquidation', () => {
       marginlyPool
         .connect(depositor)
         .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address, uniswapV3Swapdata())
-    ).to.be.revertedWith('PI');
+    ).to.be.revertedWithCustomError(marginlyPool, 'PositionInitialized');
   });
 
   it('should revert when position to liquidation not exists', async () => {
@@ -53,7 +53,7 @@ describe('MarginlyPool.Liquidation', () => {
       marginlyPool
         .connect(receiver)
         .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address, uniswapV3Swapdata())
-    ).to.be.revertedWith('NL');
+    ).to.be.revertedWithCustomError(marginlyPool, 'NotLiquidatable');
   });
 
   it('should revert when position to liquidation not liquidatable', async () => {
@@ -80,7 +80,7 @@ describe('MarginlyPool.Liquidation', () => {
       marginlyPool
         .connect(receiver)
         .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address, uniswapV3Swapdata())
-    ).to.be.revertedWith('NL');
+    ).to.be.revertedWithCustomError(marginlyPool, 'NotLiquidatable');
   });
 
   it('should revert when new position after liquidation of short will have bad margin', async () => {
@@ -111,7 +111,7 @@ describe('MarginlyPool.Liquidation', () => {
       marginlyPool
         .connect(receiver)
         .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, shorter.address, uniswapV3Swapdata())
-    ).to.be.revertedWith('MC');
+    ).to.be.revertedWithCustomError(marginlyPool, 'BadLeverage');
   });
 
   it('should revert when new position after liquidation of long will have bad margin', async () => {
@@ -142,7 +142,7 @@ describe('MarginlyPool.Liquidation', () => {
       marginlyPool
         .connect(receiver)
         .execute(CallType.ReceivePosition, quoteAmount, baseAmount, false, longer.address, uniswapV3Swapdata())
-    ).to.be.revertedWith('MC');
+    ).to.be.revertedWithCustomError(marginlyPool, 'BadLeverage');
   });
 
   it('should create new position without debt after short liquidation', async () => {
@@ -536,17 +536,17 @@ describe('mc heap tests', () => {
       .connect(longer3)
       .execute(CallType.DepositBase, depositAmount, 18300, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    expect((await marginlyPool.getLongHeapPosition(0))[1].account).to.be.equal(longer1.address);
-    expect((await marginlyPool.getLongHeapPosition(1))[1].account).to.be.equal(longer2.address);
-    expect((await marginlyPool.getLongHeapPosition(2))[1].account).to.be.equal(longer3.address);
+    expect((await marginlyPool.getHeapPosition(0, false))[1].account).to.be.equal(longer1.address);
+    expect((await marginlyPool.getHeapPosition(1, false))[1].account).to.be.equal(longer2.address);
+    expect((await marginlyPool.getHeapPosition(2, false))[1].account).to.be.equal(longer3.address);
 
     await time.increase(24 * 60 * 60);
 
     // should happen 2 MCs: longer1 as as the one with the worst leverage and longer3 as the caller with bad leverage
     await marginlyPool.connect(longer3).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    expect((await marginlyPool.getLongHeapPosition(0))[1].account).to.be.equal(longer2.address);
-    expect((await marginlyPool.getLongHeapPosition(1))[1].account).to.be.equal(ZERO_ADDRESS);
+    expect((await marginlyPool.getHeapPosition(0, false))[1].account).to.be.equal(longer2.address);
+    expect((await marginlyPool.getHeapPosition(1, false))[1].account).to.be.equal(ZERO_ADDRESS);
   });
 
   it('remove short caller', async () => {
@@ -568,16 +568,16 @@ describe('mc heap tests', () => {
       .connect(shorter3)
       .execute(CallType.DepositQuote, depositAmount, 18300, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    expect((await marginlyPool.getShortHeapPosition(0))[1].account).to.be.equal(shorter1.address);
-    expect((await marginlyPool.getShortHeapPosition(1))[1].account).to.be.equal(shorter2.address);
-    expect((await marginlyPool.getShortHeapPosition(2))[1].account).to.be.equal(shorter3.address);
+    expect((await marginlyPool.getHeapPosition(0, true))[1].account).to.be.equal(shorter1.address);
+    expect((await marginlyPool.getHeapPosition(1, true))[1].account).to.be.equal(shorter2.address);
+    expect((await marginlyPool.getHeapPosition(2, true))[1].account).to.be.equal(shorter3.address);
 
     await time.increase(24 * 60 * 60);
 
     // should happen 2 MCs: shorter1 as the one with the worst leverage and shorter3 as the caller with bad leverage
     await marginlyPool.connect(shorter3).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    expect((await marginlyPool.getShortHeapPosition(0))[1].account).to.be.equal(shorter2.address);
-    expect((await marginlyPool.getShortHeapPosition(1))[1].account).to.be.equal(ZERO_ADDRESS);
+    expect((await marginlyPool.getHeapPosition(0, true))[1].account).to.be.equal(shorter2.address);
+    expect((await marginlyPool.getHeapPosition(1, true))[1].account).to.be.equal(ZERO_ADDRESS);
   });
 });

@@ -128,15 +128,9 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   }
 
   /// @notice Uniswap exchange
-  function exactInputSwap(
-    address swapRouter,
-    address tokenIn,
-    address tokenOut
-  ) private returns (uint256) {
+  function exactInputSwap(address swapRouter, address tokenIn, address tokenOut) private returns (uint256) {
     uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
     IERC20(tokenIn).safeApprove(swapRouter, amountIn);
-
-    return
-      IMarginlyRouter(swapRouter).swapExactInput(0, tokenIn, tokenOut, amountIn, 0);
+    return IMarginlyRouter(swapRouter).swapExactInput(0, tokenIn, tokenOut, amountIn, 0);
   }
 }

@@ -32,10 +32,8 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getCurrentBasePrice()': utils.FunctionFragment;
-    'getLongHeapPosition(uint32)': utils.FunctionFragment;
-    'getShortHeapPosition(uint32)': utils.FunctionFragment;
-    'initialize(address,address,uint24,bool,address,tuple)': utils.FunctionFragment;
-    'initialPrice()': utils.FunctionFragment;
+    'getHeapPosition(uint32,bool)': utils.FunctionFragment;
+    'initialize(address,address,bool,address,tuple)': utils.FunctionFragment;
     'lastReinitTimestampSeconds()': utils.FunctionFragment;
     'mode()': utils.FunctionFragment;
     'params()': utils.FunctionFragment;
@@ -44,14 +42,11 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'quoteDebtCoeff()': utils.FunctionFragment;
     'quoteDelevCoeff()': utils.FunctionFragment;
     'quoteToken()': utils.FunctionFragment;
-    'quoteTokenIsToken0()': utils.FunctionFragment;
     'setParameters(tuple)': utils.FunctionFragment;
     'shutDown()': utils.FunctionFragment;
     'sweepETH()': utils.FunctionFragment;
     'systemLeverage()': utils.FunctionFragment;
-    'uniswapFee()': utils.FunctionFragment;
     'uniswapPool()': utils.FunctionFragment;
-    'unlocked()': utils.FunctionFragment;
   };
 
   getFunction(
@@ -69,10 +64,8 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'factory'
       | 'getBasePrice'
       | 'getCurrentBasePrice'
-      | 'getLongHeapPosition'
-      | 'getShortHeapPosition'
+      | 'getHeapPosition'
       | 'initialize'
-      | 'initialPrice'
       | 'lastReinitTimestampSeconds'
       | 'mode'
       | 'params'
@@ -81,14 +74,11 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'quoteDebtCoeff'
       | 'quoteDelevCoeff'
       | 'quoteToken'
-      | 'quoteTokenIsToken0'
       | 'setParameters'
       | 'shutDown'
       | 'sweepETH'
       | 'systemLeverage'
-      | 'uniswapFee'
       | 'uniswapPool'
-      | 'unlocked'
   ): utils.FunctionFragment;
 }
 
@@ -112,7 +102,7 @@ export interface MarginlyPoolContract extends BaseContract {
     call: BigNumberish,
     amount1: BigNumberish,
     amount2: BigNumberish,
-    unwrapWETH: boolean,
+    flag: boolean,
     receivePositionAddress: string,
     swapCalldata: BigNumberish,
     override?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -120,18 +110,14 @@ export interface MarginlyPoolContract extends BaseContract {
   factory(override?: CallOverrides): Promise<string>;
   getBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
   getCurrentBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
-  getLongHeapPosition(
+  getHeapPosition(
     index: PromiseOrValue<BigNumberish>,
-    override?: CallOverrides
-  ): Promise<[boolean, { key: BigNumber; account: string }]>;
-  getShortHeapPosition(
-    index: PromiseOrValue<BigNumberish>,
+    _short: PromiseOrValue<boolean>,
     override?: CallOverrides
   ): Promise<[boolean, { key: BigNumber; account: string }]>;
   initialize(
     _quoteToken: PromiseOrValue<string>,
     _baseToken: PromiseOrValue<string>,
-    _uniswapFee: PromiseOrValue<BigNumberish>,
     _quoteTokenIsToken0: PromiseOrValue<boolean>,
     _uniswapPool: PromiseOrValue<string>,
     _params: PromiseOrValue<{
@@ -148,7 +134,6 @@ export interface MarginlyPoolContract extends BaseContract {
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  initialPrice(override?: CallOverrides): Promise<BigNumber>;
   lastReinitTimestampSeconds(override?: CallOverrides): Promise<BigNumber>;
   mode(override?: CallOverrides): Promise<number>;
   params(
@@ -178,7 +163,6 @@ export interface MarginlyPoolContract extends BaseContract {
   quoteDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteDelevCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteToken(override?: CallOverrides): Promise<string>;
-  quoteTokenIsToken0(override?: CallOverrides): Promise<boolean>;
   setParameters(
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
@@ -197,9 +181,7 @@ export interface MarginlyPoolContract extends BaseContract {
   shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
-  uniswapFee(override?: CallOverrides): Promise<BigNumber>;
   uniswapPool(override?: CallOverrides): Promise<string>;
-  unlocked(override?: CallOverrides): Promise<boolean>;
 
   functions: {
     baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
@@ -214,15 +196,11 @@ export interface MarginlyPoolContract extends BaseContract {
     factory(override?: CallOverrides): Promise<[string]>;
     getBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
     getCurrentBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
-    getLongHeapPosition(
+    getHeapPosition(
       index: PromiseOrValue<BigNumberish>,
+      _short: PromiseOrValue<boolean>,
       override?: CallOverrides
     ): Promise<[boolean, { key: BigNumber; account: string }]>;
-    getShortHeapPosition(
-      index: PromiseOrValue<BigNumberish>,
-      override?: CallOverrides
-    ): Promise<[boolean, { key: BigNumber; account: string }]>;
-    initialPrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumber]>;
     mode(override?: CallOverrides): Promise<[number]>;
     params(
@@ -252,18 +230,15 @@ export interface MarginlyPoolContract extends BaseContract {
     quoteDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteToken(override?: CallOverrides): Promise<[string]>;
-    quoteTokenIsToken0(override?: CallOverrides): Promise<[boolean]>;
     systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
-    uniswapFee(override?: CallOverrides): Promise<[BigNumber]>;
     uniswapPool(override?: CallOverrides): Promise<[string]>;
-    unlocked(override?: CallOverrides): Promise<[boolean]>;
   };
   estimateGas: {
     execute(
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      unwrapWETH: boolean,
+      flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -271,7 +246,6 @@ export interface MarginlyPoolContract extends BaseContract {
     initialize(
       _quoteToken: PromiseOrValue<string>,
       _baseToken: PromiseOrValue<string>,
-      _uniswapFee: PromiseOrValue<BigNumberish>,
       _quoteTokenIsToken0: PromiseOrValue<boolean>,
       _uniswapPool: PromiseOrValue<string>,
       _params: PromiseOrValue<{
@@ -311,7 +285,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      unwrapWETH: boolean,
+      flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -319,7 +293,6 @@ export interface MarginlyPoolContract extends BaseContract {
     initialize(
       _quoteToken: PromiseOrValue<string>,
       _baseToken: PromiseOrValue<string>,
-      _uniswapFee: PromiseOrValue<BigNumberish>,
       _quoteTokenIsToken0: PromiseOrValue<boolean>,
       _uniswapPool: PromiseOrValue<string>,
       _params: PromiseOrValue<{
@@ -359,7 +332,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      unwrapWETH: boolean,
+      flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -367,7 +340,6 @@ export interface MarginlyPoolContract extends BaseContract {
     initialize(
       _quoteToken: PromiseOrValue<string>,
       _baseToken: PromiseOrValue<string>,
-      _uniswapFee: PromiseOrValue<BigNumberish>,
       _quoteTokenIsToken0: PromiseOrValue<boolean>,
       _uniswapPool: PromiseOrValue<string>,
       _params: PromiseOrValue<{
