@@ -115,7 +115,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param reinitTimestamp timestamp when reinit happened
   event Reinit(uint256 reinitTimestamp);
 
-/// @dev Emitted when balance sync happened
+  /// @dev Emitted when balance sync happened
   event BalanceSync();
 
   /// @dev Initializes the pool

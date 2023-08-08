@@ -827,13 +827,7 @@ contract MarginlyPool is IMarginlyPool {
 
     if (positionHasBadLeverage(position, basePrice)) revert Errors.BadLeverage();
 
-    emit Short(
-      msg.sender,
-      realBaseAmount,
-      swapPriceX96,
-      discountedQuoteChange,
-      discountedBaseDebtChange
-    );
+    emit Short(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteChange, discountedBaseDebtChange);
   }
 
   /// @notice Long with leverage
@@ -1358,7 +1352,7 @@ contract MarginlyPool is IMarginlyPool {
     return IMarginlyFactory(factory).swapRouter();
   }
 
-    /// @dev Calculate swap price in Q96
+  /// @dev Calculate swap price in Q96
   function getSwapPrice(uint256 quoteAmount, uint256 baseAmount) private pure returns (uint256) {
     return Math.mulDiv(quoteAmount, FP96.Q96, baseAmount);
   }
