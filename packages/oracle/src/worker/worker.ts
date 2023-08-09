@@ -1,18 +1,10 @@
-import {
-  CancellationTokenSource,
-  Worker,
-} from '@marginly/common/lifecycle';
+import { CancellationTokenSource, Worker } from '@marginly/common/lifecycle';
 import { Logger } from '@marginly/common/logger';
-import { Executor, sleep } from '@marginly/common/execution';
+import { Executor } from '@marginly/common/execution';
 import { StrictConfig, StrictOracleWorkerConfig, StrictTokenConfig, UniswapV3PoolMockConfig } from '../config';
-import {
-  priceToPriceFp18,
-  priceToSqrtPriceX96,
-
-
-} from '@marginly/common/math';
+import { priceToPriceFp18, priceToSqrtPriceX96 } from '@marginly/common/math';
 import * as ethers from 'ethers';
-import { ContractDescription, EthAddress } from '@marginly/common';
+import { ContractDescription, EthAddress, sleep } from '@marginly/common';
 import { using } from '@marginly/common/resource';
 import { PricesRepository } from '../repository/prices';
 import { BigNumber, Event } from 'ethers';
@@ -36,7 +28,7 @@ type PoolMock = UniswapV3PoolMockConfig & {
   contract: ethers.Contract;
   token0Address: EthAddress;
   token1Address: EthAddress;
-}
+};
 
 export class OracleWorker implements Worker {
   private readonly cancellationTokenSource: CancellationTokenSource;
@@ -49,7 +41,7 @@ export class OracleWorker implements Worker {
   private readonly transientState;
 
   private state?: {
-    workerConfig: StrictOracleWorkerConfig,
+    workerConfig: StrictOracleWorkerConfig;
     lastJobStartTimes: Map<string, bigint>;
     poolMocks: Map<string, PoolMock>;
     tokens: Map<string, Token>;
@@ -62,7 +54,8 @@ export class OracleWorker implements Worker {
     executor: Executor,
     pricesRepository: PricesRepository,
     workerId: string,
-    transientState: string[] = []) {
+    transientState: string[] = []
+  ) {
     this.cancellationTokenSource = new CancellationTokenSource();
 
     this.config = config;
@@ -74,7 +67,7 @@ export class OracleWorker implements Worker {
   }
 
   public requestStop(): void {
-    using(this.logger.scope(this.workerId), logger => {
+    using(this.logger.scope(this.workerId), (logger) => {
       logger.info('Stop requested');
       this.cancellationTokenSource.cancel();
     });
@@ -107,7 +100,7 @@ export class OracleWorker implements Worker {
   }
 
   private isErrorMessageContains(error: unknown, text: string): boolean {
-    const slightlyTypedError = error as { message?: string; };
+    const slightlyTypedError = error as { message?: string };
     if (typeof slightlyTypedError?.message === 'string') {
       return slightlyTypedError.message.match(new RegExp(text, 'i')) !== null;
     }
@@ -148,10 +141,14 @@ export class OracleWorker implements Worker {
         throw new Error(`Price base token ${priceBaseToken.id} is neither token0 nor token1`);
       }
 
-      logger.debug(`For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`);
+      logger.debug(
+        `For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`
+      );
       const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
       const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
-      logger.info(`About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`);
+      logger.info(
+        `About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`
+      );
 
       let tx;
       try {
@@ -216,12 +213,12 @@ export class OracleWorker implements Worker {
   }
 
   public async run(): Promise<void> {
-    await using(this.logger.scope(this.workerId), async logger => {
+    await using(this.logger.scope(this.workerId), async (logger) => {
       logger.info('Starting oracle worker');
 
       const cancellationToken = this.cancellationTokenSource.getToken();
 
-      const workerConfig = this.config.oracleWorkers.find(x => x.id === this.workerId);
+      const workerConfig = this.config.oracleWorkers.find((x) => x.id === this.workerId);
 
       if (workerConfig === undefined) {
         throw new Error(`Worker with id ${this.workerId} not found`);
@@ -249,7 +246,7 @@ export class OracleWorker implements Worker {
       let alreadyValidatedPoolIds: Set<string>;
       if (workerConfig.disableMockValidation) {
         logger.info(`Mock validation is disabled so ignoring transient state if any`);
-        alreadyValidatedPoolIds = new Set(workerConfig.uniswapV3PoolMocks.map(x => x.id));
+        alreadyValidatedPoolIds = new Set(workerConfig.uniswapV3PoolMocks.map((x) => x.id));
       } else {
         if (this.transientState.length > 0) {
           logger.info(`Assuming following mocks are already validated: ${this.transientState.join(', ')}`);
@@ -258,7 +255,11 @@ export class OracleWorker implements Worker {
       }
 
       for (const poolMockConfig of workerConfig.uniswapV3PoolMocks) {
-        const contract = new ethers.Contract(poolMockConfig.address, uniswapV3PoolMockContractDescription.abi, oracleSigner);
+        const contract = new ethers.Contract(
+          poolMockConfig.address,
+          uniswapV3PoolMockContractDescription.abi,
+          oracleSigner
+        );
         const token0 = await contract.token0();
         const token1 = await contract.token1();
         poolMocks.set(poolMockConfig.id, {
@@ -293,9 +294,7 @@ export class OracleWorker implements Worker {
           });
         }
 
-        await sleep(
-          workerConfig.tickMs,
-        );
+        await sleep(workerConfig.tickMs);
       }
     });
   }

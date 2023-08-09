@@ -38,7 +38,8 @@
     "./execution": "./dist/execution.js",
     "./lifecycle": "./dist/lifecycle.js",
     "./math": "./dist/math.js",
-    "./price": "./dist/price.js"
+    "./price": "./dist/price.js",
+    "./utils": "./dist/utils.js"
   },
   "typesVersions": {
     "*": {
@@ -48,7 +49,8 @@
       "execution": ["dist/execution.d.ts"],
       "lifecycle": ["dist/lifecycle.d.ts"],
       "math": ["dist/math.d.ts"],
-      "price": ["dist/price.d.ts"]
+      "price": ["dist/price.d.ts"],
+      "utils": ["dist/utils.d.ts"]
     }
   }
 }
