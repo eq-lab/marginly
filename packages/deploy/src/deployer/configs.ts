@@ -11,9 +11,9 @@ import {
 } from '../config';
 import { adapterWriter, Logger } from '../logger';
 import { createRootLogger, textFormatter } from '@marginly/logger';
-import { timeoutRetry } from '@marginly/common/dist/execution';
-import { CriticalError } from '@marginly/common/dist/error';
-import { createPriceGetter } from '@marginly/common/dist/price';
+import { timeoutRetry } from '@marginly/common/execution';
+import { CriticalError } from '@marginly/common/error';
+import { createPriceGetter } from '@marginly/common/price';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';

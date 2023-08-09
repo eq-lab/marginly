@@ -13,7 +13,7 @@ import {
 } from '../common';
 import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult } from '../common/interfaces';
 import { MarginlyConfigMarginlyPool, MarginlyConfigUniswapPoolGenuine, MarginlyConfigUniswapPoolMock } from './configs';
-import { sortUniswapPoolTokens } from '@marginly/common/dist/math';
+import { sortUniswapPoolTokens } from '@marginly/common/math';
 
 export class MarginlyDeployer implements IMarginlyDeployer {
   private readonly readMarginlyContract;
