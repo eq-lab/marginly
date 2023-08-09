@@ -281,13 +281,13 @@ export const ConnectionSettings: FC<ConnectionProps> = ({
 
 
     const swapRouterAddress = await marginlyFactoryContract.swapRouter();
-    const swapRouterContract = new ethers.Contract(swapRouterAddress, SwapRouter.abi, signerParams.provider);
+    const marginlyRouterContract = new ethers.Contract(swapRouterAddress, SwapRouter.abi, signerParams.provider);
 
     updateContractsParams({
       marginlyFactoryContract,
       marginlyPoolContract,
       uniswapPoolContract,
-      swapRouterContract,
+      marginlyRouterContract,
       quoteTokenContract,
       baseTokenContract,
     });

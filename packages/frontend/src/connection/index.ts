@@ -12,7 +12,7 @@ export type ContractsParams = {
   marginlyFactoryContract: ethers.Contract;
   marginlyPoolContract: ethers.Contract;
   uniswapPoolContract: ethers.Contract;
-  swapRouterContract: ethers.Contract;
+  marginlyRouterContract: ethers.Contract;
   quoteTokenContract: ethers.Contract;
   baseTokenContract: ethers.Contract;
 };

@@ -62,6 +62,34 @@ const signerBaseBalanceState: ContractStateDescription = {
   },
 };
 
+const routerState: ContractStateDescription = {
+  stateName: 'router',
+  valueUnits: 'Address',
+  argsNames: [],
+  fetchValue: async (
+    _contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    return [await contractsContext.marginlyFactoryContract.swapRouter()];
+  },
+};
+
+const techPositionOwnerState: ContractStateDescription = {
+  stateName: 'techPositionOwner',
+  valueUnits: 'Address',
+  argsNames: [],
+  fetchValue: async (
+    _contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    return [await contractsContext.marginlyFactoryContract.techPositionOwner()];
+  },
+};
+
 const feeHolderState: ContractStateDescription = {
   stateName: 'feeHolder',
   valueUnits: 'Address',
@@ -99,24 +127,30 @@ const feeHolderQuoteBalanceState: ContractStateDescription = {
 type MarginlyParams = {
   maxLeverage: number;
   interestRate: BigNumber;
+  fee: BigNumber;
   swapFee: BigNumber;
   priceSecondsAgo: number;
   positionSlippage: BigNumber;
   mcSlippage: BigNumber;
   positionMinAmount: BigNumber;
+  baseLimit: BigNumber;
+  quoteLimit: BigNumber;
 };
 
 async function getMarginlyParams(poolContract: ethers.Contract): Promise<MarginlyParams> {
-  const [maxLeverage, priceSecondsAgo, interestRate, swapFee, positionSlippage, mcSlippage, positionMinAmount] =
+  const [maxLeverage, priceSecondsAgo, interestRate, fee, swapFee, positionSlippage, mcSlippage, positionMinAmount, baseLimit, quoteLimit] =
     await poolContract.params();
   return {
     maxLeverage,
     interestRate,
+    fee,
     swapFee,
     priceSecondsAgo,
     positionSlippage,
     mcSlippage,
     positionMinAmount,
+    baseLimit,
+    quoteLimit
   };
 }
 
@@ -147,6 +181,21 @@ const paramsInterestRateState: ContractStateDescription = {
   ): Promise<string[]> => {
     const params = await getMarginlyParams(contract);
     return [(+params.interestRate / 1e6).toString()];
+  },
+};
+
+const fee: ContractStateDescription = {
+  stateName: 'params.fee',
+  valueUnits: 'Tokens',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const params = await getMarginlyParams(contract);
+    return [(+params.fee / 1e6).toString()];
   },
 };
 
@@ -222,6 +271,42 @@ const paramsMcSlippageState: ContractStateDescription = {
   ): Promise<string[]> => {
     const params = await getMarginlyParams(contract);
     return [(+params.mcSlippage / 1e6).toString()];
+  },
+};
+
+const paramsBaseLimitState: ContractStateDescription = {
+  stateName: 'params.baseLimit',
+  valueUnits: 'Tokens',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const params = await getMarginlyParams(contract);
+    const baseTokenContract = await getBaseTokenContract(contract);
+    const decimals = await baseTokenContract.decimals();
+    const symbol = await baseTokenContract.symbol();
+    return [ethers.utils.formatUnits(params.baseLimit, decimals) + ' ' + symbol];
+  },
+};
+
+const paramsQuoteLimitState: ContractStateDescription = {
+  stateName: 'params.quoteLimit',
+  valueUnits: 'Tokens',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const params = await getMarginlyParams(contract);
+    const quoteTokenContract = await getQuoteTokenContract(contract);
+    const decimals = await quoteTokenContract.decimals();
+    const symbol = await quoteTokenContract.symbol();
+    return [ethers.utils.formatUnits(params.quoteLimit, decimals) + ' ' + symbol];
   },
 };
 
@@ -315,6 +400,21 @@ const baseCollateralCoeffState: ContractStateDescription = {
   },
 };
 
+const baseDelevCoeffState: ContractStateDescription = {
+  stateName: 'baseDelevCoeff',
+  valueUnits: 'decimal',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const baseDelevCoeff = BigNumber.from(await contract.baseDelevCoeff());
+    return [toHumanString(baseDelevCoeff)];
+  },
+};
+
 const baseDebtCoeffState: ContractStateDescription = {
   stateName: 'baseDebtCoeff',
   valueUnits: 'decimal',
@@ -342,6 +442,21 @@ const quoteCollateralCoeffState: ContractStateDescription = {
   ): Promise<string[]> => {
     const quoteCollateralCoeff = BigNumber.from(await contract.quoteCollateralCoeff());
     return [toHumanString(quoteCollateralCoeff)];
+  },
+};
+
+const quoteDelevCoeffState: ContractStateDescription = {
+  stateName: 'quoteDelevCoeff',
+  valueUnits: 'decimal',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const quoteDelevCoeff = BigNumber.from(await contract.quoteDelevCoeff());
+    return [toHumanString(quoteDelevCoeff)];
   },
 };
 
@@ -506,9 +621,69 @@ export const ownerState: ContractStateDescription = {
   },
 };
 
+const calculatedBaseBalanceState: ContractStateDescription = {
+  stateName: 'calculated base balance',
+  valueUnits: 'Tokens',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const baseCollateralCoeff = BigNumber.from(await contract.baseCollateralCoeff());
+    const baseDelevCoeff = BigNumber.from(await contract.baseDelevCoeff());
+    const baseDebtCoeff = BigNumber.from(await contract.baseDebtCoeff());
+
+    const discountedBaseCollateral = BigNumber.from(await contract.discountedBaseCollateral());
+    const discountedBaseDebt = BigNumber.from(await contract.discountedBaseDebt());
+    const discountedQuoteDebt = BigNumber.from(await contract.discountedQuoteDebt());
+
+    const realBaseCollateral = baseCollateralCoeff.mul(discountedBaseCollateral).div(FP96.one).sub(baseDelevCoeff.mul(discountedQuoteDebt).div(FP96.one));
+    const realBaseDebt = baseDebtCoeff.mul(discountedBaseDebt).div(FP96.one);
+    const calculatedBaseBalance = realBaseCollateral.sub(realBaseDebt);
+    
+    const baseTokenContract = await getBaseTokenContract(contract);
+    const decimals = await baseTokenContract.decimals();
+    const symbol = await baseTokenContract.symbol();
+
+    return [ethers.utils.formatUnits(calculatedBaseBalance, decimals) + ' ' + symbol];
+  },
+};
+
+const calculatedQuoteBalanceState: ContractStateDescription = {
+  stateName: 'calculated quote balance state',
+  valueUnits: 'Tokens',
+  argsNames: [],
+  fetchValue: async (
+    contract: ethers.Contract,
+    _signer: ethers.Signer,
+    _args: string[],
+    _contractsContext: ContractsParams
+  ): Promise<string[]> => {
+    const quoteCollateralCoeff = BigNumber.from(await contract.quoteCollateralCoeff());
+    const quoteDelevCoeff = BigNumber.from(await contract.quoteDelevCoeff());
+    const quoteDebtCoeff = BigNumber.from(await contract.quoteDebtCoeff());
+
+    const discountedQuoteCollateral = BigNumber.from(await contract.discountedQuoteCollateral());
+    const discountedQuoteDebt = BigNumber.from(await contract.discountedQuoteDebt());
+    const discountedBaseDebt = BigNumber.from(await contract.discountedBaseDebt());
+
+    const realQuoteCollateral = quoteCollateralCoeff.mul(discountedQuoteCollateral).div(FP96.one).sub(quoteDelevCoeff.mul(discountedBaseDebt).div(FP96.one));
+    const realQuoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt).div(FP96.one);
+    const calculatedQuoteBalance = realQuoteCollateral.sub(realQuoteDebt);
+
+    const quoteTokenContract = await getQuoteTokenContract(contract);
+    const decimals = await quoteTokenContract.decimals();
+    const symbol = await quoteTokenContract.symbol();
+
+    return [ethers.utils.formatUnits(calculatedQuoteBalance, decimals) + ' ' + symbol];
+  },
+};
+
 const poolBaseBalanceState: ContractStateDescription = {
   stateName: 'poolBase balance',
-  valueUnits: '',
+  valueUnits: 'Tokens',
   argsNames: [],
   fetchValue: async (
     contract: ethers.Contract,
@@ -526,7 +701,7 @@ const poolBaseBalanceState: ContractStateDescription = {
 
 const poolQuoteBalanceState: ContractStateDescription = {
   stateName: 'poolQuote balance',
-  valueUnits: '',
+  valueUnits: 'Tokens',
   argsNames: [],
   fetchValue: async (
     contract: ethers.Contract,
@@ -600,8 +775,15 @@ export const marginlyPoolStatesWithoutArgs = [
 
   baseCollateralCoeffState,
   baseDebtCoeffState,
+  baseDelevCoeffState,
   quoteCollateralCoeffState,
+  quoteDelevCoeffState,
   quoteDebtCoeffState,
+
+  calculatedBaseBalanceState,
+  poolBaseBalanceState,
+  calculatedQuoteBalanceState,
+  poolQuoteBalanceState,
 
   systemLeverageShortState,
   systemLeverageLongState,
@@ -613,15 +795,16 @@ export const marginlyPoolStatesWithoutArgs = [
   paramsPositionMinAmountState,
   paramsPositionSlippageState,
   paramsMcSlippageState,
+  paramsBaseLimitState,
+  paramsQuoteLimitState,
 
   basePriceState,
 
+  routerState,
+  techPositionOwnerState,
   feeHolderState,
   feeHolderQuoteBalanceState,
   ownerState,
-
-  poolBaseBalanceState,
-  poolQuoteBalanceState,
 
   workingModeState,
   emergencyWithdrawCoeffState,

@@ -22,7 +22,7 @@ export const CallType = {
 
 const longCall: ContractMethodDescription = {
   methodName: 'long',
-  argsNames: ['base amount'],
+  argsNames: ['base amount', 'swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -31,19 +31,20 @@ const longCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    if (args.length !== 1) {
+    if (args.length !== 2) {
       console.error(`longCall: invalid count of args`);
       return;
     }
     const baseTokenContract = await getBaseTokenContract(contract);
     const decimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
+    const swapCalldata = args[1];
 
     await sendTransaction(
       contract,
       signer,
       'execute',
-      [CallType.Long.toString(), amount.toString(), '0', 'false', ZERO_ADDRESS],
+      [CallType.Long.toString(), amount.toString(), '0', 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice
     );
@@ -52,7 +53,7 @@ const longCall: ContractMethodDescription = {
 
 const shortCall: ContractMethodDescription = {
   methodName: 'short',
-  argsNames: ['base amount'],
+  argsNames: ['base amount', 'swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -69,11 +70,13 @@ const shortCall: ContractMethodDescription = {
     const baseTokenContract = await getBaseTokenContract(contract);
     const decimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
+    const swapCalldata = args[1];
+
     await sendTransaction(
       contract,
       signer,
       'execute',
-      [CallType.Short.toString(), amount.toString(), '0', 'false', ZERO_ADDRESS],
+      [CallType.Short.toString(), amount.toString(), '0', 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice
     );
@@ -82,7 +85,7 @@ const shortCall: ContractMethodDescription = {
 
 const depositBaseNativeCall: ContractMethodDescription = {
   methodName: 'depositBaseETH',
-  argsNames: ['amountETH', 'longAmount'],
+  argsNames: ['amountETH', 'longAmount', 'swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -91,7 +94,7 @@ const depositBaseNativeCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    if (args.length !== 2) {
+    if (args.length !== 3) {
       console.error(`depositBaseCall: invalid count of args`);
       return;
     }
@@ -99,12 +102,13 @@ const depositBaseNativeCall: ContractMethodDescription = {
     const decimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
     const longAmount = ethers.utils.parseUnits(args[1], decimals);
+    const swapCalldata = args[2];
 
     await sendTransaction(
       contract,
       signer,
       'execute',
-      [CallType.DepositBase.toString(), amount.toString(), longAmount.toString(), 'false', ZERO_ADDRESS],
+      [CallType.DepositBase.toString(), amount.toString(), longAmount.toString(), 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice,
       amount.toString()
@@ -114,7 +118,7 @@ const depositBaseNativeCall: ContractMethodDescription = {
 
 const depositBaseCall: ContractMethodDescription = {
   methodName: 'depositBase',
-  argsNames: ['amount', 'longAmount'],
+  argsNames: ['amount', 'longAmount', 'swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -123,7 +127,7 @@ const depositBaseCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    if (args.length !== 2) {
+    if (args.length !== 3) {
       console.error(`depositBaseCall: invalid count of args`);
       return;
     }
@@ -131,6 +135,7 @@ const depositBaseCall: ContractMethodDescription = {
     const decimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
     const longAmount = ethers.utils.parseUnits(args[1], decimals);
+    const swapCalldata = args[2];
     const signerAddress = await signer.getAddress();
     const balance = BigNumber.from(await baseTokenContract.balanceOf(await signer.getAddress()));
     const allowance = BigNumber.from(await baseTokenContract.allowance(signerAddress, contract.address));
@@ -155,7 +160,7 @@ const depositBaseCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.DepositBase.toString(), amount.toString(), longAmount.toString(), 'false', ZERO_ADDRESS],
+      [CallType.DepositBase.toString(), amount.toString(), longAmount.toString(), 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice
     );
@@ -164,7 +169,7 @@ const depositBaseCall: ContractMethodDescription = {
 
 const depositQuoteNativeCall: ContractMethodDescription = {
   methodName: 'depositQuoteETH',
-  argsNames: ['amountETH', 'shortAmount'],
+  argsNames: ['amountETH', 'shortAmount', 'swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -173,7 +178,7 @@ const depositQuoteNativeCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    if (args.length !== 2) {
+    if (args.length !== 3) {
       console.error(`depositQuoteNativeCall: invalid count of args`);
       return;
     }
@@ -183,12 +188,13 @@ const depositQuoteNativeCall: ContractMethodDescription = {
     const baseDecimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
     const shortAmount = ethers.utils.parseUnits(args[1], baseDecimals);
+    const swapCalldata = args[2];
 
     await sendTransaction(
       contract,
       signer,
       'execute',
-      [CallType.DepositQuote.toString(), amount.toString(), shortAmount.toString(), 'false', ZERO_ADDRESS],
+      [CallType.DepositQuote.toString(), amount.toString(), shortAmount.toString(), 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice,
       amount.toString()
@@ -198,7 +204,7 @@ const depositQuoteNativeCall: ContractMethodDescription = {
 
 const depositQuoteCall: ContractMethodDescription = {
   methodName: 'depositQuote',
-  argsNames: ['amount', 'shortAmount'],
+  argsNames: ['amount', 'shortAmount', 'swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -207,7 +213,7 @@ const depositQuoteCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    if (args.length !== 2) {
+    if (args.length !== 3) {
       console.error(`depositQuoteCall: invalid count of args`);
       return;
     }
@@ -217,6 +223,7 @@ const depositQuoteCall: ContractMethodDescription = {
     const baseDecimals = await baseTokenContract.decimals();
     const amount = ethers.utils.parseUnits(args[0], decimals);
     const shortAmount = ethers.utils.parseUnits(args[1], baseDecimals);
+    const swapCalldata = args[2];
     const signerAddress = await signer.getAddress();
     const balance = BigNumber.from(await quoteTokenContract.balanceOf(signerAddress));
     const allowance = BigNumber.from(await quoteTokenContract.allowance(signerAddress, contract.address));
@@ -241,7 +248,7 @@ const depositQuoteCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.DepositQuote.toString(), amount.toString(), shortAmount.toString(), 'false', ZERO_ADDRESS],
+      [CallType.DepositQuote.toString(), amount.toString(), shortAmount.toString(), 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice
     );
@@ -275,7 +282,7 @@ const withdrawQuoteCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.WithdrawQuote.toString(), amount.toString(), '0', unwrapETH.toString(), ZERO_ADDRESS],
+      [CallType.WithdrawQuote.toString(), amount.toString(), '0', unwrapETH.toString(), ZERO_ADDRESS, '0'],
       gasLimit,
       gasPrice
     );
@@ -309,7 +316,7 @@ const withdrawBaseCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.WithdrawBase.toString(), amount.toString(), '0', unwrapETH.toString(), ZERO_ADDRESS],
+      [CallType.WithdrawBase.toString(), amount.toString(), '0', unwrapETH.toString(), ZERO_ADDRESS, '0'],
       gasLimit,
       gasPrice
     );
@@ -318,7 +325,7 @@ const withdrawBaseCall: ContractMethodDescription = {
 
 const closePositionCall: ContractMethodDescription = {
   methodName: 'closePosition',
-  argsNames: [],
+  argsNames: ['swapCalldata'],
   callHandler: async (
     contract: ethers.Contract,
     signer: ethers.Signer,
@@ -327,8 +334,13 @@ const closePositionCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
+    if (args.length !== 1) {
+      console.error(`closePosition: invalid count of args`);
+      return;
+    }
     const signerAddress = await signer.getAddress();
     const position = await getPosition(contract, signerAddress);
+    const swapCalldata = args[0];
 
     if (position.type === PositionType.Uninitialized) {
       console.error(`closePositionCall: position is uninitialized`);
@@ -342,7 +354,7 @@ const closePositionCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.ClosePosition.toString(), '0', '0', 'false', ZERO_ADDRESS],
+      [CallType.ClosePosition.toString(), '0', '0', 'false', ZERO_ADDRESS, swapCalldata],
       gasLimit,
       gasPrice
     );
@@ -364,7 +376,29 @@ const reinitCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.Reinit.toString(), '0', '0', 'false', ZERO_ADDRESS],
+      [CallType.Reinit.toString(), '0', '0', 'false', ZERO_ADDRESS, '0'],
+      gasLimit,
+      gasPrice
+    );
+  },
+};
+
+const reinitWithBalanceSyncCall: ContractMethodDescription = {
+  methodName: 'reinit + sync',
+  argsNames: [],
+  callHandler: async (
+    contract: ethers.Contract,
+    signer: ethers.Signer,
+    args: string[],
+    gasLimit: number,
+    gasPrice: number,
+    _contractsContext: ContractsParams
+  ): Promise<void> => {
+    await sendTransaction(
+      contract,
+      signer,
+      'execute',
+      [CallType.Reinit.toString(), '0', '0', 'true', ZERO_ADDRESS, '0'],
       gasLimit,
       gasPrice
     );
@@ -377,10 +411,13 @@ const setParametersCall: ContractMethodDescription = {
     'maxLeverage',
     'priceSecondsAgo',
     'interestRate',
+    'fee',
     'swapFee',
     'positionSlippage',
     'mcSlippage',
     'positionMinAmount',
+    'baseLimit',
+    'quoteLimit',
   ],
   callHandler: async (
     contract: ethers.Contract,
@@ -390,7 +427,7 @@ const setParametersCall: ContractMethodDescription = {
     gasPrice: number,
     _contractsContext: ContractsParams
   ): Promise<void> => {
-    if (args.length !== 8) {
+    if (args.length !== 10) {
       console.error(`setParametersCall: invalid count of args`);
       return;
     }
@@ -428,7 +465,7 @@ const receivePositionCall: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.ReceivePosition.toString(), quoteAmount.toString(), baseAmount.toString(), 'false', address],
+      [CallType.ReceivePosition.toString(), quoteAmount.toString(), baseAmount.toString(), 'false', address, '0'],
       gasLimit,
       gasPrice
     );
@@ -475,7 +512,7 @@ const emergencyWithdraw: ContractMethodDescription = {
       contract,
       signer,
       'execute',
-      [CallType.EmergencyWithdraw.toString(), '0', '0', 'false', ZERO_ADDRESS],
+      [CallType.EmergencyWithdraw.toString(), '0', '0', 'false', ZERO_ADDRESS, '0'],
       gasLimit,
       gasPrice
     );
@@ -484,6 +521,7 @@ const emergencyWithdraw: ContractMethodDescription = {
 
 export const marginlyPoolMethods = [
   reinitCall,
+  reinitWithBalanceSyncCall,
   depositBaseCall,
   depositQuoteCall,
 

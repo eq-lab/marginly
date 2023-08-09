@@ -17,13 +17,14 @@ import { TabSelector } from './components/TabSelector';
 import { uniswapPoolStatesWithoutArgs } from './contracts/states/uniswap';
 import { uniswapMethods } from './contracts/calls/uniswap';
 import { ethers } from 'ethers';
+import { marginlyRouterMethods } from './contracts/calls/marginly-router';
 
 function App() {
   const [signerParams, setSignerParams] = useState<SignerParams | undefined>(undefined);
   const [contractsParams, setContractsParams] = useState<ContractsParams | undefined>(undefined);
   const [signers, setSigners] = useState<ethers.Signer[]>([]);
 
-  const tabs = ['marginly', 'uniswap', 'erc20', 'deploy', 'settings'];
+  const tabs = ['marginly', 'router', 'uniswap', 'erc20', 'deploy', 'settings'];
   const [selectedTab, setSelectedTab] = useState<string>('settings');
 
   return (
@@ -62,6 +63,20 @@ function App() {
               keysNames={positionsState.argsNames}
               valuesNames={['heapPos', 'type', 'discBase', 'discQuote','realBase','realQuote', 'leverage', 'net']}
             />
+          </div>
+          <div hidden={selectedTab !== 'router'}>
+            <h3>Marginly router methods</h3>
+            {marginlyRouterMethods.map((method) => (
+              <div key={`marginly-router-${method.methodName}-div`}>
+                <Method
+                  key={`marginly-router-${method.methodName}`}
+                  contract={contractsParams?.marginlyRouterContract}
+                  call={method}
+                />
+                <br />
+                <br />
+              </div>
+            ))}
           </div>
           <div hidden={selectedTab !== 'uniswap'}>
             <h3>Uniswap pool methods</h3>

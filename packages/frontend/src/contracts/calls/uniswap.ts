@@ -25,7 +25,7 @@ const changePriceCall: ContractMethodDescription = {
     const {
       baseTokenContract: baseToken,
       quoteTokenContract: quoteToken,
-      swapRouterContract: swapRouter,
+      marginlyRouterContract: swapRouter,
       uniswapPoolContract: uniswap,
     } = contractsContext;
 
