@@ -114,6 +114,7 @@ export interface MarginlyRouterConstructorParam {
 
 export interface MarginlyConfigMarginlyRouter {
   pools: MarginlyRouterConstructorParam[];
+  balancerVaultAddress: string;
 }
 
 export interface MarginlyConfigMarginlyKeeper {
@@ -374,8 +375,14 @@ export class StrictMarginlyDeployConfig {
       );
     }
 
+    if (!EthAddress.isValidAddress(config.router.balancerVault)) {
+      throw new Error(
+        `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
+      );
+    }
     const marginlyRouter: MarginlyConfigMarginlyRouter = {
       pools: routerPools,
+      balancerVaultAddress: config.router.balancerVault,
     };
 
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {

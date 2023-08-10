@@ -14,6 +14,10 @@ export class EthAddress {
     return new EthAddress(ethers.utils.getAddress(str) as `0x${string}`);
   }
 
+  public static isValidAddress(str: string): boolean {
+    return ethers.utils.isAddress(str);
+  }
+
   public toString(): `0x${string}` {
     return this.address;
   }
