@@ -109,7 +109,6 @@ export interface MarginlyDeployConfig {
       dex: Dex;
       tokenAId: string;
       tokenBId: string;
-      fee?: number;
       assertAddress?: string;
     }[];
     balancerVault: string;

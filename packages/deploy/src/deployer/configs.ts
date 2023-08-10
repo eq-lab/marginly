@@ -107,8 +107,8 @@ export interface MarginlyConfigMarginlyPool {
 
 export interface MarginlyRouterConstructorParam {
   dex: Dex;
-  token0Address: string;
-  token1Address: string;
+  token0: MarginlyConfigToken;
+  token1: MarginlyConfigToken;
   poolAddress: string;
 }
 

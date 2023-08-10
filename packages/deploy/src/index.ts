@@ -96,7 +96,7 @@ export async function deployMarginly(
       return tokenRepository;
     });
 
-    const routerPools: MarginlyRouterConstructorParam[] = [];
+    const routerPools: { dex: number, token0: EthAddress, token1: EthAddress, pool: EthAddress }[] = [];
 
     const uniswapFactoryAddress = await using(logger.beginScope('Process uniswap'), async () => {
       if (isMarginlyConfigUniswapGenuine(config.uniswap)) {
@@ -105,9 +105,9 @@ export async function deployMarginly(
           for (const pool of uniswapConfig.pools) {
             routerPools.push({
               dex: Dex.UniswapV3,
-              token0Address: tokenRepository.getTokenInfo(pool.tokenA.id).address.toString(),
-              token1Address: tokenRepository.getTokenInfo(pool.tokenB.id).address.toString(),
-              poolAddress: pool.assertAddress!.toString(),
+              token0: tokenRepository.getTokenInfo(pool.tokenA.id).address,
+              token1: tokenRepository.getTokenInfo(pool.tokenB.id).address,
+              pool: pool.assertAddress!,
             });
             const uniswapPoolDeploymentResult = await marginlyDeployer.getOrCreateUniswapPoolGenuine(
               uniswapConfig.factory,
@@ -133,9 +133,9 @@ export async function deployMarginly(
           );
           routerPools.push({
             dex: Dex.UniswapV3,
-            token0Address: tokenRepository.getTokenInfo(pool.tokenA.id).address.toString(),
-            token1Address: tokenRepository.getTokenInfo(pool.tokenB.id).address.toString(),
-            poolAddress: uniswapPoolDeploymentResult.address,
+            token0: tokenRepository.getTokenInfo(pool.tokenA.id).address,
+            token1: tokenRepository.getTokenInfo(pool.tokenB.id).address,
+            pool: EthAddress.parse(uniswapPoolDeploymentResult.address),
           });
           const { address: tokenAAddress } = tokenRepository.getTokenInfo(pool.tokenA.id);
           const { address: tokenBAddress } = tokenRepository.getTokenInfo(pool.tokenB.id);
@@ -210,13 +210,25 @@ export async function deployMarginly(
       }
     });
 
-    for (const pool of config.marginlyRouter.pools) {
-      // const token0Address = tokenRepository.getTokenInfo(pool.token0Address.id).address.toString();
-      // const token1Address = tokenRepository.getTokenInfo(pool.token1.id).address.toString();
+    const marginlyRouterDeployResult = await using(
+      logger.beginScope('Deploy marginly router'),
+      async () => {
+        for (const pool of config.marginlyRouter.pools) {
+          const token0 = tokenRepository.getTokenInfo(pool.token0.id).address;
+          const token1 = tokenRepository.getTokenInfo(pool.token1.id).address;
+    
+          routerPools.push(
+            { dex: pool.dex, token0: token0, token1: token1, pool: EthAddress.parse(pool.poolAddress) }
+          );
+        }
+        const balancerVault = EthAddress.parse(config.marginlyRouter.balancerVaultAddress);
 
-      routerPools.push(pool);
-    }
-    const marginlyRouterDeployResult = await marginlyDeployer.deployMarginlyRouter(routerPools);
+        const marginlyRouterDeployResult = await marginlyDeployer.deployMarginlyRouter(routerPools, balancerVault);
+        printDeployState('Marginly router', marginlyRouterDeployResult, logger);
+
+        return marginlyRouterDeployResult;
+      }
+    );
 
     const marginlyPoolImplDeployResult = await using(
       logger.beginScope('Deploy marginly pool implementation'),

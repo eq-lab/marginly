@@ -48,7 +48,8 @@ export interface IMarginlyDeployer {
   getAavePoolAddressesProvider(address: EthAddress): ethers.Contract;
   deployMintableToken(name: string, symbol: string, decimals: number): Promise<DeployResult>;
   deployMarginlyRouter(
-    pools: { dex: number; token0Address: string; token1Address: string; poolAddress: string }[]
+    pools: { dex: number; token0: EthAddress; token1: EthAddress; pool: EthAddress }[],
+    balancerVault: EthAddress,
   ): Promise<DeployResult>;
   deployUniswapRouterMock(weth9: MarginlyConfigToken, tokenRepository: ITokenRepository): Promise<DeployResult>;
   deployUniswapPoolMock(

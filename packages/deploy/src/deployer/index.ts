@@ -396,9 +396,13 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   }
 
   public async deployMarginlyRouter(
-    pools: { dex: number; token0Address: string; token1Address: string; poolAddress: string }[]
+    pools: { dex: number; token0: EthAddress; token1: EthAddress; pool: EthAddress }[],
+    balancerVault: EthAddress,
   ): Promise<DeployResult> {
-    const args = pools.map((x) => [x.dex, x.token0Address, x.token1Address, x.poolAddress]);
+    const args = [
+      pools.map((x) => [x.dex, x.token0.toString(), x.token1.toString(), x.pool.toString()]), 
+      balancerVault.toString(),
+    ];
     return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
   }
 
