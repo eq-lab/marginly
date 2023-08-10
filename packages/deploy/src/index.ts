@@ -218,10 +218,10 @@ export async function deployMarginly(
           const token1 = tokenRepository.getTokenInfo(pool.token1.id).address;
     
           routerPools.push(
-            { dex: pool.dex, token0: token0, token1: token1, pool: EthAddress.parse(pool.poolAddress) }
+            { dex: pool.dex, token0: token0, token1: token1, pool: pool.pool }
           );
         }
-        const balancerVault = EthAddress.parse(config.marginlyRouter.balancerVaultAddress);
+        const balancerVault = config.marginlyRouter.balancerVault;
 
         const marginlyRouterDeployResult = await marginlyDeployer.deployMarginlyRouter(routerPools, balancerVault);
         printDeployState('Marginly router', marginlyRouterDeployResult, logger);

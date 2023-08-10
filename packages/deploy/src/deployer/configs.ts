@@ -109,12 +109,12 @@ export interface MarginlyRouterConstructorParam {
   dex: Dex;
   token0: MarginlyConfigToken;
   token1: MarginlyConfigToken;
-  poolAddress: string;
+  pool: EthAddress;
 }
 
 export interface MarginlyConfigMarginlyRouter {
   pools: MarginlyRouterConstructorParam[];
-  balancerVaultAddress: string;
+  balancerVault: EthAddress;
 }
 
 export interface MarginlyConfigMarginlyKeeper {
@@ -382,7 +382,7 @@ export class StrictMarginlyDeployConfig {
     }
     const marginlyRouter: MarginlyConfigMarginlyRouter = {
       pools: routerPools,
-      balancerVaultAddress: config.router.balancerVault,
+      balancerVault: EthAddress.parse(config.router.balancerVault),
     };
 
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
