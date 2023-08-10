@@ -51,7 +51,9 @@ export async function shortIncome(sut: SystemUnderTest) {
     'depositQuote',
     marginlyPool
       .connect(borrower)
-      .execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+      .execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 500_000,
+      })
   );
 
   // we are checking nothing here since it's basically short test with extra step
@@ -60,7 +62,9 @@ export async function shortIncome(sut: SystemUnderTest) {
 
   await gasReporter.saveGasUsage(
     'short',
-    marginlyPool.connect(borrower).execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
+    marginlyPool
+      .connect(borrower)
+      .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
   );
 
   logger.info(`Decreasing WETH price by ~10%`);
@@ -75,7 +79,9 @@ export async function shortIncome(sut: SystemUnderTest) {
   logger.info(`reinit`);
   const reinitReceipt = await gasReporter.saveGasUsage(
     'reinit',
-    marginlyPool.connect(treasury).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+    marginlyPool
+      .connect(treasury)
+      .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
   );
   logger.info(`reinit executed`);
   const marginCallEvent = reinitReceipt.events?.find((e) => e.event == 'EnactMarginCall');
@@ -92,7 +98,9 @@ export async function shortIncome(sut: SystemUnderTest) {
   logger.info(`Closing position`);
   const closePosReceipt = await gasReporter.saveGasUsage(
     'closePosition',
-    marginlyPool.connect(borrower).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+    marginlyPool
+      .connect(borrower)
+      .execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
   );
   const closePosSwapEvent = decodeSwapEvent(closePosReceipt, uniswap.address);
   const swapAmount = closePosSwapEvent.amount0;

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import './MarginlyPool.sol';
+import './libraries/Errors.sol';
 
 contract FullMarginlyPool is MarginlyPool {
   constructor(
@@ -21,7 +22,7 @@ contract FullMarginlyPool is MarginlyPool {
     address _uniswapPool,
     MarginlyParams calldata _params
   ) external override {
-    require(factory == address(0), 'FB'); // Forbidden
+    if (factory != address(0)) revert Errors.Forbidden();
   }
 
   function getParams()

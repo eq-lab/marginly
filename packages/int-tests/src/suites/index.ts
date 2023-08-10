@@ -5,7 +5,6 @@ import { initUsdc, initWeth } from '../utils/erc20-init';
 import {
   uniswapFactoryContract,
   uniswapPoolContract,
-  swapRouterContract,
   nonFungiblePositionManagerContract,
 } from '../utils/known-contracts';
 import { Web3ProviderDecorator } from '../utils/chain-ops';
@@ -13,7 +12,6 @@ import MarginlyFactory, { MarginlyFactoryContract } from '../contract-api/Margin
 import MarginlyPool, { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { UniswapV3PoolContract } from '../contract-api/UniswapV3Pool';
 import { UniswapV3FactoryContract } from '../contract-api/UniswapV3Factory';
-import { SwapRouterContract } from '../contract-api/SwapRouter';
 import { FiatTokenV2_1Contract } from '../contract-api/FiatTokenV2';
 import { WETH9Contract } from '../contract-api/WETH9';
 import { long } from './long';
@@ -28,7 +26,6 @@ import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
-import { ZERO_ADDRESS } from '../utils/const';
 import {
   deleveragePrecisionLong,
   deleveragePrecisionShort,
@@ -37,6 +34,7 @@ import {
   deleveragePrecisionLongReinit,
   deleveragePrecisionShortReinit,
 } from './deleveragePrecision';
+import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -91,7 +89,7 @@ async function initializeTestSystem(
   logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
 
   let routerConstructorInput = [];
-  routerConstructorInput.push({dex: 0, fee: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address});
+  routerConstructorInput.push({ dex: 0, fee: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address });
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
@@ -178,6 +176,9 @@ export async function startSuite(
     deleveragePrecisionShortCollateral,
     deleveragePrecisionLongReinit,
     deleveragePrecisionShortReinit,
+    balanceSync,
+    balanceSyncWithdrawBase,
+    balanceSyncWithdrawQuote,
   };
 
   const suite = suits[suitName];

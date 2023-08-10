@@ -115,6 +115,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param reinitTimestamp timestamp when reinit happened
   event Reinit(uint256 reinitTimestamp);
 
+  /// @dev Emitted when balance sync happened
+  event BalanceSync();
+
   /// @dev Initializes the pool
   function initialize(
     address quoteToken,
@@ -132,11 +135,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @notice Returns the address of associated uniswap pool
   function uniswapPool() external view returns (address pool);
-
-  /// @notice Returns true if the token0 in Uniswap pool is a stable-coin
-  /// @dev It's equivalent of `quoteToken < baseToken` value
-  /// @dev However it's more gas-optimal since requires 1 storage reading instead of 2
-  function quoteTokenIsToken0() external view returns (bool);
 
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);

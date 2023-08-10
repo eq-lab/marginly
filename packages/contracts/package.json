@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "compile": "hardhat compile && ts-node generate-error-codes.ts",
+    "compile": "hardhat compile",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "gas": "hardhat test ./test/gas-costs/*.spec.ts",
     "test:unit": "REPORT_GAS=true hardhat test ./test/*.spec.ts",
