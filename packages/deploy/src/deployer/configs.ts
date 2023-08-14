@@ -376,9 +376,7 @@ export class StrictMarginlyDeployConfig {
     }
 
     if (!EthAddress.isValidAddress(config.router.balancerVault)) {
-      throw new Error(
-        `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
-      );
+      throw new Error(`Config error. You should either provide address of balancerVault`);
     }
     const marginlyRouter: MarginlyConfigMarginlyRouter = {
       pools: routerPools,
