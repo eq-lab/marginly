@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
-import './dex.sol';
-import './UniswapV2Swap.sol';
+import '../Dex.sol';
+import '../UniswapV2LikeSwap.sol';
 
-abstract contract ApeSwap is UniswapV2Swap {
+abstract contract QuickSwap is UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
-  function apeSwapExactInput(
+  function quickSwapExactInput(
     Dex dex,
     address tokenIn,
     address tokenOut,
@@ -18,12 +18,12 @@ abstract contract ApeSwap is UniswapV2Swap {
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-    amountOut = apeSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
+    amountOut = quickSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
     require(amountOut >= minAmountOut, 'Insufficient amount');
-    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
-  function apeSwapExactOutput(
+  function quickSwapExactOutput(
     Dex dex,
     address tokenIn,
     address tokenOut,
@@ -31,33 +31,33 @@ abstract contract ApeSwap is UniswapV2Swap {
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-    amountIn = apeSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
+    amountIn = quickSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
     require(amountIn <= maxAmountIn, 'Too much requested');
-    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
-  function apeSwapGetAmountOut(
+  function quickSwapGetAmountOut(
     address pool,
     uint amountIn,
     address tokenIn,
     address tokenOut
-  ) private view returns (uint amountOut) {
+  ) internal view returns (uint amountOut) {
     (uint reserveIn, uint reserveOut) = getReserves(pool, tokenIn, tokenOut);
-    uint amountInWithFee = amountIn.mul(998);
+    uint amountInWithFee = amountIn.mul(997);
     uint numerator = amountInWithFee.mul(reserveOut);
     uint denominator = reserveIn.mul(1000).add(amountInWithFee);
     amountOut = numerator / denominator;
   }
 
-  function apeSwapGetAmountIn(
+  function quickSwapGetAmountIn(
     address pool,
     uint amountOut,
     address tokenIn,
     address tokenOut
-  ) private view returns (uint amountIn) {
+  ) internal view returns (uint amountIn) {
     (uint reserveIn, uint reserveOut) = getReserves(pool, tokenIn, tokenOut);
     uint numerator = reserveIn.mul(amountOut).mul(1000);
-    uint denominator = reserveOut.sub(amountOut).mul(998);
+    uint denominator = reserveOut.sub(amountOut).mul(997);
     amountIn = (numerator / denominator).add(1);
   }
 }

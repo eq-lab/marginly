@@ -38,7 +38,7 @@ describe('SwapInfo decoding', () => {
 
     do {
       secondDex = Math.floor(Math.random() * dexNumber);
-    } while(secondDex === firstDex);
+    } while (secondDex === firstDex);
 
     console.log([firstDex, secondDex]);
     console.log([firstDexRatio, secondDexRatio]);
@@ -63,7 +63,7 @@ describe('SwapInfo decoding', () => {
     let secondDexRatio;
     do {
       secondDexRatio = Math.floor(Math.random() * SWAP_ONE);
-    } while(secondDexRatio === SWAP_ONE - firstDexRatio);
+    } while (secondDexRatio === SWAP_ONE - firstDexRatio);
 
     const dexNumber = Object.entries(Dex).length;
     const firstDex = Math.floor(Math.random() * dexNumber);
@@ -71,7 +71,7 @@ describe('SwapInfo decoding', () => {
 
     do {
       secondDex = Math.floor(Math.random() * dexNumber);
-    } while(secondDex === firstDex);
+    } while (secondDex === firstDex);
 
     console.log([firstDex, secondDex]);
     console.log([firstDexRatio, secondDexRatio]);
@@ -92,7 +92,7 @@ describe('SwapInfo decoding', () => {
 
     do {
       secondDex = Math.floor(Math.random() * dexNumber);
-    } while(secondDex === firstDex);
+    } while (secondDex === firstDex);
 
     console.log([firstDex, secondDex]);
     console.log([firstDexRatio, secondDexRatio]);

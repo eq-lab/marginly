@@ -8,7 +8,8 @@ enum Dex {
   ApeSwap,
   Balancer,
   Camelot,
-  KyberSwap,
+  KyberClassicSwap,
+  KyberElasticSwap,
   QuickSwap,
   SushiSwap,
   TraderJoe,
@@ -36,7 +37,7 @@ abstract contract DexPoolMapping is Ownable {
     }
   }
 
-  function addPools(PoolInput[] calldata pools) external onlyOwner() {
+  function addPools(PoolInput[] calldata pools) external onlyOwner {
     PoolInput memory input;
     for (uint256 i = 0; i < pools.length; ++i) {
       input = pools[i];

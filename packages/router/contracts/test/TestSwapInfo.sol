@@ -8,4 +8,3 @@ contract TestSwapInfo {
     return SwapsDecoder.decodeSwapInfo(swaps);
   }
 }
-

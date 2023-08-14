@@ -24,6 +24,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
     'dexPoolMapping(uint8,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
+    'swapCallback(int256,int256,bytes)': utils.FunctionFragment;
     'swapExactInput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'swapExactOutput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
@@ -37,6 +38,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
       | 'dexPoolMapping'
       | 'owner'
       | 'renounceOwnership'
+      | 'swapCallback'
       | 'swapExactInput'
       | 'swapExactOutput'
       | 'transferOwnership'
@@ -64,6 +66,12 @@ export interface MarginlyRouterContract extends BaseContract {
   ): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+  swapCallback(
+    deltaQty0: PromiseOrValue<BigNumberish>,
+    deltaQty1: PromiseOrValue<BigNumberish>,
+    data: PromiseOrValue<BytesLike>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   swapExactInput(
     swapCalldata: PromiseOrValue<BigNumberish>,
     tokenIn: PromiseOrValue<string>,
@@ -87,7 +95,7 @@ export interface MarginlyRouterContract extends BaseContract {
   uniswapV3SwapCallback(
     amount0Delta: PromiseOrValue<BigNumberish>,
     amount1Delta: PromiseOrValue<BigNumberish>,
-    _data: PromiseOrValue<BytesLike>,
+    data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -107,6 +115,12 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
+    swapCallback(
+      deltaQty0: PromiseOrValue<BigNumberish>,
+      deltaQty1: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
     swapExactInput(
       swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
@@ -130,7 +144,7 @@ export interface MarginlyRouterContract extends BaseContract {
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -140,6 +154,12 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+    swapCallback(
+      deltaQty0: PromiseOrValue<BigNumberish>,
+      deltaQty1: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
     swapExactInput(
       swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
@@ -163,7 +183,7 @@ export interface MarginlyRouterContract extends BaseContract {
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
@@ -173,6 +193,12 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
+    swapCallback(
+      deltaQty0: PromiseOrValue<BigNumberish>,
+      deltaQty1: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
     swapExactInput(
       swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
@@ -196,7 +222,7 @@ export interface MarginlyRouterContract extends BaseContract {
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
   };

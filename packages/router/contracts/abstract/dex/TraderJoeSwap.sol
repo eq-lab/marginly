@@ -4,10 +4,10 @@ pragma solidity ^0.8.0;
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
-import './dex.sol';
-import './UniswapV2Swap.sol';
+import '../Dex.sol';
+import '../UniswapV2LikeSwap.sol';
 
-abstract contract TraderJoeSwap is UniswapV2Swap {
+abstract contract TraderJoeSwap is UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
   function traderJoeSwapExactInput(
@@ -20,7 +20,7 @@ abstract contract TraderJoeSwap is UniswapV2Swap {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     amountOut = traderJoeSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
     require(amountOut >= minAmountOut, 'Insufficient amount');
-    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
   function traderJoeSwapExactOutput(
@@ -33,7 +33,7 @@ abstract contract TraderJoeSwap is UniswapV2Swap {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     amountIn = traderJoeSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
     require(amountIn <= maxAmountIn, 'Too much requested');
-    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
   function traderJoeSwapGetAmountOut(

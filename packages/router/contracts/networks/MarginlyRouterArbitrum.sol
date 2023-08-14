@@ -8,15 +8,14 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '../interfaces/IMarginlyRouter.sol';
 import '../libraries/SwapsDecoder.sol';
 
-import '../dex/dex.sol';
-import '../dex/UniswapV3Swap.sol';
-import '../dex/UniswapV2Swap.sol';
-import '../dex/ApeSwap.sol';
-import '../dex/BalancerSwap.sol';
-import '../dex/CamelotSwap.sol';
-import '../dex/KyberSwap.sol';
-import '../dex/TraderJoeSwap.sol';
-import '../dex/WoofiSwap.sol';
+import '../abstract/Dex.sol';
+import '../abstract/dex/UniswapV3Swap.sol';
+import '../abstract/dex/ApeSwap.sol';
+import '../abstract/dex/BalancerSwap.sol';
+import '../abstract/dex/CamelotSwap.sol';
+import '../abstract/dex/KyberElasticSwap.sol';
+import '../abstract/dex/TraderJoeSwap.sol';
+import '../abstract/dex/WoofiSwap.sol';
 
 contract MarginlyRouterArbitrum is
   IMarginlyRouter,
@@ -25,7 +24,7 @@ contract MarginlyRouterArbitrum is
   ApeSwap,
   BalancerSwap,
   CamelotSwap,
-  KyberSwap,
+  KyberElasticSwap,
   TraderJoeSwap,
   WooFiSwap
 {
@@ -42,7 +41,7 @@ contract MarginlyRouterArbitrum is
 
     (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    for(uint256 i; i < swapsNumber; ++i){
+    for (uint256 i; i < swapsNumber; ++i) {
       Dex dex = swapInfos[i].dex;
       uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
@@ -53,8 +52,8 @@ contract MarginlyRouterArbitrum is
         amountOut += apeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Balancer) {
         amountOut += balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
-      } else if (dex == Dex.KyberSwap) {
-        amountOut += kyberSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.KyberElasticSwap) {
+        amountOut += kyberElasticSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Woofi) {
         amountOut += wooFiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.TraderJoe) {
@@ -65,7 +64,6 @@ contract MarginlyRouterArbitrum is
         revert UnknownDex();
       }
     }
-
   }
 
   function swapExactOutput(
@@ -79,7 +77,7 @@ contract MarginlyRouterArbitrum is
 
     (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    for(uint256 i; i < swapsNumber; ++i){
+    for (uint256 i; i < swapsNumber; ++i) {
       Dex dex = swapInfos[i].dex;
       uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
@@ -90,8 +88,8 @@ contract MarginlyRouterArbitrum is
         amountIn += apeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Balancer) {
         amountIn += balancerSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
-      } else if (dex == Dex.KyberSwap) {
-        amountIn += kyberSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.KyberElasticSwap) {
+        amountIn += kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Woofi) {
         amountIn += wooFiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.TraderJoe) {

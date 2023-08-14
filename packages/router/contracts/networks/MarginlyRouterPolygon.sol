@@ -8,15 +8,15 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '../interfaces/IMarginlyRouter.sol';
 import '../libraries/SwapsDecoder.sol';
 
-import '../dex/dex.sol';
-import '../dex/UniswapV3Swap.sol';
-import '../dex/UniswapV2Swap.sol';
-import '../dex/ApeSwap.sol';
-import '../dex/BalancerSwap.sol';
-import '../dex/KyberSwap.sol';
-import '../dex/SushiSwap.sol';
-import '../dex/QuickSwap.sol';
-import '../dex/WoofiSwap.sol';
+import '../abstract/Dex.sol';
+import '../abstract/dex/UniswapV3Swap.sol';
+import '../abstract/dex/ApeSwap.sol';
+import '../abstract/dex/BalancerSwap.sol';
+import '../abstract/dex/KyberClassicSwap.sol';
+import '../abstract/dex/KyberElasticSwap.sol';
+import '../abstract/dex/SushiSwap.sol';
+import '../abstract/dex/QuickSwap.sol';
+import '../abstract/dex/WoofiSwap.sol';
 
 contract MarginlyRouterPolygon is
   IMarginlyRouter,
@@ -24,7 +24,8 @@ contract MarginlyRouterPolygon is
   UniswapV3Swap,
   ApeSwap,
   BalancerSwap,
-  KyberSwap,
+  KyberClassicSwap,
+  KyberElasticSwap,
   QuickSwap,
   SushiSwap,
   WooFiSwap
@@ -42,7 +43,7 @@ contract MarginlyRouterPolygon is
 
     (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    for(uint256 i; i < swapsNumber; ++i){
+    for (uint256 i; i < swapsNumber; ++i) {
       Dex dex = swapInfos[i].dex;
       uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
@@ -53,8 +54,10 @@ contract MarginlyRouterPolygon is
         amountOut += apeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Balancer) {
         amountOut += balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
-      } else if (dex == Dex.KyberSwap) {
-        amountOut += kyberSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.KyberClassicSwap) {
+        amountOut += kyberClassicSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.KyberElasticSwap) {
+        amountOut += kyberElasticSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.QuickSwap) {
         amountOut += quickSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.SushiSwap) {
@@ -65,7 +68,6 @@ contract MarginlyRouterPolygon is
         revert UnknownDex();
       }
     }
-
   }
 
   function swapExactOutput(
@@ -79,7 +81,7 @@ contract MarginlyRouterPolygon is
 
     (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    for(uint256 i; i < swapsNumber; ++i){
+    for (uint256 i; i < swapsNumber; ++i) {
       Dex dex = swapInfos[i].dex;
       uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
@@ -90,8 +92,10 @@ contract MarginlyRouterPolygon is
         amountIn += apeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Balancer) {
         amountIn += balancerSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
-      } else if (dex == Dex.KyberSwap) {
-        amountIn += kyberSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.KyberClassicSwap) {
+        amountIn += kyberClassicSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.KyberElasticSwap) {
+        amountIn += kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.QuickSwap) {
         amountIn += quickSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.SushiSwap) {

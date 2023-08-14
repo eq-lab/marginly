@@ -8,17 +8,17 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import './interfaces/IMarginlyRouter.sol';
 import './libraries/SwapsDecoder.sol';
 
-import './dex/dex.sol';
-import './dex/UniswapV3Swap.sol';
-import './dex/UniswapV2Swap.sol';
-import './dex/ApeSwap.sol';
-import './dex/BalancerSwap.sol';
-import './dex/CamelotSwap.sol';
-import './dex/KyberSwap.sol';
-import './dex/SushiSwap.sol';
-import './dex/QuickSwap.sol';
-import './dex/TraderJoeSwap.sol';
-import './dex/WoofiSwap.sol';
+import './abstract/Dex.sol';
+import './abstract/dex/UniswapV3Swap.sol';
+import './abstract/dex/ApeSwap.sol';
+import './abstract/dex/BalancerSwap.sol';
+import './abstract/dex/CamelotSwap.sol';
+import './abstract/dex/KyberClassicSwap.sol';
+import './abstract/dex/KyberElasticSwap.sol';
+import './abstract/dex/SushiSwap.sol';
+import './abstract/dex/QuickSwap.sol';
+import './abstract/dex/TraderJoeSwap.sol';
+import './abstract/dex/WoofiSwap.sol';
 
 contract MarginlyRouter is
   IMarginlyRouter,
@@ -27,7 +27,8 @@ contract MarginlyRouter is
   ApeSwap,
   BalancerSwap,
   CamelotSwap,
-  KyberSwap,
+  KyberClassicSwap,
+  KyberElasticSwap,
   QuickSwap,
   SushiSwap,
   TraderJoeSwap,
@@ -46,7 +47,7 @@ contract MarginlyRouter is
 
     (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    for(uint256 i; i < swapsNumber; ++i){
+    for (uint256 i; i < swapsNumber; ++i) {
       Dex dex = swapInfos[i].dex;
       uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
@@ -57,8 +58,10 @@ contract MarginlyRouter is
         amountOut += apeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Balancer) {
         amountOut += balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
-      } else if (dex == Dex.KyberSwap) {
-        amountOut += kyberSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      } else if (dex == Dex.KyberClassicSwap) {
+        amountOut += kyberClassicSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
+      } else if (dex == Dex.KyberElasticSwap) {
+        amountOut += kyberElasticSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.QuickSwap) {
         amountOut += quickSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.SushiSwap) {
@@ -73,7 +76,6 @@ contract MarginlyRouter is
         revert UnknownDex();
       }
     }
-
   }
 
   function swapExactOutput(
@@ -87,7 +89,7 @@ contract MarginlyRouter is
 
     (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
 
-    for(uint256 i; i < swapsNumber; ++i){
+    for (uint256 i; i < swapsNumber; ++i) {
       Dex dex = swapInfos[i].dex;
       uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
@@ -98,8 +100,10 @@ contract MarginlyRouter is
         amountIn += apeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Balancer) {
         amountIn += balancerSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
-      } else if (dex == Dex.KyberSwap) {
-        amountIn += kyberSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.KyberClassicSwap) {
+        amountIn += kyberClassicSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      } else if (dex == Dex.KyberElasticSwap) {
+        amountIn += kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
       } else if (dex == Dex.QuickSwap) {
         amountIn += quickSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.SushiSwap) {

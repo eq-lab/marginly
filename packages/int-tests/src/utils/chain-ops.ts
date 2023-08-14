@@ -19,11 +19,12 @@ export const Dex = {
   ApeSwap: 1,
   Balancer: 2,
   Camelot: 3,
-  KyberSwap: 4,
-  QuickSwap: 5,
-  SushiSwap: 6,
-  TraderJoe: 7,
-  Woofi: 8,
+  KyberClassicSwap: 4,
+  KyberElasticSwap: 5,
+  QuickSwap: 6,
+  SushiSwap: 7,
+  TraderJoe: 8,
+  Woofi: 9,
 };
 
 export const SWAP_ONE = 1 << 15;

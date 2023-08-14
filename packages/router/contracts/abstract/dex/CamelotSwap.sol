@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
-import './dex.sol';
-import './UniswapV2Swap.sol';
+import '../Dex.sol';
+import '../UniswapV2LikeSwap.sol';
 
-abstract contract SushiSwap is UniswapV2Swap {
+abstract contract CamelotSwap is UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
-  function sushiSwapExactInput(
+  function camelotSwapExactInput(
     Dex dex,
     address tokenIn,
     address tokenOut,
@@ -18,12 +18,12 @@ abstract contract SushiSwap is UniswapV2Swap {
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-    amountOut = sushiSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
+    amountOut = camelotSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
     require(amountOut >= minAmountOut, 'Insufficient amount');
-    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
-  function sushiSwapExactOutput(
+  function camelotSwapExactOutput(
     Dex dex,
     address tokenIn,
     address tokenOut,
@@ -31,33 +31,41 @@ abstract contract SushiSwap is UniswapV2Swap {
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
-    amountIn = sushiSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
+    amountIn = camelotSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
     require(amountIn <= maxAmountIn, 'Too much requested');
-    uniswapV2Swap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
-  function sushiSwapGetAmountOut(
+  function camelotSwapGetAmountOut(
     address pool,
     uint amountIn,
     address tokenIn,
     address tokenOut
   ) internal view returns (uint amountOut) {
     (uint reserveIn, uint reserveOut) = getReserves(pool, tokenIn, tokenOut);
-    uint amountInWithFee = amountIn.mul(997);
+    uint16 fee = tokenIn < tokenOut ? ICamelotPair(pool).token0FeePercent() : ICamelotPair(pool).token1FeePercent();
+    uint amountInWithFee = amountIn.mul(fee);
     uint numerator = amountInWithFee.mul(reserveOut);
-    uint denominator = reserveIn.mul(1000).add(amountInWithFee);
+    uint denominator = reserveIn.mul(100000).add(amountInWithFee);
     amountOut = numerator / denominator;
   }
 
-  function sushiSwapGetAmountIn(
+  function camelotSwapGetAmountIn(
     address pool,
     uint amountOut,
     address tokenIn,
     address tokenOut
   ) internal view returns (uint amountIn) {
     (uint reserveIn, uint reserveOut) = getReserves(pool, tokenIn, tokenOut);
-    uint numerator = reserveIn.mul(amountOut).mul(1000);
-    uint denominator = reserveOut.sub(amountOut).mul(997);
+    uint numerator = reserveIn.mul(amountOut).mul(100000);
+    uint16 fee = tokenIn < tokenOut ? ICamelotPair(pool).token0FeePercent() : ICamelotPair(pool).token1FeePercent();
+    uint denominator = reserveOut.sub(amountOut).mul(fee);
     amountIn = (numerator / denominator).add(1);
   }
+}
+
+interface ICamelotPair {
+  function token0FeePercent() external view returns (uint16);
+
+  function token1FeePercent() external view returns (uint16);
 }

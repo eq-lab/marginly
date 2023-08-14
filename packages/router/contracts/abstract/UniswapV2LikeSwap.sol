@@ -7,18 +7,12 @@ import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
-import './dex.sol';
+import './Dex.sol';
 
-struct UniswapSwapV2CallbackData {
-  Dex dex;
-  address tokenIn;
-  address tokenOut;
-}
-
-abstract contract UniswapV2Swap is DexPoolMapping {
+abstract contract UniswapV2LikeSwap is DexPoolMapping {
   using LowGasSafeMath for uint256;
 
-  function uniswapV2Swap(
+  function uniswapV2LikeSwap(
     address pool,
     address tokenIn,
     address tokenOut,
