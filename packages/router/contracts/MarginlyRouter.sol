@@ -36,6 +36,7 @@ contract MarginlyRouter is
 {
   constructor(PoolInput[] memory pools, address balancerVault) DexPoolMapping(pools) BalancerSwap(balancerVault) {}
 
+  /// @inheritdoc IMarginlyRouter
   function swapExactInput(
     uint256 swapCalldata,
     address tokenIn,
@@ -52,32 +53,36 @@ contract MarginlyRouter is
       uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
 
+      uint256 dexAmountOut;
       if (dex == Dex.UniswapV3) {
-        amountOut += uniswapV3SwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = uniswapV3SwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.ApeSwap) {
-        amountOut += apeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = apeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Balancer) {
-        amountOut += balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.KyberClassicSwap) {
-        amountOut += kyberClassicSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = kyberClassicSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.KyberElasticSwap) {
-        amountOut += kyberElasticSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = kyberElasticSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.QuickSwap) {
-        amountOut += quickSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = quickSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.SushiSwap) {
-        amountOut += sushiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = sushiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Woofi) {
-        amountOut += wooFiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = wooFiSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.TraderJoe) {
-        amountOut += traderJoeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = traderJoeSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.Camelot) {
-        amountOut += camelotSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+        dexAmountOut = camelotSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else {
         revert UnknownDex();
       }
+      amountOut += dexAmountOut;
+      emit Swap(true, dex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
   }
 
+  /// @inheritdoc IMarginlyRouter
   function swapExactOutput(
     uint256 swapCalldata,
     address tokenIn,
@@ -94,30 +99,34 @@ contract MarginlyRouter is
       uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
 
+      uint256 dexAmountIn;
       if (dex == Dex.UniswapV3) {
-        amountIn += uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = uniswapV3SwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.ApeSwap) {
-        amountIn += apeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = apeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Balancer) {
-        amountIn += balancerSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = balancerSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.KyberClassicSwap) {
-        amountIn += kyberClassicSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = kyberClassicSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.KyberElasticSwap) {
-        amountIn += kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.QuickSwap) {
-        amountIn += quickSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = quickSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.SushiSwap) {
-        amountIn += sushiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = sushiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Woofi) {
         // woofi pools don't support exactOutput swaps
         revert NotSupported();
       } else if (dex == Dex.TraderJoe) {
-        amountIn += traderJoeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = traderJoeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Camelot) {
-        amountIn += camelotSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        dexAmountIn = camelotSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else {
         revert UnknownDex();
       }
+
+      amountIn += dexAmountIn;
+      emit Swap(false, dex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
   }
 }
