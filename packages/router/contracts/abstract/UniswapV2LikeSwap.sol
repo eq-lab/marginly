@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
 import './Dex.sol';
 
 abstract contract UniswapV2LikeSwap is DexPoolMapping {
-  using LowGasSafeMath for uint256;
 
   function uniswapV2LikeSwap(
     address pool,

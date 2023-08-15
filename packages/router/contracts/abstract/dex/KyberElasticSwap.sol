@@ -18,7 +18,7 @@ abstract contract KyberElasticSwap is UniswapV3LikeSwap, SwapCallback {
     CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 
     (, amountOut) = uniswapV3LikeSwap(poolAddress, zeroForOne, int256(amountIn), data);
-    require(amountOut >= minAmountOut, 'Insufficient amount');
+    if(amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function kyberElasticSwapExactOutput(
@@ -37,7 +37,7 @@ abstract contract KyberElasticSwap is UniswapV3LikeSwap, SwapCallback {
     uint256 amountOutReceived;
     (amountIn, amountOutReceived) = uniswapV3LikeSwap(poolAddress, zeroForOne, -int256(amountOut), data);
     require(amountOutReceived == amountOut);
-    require(amountIn <= maxAmountIn, 'Too much requested');
+    if(amountIn > maxAmountIn) revert TooMuchRequested();
   }
 
   function swapCallback(int256 deltaQty0, int256 deltaQty1, bytes calldata data) external {

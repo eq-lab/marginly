@@ -19,7 +19,7 @@ abstract contract SushiSwap is UniswapV2LikeSwap {
   ) internal returns (uint256 amountOut) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     amountOut = sushiSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
-    require(amountOut >= minAmountOut, 'Insufficient amount');
+    if(amountOut < minAmountOut) revert InsufficientAmount();
     uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
@@ -32,7 +32,7 @@ abstract contract SushiSwap is UniswapV2LikeSwap {
   ) internal returns (uint256 amountIn) {
     address pool = dexPoolMapping[dex][tokenIn][tokenOut];
     amountIn = sushiSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
-    require(amountIn <= maxAmountIn, 'Too much requested');
+    if(amountIn > maxAmountIn) revert TooMuchRequested();
     uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 

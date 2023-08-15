@@ -25,6 +25,9 @@ struct PoolInput {
 
 abstract contract DexPoolMapping is Ownable {
   error UnknownDex();
+  error UnknownPool();
+  error InsufficientAmount();
+  error TooMuchRequested();
 
   mapping(Dex => mapping(address => mapping(address => address))) public dexPoolMapping;
 
@@ -44,5 +47,10 @@ abstract contract DexPoolMapping is Ownable {
       dexPoolMapping[input.dex][input.token0][input.token1] = input.pool;
       dexPoolMapping[input.dex][input.token1][input.token0] = input.pool;
     }
+  }
+
+  function getPool(Dex dex, address tokenA, address tokenB) private view returns(address pool) {
+    pool = dexPoolMapping[dex][tokenA][tokenB];
+    if(pool == address(0)) revert UnknownPool();
   }
 }

@@ -80,7 +80,7 @@ describe('SwapInfo decoding', () => {
     expect(swapInfoTest.decodeSwapInfo(swap)).to.be.revertedWithCustomError(swapInfoTest, 'WrongSwapRatios');
   });
 
-  it('Wrong swap ratios', async () => {
+  it('Wrong swaps number', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
 
     const firstDexRatio = Math.floor(Math.random() * SWAP_ONE);

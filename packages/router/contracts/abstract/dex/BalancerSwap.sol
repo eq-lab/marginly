@@ -34,7 +34,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
     TransferHelper.safeApprove(tokenIn, balancerVault, amountIn);
     amountOut = IVault(balancerVault).swap(swap, funds, minAmountOut, block.timestamp);
-    require(amountOut >= minAmountOut, 'Insufficient amount');
+    if(amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function balancerSwapExactOutput(
@@ -59,7 +59,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
     TransferHelper.safeApprove(tokenIn, balancerVault, maxAmountIn);
     amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
-    require(amountIn <= maxAmountIn, 'Too much requested');
+    if(amountIn > maxAmountIn) revert TooMuchRequested();
     TransferHelper.safeApprove(tokenIn, balancerVault, 0);
     TransferHelper.safeTransfer(tokenIn, msg.sender, maxAmountIn - amountIn);
   }

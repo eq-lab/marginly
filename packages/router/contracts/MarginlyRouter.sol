@@ -59,7 +59,7 @@ contract MarginlyRouter is
       } else if (dex == Dex.Balancer) {
         amountOut += balancerSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.KyberClassicSwap) {
-        amountOut += kyberClassicSwapExactInput(dex, tokenIn, tokenOut, amountIn, minAmountOut);
+        amountOut += kyberClassicSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.KyberElasticSwap) {
         amountOut += kyberElasticSwapExactInput(dex, tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
       } else if (dex == Dex.QuickSwap) {
@@ -103,13 +103,14 @@ contract MarginlyRouter is
       } else if (dex == Dex.KyberClassicSwap) {
         amountIn += kyberClassicSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.KyberElasticSwap) {
-        amountIn += kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, maxAmountIn, amountOut);
+        amountIn += kyberElasticSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.QuickSwap) {
         amountIn += quickSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.SushiSwap) {
         amountIn += sushiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Woofi) {
-        amountIn += wooFiSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        // woofi pools don't support exactOutput swaps
+        revert NotSupported();
       } else if (dex == Dex.TraderJoe) {
         amountIn += traderJoeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Camelot) {

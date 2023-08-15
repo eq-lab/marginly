@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 
 import './Dex.sol';
 import './SwapCallback.sol';

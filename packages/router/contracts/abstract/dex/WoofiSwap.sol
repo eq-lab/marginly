@@ -6,6 +6,8 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '../Dex.sol';
 
 abstract contract WooFiSwap is DexPoolMapping {
+  error NotSupported();
+
   function wooFiSwapExactInput(
     Dex dex,
     address tokenIn,
@@ -18,28 +20,11 @@ abstract contract WooFiSwap is DexPoolMapping {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
     amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));
 
-    require(amountOut >= minAmountOut, 'Insufficient amount');
-  }
-
-  function wooFiSwapExactOutput(
-    Dex dex,
-    address tokenIn,
-    address tokenOut,
-    uint256 maxAmountIn,
-    uint256 amountOut
-  ) internal returns (uint256 amountIn) {
-    IWooPoolV2 wooPool = IWooPoolV2(dexPoolMapping[dex][tokenIn][tokenOut]);
-
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), maxAmountIn);
-    uint256 actualAmountOut = wooPool.swap(tokenIn, tokenOut, maxAmountIn, amountOut, msg.sender, address(0));
-    require(actualAmountOut >= amountOut, 'Too much requested');
-    amountIn = maxAmountIn;
+    if(amountOut < minAmountOut) revert InsufficientAmount();
   }
 }
 
 interface IWooPoolV2 {
-  function query(address fromToken, address toToken, uint256 fromAmount) external view returns (uint256 toAmount);
-
   function swap(
     address fromToken,
     address toToken,
