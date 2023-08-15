@@ -793,10 +793,9 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
 
-    if (
-      position._type != PositionType.Short &&
-      !(position._type == PositionType.Lend && position.discountedBaseAmount == 0)
-    ) revert Errors.WrongPositionType();
+    PositionType _type = position._type;
+    if (_type != PositionType.Short && !(_type == PositionType.Lend && position.discountedBaseAmount == 0))
+      revert Errors.WrongPositionType();
 
     // Make swap with max slippage params.positionSlippage
     uint256 quoteOutMinimum = getCurrentBasePrice()
@@ -821,7 +820,7 @@ contract MarginlyPool is IMarginlyPool {
     discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteChange);
     chargeFee(realSwapFee);
 
-    if (position._type == PositionType.Lend) {
+    if (_type == PositionType.Lend) {
       if (position.heapPosition != 0) revert Errors.WrongIndex();
       // init heap with default value 0, it will be updated by 'updateHeap' function later
       shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
@@ -846,10 +845,9 @@ contract MarginlyPool is IMarginlyPool {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
     if (newPoolBaseBalance(realBaseAmount) > params.baseLimit) revert Errors.ExceedsLimit();
 
-    if (
-      position._type != PositionType.Long &&
-      !(position._type == PositionType.Lend && position.discountedQuoteAmount == 0)
-    ) revert Errors.WrongPositionType();
+    PositionType _type = position._type;
+    if (_type != PositionType.Long && !(_type == PositionType.Lend && position.discountedQuoteAmount == 0))
+      revert Errors.WrongPositionType();
 
     // Make swap with max slippage params.positionSlippage
     uint256 realQuoteInMaximum = getCurrentBasePrice()
@@ -871,7 +869,7 @@ contract MarginlyPool is IMarginlyPool {
     position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseCollateralChange);
     discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseCollateralChange);
 
-    if (position._type == PositionType.Lend) {
+    if (_type == PositionType.Lend) {
       if (position.heapPosition != 0) revert Errors.WrongIndex();
       // init heap with default value 0, it will be updated by 'updateHeap' function later
       longHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
@@ -1315,7 +1313,7 @@ contract MarginlyPool is IMarginlyPool {
       techPosition.discountedBaseAmount += discountedBaseDelta;
       discountedBaseCollateral += discountedBaseDelta;
     } else {
-      uint256 discountedBaseDelta = quoteCollateralCoeff.recipMul(baseCollateral.sub(actualBaseCollateral));
+      uint256 discountedBaseDelta = baseCollateralCoeff.recipMul(baseCollateral.sub(actualBaseCollateral));
       techPosition.discountedBaseAmount -= discountedBaseDelta;
       discountedBaseCollateral -= discountedBaseDelta;
     }
