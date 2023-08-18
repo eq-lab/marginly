@@ -13,7 +13,7 @@ abstract contract WooFiSwap is DexPoolMapping {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    IWooPoolV2 wooPool = IWooPoolV2(dexPoolMapping[dex][tokenIn][tokenOut]);
+    IWooPoolV2 wooPool = IWooPoolV2(getPoolSafe(dex, tokenIn, tokenOut));
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
     amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));

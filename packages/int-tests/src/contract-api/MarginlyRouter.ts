@@ -21,7 +21,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
     'addPools(tuple[])': utils.FunctionFragment;
     'balancerVault()': utils.FunctionFragment;
-    'dexPoolMapping(uint8,address,address)': utils.FunctionFragment;
+    'getPool(uint8,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
     'swapCallback(int256,int256,bytes)': utils.FunctionFragment;
@@ -35,7 +35,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | 'addPools'
       | 'balancerVault'
-      | 'dexPoolMapping'
+      | 'getPool'
       | 'owner'
       | 'renounceOwnership'
       | 'swapCallback'
@@ -58,7 +58,7 @@ export interface MarginlyRouterContract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   balancerVault(override?: CallOverrides): Promise<string>;
-  dexPoolMapping(
+  getPool(
     arg0: PromiseOrValue<BigNumberish>,
     arg1: PromiseOrValue<string>,
     arg2: PromiseOrValue<string>,
@@ -101,7 +101,7 @@ export interface MarginlyRouterContract extends BaseContract {
 
   functions: {
     balancerVault(override?: CallOverrides): Promise<[string]>;
-    dexPoolMapping(
+    getPool(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<string>,

@@ -17,8 +17,7 @@ abstract contract SwapCallback is DexPoolMapping {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     CallbackData memory data = abi.decode(_data, (CallbackData));
     (address tokenIn, address tokenOut, Dex dex) = (data.tokenIn, data.tokenOut, data.dex);
-    require(msg.sender != address(0));
-    require(msg.sender == dexPoolMapping[dex][tokenIn][tokenOut]);
+    require(msg.sender == getPoolSafe(dex, tokenIn, tokenOut));
 
     (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
       ? (tokenIn < tokenOut, uint256(amount0Delta))

@@ -19,7 +19,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
+    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_IN;
@@ -44,7 +44,7 @@ abstract contract BalancerSwap is DexPoolMapping {
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
+    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_OUT;

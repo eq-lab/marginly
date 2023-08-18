@@ -15,7 +15,7 @@ abstract contract UniswapV3Swap is UniswapV3LikeSwap, SwapCallback {
   ) internal returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
-    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut];
+    address poolAddress = getPoolSafe(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
     CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 
@@ -32,7 +32,7 @@ abstract contract UniswapV3Swap is UniswapV3LikeSwap, SwapCallback {
   ) internal returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
-    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut];
+    address poolAddress = getPoolSafe(dex, tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
     CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 

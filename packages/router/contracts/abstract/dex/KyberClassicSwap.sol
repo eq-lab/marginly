@@ -2,15 +2,14 @@
 pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 
 import '../Dex.sol';
 import '../UniswapV2LikeSwap.sol';
 
-abstract contract KyberClassicSwap is UniswapV2LikeSwap {
+abstract contract KyberClassicSwap is UniswapV2LikeSwap, DexPoolMapping {
   using LowGasSafeMath for uint256;
 
-  uint256 constant PRECISION = 1e18;
+  uint256 private constant PRECISION = 1e18;
 
   function kyberClassicSwapExactInput(
     Dex dex,
@@ -19,7 +18,7 @@ abstract contract KyberClassicSwap is UniswapV2LikeSwap {
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
+    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     amountOut = kyberClassicSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
     if (amountOut < minAmountOut) revert InsufficientAmount();
     uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
@@ -32,7 +31,7 @@ abstract contract KyberClassicSwap is UniswapV2LikeSwap {
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    address pool = dexPoolMapping[dex][tokenIn][tokenOut];
+    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     amountIn = kyberClassicSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);

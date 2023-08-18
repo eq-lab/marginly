@@ -6,7 +6,7 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import './Dex.sol';
 import './SwapCallback.sol';
 
-abstract contract UniswapV3LikeSwap is DexPoolMapping {
+abstract contract UniswapV3LikeSwap {
   uint160 constant MIN_SQRT_RATIO = 4295128739;
   uint160 constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 

@@ -30,28 +30,28 @@ abstract contract DexPoolMapping is Ownable {
   error TooMuchRequested();
   error NotSupported();
 
-  mapping(Dex => mapping(address => mapping(address => address))) public dexPoolMapping;
+  mapping(Dex => mapping(address => mapping(address => address))) public getPool;
 
   constructor(PoolInput[] memory pools) {
     PoolInput memory input;
-    for (uint256 i = 0; i < pools.length; ++i) {
+    for (uint256 i; i < pools.length; ++i) {
       input = pools[i];
-      dexPoolMapping[input.dex][input.token0][input.token1] = input.pool;
-      dexPoolMapping[input.dex][input.token1][input.token0] = input.pool;
+      getPool[input.dex][input.token0][input.token1] = input.pool;
+      getPool[input.dex][input.token1][input.token0] = input.pool;
     }
   }
 
   function addPools(PoolInput[] calldata pools) external onlyOwner {
     PoolInput memory input;
-    for (uint256 i = 0; i < pools.length; ++i) {
+    for (uint256 i; i < pools.length; ++i) {
       input = pools[i];
-      dexPoolMapping[input.dex][input.token0][input.token1] = input.pool;
-      dexPoolMapping[input.dex][input.token1][input.token0] = input.pool;
+      getPool[input.dex][input.token0][input.token1] = input.pool;
+      getPool[input.dex][input.token1][input.token0] = input.pool;
     }
   }
 
-  function getPool(Dex dex, address tokenA, address tokenB) private view returns (address pool) {
-    pool = dexPoolMapping[dex][tokenA][tokenB];
+  function getPoolSafe(Dex dex, address tokenA, address tokenB) internal view returns (address pool) {
+    pool = getPool[dex][tokenA][tokenB];
     if (pool == address(0)) revert UnknownPool();
   }
 }

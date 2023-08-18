@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import '../Dex.sol';
 import '../SwapCallback.sol';
-import '../UniswapV3LikeSwap.sol';
 
 abstract contract KyberElasticSwap is SwapCallback {
   uint160 private constant MIN_SQRT_RATIO = 4295128739;
@@ -18,7 +17,7 @@ abstract contract KyberElasticSwap is SwapCallback {
   ) internal returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
-    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut];
+    address poolAddress = getPoolSafe(dex, tokenIn, tokenOut);
     CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 
     (, amountOut) = swap(poolAddress, tokenIn, tokenOut, true, int256(amountIn), data);
@@ -34,7 +33,7 @@ abstract contract KyberElasticSwap is SwapCallback {
   ) internal returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
-    address poolAddress = dexPoolMapping[dex][tokenIn][tokenOut];
+    address poolAddress = getPoolSafe(dex, tokenIn, tokenOut);
     CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 
     uint256 amountOutReceived;
@@ -53,7 +52,7 @@ abstract contract KyberElasticSwap is SwapCallback {
   ) private returns (uint256 amountIn, uint256 amountOut) {
     uint160 limitSqrtP = tokenIn < tokenOut ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1;
 
-    (int256 amount0Delta, int256 amount1Delta) = KyberElasticPool(pool).swap(
+    (int256 amount0Delta, int256 amount1Delta) = IKyberElasticPool(pool).swap(
       msg.sender,
       swapAmount,
       isExactInput ? tokenIn < tokenOut : tokenOut < tokenIn,
@@ -71,7 +70,7 @@ abstract contract KyberElasticSwap is SwapCallback {
   }
 }
 
-interface KyberElasticPool {
+interface IKyberElasticPool {
   function swap(
     address recipient,
     int256 swapQty,
