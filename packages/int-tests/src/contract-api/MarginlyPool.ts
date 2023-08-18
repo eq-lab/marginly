@@ -28,7 +28,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'discountedQuoteCollateral()': utils.FunctionFragment;
     'discountedQuoteDebt()': utils.FunctionFragment;
     'emergencyWithdrawCoeff()': utils.FunctionFragment;
-    'execute(uint8,uint256,uint256,bool,address,bytes)': utils.FunctionFragment;
+    'execute(uint8,uint256,uint256,bool,address,uint256)': utils.FunctionFragment;
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getCurrentBasePrice()': utils.FunctionFragment;
@@ -102,9 +102,9 @@ export interface MarginlyPoolContract extends BaseContract {
     call: BigNumberish,
     amount1: BigNumberish,
     amount2: BigNumberish,
-    unwrapWETH: boolean,
+    flag: boolean,
     receivePositionAddress: string,
-    swapCalldata: BytesLike,
+    swapCalldata: BigNumberish,
     override?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   factory(override?: CallOverrides): Promise<string>;
@@ -238,9 +238,9 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      unwrapWETH: boolean,
+      flag: boolean,
       receivePositionAddress: string,
-      swapCalldata: BytesLike,
+      swapCalldata: BigNumberish,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     initialize(
@@ -285,9 +285,9 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      unwrapWETH: boolean,
+      flag: boolean,
       receivePositionAddress: string,
-      swapCalldata: BytesLike,
+      swapCalldata: BigNumberish,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     initialize(
@@ -332,9 +332,9 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      unwrapWETH: boolean,
+      flag: boolean,
       receivePositionAddress: string,
-      swapCalldata: BytesLike,
+      swapCalldata: BigNumberish,
       override?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     initialize(

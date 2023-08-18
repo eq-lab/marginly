@@ -21,7 +21,7 @@ contract MockSwapRouter is IMarginlyRouter {
   }
 
   function swapExactInput(
-    bytes calldata swapCalldata,
+    uint256 swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
@@ -34,7 +34,7 @@ contract MockSwapRouter is IMarginlyRouter {
   }
 
   function swapExactOutput(
-    bytes calldata swapCalldata,
+    uint256 swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,

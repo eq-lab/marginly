@@ -18,7 +18,7 @@ contract FullMarginlyFactory is IMarginlyFactory {
   /// @notice Address of uniswap factory
   address public immutable uniswapFactory;
   /// @notice Address of uniswap swap router
-  address public immutable override swapRouter;
+  address public override swapRouter;
   /// @notice Swap fee holder
   address public immutable override feeHolder;
   /// @notice Address of wrapped ETH
@@ -84,5 +84,13 @@ contract FullMarginlyFactory is IMarginlyFactory {
     getPool[quoteToken][baseToken][uniswapFee] = pool;
     getPool[baseToken][quoteToken][uniswapFee] = pool;
     emit PoolCreated(quoteToken, baseToken, uniswapPool, quoteTokenIsToken0, pool);
+  }
+
+  /// @inheritdoc IMarginlyFactory
+  function changeSwapRouter(address newSwapRouter) external {
+    require(msg.sender == owner, 'NO'); // Not an owner
+    require(newSwapRouter != address(0));
+
+    swapRouter = newSwapRouter;
   }
 }

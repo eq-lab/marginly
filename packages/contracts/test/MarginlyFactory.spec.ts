@@ -45,6 +45,18 @@ describe('MarginlyFactory', () => {
     expect(techPosition._type).to.be.eq(PositionType.Lend);
   });
 
+  it('should change router address', async () => {
+    const { factory } = await loadFixture(createMarginlyFactory);
+    const routerAddress = await factory.swapRouter();
+    const newAddress = factory.address;
+
+    await factory.changeSwapRouter(newAddress);
+    
+    const currentRouterAddress = await factory.swapRouter();
+    expect(currentRouterAddress).to.be.not.eq(routerAddress);
+    expect(currentRouterAddress).to.be.eq(newAddress);
+  });
+
   it('should raise error when pool exists', async () => {
     const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;

@@ -97,18 +97,18 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     address collateralToken;
     if (quoteToken == asset) {
       IERC20(quoteToken).approve(params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate, new bytes(0));
+      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate, 0);
       collateralToken = baseToken;
     } else if (baseToken == asset) {
       IERC20(baseToken).approve(params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate, new bytes(0));
+      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate, 0);
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');
     }
 
-    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0), new bytes(0));
-    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0), new bytes(0));
+    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0), 0);
+    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0), 0);
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 
@@ -131,7 +131,6 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   function exactInputSwap(address swapRouter, address tokenIn, address tokenOut) private returns (uint256) {
     uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
     IERC20(tokenIn).safeApprove(swapRouter, amountIn);
-
-    return IMarginlyRouter(swapRouter).swapExactInput(new bytes(0), tokenIn, tokenOut, amountIn, 0);
+    return IMarginlyRouter(swapRouter).swapExactInput(0, tokenIn, tokenOut, amountIn, 0);
   }
 }

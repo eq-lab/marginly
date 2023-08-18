@@ -19,20 +19,26 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
-    'dexPoolMapping(uint8,address,address)': utils.FunctionFragment;
+    'addPools(tuple[])': utils.FunctionFragment;
+    'balancerVault()': utils.FunctionFragment;
+    'getPool(uint8,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
-    'swapExactInput(bytes,address,address,uint256,uint256)': utils.FunctionFragment;
-    'swapExactOutput(bytes,address,address,uint256,uint256)': utils.FunctionFragment;
+    'swapCallback(int256,int256,bytes)': utils.FunctionFragment;
+    'swapExactInput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
+    'swapExactOutput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
     'uniswapV3SwapCallback(int256,int256,bytes)': utils.FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | 'dexPoolMapping'
+      | 'addPools'
+      | 'balancerVault'
+      | 'getPool'
       | 'owner'
       | 'renounceOwnership'
+      | 'swapCallback'
       | 'swapExactInput'
       | 'swapExactOutput'
       | 'transferOwnership'
@@ -47,16 +53,27 @@ export interface MarginlyRouterContract extends BaseContract {
 
   interface: MarginlyRouterInterface;
 
-  dexPoolMapping(
+  addPools(
+    pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+  balancerVault(override?: CallOverrides): Promise<string>;
+  getPool(
     arg0: PromiseOrValue<BigNumberish>,
     arg1: PromiseOrValue<string>,
     arg2: PromiseOrValue<string>,
     override?: CallOverrides
-  ): Promise<{ fee: BigNumber; pool: string }>;
+  ): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+  swapCallback(
+    deltaQty0: PromiseOrValue<BigNumberish>,
+    deltaQty1: PromiseOrValue<BigNumberish>,
+    data: PromiseOrValue<BytesLike>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   swapExactInput(
-    swapCalldata: PromiseOrValue<BytesLike>,
+    swapCalldata: PromiseOrValue<BigNumberish>,
     tokenIn: PromiseOrValue<string>,
     tokenOut: PromiseOrValue<string>,
     amountIn: PromiseOrValue<BigNumberish>,
@@ -64,7 +81,7 @@ export interface MarginlyRouterContract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   swapExactOutput(
-    swapCalldata: PromiseOrValue<BytesLike>,
+    swapCalldata: PromiseOrValue<BigNumberish>,
     tokenIn: PromiseOrValue<string>,
     tokenOut: PromiseOrValue<string>,
     maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -78,23 +95,34 @@ export interface MarginlyRouterContract extends BaseContract {
   uniswapV3SwapCallback(
     amount0Delta: PromiseOrValue<BigNumberish>,
     amount1Delta: PromiseOrValue<BigNumberish>,
-    _data: PromiseOrValue<BytesLike>,
+    data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   functions: {
-    dexPoolMapping(
+    balancerVault(override?: CallOverrides): Promise<[string]>;
+    getPool(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<string>,
       override?: CallOverrides
-    ): Promise<{ fee: BigNumber; pool: string }>;
+    ): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
+    addPools(
+      pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
+    swapCallback(
+      deltaQty0: PromiseOrValue<BigNumberish>,
+      deltaQty1: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
@@ -102,7 +130,7 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -116,14 +144,24 @@ export interface MarginlyRouterContract extends BaseContract {
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
   populateTransaction: {
+    addPools(
+      pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+    swapCallback(
+      deltaQty0: PromiseOrValue<BigNumberish>,
+      deltaQty1: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
@@ -131,7 +169,7 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -145,14 +183,24 @@ export interface MarginlyRouterContract extends BaseContract {
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
+    addPools(
+      pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
+    swapCallback(
+      deltaQty0: PromiseOrValue<BigNumberish>,
+      deltaQty1: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
@@ -160,7 +208,7 @@ export interface MarginlyRouterContract extends BaseContract {
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BytesLike>,
+      swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
@@ -174,18 +222,19 @@ export interface MarginlyRouterContract extends BaseContract {
     uniswapV3SwapCallback(
       amount0Delta: PromiseOrValue<BigNumberish>,
       amount1Delta: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
   };
 }
 
 export async function deploy(
-  pools: { dex: BigNumberish; fee: BigNumberish; token0: string; token1: string; pool: string }[],
+  pools: { dex: BigNumberish; token0: string; token1: string; pool: string }[],
+  balancerVault: string,
   signer?: Signer
 ): Promise<MarginlyRouterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(pools);
+  const contract = await factory.deploy(pools, balancerVault);
   return (await contract.deployed()) as any;
 }
 

@@ -32,11 +32,15 @@ export interface MarginlyDeployConfigMintableToken {
 
 export type MarginlyDeployConfigToken = MarginlyDeployConfigExistingToken | MarginlyDeployConfigMintableToken;
 
-export function isMarginlyDeployConfigExistingToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigExistingToken {
+export function isMarginlyDeployConfigExistingToken(
+  token: MarginlyDeployConfigToken
+): token is MarginlyDeployConfigExistingToken {
   return token.type === 'existing' || token.type === undefined;
 }
 
-export function isMarginlyDeployConfigMintableToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigMintableToken {
+export function isMarginlyDeployConfigMintableToken(
+  token: MarginlyDeployConfigToken
+): token is MarginlyDeployConfigMintableToken {
   return token.type === 'mintable';
 }
 
@@ -71,11 +75,15 @@ interface MarginlyDeployConfigUniswapMock {
 }
 
 type MarginlyDeployConfigUniswap = MarginlyDeployConfigUniswapGenuine | MarginlyDeployConfigUniswapMock;
-export function isMarginlyDeployConfigUniswapGenuine(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapGenuine {
+export function isMarginlyDeployConfigUniswapGenuine(
+  uniswap: MarginlyDeployConfigUniswap
+): uniswap is MarginlyDeployConfigUniswapGenuine {
   return uniswap.type === 'genuine' || uniswap.type === undefined;
 }
 
-export function isMarginlyDeployConfigUniswapMock(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapMock {
+export function isMarginlyDeployConfigUniswapMock(
+  uniswap: MarginlyDeployConfigUniswap
+): uniswap is MarginlyDeployConfigUniswapMock {
   return uniswap.type === 'mock';
 }
 
@@ -84,11 +92,12 @@ export enum Dex {
   ApeSwap,
   Balancer,
   Camelot,
-  KyberSwap,
+  KyberClassicSwap,
+  KyberElasticSwap,
   QuickSwap,
   SushiSwap,
   TraderJoe,
-  Woofi
+  Woofi,
 }
 
 export interface MarginlyDeployConfig {
@@ -96,12 +105,14 @@ export interface MarginlyDeployConfig {
   tokens: MarginlyDeployConfigToken[];
   prices: RootPriceConfig[];
   uniswap: MarginlyDeployConfigUniswap;
-  routerPools: {
-    dex: Dex;
-    tokenAId: string;
-    tokenBId: string;
-    fee?: number;
-    assertAddress?: string;
+  router: {
+    pools: {
+      dex: Dex;
+      tokenAId: string;
+      tokenBId: string;
+      assertAddress?: string;
+    }[];
+    balancerVault: string;
   };
   marginlyFactory: {
     feeHolder: string;

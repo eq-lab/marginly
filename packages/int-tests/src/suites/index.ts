@@ -7,7 +7,7 @@ import {
   uniswapPoolContract,
   nonFungiblePositionManagerContract,
 } from '../utils/known-contracts';
-import { Web3ProviderDecorator } from '../utils/chain-ops';
+import { Dex, Web3ProviderDecorator } from '../utils/chain-ops';
 import MarginlyFactory, { MarginlyFactoryContract } from '../contract-api/MarginlyFactory';
 import MarginlyPool, { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { UniswapV3PoolContract } from '../contract-api/UniswapV3Pool';
@@ -35,6 +35,7 @@ import {
   deleveragePrecisionShortReinit,
 } from './deleveragePrecision';
 import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
+import { routerSwaps, routerMultipleSwaps } from './router';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -86,11 +87,35 @@ async function initializeTestSystem(
   logger.info(`nonFungiblePositionManager: ${nonFungiblePositionManager.address}`);
 
   const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
-  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
+  logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
 
-  let routerConstructorInput = [];
-  routerConstructorInput.push({ dex: 0, fee: 0, token0: weth.address, token1: usdc.address, pool: uniswap.address });
-  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
+  const routerConstructorInput = [];
+  routerConstructorInput.push({
+    dex: Dex.UniswapV3,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: uniswap.address,
+  });
+  routerConstructorInput.push({
+    dex: Dex.Balancer,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8',
+  });
+  routerConstructorInput.push({
+    dex: Dex.KyberClassicSwap,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76',
+  });
+  routerConstructorInput.push({
+    dex: Dex.SushiSwap,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0',
+  });
+  const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
+  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, balancerVault, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
@@ -179,6 +204,8 @@ export async function startSuite(
     balanceSync,
     balanceSyncWithdrawBase,
     balanceSyncWithdrawQuote,
+    routerSwaps,
+    routerMultipleSwaps,
   };
 
   const suite = suits[suitName];

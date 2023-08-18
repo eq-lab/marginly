@@ -32,6 +32,9 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev FP96 inner value of count of seconds in year. Equal 365.25 * 24 * 60 * 60
   uint256 constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
 
+  /// @dev router calldata for swap on UniswapV3;
+  uint256 constant UNISWAP_V3_ROUTER_SWAP = 0;
+
   /// @dev Denominator of fee value
   uint24 constant WHOLE_ONE = 1e6;
 
@@ -176,7 +179,7 @@ contract MarginlyPool is IMarginlyPool {
     bool quoteIn,
     uint256 amountInMaximum,
     uint256 amountOut,
-    bytes calldata swapCalldata
+    uint256 swapCalldata
   ) private returns (uint256 amountInActual) {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
@@ -199,7 +202,7 @@ contract MarginlyPool is IMarginlyPool {
     bool quoteIn,
     uint256 amountIn,
     uint256 amountOutMinimum,
-    bytes memory swapCalldata
+    uint256 swapCalldata
   ) private returns (uint256 amountOutActual) {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
@@ -323,7 +326,7 @@ contract MarginlyPool is IMarginlyPool {
         uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
           getCurrentBasePrice().recipMul(realQuoteCollateral)
         );
-        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, new bytes(0));
+        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, UNISWAP_V3_ROUTER_SWAP);
         swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       }
 
@@ -366,7 +369,7 @@ contract MarginlyPool is IMarginlyPool {
         uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
           getCurrentBasePrice().mul(realBaseCollateral)
         );
-        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, new bytes(0));
+        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, UNISWAP_V3_ROUTER_SWAP);
         swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       }
 
@@ -438,7 +441,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 longAmount,
     FP96.FixedPoint memory basePrice,
     Position storage position,
-    bytes calldata swapCalldata
+    uint256 swapCalldata
   ) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
@@ -504,7 +507,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 shortAmount,
     FP96.FixedPoint memory basePrice,
     Position storage position,
-    bytes calldata swapCalldata
+    uint256 swapCalldata
   ) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
@@ -662,7 +665,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Close position
   /// @param position msg.sender position
-  function closePosition(Position storage position, bytes calldata swapCalldata) private {
+  function closePosition(Position storage position, uint256 swapCalldata) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -786,7 +789,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 realBaseAmount,
     FP96.FixedPoint memory basePrice,
     Position storage position,
-    bytes calldata swapCalldata
+    uint256 swapCalldata
   ) private {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
 
@@ -837,7 +840,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 realBaseAmount,
     FP96.FixedPoint memory basePrice,
     Position storage position,
-    bytes calldata swapCalldata
+    uint256 swapCalldata
   ) private {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
     if (newPoolBaseBalance(realBaseAmount) > params.baseLimit) revert Errors.ExceedsLimit();
@@ -1199,7 +1202,7 @@ contract MarginlyPool is IMarginlyPool {
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
-      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, new bytes(0));
+      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, UNISWAP_V3_ROUTER_SWAP);
 
       newCollateral = newCollateral.add(collateralSurplus);
     }
@@ -1377,7 +1380,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amount2,
     bool flag,
     address receivePositionAddress,
-    bytes calldata swapCalldata
+    uint256 swapCalldata
   ) external payable override lock {
     if (call == CallType.ReceivePosition) {
       receivePosition(receivePositionAddress, amount1, amount2);

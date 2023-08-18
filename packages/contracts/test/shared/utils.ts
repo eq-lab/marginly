@@ -301,5 +301,5 @@ export async function assertAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBl
 }
 
 export function uniswapV3Swapdata() {
-  return defaultAbiCoder.encode(['uint'], [0]);
+  return 0;
 }

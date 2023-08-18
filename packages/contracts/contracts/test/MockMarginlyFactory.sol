@@ -23,6 +23,8 @@ contract MockMarginlyFactory is IMarginlyFactory {
     return address(0);
   }
 
+  function changeSwapRouter(address newSwapRouter) external {}
+
   function getPool(address quoteToken, address baseToken, uint24 fee) external view override returns (address pool) {
     return address(0);
   }
