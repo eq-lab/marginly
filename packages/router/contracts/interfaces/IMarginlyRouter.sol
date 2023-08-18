@@ -13,12 +13,12 @@ interface IMarginlyRouter {
   /// @param amountIn amount of tokenIn swapped
   /// @param amountOut amount of tokenOut received
   event Swap(
-    bool isExactInput, 
-    Dex dex, 
-    address indexed receiver, 
-    address indexed tokenIn, 
-    address indexed tokenOut, 
-    uint256 amountIn, 
+    bool isExactInput,
+    Dex dex,
+    address indexed receiver,
+    address indexed tokenIn,
+    address indexed tokenOut,
+    uint256 amountIn,
     uint256 amountOut
   );
 

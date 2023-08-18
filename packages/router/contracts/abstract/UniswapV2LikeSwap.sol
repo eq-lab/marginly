@@ -7,7 +7,6 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import './Dex.sol';
 
 abstract contract UniswapV2LikeSwap is DexPoolMapping {
-
   function uniswapV2LikeSwap(
     address pool,
     address tokenIn,

@@ -120,7 +120,8 @@ contract MarginlyRouter is
       } else if (dex == Dex.TraderJoe) {
         dexAmountIn = traderJoeSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
       } else if (dex == Dex.Camelot) {
-        dexAmountIn = camelotSwapExactOutput(dex, tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+        // camelot pools don't support exactOutput swaps
+        revert NotSupported();
       } else {
         revert UnknownDex();
       }

@@ -6,8 +6,6 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '../Dex.sol';
 
 abstract contract WooFiSwap is DexPoolMapping {
-  error NotSupported();
-
   function wooFiSwapExactInput(
     Dex dex,
     address tokenIn,
@@ -20,7 +18,7 @@ abstract contract WooFiSwap is DexPoolMapping {
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
     amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));
 
-    if(amountOut < minAmountOut) revert InsufficientAmount();
+    if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 }
 
