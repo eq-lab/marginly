@@ -6,6 +6,9 @@ import '@openzeppelin/contracts/presets/ERC20PresetMinterPauser.sol';
 contract MintableToken is ERC20PresetMinterPauser {
   using SafeMath for uint256;
 
+  event AllowListEnabledChanged(bool allowListEnabled);
+  event AllowListChanged(address acc, bool accountAllowed);
+
   bytes32 public constant BURNER_ROLE = keccak256('BURNER_ROLE');
   bytes32 public constant ALLOW_LIST_MANAGER_ROLE = keccak256('ALLOW_LIST_MANAGER_ROLE');
 
@@ -49,13 +52,16 @@ contract MintableToken is ERC20PresetMinterPauser {
 
   function addToAllowList(address acc) public onlyAllowListManager {
     allowList[acc] = true;
+    emit AllowListChanged(acc, true);
   }
 
   function removeFromAllowList(address acc) public onlyAllowListManager {
     allowList[acc] = false;
+    emit AllowListChanged(acc, false);
   }
 
   function setAllowListEnabled(bool value) public onlyAllowListManager {
     allowListEnabled = value;
+    emit AllowListEnabledChanged(value);
   }
 }
