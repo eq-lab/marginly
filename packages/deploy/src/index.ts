@@ -200,13 +200,13 @@ export interface StateStore {
 
 function createMarginlyContractReader(): ContractReader {
   return (name: string): ContractDescription => {
-    return require(`@marginly/contracts/artifacts/contracts/${name}.sol/${name}.json`);
+    return require(`@marginly/contracts/artifacts-zk/contracts/${name}.sol/${name}.json`);
   };
 }
 
 function createMarginlyMockContractReader(): ContractReader {
   return (name: string): ContractDescription => {
-    return require(`@marginly/contracts/artifacts/contracts/test/${name}.sol/${name}.json`);
+    return require(`@marginly/contracts/artifacts-zk/contracts/test/${name}.sol/${name}.json`);
   };
 }
 
