@@ -561,14 +561,14 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realQuoteCollateral = quoteCollateralCoeff.mul(position.discountedQuoteAmount);
       uint256 realBaseDebt = _baseDebtCoeff.mul(positionDiscountedBaseDebtPrev);
 
-      realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt);
-      swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
-
       {
         //Check slippage below params.positionSlippage
         uint256 quoteInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
           getCurrentBasePrice().mul(realBaseDebt)
         );
+        realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt);
+        swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
+
         require(realCollateralDelta <= quoteInMaximum, 'SL'); // Slippage above maximum
       }
 
@@ -597,14 +597,14 @@ contract MarginlyPool is IMarginlyPool {
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
-      realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut);
-      swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
-
       {
         //Check slippage below params.positionSlippage
         uint256 baseInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
           getCurrentBasePrice().recipMul(exactQuoteOut)
         );
+        realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut);
+        swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
+      
         require(realCollateralDelta <= baseInMaximum, 'SL'); // Slippage above maximum
       }
 
@@ -1154,6 +1154,38 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
+  function syncBaseBalance() private {
+    uint256 baseBalance = IERC20(baseToken).balanceOf(address(this));
+    uint256 actualBaseCollateral = baseDebtCoeff.mul(discountedBaseDebt).add(baseBalance);
+    uint256 baseCollateral = baseCollateralCoeff.mul(discountedBaseCollateral);
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    if (actualBaseCollateral > baseCollateral) {
+      uint256 discountedBaseDelta = baseCollateralCoeff.recipMul(actualBaseCollateral.sub(baseCollateral));
+      techPosition.discountedBaseAmount += discountedBaseDelta;
+      discountedBaseCollateral += discountedBaseDelta;
+    } else {
+      uint256 discountedBaseDelta = quoteCollateralCoeff.recipMul(baseCollateral.sub(actualBaseCollateral));
+      techPosition.discountedBaseAmount -= discountedBaseDelta;
+      discountedBaseCollateral -= discountedBaseDelta;
+    }
+  }
+
+  function syncQuoteBalance() private {
+    uint256 quoteBalance = IERC20(quoteToken).balanceOf(address(this));
+    uint256 actualQuoteCollateral = quoteDebtCoeff.mul(discountedQuoteDebt).add(quoteBalance);
+    uint256 quoteCollateral = quoteCollateralCoeff.mul(discountedQuoteCollateral);
+    Position storage techPosition = positions[IMarginlyFactory(factory).techPositionOwner()];
+    if (actualQuoteCollateral > quoteCollateral) {
+      uint256 discountedQuoteDelta = quoteCollateralCoeff.recipMul(actualQuoteCollateral.sub(quoteCollateral));
+      techPosition.discountedQuoteAmount += discountedQuoteDelta;
+      discountedQuoteCollateral += discountedQuoteDelta;
+    } else {
+      uint256 discountedQuoteDelta = quoteCollateralCoeff.recipMul(quoteCollateral.sub(actualQuoteCollateral));
+      techPosition.discountedQuoteAmount -= discountedQuoteDelta;
+      discountedQuoteCollateral -= discountedQuoteDelta;
+    }
+  }
+
   /// @dev for testing purposes
   function getShortHeapPosition(uint32 index) external view returns (bool success, MaxBinaryHeapLib.Node memory) {
     return shortHeap.getNodeByIndex(index);
@@ -1215,9 +1247,10 @@ contract MarginlyPool is IMarginlyPool {
       long(amount1, basePrice, position);
     } else if (call == CallType.ClosePosition) {
       closePosition(position);
-    } else if (call != CallType.Reinit) {
+    } else if (call == CallType.Reinit) {
       // reinit already happened
-      revert('UC'); // unknown call
+      syncBaseBalance();
+      syncQuoteBalance();
     }
 
     updateHeap(position);
