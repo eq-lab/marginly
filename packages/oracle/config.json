@@ -290,7 +290,7 @@
         {
           "id": "wbtc-usdc",
           "address": "0xC9363e55Fc7834Eb59977d48cC452eDBf0D47639",
-          "priceId": "wbtc-usdc",
+          "priceId": "btc-usdc",
           "priceBaseTokenId": "wbtc"
         },
         {
