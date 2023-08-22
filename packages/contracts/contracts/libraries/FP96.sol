@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
+import './Errors.sol';
+
 library FP96 {
   /// @dev Bits precision of FixedPoint number
   uint8 internal constant RESOLUTION = 96;
@@ -79,7 +81,7 @@ library FP96 {
   /// @return result The Exponentiation of self and rhs
   function powTaylor(FixedPoint memory self, uint256 exponent) internal pure returns (FixedPoint memory result) {
     uint256 x = self.inner - Q96;
-    require(x < Q96, 'WV'); // Wrong value
+    if (x >= Q96) revert Errors.WrongValue();
 
     uint256 resultX96 = Q96;
     uint256 multiplier;

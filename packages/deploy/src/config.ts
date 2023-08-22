@@ -32,18 +32,21 @@ export interface MarginlyDeployConfigMintableToken {
 
 export type MarginlyDeployConfigToken = MarginlyDeployConfigExistingToken | MarginlyDeployConfigMintableToken;
 
-export function isMarginlyDeployConfigExistingToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigExistingToken {
+export function isMarginlyDeployConfigExistingToken(
+  token: MarginlyDeployConfigToken
+): token is MarginlyDeployConfigExistingToken {
   return token.type === 'existing' || token.type === undefined;
 }
 
-export function isMarginlyDeployConfigMintableToken(token: MarginlyDeployConfigToken): token is MarginlyDeployConfigMintableToken {
+export function isMarginlyDeployConfigMintableToken(
+  token: MarginlyDeployConfigToken
+): token is MarginlyDeployConfigMintableToken {
   return token.type === 'mintable';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {
   type: 'genuine' | undefined;
   factory: string;
-  swapRouter: string;
   pools: {
     id: string;
     tokenAId: string;
@@ -72,12 +75,29 @@ interface MarginlyDeployConfigUniswapMock {
 }
 
 type MarginlyDeployConfigUniswap = MarginlyDeployConfigUniswapGenuine | MarginlyDeployConfigUniswapMock;
-export function isMarginlyDeployConfigUniswapGenuine(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapGenuine {
+export function isMarginlyDeployConfigUniswapGenuine(
+  uniswap: MarginlyDeployConfigUniswap
+): uniswap is MarginlyDeployConfigUniswapGenuine {
   return uniswap.type === 'genuine' || uniswap.type === undefined;
 }
 
-export function isMarginlyDeployConfigUniswapMock(uniswap: MarginlyDeployConfigUniswap): uniswap is MarginlyDeployConfigUniswapMock {
+export function isMarginlyDeployConfigUniswapMock(
+  uniswap: MarginlyDeployConfigUniswap
+): uniswap is MarginlyDeployConfigUniswapMock {
   return uniswap.type === 'mock';
+}
+
+export enum Dex {
+  UniswapV3,
+  ApeSwap,
+  Balancer,
+  Camelot,
+  KyberClassicSwap,
+  KyberElasticSwap,
+  QuickSwap,
+  SushiSwap,
+  TraderJoe,
+  Woofi,
 }
 
 export interface MarginlyDeployConfig {
@@ -85,6 +105,15 @@ export interface MarginlyDeployConfig {
   tokens: MarginlyDeployConfigToken[];
   prices: RootPriceConfig[];
   uniswap: MarginlyDeployConfigUniswap;
+  router: {
+    pools: {
+      dex: Dex;
+      tokenAId: string;
+      tokenBId: string;
+      assertAddress?: string;
+    }[];
+    balancerVault: string;
+  };
   marginlyFactory: {
     feeHolder: string;
     techPositionOwner: string;

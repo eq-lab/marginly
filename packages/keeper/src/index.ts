@@ -173,12 +173,12 @@ class PoolWatcher {
   }
 
   private async getRiskiestShortPosition(): Promise<string | null> {
-    const [success, node]: [boolean, HeapNode] = await this.pool.getShortHeapPosition(0);
+    const [success, node]: [boolean, HeapNode] = await this.pool.getHeapPosition(0, true);
     return success ? node.account : null;
   }
 
   private async getRiskiestLongPosition(): Promise<string | null> {
-    const [success, node]: [boolean, HeapNode] = await this.pool.getLongHeapPosition(0);
+    const [success, node]: [boolean, HeapNode] = await this.pool.getHeapPosition(0, false);
     return success ? node.account : null;
   }
 

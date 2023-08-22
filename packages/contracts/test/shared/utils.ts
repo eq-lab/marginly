@@ -4,6 +4,7 @@ import bn from 'bignumber.js';
 import { MarginlyPool } from '../../typechain-types';
 import { expect } from 'chai';
 import { TechnicalPositionOwner } from './fixtures';
+import { defaultAbiCoder } from 'ethers/lib/utils';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -140,6 +141,47 @@ export function calcLeverageLong(
   return collateral.mul(FP96.one).div(collateral.sub(debt));
 }
 
+export const YEAR = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
+
+export const paramsDefaultLeverageWithoutIr = {
+  interestRate: 0,
+  maxLeverage: 20,
+  swapFee: 1000, // 0.1%
+  fee: 0,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
+export const paramsLowLeverageWithoutIr = {
+  interestRate: 0,
+  maxLeverage: 19,
+  swapFee: 1000, // 0.1%
+  fee: 0,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
+export const paramsLowLeverageWithIr = {
+  interestRate: 54000,
+  maxLeverage: 19,
+  swapFee: 1000, // 0.1%
+  fee: 20000,
+  priceSecondsAgo: 900, // 15 min
+  positionSlippage: 20000, // 2%
+  mcSlippage: 50000, //5%
+  positionMinAmount: 5, // 5 Wei
+  baseLimit: 1_000_000,
+  quoteLimit: 1_000_000,
+};
+
 export const WHOLE_ONE = 1e6;
 export const SECONDS_IN_YEAR_X96 = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
 
@@ -256,4 +298,8 @@ export async function assertAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBl
   expect(techPositionPrev.discountedQuoteAmount.add(expectedCoeffs.discountedQuoteDebtFee)).to.be.eq(
     techPosition.discountedQuoteAmount
   );
+}
+
+export function uniswapV3Swapdata() {
+  return 0;
 }

@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "compile": "hardhat compile && ts-node generate-error-codes.ts",
+    "compile": "hardhat compile",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "gas": "hardhat test ./test/gas-costs/*.spec.ts",
     "test:unit": "REPORT_GAS=true hardhat test ./test/*.spec.ts",
@@ -35,6 +35,7 @@
     "@uniswap/v3-periphery": "^1.4.3",
     "@uniswap/snapshot-gas-cost": "^1.0.0",
     "@marginly/contracts-uniswap-mock": "^0.1.0",
+    "@marginly/router": "^0.1.0",
     "mocha-chai-jest-snapshot": "^1.1.4",
     "chai": "^4.3.7",
     "ethers": "^5.7.2",

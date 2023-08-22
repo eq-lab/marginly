@@ -35,6 +35,10 @@ interface IMarginlyFactory is IOwnable {
     MarginlyParams memory params
   ) external returns (address pool);
 
+  /// @notice Changes swap router address used by Marginly pools
+  /// @param newSwapRouter address of new swap router
+  function changeSwapRouter(address newSwapRouter) external;
+
   /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
   /// @dev quoteToken and baseToken may be passed in either token0/token1 or token1/token0 order
   /// @param quoteToken The contract address of stable-coin

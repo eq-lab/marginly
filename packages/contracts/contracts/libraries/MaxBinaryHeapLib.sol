@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import '../dataTypes/Position.sol';
+import './Errors.sol';
 
 /// @title A Max-Heap implementation
 /// @dev Implemented to use as embedded library. Invariant: key should be greater than zero
@@ -47,7 +48,7 @@ library MaxBinaryHeapLib {
     uint32 index,
     uint96 newKey
   ) internal returns (uint32 newIndex) {
-    require(index < self.length, 'WI'); // Wrong index
+    if (index >= self.length) revert Errors.WrongIndex();
 
     Node storage node = self.nodes[index];
     if (node.key < newKey) {
@@ -75,14 +76,14 @@ library MaxBinaryHeapLib {
   /// @dev Removes node by account
   function remove(Heap storage self, mapping(address => Position) storage positions, uint32 index) internal {
     uint32 length = self.length;
-    require(index < length, 'WI'); // Wrong index
+    if (index >= length) revert Errors.WrongIndex();
 
     uint32 last = length - 1;
     self.length = last;
 
     positions[self.nodes[index].account].heapPosition = 0;
 
-    if (length != 1) {
+    if (last != index) {
       self.nodes[index] = self.nodes[last];
       positions[self.nodes[index].account].heapPosition = index + 1;
       heapifyDown(self, positions, index);

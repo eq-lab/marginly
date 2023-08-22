@@ -5,15 +5,13 @@ import { initUsdc, initWeth } from '../utils/erc20-init';
 import {
   uniswapFactoryContract,
   uniswapPoolContract,
-  swapRouterContract,
   nonFungiblePositionManagerContract,
 } from '../utils/known-contracts';
-import { Web3ProviderDecorator } from '../utils/chain-ops';
+import { Dex, Web3ProviderDecorator } from '../utils/chain-ops';
 import MarginlyFactory, { MarginlyFactoryContract } from '../contract-api/MarginlyFactory';
 import MarginlyPool, { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { UniswapV3PoolContract } from '../contract-api/UniswapV3Pool';
 import { UniswapV3FactoryContract } from '../contract-api/UniswapV3Factory';
-import { SwapRouterContract } from '../contract-api/SwapRouter';
 import { FiatTokenV2_1Contract } from '../contract-api/FiatTokenV2';
 import { WETH9Contract } from '../contract-api/WETH9';
 import { long } from './long';
@@ -27,6 +25,17 @@ import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
+import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
+import {
+  deleveragePrecisionLong,
+  deleveragePrecisionShort,
+  deleveragePrecisionLongCollateral,
+  deleveragePrecisionShortCollateral,
+  deleveragePrecisionLongReinit,
+  deleveragePrecisionShortReinit,
+} from './deleveragePrecision';
+import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
+import { routerSwaps, routerMultipleSwaps } from './router';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -37,7 +46,7 @@ export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB
 export type SystemUnderTest = {
   uniswap: UniswapV3PoolContract;
   uniswapFactory: UniswapV3FactoryContract;
-  swapRouter: SwapRouterContract;
+  swapRouter: MarginlyRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
   keeper: MarginlyKeeperContract;
@@ -77,7 +86,36 @@ async function initializeTestSystem(
   const nonFungiblePositionManager = nonFungiblePositionManagerContract(treasury);
   logger.info(`nonFungiblePositionManager: ${nonFungiblePositionManager.address}`);
 
-  const swapRouter = swapRouterContract(treasury);
+  const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
+  logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
+
+  const routerConstructorInput = [];
+  routerConstructorInput.push({
+    dex: Dex.UniswapV3,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: uniswap.address,
+  });
+  routerConstructorInput.push({
+    dex: Dex.Balancer,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8',
+  });
+  routerConstructorInput.push({
+    dex: Dex.KyberClassicSwap,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76',
+  });
+  routerConstructorInput.push({
+    dex: Dex.SushiSwap,
+    token0: weth.address,
+    token1: usdc.address,
+    pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0',
+  });
+  const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
+  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, balancerVault, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
@@ -94,9 +132,6 @@ async function initializeTestSystem(
   );
   logger.info(`marginlyFactory: ${marginlyFactory.address}`);
   logger.info(`marginly owner: ${await marginlyFactory.owner()}`);
-
-  const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
-  logger.info(`uniswappool for WETH/USDC ${uniswap.address}`);
 
   const initialParams = {
     interestRate: 54000, // 5.4%
@@ -160,6 +195,17 @@ export async function startSuite(
     shortEmergency,
     longEmergency,
     keeper,
+    deleveragePrecisionLong,
+    deleveragePrecisionShort,
+    deleveragePrecisionLongCollateral,
+    deleveragePrecisionShortCollateral,
+    deleveragePrecisionLongReinit,
+    deleveragePrecisionShortReinit,
+    balanceSync,
+    balanceSyncWithdrawBase,
+    balanceSyncWithdrawQuote,
+    routerSwaps,
+    routerMultipleSwaps,
   };
 
   const suite = suits[suitName];

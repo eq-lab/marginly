@@ -3,7 +3,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { MarginlyParamsStruct } from '../typechain-types/contracts/MarginlyFactory';
 import { createMarginlyFactory } from './shared/fixtures';
 import snapshotGasCost from '@uniswap/snapshot-gas-cost';
-import { MarginlyPool, MarginlyPool } from '../typechain-types';
+import { MarginlyPool } from '../typechain-types';
 import { ethers } from 'hardhat';
 import { PositionType } from './shared/utils';
 
@@ -43,6 +43,18 @@ describe('MarginlyFactory', () => {
     const techPositionOwner = await factory.techPositionOwner();
     const techPosition = await pool.positions(techPositionOwner);
     expect(techPosition._type).to.be.eq(PositionType.Lend);
+  });
+
+  it('should change router address', async () => {
+    const { factory } = await loadFixture(createMarginlyFactory);
+    const routerAddress = await factory.swapRouter();
+    const newAddress = factory.address;
+
+    await factory.changeSwapRouter(newAddress);
+    
+    const currentRouterAddress = await factory.swapRouter();
+    expect(currentRouterAddress).to.be.not.eq(routerAddress);
+    expect(currentRouterAddress).to.be.eq(newAddress);
   });
 
   it('should raise error when pool exists', async () => {
