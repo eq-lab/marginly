@@ -47,14 +47,14 @@
       "label": "eth/usdc",
       "type": "http-get",
       "direction": "forward",
-      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
     },
     {
       "id": "btc-usdc",
       "label": "btc/usdc",
       "type": "http-get",
       "direction": "forward",
-      "query": "json(https://api.huobi.pro/market/history/trade?symbol=btcusdc&size=1).data[0].data[0].price"
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
     },
     {
       "id": "pepe-usdc",
@@ -65,13 +65,13 @@
           "type": "http-get",
           "label": "pepe/usdt",
           "direction": "forward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=pepeusdt&size=1).data[0].data[0].price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
         },
         {
           "type": "http-get",
           "label": "usdt/usdc",
           "direction": "backward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
         }
       ]
     }
