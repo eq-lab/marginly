@@ -48,7 +48,7 @@
       "label": "eth/usdc",
       "type": "http-get",
       "direction": "forward",
-      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
     },
     {
       "id": "arb-usdc",
@@ -59,13 +59,13 @@
           "type": "http-get",
           "label": "arb/usdt",
           "direction": "forward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBUSDT).price"
         },
         {
           "type": "http-get",
           "label": "usdt/usdc",
           "direction": "backward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
         }
       ]
     },
@@ -78,13 +78,13 @@
           "type": "http-get",
           "label": "gmx/usdt",
           "direction": "forward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GMXUSDT).price"
         },
         {
           "type": "http-get",
           "label": "usdt/usdc",
           "direction": "backward",
-          "query": "json(https://api.huobi.pro/market/history/trade?symbol=usdcusdt&size=1).data[0].data[0].price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
         }
       ]
     }
