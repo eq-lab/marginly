@@ -15,7 +15,11 @@ This monorepository contains packages with smart contracts source code, deploy t
 
 ### contracts
 
-Smart contracts of the protocol. It uses Hardhat for development environment for compilation and unit-testing. [More information](./packages/contracts/README.md)
+Smart contracts of the Marginly pool. It uses Hardhat for development environment for compilation and unit-testing. [More information](./packages/contracts/README.md)
+
+### router
+
+Smart contracts of the router. It uses Hardhat for development environment for compilation and unit-testing. [More information](./packages/router/README.md)
 
 ### cli
 
