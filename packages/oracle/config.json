@@ -299,15 +299,15 @@
       "updatePriceJobs": [
         {
           "poolMockId": "fweth-usdc",
-          "periodMs": 60000
+          "periodMs": 15000
         },
         {
           "poolMockId": "wbtc-usdc",
-          "periodMs": 60000
+          "periodMs": 15000
         },
         {
           "poolMockId": "bitcoin-usdc",
-          "periodMs": 60000
+          "periodMs": 15000
         }
       ]
     }
