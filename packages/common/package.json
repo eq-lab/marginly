@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "ethers": "^5.7.2",
-    "node-fetch": "^2.6.9"
+    "node-fetch": "^2.6.9",
+    "ws": "^8.13.0"
   },
   "exports": {
     ".": "./dist/index.js",

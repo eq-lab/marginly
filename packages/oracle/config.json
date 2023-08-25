@@ -105,21 +105,17 @@
         "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
       },
       {
-        "id": "pepe-usdc",
-        "label": "pepe/usdc",
-        "type": "composite",
-        "sources": [
+        "id": "bitcoin-usdc",
+        "label": "bitcoin/usdc",
+        "type": "lbkex",
+        "priceChain": [
           {
-            "type": "http-get",
-            "label": "pepe/usdt",
             "direction": "forward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
+            "pair": "bitcoin_usdt"
           },
           {
-            "type": "http-get",
-            "label": "usdt/usdc",
             "direction": "backward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+            "pair": "usdc_usdt"
           }
         ]
       }
@@ -274,10 +270,10 @@
           "assertDecimals": 8
         },
         {
-          "id": "pepe",
-          "address": "0xF7994cee12278Ef2db80E31FEcE1C348620863b0",
-          "assertSymbol": "PEPE",
-          "assertDecimals": 2
+          "id": "bitcoin",
+          "address": "0x3c4816b74fe1C0B470e21a637591e4C0197A89f5",
+          "assertSymbol": "BITCOIN",
+          "assertDecimals": 8
         }
       ],
       "uniswapV3PoolMocks": [
@@ -294,10 +290,10 @@
           "priceBaseTokenId": "wbtc"
         },
         {
-          "id": "pepe-usdc",
-          "address": "0x9615c97d4392F4739C0e5790cD8af45251fB45b2",
-          "priceId": "pepe-usdc",
-          "priceBaseTokenId": "pepe"
+          "id": "bitcoin-usdc",
+          "address": "0x69dE9be22a0DcDc3551F66A778e9B2B6EA67d9eE",
+          "priceId": "bitcoin-usdc",
+          "priceBaseTokenId": "bitcoin"
         }
       ],
       "updatePriceJobs": [
@@ -310,7 +306,7 @@
           "periodMs": 60000
         },
         {
-          "poolMockId": "pepe-usdc",
+          "poolMockId": "bitcoin-usdc",
           "periodMs": 60000
         }
       ]

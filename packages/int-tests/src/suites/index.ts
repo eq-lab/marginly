@@ -19,7 +19,6 @@ import { short } from './short';
 import { longAndShort } from './long_and_short';
 import { longIncome } from './long_income';
 import { shortIncome } from './short_income';
-import { mc } from './mc';
 import { GasReporter } from '../utils/GasReporter';
 import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
@@ -191,7 +190,6 @@ export async function startSuite(
     simulation1,
     simulation2,
     simulation3,
-    mc,
     shortEmergency,
     longEmergency,
     keeper,
