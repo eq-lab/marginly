@@ -5,6 +5,10 @@
       "address": "0x282910Dc20C96aDeF0BAc6b5D8b49A5F23113E33"
     },
     {
+      "id": "bitcoin-usdc",
+      "address": "0xF32c694aEc45daAA51656A95Dd4Ad3b7031FD44D"
+    },
+    {
       "id": "fweth-usdc",
       "address": "0xB8527121C1a63c1A988825B558D9EA6cFBAA60A9"
     },

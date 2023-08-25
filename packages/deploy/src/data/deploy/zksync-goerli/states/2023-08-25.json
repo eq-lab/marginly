@@ -1,0 +1,80 @@
+{
+  "contracts": {
+    "token_weth": {
+      "address": "0x56e8EAf8741042Ce090478bbA888cdE297Dc14Db",
+      "txHash": "0x570b21cc1ebd80f7b10bb518930a3d9dc8512f8b2b9f68ef35847d05bf7e0f69"
+    },
+    "token_FWETH": {
+      "address": "0xf813Ede945d925f052bDFd37a649e14A587A2462",
+      "txHash": "0xe2d1120338ceb30b358e40ac25bac6bcef664811db1451ca93833539d7ae9870"
+    },
+    "token_USDC": {
+      "address": "0x91f4d48Fc08b0383Dc3a20858911A0e6688bAD89",
+      "txHash": "0x02f81b4a8e92742bba2c1a542bbe66fcefd6f5e025916a5525987191532b2210"
+    },
+    "token_WBTC": {
+      "address": "0x3f01E7165407Be31bB3e445c9060D694C70ac0C1",
+      "txHash": "0x089b7b929cb4ab43c1d3ce886cf49daae1eb41d3c422c56d940ec1dbb52985dd"
+    },
+    "token_PEPE": {
+      "address": "0xF7994cee12278Ef2db80E31FEcE1C348620863b0",
+      "txHash": "0xbbb63be2e313ae1ee54a3751c425ac9606bc68785ffd91af406b0e8ffd01fe65"
+    },
+    "token_BITCOIN": {
+      "address": "0x3c4816b74fe1C0B470e21a637591e4C0197A89f5",
+      "txHash": "0x5ff1cab298a7595413a982a19fdb254ca3fa591a877d3f81a00121dc3e036e4d"
+    },
+    "swapRouterMock": {
+      "address": "0xA556B583bDcd1D0B29966509BbE10784B1100578",
+      "txHash": "0x5ad1be06f2352d523679e0063edbf7284777c79df80d4c1df242b34b08a4c07e"
+    },
+    "uniswapV3PoolMock_fweth-usdc": {
+      "address": "0xb9e37CAcACbc3fAF8F54b9dc9446eb4D8A64F7fc",
+      "txHash": "0x01c77cd388baa9d76a4da8535aff37381c39b59250b9f68aa17d39236033cebb"
+    },
+    "uniswapV3PoolMock_wbtc-usdc": {
+      "address": "0xC9363e55Fc7834Eb59977d48cC452eDBf0D47639",
+      "txHash": "0x069c9907eca2fafd9c9e3165237edff3fbd7d97b34f084ceb0fc62d246b39be7"
+    },
+    "uniswapV3PoolMock_pepe-usdc": {
+      "address": "0x9615c97d4392F4739C0e5790cD8af45251fB45b2",
+      "txHash": "0x2a09f7a2380b5a61b71314d121c458512410a15272e804ad83e160e4c3f56443"
+    },
+    "uniswapV3PoolMock_bitcoin-usdc": {
+      "address": "0x69dE9be22a0DcDc3551F66A778e9B2B6EA67d9eE",
+      "txHash": "0x71cc88303c082c26cadf6623d3012be70efd51a7fd45e594c22d4e65e8ed72dd"
+    },
+    "marginlyFactory": {
+      "address": "0xAA9eA8f47F166Feb2dA78C4A4Bf72D68942487ae",
+      "txHash": "0x3a2477978382b70b12ae2545f26d78b0fa5ded5a27e8903a6155bc3d83bf7e5c"
+    },
+    "marginlyPool_fweth-usdc": {
+      "address": "0xB8527121C1a63c1A988825B558D9EA6cFBAA60A9",
+      "txHash": "0x25c22c1b940a65064219f9ec0afb7e1d6f6630384535b711efd0b75fef8d67c6"
+    },
+    "marginlyPool_wbtc-usdc": {
+      "address": "0x35b1ECa9965b895d87Ca4c7B5a72Bb2448A3CA26",
+      "txHash": "0xa939e0c5642bf43b002a2beb9f04bda801bd76903bc6076221a5c635a955e121"
+    },
+    "marginlyPool_pepe-usdc": {
+      "address": "0xDe2A84C9b62750e4A83ac00E98a8749A464C9ed7",
+      "txHash": "0x3539e2b205f24484a9c13c9d9b2ae3196679bda95220323acd88b93bd9de6143"
+    },
+    "marginlyPool_bitcoin-usdc": {
+      "address": "0xF32c694aEc45daAA51656A95Dd4Ad3b7031FD44D",
+      "txHash": "0xa9dc6da6bfd32e56c6a86de7f3b7f562de287f998790d3b89d2e67d9fd53dfdb"
+    },
+    "mockAavePool": {
+      "address": "0x5814dEE27FE8466325c67544bb049D895ca3a43D",
+      "txHash": "0x019f19b2b9d2a4d29486d136c76b5a2a1493bd1d6dd0349f51313e59dfcd5121"
+    },
+    "mockAavePoolAddressesProvider": {
+      "address": "0x1F9780C9081DE2Af741207Af15a36f11793649eE",
+      "txHash": "0xc13f5aa66853e4ea80790eb9ec6a50dc92c7f38274dd11c4b4e0a9f8763594ae"
+    },
+    "marginlyKeeper": {
+      "address": "0x4E3D227cabF727bCb7668a0fdCD20aC35400bD81",
+      "txHash": "0x271c53c5c5ed14d1f6a32becfdd4b9769b5b03ded535335044a437e0d240b2ab"
+    }
+  }
+}
