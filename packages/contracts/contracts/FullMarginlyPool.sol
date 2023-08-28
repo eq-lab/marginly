@@ -35,9 +35,8 @@ contract FullMarginlyPool is MarginlyPool {
       uint24 swapFee,
       uint24 positionSlippage,
       uint24 mcSlippage,
-      uint96 positionMinAmount,
-      uint96 baseLimit,
-      uint96 quoteLimit
+      uint184 positionMinAmount,
+      uint184 quoteLimit
     )
   {
     maxLeverage = params.maxLeverage;
@@ -47,7 +46,6 @@ contract FullMarginlyPool is MarginlyPool {
     positionSlippage = params.positionSlippage;
     mcSlippage = params.mcSlippage;
     positionMinAmount = params.positionMinAmount;
-    baseLimit = params.baseLimit;
     quoteLimit = params.quoteLimit;
   }
 }

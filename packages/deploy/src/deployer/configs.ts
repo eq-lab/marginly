@@ -93,7 +93,6 @@ export interface MarginlyPoolParams {
   positionSlippage: RationalNumber;
   mcSlippage: RationalNumber;
   positionMinAmount: RationalNumber;
-  baseLimit: RationalNumber;
   quoteLimit: RationalNumber;
 }
 
@@ -351,7 +350,6 @@ export class StrictMarginlyDeployConfig {
         positionSlippage: RationalNumber.parsePercent(rawPool.params.positionSlippage),
         mcSlippage: RationalNumber.parsePercent(rawPool.params.mcSlippage),
         positionMinAmount: RationalNumber.parse(rawPool.params.positionMinAmount),
-        baseLimit: RationalNumber.parse(rawPool.params.baseLimit),
         quoteLimit: RationalNumber.parse(rawPool.params.quoteLimit),
       };
       ids.push(rawPool.id);

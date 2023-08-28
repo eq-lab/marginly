@@ -17,9 +17,7 @@ struct MarginlyParams {
   /// @dev Max slippage when margin call
   uint24 mcSlippage;
   /// @dev Min amount of base token to open short/long position
-  uint96 positionMinAmount;
-  /// @dev Max amount of base token in system
-  uint96 baseLimit;
+  uint184 positionMinAmount;
   /// @dev Max amount of quote token in system
-  uint96 quoteLimit;
+  uint184 quoteLimit;
 }
