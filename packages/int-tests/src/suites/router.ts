@@ -20,7 +20,7 @@ export async function routerSwaps(sut: SystemUnderTest) {
     const dexPoolAddress =
       dexInfo[0] == 'Balancer'
         ? await swapRouter.balancerVault()
-        : await swapRouter.getPool(dexInfo[1], weth.address, usdc.address);
+        : (await swapRouter.getPool(dexInfo[1], weth.address, usdc.address)).pool;
     if (dexPoolAddress == ZERO_ADDRESS) continue;
     logger.info(`Testing ${dexInfo[0]} dex`);
 
@@ -113,7 +113,7 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
     const dexPoolAddress =
       dexInfo[0] == 'Balancer'
         ? await swapRouter.balancerVault()
-        : await swapRouter.getPool(dexInfo[1], weth.address, usdc.address);
+        : (await swapRouter.getPool(dexInfo[1], weth.address, usdc.address)).pool;
 
     const element =
       dexPoolAddress != ZERO_ADDRESS

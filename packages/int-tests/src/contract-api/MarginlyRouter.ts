@@ -21,7 +21,7 @@ export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
     'addPools(tuple[])': utils.FunctionFragment;
     'balancerVault()': utils.FunctionFragment;
-    'getPool(uint8,address,address)': utils.FunctionFragment;
+    'getPool(uint256,address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
     'swapCallback(int256,int256,bytes)': utils.FunctionFragment;
@@ -63,7 +63,7 @@ export interface MarginlyRouterContract extends BaseContract {
     arg1: PromiseOrValue<string>,
     arg2: PromiseOrValue<string>,
     override?: CallOverrides
-  ): Promise<string>;
+  ): Promise<{ dex: number; pool: string }>;
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapCallback(
@@ -106,7 +106,7 @@ export interface MarginlyRouterContract extends BaseContract {
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<string>,
       override?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<{ dex: number; pool: string }>;
     owner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {

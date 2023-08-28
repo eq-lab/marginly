@@ -13,13 +13,12 @@ abstract contract BalancerSwap is DexPoolMapping {
   }
 
   function balancerSwapExactInput(
-    Dex dex,
+    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_IN;
@@ -38,13 +37,12 @@ abstract contract BalancerSwap is DexPoolMapping {
   }
 
   function balancerSwapExactOutput(
-    Dex dex,
+    address pool,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_OUT;

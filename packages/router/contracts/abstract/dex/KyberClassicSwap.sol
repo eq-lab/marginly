@@ -12,26 +12,24 @@ abstract contract KyberClassicSwap is UniswapV2LikeSwap, DexPoolMapping {
   uint256 private constant PRECISION = 1e18;
 
   function kyberClassicSwapExactInput(
-    Dex dex,
+    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
   ) internal returns (uint256 amountOut) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     amountOut = kyberClassicSwapGetAmountOut(pool, amountIn, tokenIn, tokenOut);
     if (amountOut < minAmountOut) revert InsufficientAmount();
     uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
   }
 
   function kyberClassicSwapExactOutput(
-    Dex dex,
+    address pool,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
   ) internal returns (uint256 amountIn) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
     amountIn = kyberClassicSwapGetAmountIn(pool, amountOut, tokenIn, tokenOut);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);

@@ -5,7 +5,7 @@ import '../abstract/Dex.sol';
 
 library SwapsDecoder {
   struct SwapInfo {
-    Dex dex;
+    uint256 dexIndex;
     uint16 swapRatio;
   }
 
@@ -21,7 +21,7 @@ library SwapsDecoder {
       // default value
       if (swaps == 0) {
         swapInfos = new SwapInfo[](1);
-        swapInfos[0] = SwapInfo({dex: Dex.UniswapV3, swapRatio: uint16(ONE)});
+        swapInfos[0] = SwapInfo({dexIndex: 0, swapRatio: uint16(ONE)});
         return (swapInfos, 1);
       }
 
@@ -35,7 +35,7 @@ library SwapsDecoder {
         uint256 swapInfo = swaps & MASK;
         uint16 swapRatio = uint16(swapInfo);
         swaps >>= 20;
-        swapInfos[swap] = SwapInfo({dex: Dex(swapInfo >> 16), swapRatio: swapRatio});
+        swapInfos[swap] = SwapInfo({dexIndex: swapInfo >> 16, swapRatio: swapRatio});
         swapRatiosSum += swapRatio;
       }
 
