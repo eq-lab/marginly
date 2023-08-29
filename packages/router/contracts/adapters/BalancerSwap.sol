@@ -34,7 +34,6 @@ contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
     funds.sender = address(this);
     funds.recipient = payable(recipient);
 
-    // TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
     IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
     TransferHelper.safeApprove(tokenIn, balancerVault, amountIn);
     amountOut = IVault(balancerVault).swap(swap, funds, minAmountOut, block.timestamp);
@@ -61,13 +60,12 @@ contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
     funds.sender = address(this);
     funds.recipient = payable(recipient);
 
-    // TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
-    IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
+    IMarginlyRouter(msg.sender).adapterCallback(address(this), maxAmountIn, data);
     TransferHelper.safeApprove(tokenIn, balancerVault, maxAmountIn);
     amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     TransferHelper.safeApprove(tokenIn, balancerVault, 0);
-    TransferHelper.safeTransfer(tokenIn, msg.sender, maxAmountIn - amountIn);
+    TransferHelper.safeTransfer(tokenIn, data.payer, maxAmountIn - amountIn);
   }
 }
 
