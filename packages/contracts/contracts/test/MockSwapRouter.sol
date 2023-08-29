@@ -40,4 +40,6 @@ contract MockSwapRouter is IMarginlyRouter {
     uint256 maxAmountIn,
     uint256 amountOut
   ) external returns (uint256 amountIn) {}
+
+  function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external {}
 }
