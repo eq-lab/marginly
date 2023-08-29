@@ -5,8 +5,6 @@ import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
-import './Dex.sol';
-
 abstract contract UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 

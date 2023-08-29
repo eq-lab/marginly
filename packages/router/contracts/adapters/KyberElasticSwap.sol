@@ -1,40 +1,41 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import '../Dex.sol';
-import '../SwapCallback.sol';
+import '../abstract/AdapterPoolsStorage.sol';
+import '../abstract/SwapCallback.sol';
+import '../interfaces/IMarginlyAdapter.sol';
 
-abstract contract KyberElasticSwap is SwapCallback {
+contract KyberElasticSwap is IMarginlyAdapter, SwapCallback {
   uint160 private constant MIN_SQRT_RATIO = 4295128739;
   uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
-  function kyberElasticSwapExactInput(
-    Dex dex,
+  constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
+
+  function swapExactInput(
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
-  ) internal returns (uint256 amountOut) {
+  ) external returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
-    address poolAddress = getPoolSafe(dex, tokenIn, tokenOut);
-    CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
+    address poolAddress = getPoolSafe(tokenIn, tokenOut);
+    CallbackData memory data = CallbackData({tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 
     (, amountOut) = swap(poolAddress, tokenIn, tokenOut, true, int256(amountIn), data);
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
-  function kyberElasticSwapExactOutput(
-    Dex dex,
+  function swapExactOutput(
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
-  ) internal returns (uint256 amountIn) {
+  ) external returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
-    address poolAddress = getPoolSafe(dex, tokenIn, tokenOut);
-    CallbackData memory data = CallbackData({dex: dex, tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
+    address poolAddress = getPoolSafe(tokenIn, tokenOut);
+    CallbackData memory data = CallbackData({tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
 
     uint256 amountOutReceived;
     (amountIn, amountOutReceived) = swap(poolAddress, tokenIn, tokenOut, false, -int256(amountOut), data);

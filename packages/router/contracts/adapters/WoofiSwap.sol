@@ -3,22 +3,33 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import '../Dex.sol';
+import '../abstract/AdapterPoolsStorage.sol';
+import '../interfaces/IMarginlyAdapter.sol';
 
-abstract contract WooFiSwap is DexPoolMapping {
-  function wooFiSwapExactInput(
-    Dex dex,
+contract WooFiSwap is IMarginlyAdapter, AdapterPoolsStorage {
+  constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
+
+  function swapExactInput(
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
-  ) internal returns (uint256 amountOut) {
-    IWooPoolV2 wooPool = IWooPoolV2(getPoolSafe(dex, tokenIn, tokenOut));
+  ) external returns (uint256 amountOut) {
+    IWooPoolV2 wooPool = IWooPoolV2(getPoolSafe(tokenIn, tokenOut));
 
     TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
     amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));
 
     if (amountOut < minAmountOut) revert InsufficientAmount();
+  }
+
+  function swapExactOutput(
+    address /*tokenIn*/,
+    address /*tokenOut*/,
+    uint256 /*amountIn*/,
+    uint256 /*minAmountOut*/
+  ) external pure returns (uint256 /*amountOut*/) {
+    revert NotSupported();
   }
 }
 

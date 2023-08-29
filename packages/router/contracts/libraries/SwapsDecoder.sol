@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import '../abstract/Dex.sol';
-
 library SwapsDecoder {
   struct SwapInfo {
-    Dex dex;
+    uint16 dexIndex;
     uint16 swapRatio;
   }
 
@@ -21,7 +19,7 @@ library SwapsDecoder {
       // default value
       if (swaps == 0) {
         swapInfos = new SwapInfo[](1);
-        swapInfos[0] = SwapInfo({dex: Dex.UniswapV3, swapRatio: uint16(ONE)});
+        swapInfos[0] = SwapInfo({dexIndex: 0, swapRatio: uint16(ONE)});
         return (swapInfos, 1);
       }
 
@@ -35,7 +33,7 @@ library SwapsDecoder {
         uint256 swapInfo = swaps & MASK;
         uint16 swapRatio = uint16(swapInfo);
         swaps >>= 20;
-        swapInfos[swap] = SwapInfo({dex: Dex(swapInfo >> 16), swapRatio: swapRatio});
+        swapInfos[swap] = SwapInfo({dexIndex: uint16(swapInfo >> 16), swapRatio: swapRatio});
         swapRatiosSum += swapRatio;
       }
 

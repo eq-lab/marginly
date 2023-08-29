@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import '../abstract/Dex.sol';
+import '../abstract/RouterAdaptersStorage.sol';
 
 interface IMarginlyRouter {
   /// @notice Emitted when swap happened
   /// @param isExactInput true if swapExactInput, false if swapExactOutput
-  /// @param dex dex used for swap
+  /// @param dexIndex index of the dex used for swap
   /// @param receiver swap result receiver
   /// @param tokenIn address of a token swapped on dex
   /// @param tokenOut address of a token received from dex
@@ -14,7 +14,7 @@ interface IMarginlyRouter {
   /// @param amountOut amount of tokenOut received
   event Swap(
     bool isExactInput,
-    Dex dex,
+    uint256 dexIndex,
     address indexed receiver,
     address indexed tokenIn,
     address indexed tokenOut,

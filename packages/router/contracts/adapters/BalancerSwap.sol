@@ -3,23 +3,23 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import '../Dex.sol';
+import '../abstract/AdapterPoolsStorage.sol';
+import '../interfaces/IMarginlyAdapter.sol';
 
-abstract contract BalancerSwap is DexPoolMapping {
+contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
   address public immutable balancerVault;
 
-  constructor(address _balancerVault) {
+  constructor(PoolInput[] memory pools, address _balancerVault) AdapterPoolsStorage(pools) {
     balancerVault = _balancerVault;
   }
 
-  function balancerSwapExactInput(
-    Dex dex,
+  function swapExactInput(
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
-  ) internal returns (uint256 amountOut) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
+  ) external returns (uint256 amountOut) {
+    address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_IN;
@@ -37,14 +37,13 @@ abstract contract BalancerSwap is DexPoolMapping {
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
-  function balancerSwapExactOutput(
-    Dex dex,
+  function swapExactOutput(
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
-  ) internal returns (uint256 amountIn) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
+  ) external returns (uint256 amountIn) {
+    address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_OUT;
