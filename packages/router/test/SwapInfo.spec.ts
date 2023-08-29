@@ -11,7 +11,7 @@ describe('SwapInfo decoding', () => {
     expect(decodingResult[1]).to.be.equal(1);
 
     const swapInfo = decodingResult[0][0];
-    expect(swapInfo.dex).to.be.equal(Dex.UniswapV3);
+    expect(swapInfo.dexIndex).to.be.equal(Dex.UniswapV3);
     expect(swapInfo.swapRatio).to.be.equal(1 << 15);
   });
 
@@ -22,7 +22,7 @@ describe('SwapInfo decoding', () => {
     expect(decodingResult[1]).to.be.equal(1);
 
     const swapInfo = decodingResult[0][0];
-    expect(swapInfo.dex).to.be.equal(Dex.UniswapV3);
+    expect(swapInfo.dexIndex).to.be.equal(Dex.UniswapV3);
     expect(swapInfo.swapRatio).to.be.equal(1 << 15);
   });
 
@@ -48,11 +48,11 @@ describe('SwapInfo decoding', () => {
     expect(decodingResult[1]).to.be.equal(2);
 
     const swapInfoFirst = decodingResult[0][1];
-    expect(swapInfoFirst.dex).to.be.equal(firstDex);
+    expect(swapInfoFirst.dexIndex).to.be.equal(firstDex);
     expect(swapInfoFirst.swapRatio).to.be.equal(firstDexRatio);
 
     const swapInfoSecond = decodingResult[0][0];
-    expect(swapInfoSecond.dex).to.be.equal(secondDex);
+    expect(swapInfoSecond.dexIndex).to.be.equal(secondDex);
     expect(swapInfoSecond.swapRatio).to.be.equal(secondDexRatio);
   });
 
