@@ -5,29 +5,35 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '../abstract/AdapterPoolsStorage.sol';
 import '../interfaces/IMarginlyAdapter.sol';
+import '../interfaces/IMarginlyRouter.sol';
 
 contract WooFiSwap is IMarginlyAdapter, AdapterPoolsStorage {
   constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
 
   function swapExactInput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
-    uint256 minAmountOut
+    uint256 minAmountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountOut) {
     IWooPoolV2 wooPool = IWooPoolV2(getPoolSafe(tokenIn, tokenOut));
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
-    amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, msg.sender, address(0));
+    // TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(wooPool), amountIn);
+    IMarginlyRouter(msg.sender).adapterCallback(address(wooPool), amountIn, data);
+    amountOut = wooPool.swap(tokenIn, tokenOut, amountIn, minAmountOut, recipient, address(0));
 
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function swapExactOutput(
+    address /*recipient*/,
     address /*tokenIn*/,
     address /*tokenOut*/,
     uint256 /*amountIn*/,
-    uint256 /*minAmountOut*/
+    uint256 /*minAmountOut*/,
+    AdapterCallbackData calldata /*data*/
   ) external pure returns (uint256 /*amountOut*/) {
     revert NotSupported();
   }

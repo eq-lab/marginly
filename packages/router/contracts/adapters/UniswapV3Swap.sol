@@ -9,35 +9,49 @@ contract UniswapV3Swap is IMarginlyAdapter, UniswapV3LikeSwap, SwapCallback {
   constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
 
   function swapExactInput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
-    uint256 minAmountOut
+    uint256 minAmountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
     address poolAddress = getPoolSafe(tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
-    CallbackData memory data = CallbackData({tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
+    CallbackData memory swapData = CallbackData({
+      tokenIn: tokenIn,
+      tokenOut: tokenOut,
+      initiator: msg.sender,
+      data: data
+    });
 
-    (, amountOut) = uniswapV3LikeSwap(poolAddress, zeroForOne, int256(amountIn), data);
+    (, amountOut) = uniswapV3LikeSwap(recipient, poolAddress, zeroForOne, int256(amountIn), swapData);
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function swapExactOutput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
-    uint256 amountOut
+    uint256 amountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
     address poolAddress = getPoolSafe(tokenIn, tokenOut);
     bool zeroForOne = tokenIn < tokenOut;
-    CallbackData memory data = CallbackData({tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
+    CallbackData memory swapData = CallbackData({
+      tokenIn: tokenIn,
+      tokenOut: tokenOut,
+      initiator: msg.sender,
+      data: data
+    });
 
     uint256 amountOutReceived;
-    (amountIn, amountOutReceived) = uniswapV3LikeSwap(poolAddress, zeroForOne, -int256(amountOut), data);
+    (amountIn, amountOutReceived) = uniswapV3LikeSwap(recipient, poolAddress, zeroForOne, -int256(amountOut), swapData);
     require(amountOutReceived == amountOut);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
   }

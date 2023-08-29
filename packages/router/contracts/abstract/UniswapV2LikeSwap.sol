@@ -9,15 +9,14 @@ abstract contract UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
   function uniswapV2LikeSwap(
+    address recipient,
     address pool,
     address tokenIn,
     address tokenOut,
-    uint256 amountIn,
     uint256 amountOut
   ) internal {
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, pool, amountIn);
     (uint256 amount0Out, uint256 amount1Out) = tokenIn < tokenOut ? (uint256(0), amountOut) : (amountOut, uint256(0));
-    IUniswapV2Pair(pool).swap(amount0Out, amount1Out, msg.sender, new bytes(0));
+    IUniswapV2Pair(pool).swap(amount0Out, amount1Out, recipient, new bytes(0));
   }
 
   function uniswapV2LikeGetAmountOut(

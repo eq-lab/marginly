@@ -12,38 +12,61 @@ contract KyberElasticSwap is IMarginlyAdapter, SwapCallback {
   constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
 
   function swapExactInput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
-    uint256 minAmountOut
+    uint256 minAmountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
     address poolAddress = getPoolSafe(tokenIn, tokenOut);
-    CallbackData memory data = CallbackData({tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
+    CallbackData memory swapData = CallbackData({
+      tokenIn: tokenIn,
+      tokenOut: tokenOut,
+      initiator: msg.sender,
+      data: data
+    });
 
-    (, amountOut) = swap(poolAddress, tokenIn, tokenOut, true, int256(amountIn), data);
+    (, amountOut) = swap(recipient, poolAddress, tokenIn, tokenOut, true, int256(amountIn), swapData);
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function swapExactOutput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
-    uint256 amountOut
+    uint256 amountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 
     address poolAddress = getPoolSafe(tokenIn, tokenOut);
-    CallbackData memory data = CallbackData({tokenIn: tokenIn, tokenOut: tokenOut, payer: msg.sender});
+    CallbackData memory swapData = CallbackData({
+      tokenIn: tokenIn,
+      tokenOut: tokenOut,
+      initiator: msg.sender,
+      data: data
+    });
 
     uint256 amountOutReceived;
-    (amountIn, amountOutReceived) = swap(poolAddress, tokenIn, tokenOut, false, -int256(amountOut), data);
+    (amountIn, amountOutReceived) = swap(
+      recipient,
+      poolAddress,
+      tokenIn,
+      tokenOut,
+      false,
+      -int256(amountOut),
+      swapData
+    );
     require(amountOutReceived == amountOut);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
   }
 
   function swap(
+    address recipient,
     address pool,
     address tokenIn,
     address tokenOut,
@@ -54,7 +77,7 @@ contract KyberElasticSwap is IMarginlyAdapter, SwapCallback {
     uint160 limitSqrtP = tokenIn < tokenOut ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1;
 
     (int256 amount0Delta, int256 amount1Delta) = IKyberElasticPool(pool).swap(
-      msg.sender,
+      recipient,
       swapAmount,
       isExactInput ? tokenIn < tokenOut : tokenOut < tokenIn,
       limitSqrtP,

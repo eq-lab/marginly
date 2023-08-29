@@ -5,6 +5,7 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '../abstract/AdapterPoolsStorage.sol';
 import '../interfaces/IMarginlyAdapter.sol';
+import '../interfaces/IMarginlyRouter.sol';
 
 contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
   address public immutable balancerVault;
@@ -14,10 +15,12 @@ contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
   }
 
   function swapExactInput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
-    uint256 minAmountOut
+    uint256 minAmountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
@@ -29,19 +32,22 @@ contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
 
     FundManagement memory funds;
     funds.sender = address(this);
-    funds.recipient = payable(msg.sender);
+    funds.recipient = payable(recipient);
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
+    // TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
+    IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
     TransferHelper.safeApprove(tokenIn, balancerVault, amountIn);
     amountOut = IVault(balancerVault).swap(swap, funds, minAmountOut, block.timestamp);
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function swapExactOutput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
-    uint256 amountOut
+    uint256 amountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountIn) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
@@ -53,9 +59,10 @@ contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
 
     FundManagement memory funds;
     funds.sender = address(this);
-    funds.recipient = payable(msg.sender);
+    funds.recipient = payable(recipient);
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
+    // TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
+    IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
     TransferHelper.safeApprove(tokenIn, balancerVault, maxAmountIn);
     amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
     if (amountIn > maxAmountIn) revert TooMuchRequested();

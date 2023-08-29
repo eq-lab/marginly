@@ -10,13 +10,14 @@ abstract contract UniswapV3LikeSwap {
   uint160 constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
   function uniswapV3LikeSwap(
+    address recipient,
     address pool,
     bool zeroForOne,
     int256 swapAmount,
     CallbackData memory data
   ) internal returns (uint256 amountIn, uint256 amountOut) {
     (int256 amount0Delta, int256 amount1Delta) = IUniswapV3Pool(pool).swap(
-      msg.sender,
+      recipient,
       zeroForOne,
       swapAmount,
       zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1,

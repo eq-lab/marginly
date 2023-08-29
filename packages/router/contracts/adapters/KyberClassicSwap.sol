@@ -6,6 +6,7 @@ import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '../abstract/AdapterPoolsStorage.sol';
 import '../abstract/UniswapV2LikeSwap.sol';
 import '../interfaces/IMarginlyAdapter.sol';
+import '../interfaces/IMarginlyRouter.sol';
 
 contract KyberClassicSwap is IMarginlyAdapter, AdapterPoolsStorage, UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
@@ -15,27 +16,33 @@ contract KyberClassicSwap is IMarginlyAdapter, AdapterPoolsStorage, UniswapV2Lik
   constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
 
   function swapExactInput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
-    uint256 minAmountOut
+    uint256 minAmountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountOut = getAmountOut(pool, amountIn, tokenIn, tokenOut);
     if (amountOut < minAmountOut) revert InsufficientAmount();
-    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
+    uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);
   }
 
   function swapExactOutput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
-    uint256 amountOut
+    uint256 amountOut,
+    AdapterCallbackData calldata data
   ) external returns (uint256 amountIn) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountIn = getAmountIn(pool, amountOut, tokenIn, tokenOut);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
-    uniswapV2LikeSwap(pool, tokenIn, tokenOut, amountIn, amountOut);
+    IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
+    uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);
   }
 
   function getAmountOut(

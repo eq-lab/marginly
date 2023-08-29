@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
+import '../abstract/AdapterCallback.sol';
 import '../abstract/RouterAdaptersStorage.sol';
 
 interface IMarginlyRouter {
@@ -49,4 +50,6 @@ interface IMarginlyRouter {
     uint256 maxAmountIn,
     uint256 amountOut
   ) external returns (uint256);
+
+  function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external;
 }

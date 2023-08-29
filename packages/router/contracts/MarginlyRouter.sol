@@ -5,12 +5,13 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
+import './abstract/AdapterCallback.sol';
 import './abstract/RouterAdaptersStorage.sol';
 import './interfaces/IMarginlyRouter.sol';
 import './interfaces/IMarginlyAdapter.sol';
 import './libraries/SwapsDecoder.sol';
 
-contract MarginlyRouter is IMarginlyRouter, RouterAdaptersStorage {
+contract MarginlyRouter is IMarginlyRouter, RouterAdaptersStorage, AdapterCallback {
   constructor(AdapterInput[] memory _adapters) RouterAdaptersStorage(_adapters) {}
 
   /// @inheritdoc IMarginlyRouter
@@ -30,7 +31,16 @@ contract MarginlyRouter is IMarginlyRouter, RouterAdaptersStorage {
       uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
 
-      uint256 dexAmountOut = getAdapterSafe(dexIndex).swapExactInput(tokenIn, tokenOut, dexAmountIn, dexMinAmountOut);
+      AdapterCallbackData memory data = AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex});
+      uint256 dexAmountOut = getAdapterSafe(dexIndex).swapExactInput(
+        msg.sender,
+        tokenIn,
+        tokenOut,
+        dexAmountIn,
+        dexMinAmountOut,
+        data
+      );
+
       amountOut += dexAmountOut;
       emit Swap(true, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
@@ -53,10 +63,23 @@ contract MarginlyRouter is IMarginlyRouter, RouterAdaptersStorage {
       uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
       uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
 
-      uint256 dexAmountIn = getAdapterSafe(dexIndex).swapExactOutput(tokenIn, tokenOut, dexMaxAmountIn, dexAmountOut);
+      AdapterCallbackData memory data = AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex});
+      uint256 dexAmountIn = getAdapterSafe(dexIndex).swapExactOutput(
+        msg.sender,
+        tokenIn,
+        tokenOut,
+        dexMaxAmountIn,
+        dexAmountOut,
+        data
+      );
 
       amountIn += dexAmountIn;
       emit Swap(false, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
+  }
+
+  /// @inheritdoc IMarginlyRouter
+  function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external {
+    adapterCallbackInner(recipient, amount, data);
   }
 }
