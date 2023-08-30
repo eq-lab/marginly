@@ -13,7 +13,7 @@ library SwapsDecoder {
   error WrongSwapsNumber();
   error WrongSwapRatios();
 
-  uint256 constant MASK = 1048575; // 2^20 - 1
+  uint256 constant MASK = 4194303; // 2^22 - 1
   uint256 constant SWAP_NUMBER_MASK = 15; // 2^4 - 1
   uint256 internal constant ONE = 32768; // 2^15
 
@@ -42,7 +42,7 @@ library SwapsDecoder {
         uint256 swapInfo = swaps & MASK;
         uint16 swapRatio = uint16(swapInfo);
         swapRatiosSum += swapRatio;
-        swaps >>= 20;
+        swaps >>= 22;
 
         bool isLastSwap = swap + 1 == swapsNumber;
         uint256 dexAmountIn = isLastSwap ? amountIn - totalAmountIn : Math.mulDiv(amountIn, swapRatio, ONE) ;

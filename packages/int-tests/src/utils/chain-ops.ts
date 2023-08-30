@@ -40,9 +40,9 @@ export function constructSwap(dex: number[], ratios: number[]): BigNumber {
 
   let swap = BigInt(0);
   for (let i = 0; i < dex.length; ++i) {
-    swap = (((swap + BigInt(dex[i])) << BigInt(16)) + BigInt(ratios[i])) << BigInt(4);
+    swap = (((swap << BigInt(6)) + BigInt(dex[i])) << BigInt(16)) + BigInt(ratios[i]);
   }
-  swap += BigInt(dex.length);
+  swap = (swap << BigInt(4)) + BigInt(dex.length);
   return BigNumber.from(swap);
 }
 
