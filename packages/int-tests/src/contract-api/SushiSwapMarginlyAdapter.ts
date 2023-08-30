@@ -14,26 +14,24 @@ import {
   ContractFactory,
 } from 'ethers';
 // @ts-ignore
-import { abi, bytecode } from '@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json';
+import { abi, bytecode } from '@marginly/router/artifacts/contracts/adapters/SushiSwap.sol/SushiSwap.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
-export interface MarginlyRouterInterface extends utils.Interface {
+export interface SushiSwapInterface extends utils.Interface {
   functions: {
-    'adapterCallback(address,uint256,tuple)': utils.FunctionFragment;
-    'adapters(uint256)': utils.FunctionFragment;
-    'addDexAdapters(tuple[])': utils.FunctionFragment;
+    'addPools(tuple[])': utils.FunctionFragment;
+    'getPool(address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
-    'swapExactInput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
-    'swapExactOutput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
+    'swapExactInput(address,address,address,uint256,uint256,tuple)': utils.FunctionFragment;
+    'swapExactOutput(address,address,address,uint256,uint256,tuple)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | 'adapterCallback'
-      | 'adapters'
-      | 'addDexAdapters'
+      | 'addPools'
+      | 'getPool'
       | 'owner'
       | 'renounceOwnership'
       | 'swapExactInput'
@@ -42,40 +40,36 @@ export interface MarginlyRouterInterface extends utils.Interface {
   ): utils.FunctionFragment;
 }
 
-export interface MarginlyRouterContract extends BaseContract {
+export interface SushiSwapContract extends BaseContract {
   connect(signerOrProvider: Signer | providers.Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: MarginlyRouterInterface;
+  interface: SushiSwapInterface;
 
-  adapterCallback(
-    recipient: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+  addPools(
+    pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  adapters(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<string>;
-  addDexAdapters(
-    _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  getPool(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, override?: CallOverrides): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapExactInput(
-    swapCalldata: PromiseOrValue<BigNumberish>,
+    recipient: PromiseOrValue<string>,
     tokenIn: PromiseOrValue<string>,
     tokenOut: PromiseOrValue<string>,
     amountIn: PromiseOrValue<BigNumberish>,
     minAmountOut: PromiseOrValue<BigNumberish>,
+    data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   swapExactOutput(
-    swapCalldata: PromiseOrValue<BigNumberish>,
+    recipient: PromiseOrValue<string>,
     tokenIn: PromiseOrValue<string>,
     tokenOut: PromiseOrValue<string>,
     maxAmountIn: PromiseOrValue<BigNumberish>,
     amountOut: PromiseOrValue<BigNumberish>,
+    data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   transferOwnership(
@@ -84,35 +78,31 @@ export interface MarginlyRouterContract extends BaseContract {
   ): Promise<ContractTransaction>;
 
   functions: {
-    adapters(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[string]>;
+    getPool(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
-    adapterCallback(
-      recipient: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-    addDexAdapters(
-      _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
+    addPools(
+      pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BigNumberish>,
+      recipient: PromiseOrValue<string>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
       minAmountOut: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BigNumberish>,
+      recipient: PromiseOrValue<string>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
       amountOut: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     transferOwnership(
@@ -121,31 +111,27 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<BigNumber>;
   };
   populateTransaction: {
-    adapterCallback(
-      recipient: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-    addDexAdapters(
-      _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
+    addPools(
+      pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BigNumberish>,
+      recipient: PromiseOrValue<string>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
       minAmountOut: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BigNumberish>,
+      recipient: PromiseOrValue<string>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
       amountOut: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     transferOwnership(
@@ -154,31 +140,27 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
-    adapterCallback(
-      recipient: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<void>;
-    addDexAdapters(
-      _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
+    addPools(
+      pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     swapExactInput(
-      swapCalldata: PromiseOrValue<BigNumberish>,
+      recipient: PromiseOrValue<string>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
       minAmountOut: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
-      swapCalldata: PromiseOrValue<BigNumberish>,
+      recipient: PromiseOrValue<string>,
       tokenIn: PromiseOrValue<string>,
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
       amountOut: PromiseOrValue<BigNumberish>,
+      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     transferOwnership(
@@ -189,15 +171,15 @@ export interface MarginlyRouterContract extends BaseContract {
 }
 
 export async function deploy(
-  _adapters: { dexIndex: BigNumberish; adapter: string }[],
+  pools: { token0: string; token1: string; pool: string }[],
   signer?: Signer
-): Promise<MarginlyRouterContract> {
+): Promise<SushiSwapContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(_adapters);
+  const contract = await factory.deploy(pools);
   return (await contract.deployed()) as any;
 }
 
-export function connect(addressOrName: string, signerOrProvider?: Signer | providers.Provider): MarginlyRouterContract {
+export function connect(addressOrName: string, signerOrProvider?: Signer | providers.Provider): SushiSwapContract {
   return new BaseContract(addressOrName, abi, signerOrProvider) as any;
 }
 

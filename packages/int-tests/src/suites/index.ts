@@ -25,6 +25,10 @@ import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
+import BalancerMarginlyAdapter, { BalancerSwapContract } from '../contract-api/BalancerMarginlyAdapter';
+import KyberClassicMarginlyAdapter, { KyberClassicSwapContract } from '../contract-api/KyberClassicMarginlyAdapter';
+import SushiSwapMarginlyAdapter, { SushiSwapContract } from '../contract-api/SushiSwapMarginlyAdapter';
+import UniswapV3MarginlyAdapter, { UniswapV3SwapContract } from '../contract-api/UniswapV3MarginlyAdapter';
 import {
   deleveragePrecisionLong,
   deleveragePrecisionShort,
@@ -88,33 +92,46 @@ async function initializeTestSystem(
   const uniswap = uniswapPoolContract(await uniswapFactory.getPool(weth.address, usdc.address, 500), provider);
   logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
 
+  const uniswapAdapter = await UniswapV3MarginlyAdapter.deploy(
+    [{token0: weth.address, token1: usdc.address, pool: uniswap.address}],
+    treasury,
+  );
+
+  const kyberClassicAdapter = await KyberClassicMarginlyAdapter.deploy(
+    [{token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76'}],
+    treasury,
+  );
+
+  const sushiSwapAdapter = await SushiSwapMarginlyAdapter.deploy(
+    [{token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0'}],
+    treasury,
+  );
+
+  const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
+  const balancerAdapter = await BalancerMarginlyAdapter.deploy(
+    [{token0: weth.address, token1: usdc.address, pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8'}],
+    balancerVault,
+    treasury,
+  );
+
   const routerConstructorInput = [];
   routerConstructorInput.push({
-    dex: Dex.UniswapV3,
-    token0: weth.address,
-    token1: usdc.address,
-    pool: uniswap.address,
+    dexIndex: Dex.UniswapV3,
+    adapter: uniswapAdapter.address,
   });
   routerConstructorInput.push({
-    dex: Dex.Balancer,
-    token0: weth.address,
-    token1: usdc.address,
-    pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8',
+    dexIndex: Dex.Balancer,
+    adapter: balancerAdapter.address,
   });
   routerConstructorInput.push({
-    dex: Dex.KyberClassicSwap,
-    token0: weth.address,
-    token1: usdc.address,
-    pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76',
+    dexIndex: Dex.KyberClassicSwap,
+    adapter: kyberClassicAdapter.address,
   });
   routerConstructorInput.push({
-    dex: Dex.SushiSwap,
-    token0: weth.address,
-    token1: usdc.address,
-    pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0',
+    dexIndex: Dex.SushiSwap,
+    adapter: sushiSwapAdapter.address,
   });
-  const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
-  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, balancerVault, treasury);
+  const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);

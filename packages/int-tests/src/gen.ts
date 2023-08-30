@@ -77,6 +77,34 @@ const defsMarginlyRouter = genDefinitions(
 );
 writeFileSync(`./src/contract-api/MarginlyRouter.ts`, defsMarginlyRouter);
 
+const defsUniswapV3MarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/UniswapV3Swap.sol/UniswapV3Swap.json`),
+  `@marginly/router/artifacts/contracts/adapters/UniswapV3Swap.sol/UniswapV3Swap.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/UniswapV3MarginlyAdapter.ts`, defsUniswapV3MarginlyAdapter);
+
+const defsBalancerMarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/BalancerSwap.sol/BalancerSwap.json`),
+  `@marginly/router/artifacts/contracts/adapters/BalancerSwap.sol/BalancerSwap.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/BalancerMarginlyAdapter.ts`, defsBalancerMarginlyAdapter);
+
+const defsKyberClassicMarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/KyberClassicSwap.sol/KyberClassicSwap.json`),
+  `@marginly/router/artifacts/contracts/adapters/KyberClassicSwap.sol/KyberClassicSwap.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/KyberClassicMarginlyAdapter.ts`, defsKyberClassicMarginlyAdapter);
+
+const defsSushiSwapMarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/SushiSwap.sol/SushiSwap.json`),
+  `@marginly/router/artifacts/contracts/adapters/SushiSwap.sol/SushiSwap.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/SushiSwapMarginlyAdapter.ts`, defsSushiSwapMarginlyAdapter);
+
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),
 //   `@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`,
