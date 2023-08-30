@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import '../abstract/AdapterCallback.sol';
-import '../abstract/RouterAdaptersStorage.sol';
+import '../abstract/RouterStorage.sol';
 
 interface IMarginlyRouter {
   /// @notice Emitted when swap happened

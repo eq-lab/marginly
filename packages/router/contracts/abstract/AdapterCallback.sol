@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import './RouterAdaptersStorage.sol';
+import './RouterStorage.sol';
 
 struct AdapterCallbackData {
   address payer;
@@ -11,7 +11,7 @@ struct AdapterCallbackData {
   uint256 dexIndex;
 }
 
-abstract contract AdapterCallback is RouterAdaptersStorage {
+abstract contract AdapterCallback is RouterStorage {
   function adapterCallbackInner(address recipient, uint256 amount, AdapterCallbackData calldata data) internal {
     require(msg.sender == adapters[data.dexIndex]);
     TransferHelper.safeTransferFrom(data.tokenIn, data.payer, recipient, amount);

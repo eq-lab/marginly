@@ -17,10 +17,10 @@ import {
 import {
   abi,
   bytecode,
-} from '@marginly/router/artifacts/contracts/adapters/KyberClassicSwap.sol/KyberClassicSwap.json';
+} from '@marginly/router/artifacts/contracts/adapters/KyberSwapClassicAdapter.sol/KyberSwapClassicAdapter.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
-export interface KyberClassicSwapInterface extends utils.Interface {
+export interface KyberSwapClassicAdapterInterface extends utils.Interface {
   functions: {
     'addPools(tuple[])': utils.FunctionFragment;
     'getPool(address,address)': utils.FunctionFragment;
@@ -43,12 +43,12 @@ export interface KyberClassicSwapInterface extends utils.Interface {
   ): utils.FunctionFragment;
 }
 
-export interface KyberClassicSwapContract extends BaseContract {
+export interface KyberSwapClassicAdapterContract extends BaseContract {
   connect(signerOrProvider: Signer | providers.Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: KyberClassicSwapInterface;
+  interface: KyberSwapClassicAdapterInterface;
 
   addPools(
     pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
@@ -176,7 +176,7 @@ export interface KyberClassicSwapContract extends BaseContract {
 export async function deploy(
   pools: { token0: string; token1: string; pool: string }[],
   signer?: Signer
-): Promise<KyberClassicSwapContract> {
+): Promise<KyberSwapClassicAdapterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
   const contract = await factory.deploy(pools);
   return (await contract.deployed()) as any;
@@ -185,7 +185,7 @@ export async function deploy(
 export function connect(
   addressOrName: string,
   signerOrProvider?: Signer | providers.Provider
-): KyberClassicSwapContract {
+): KyberSwapClassicAdapterContract {
   return new BaseContract(addressOrName, abi, signerOrProvider) as any;
 }
 

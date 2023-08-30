@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import '../abstract/AdapterPoolsStorage.sol';
+import '../abstract/AdapterStorage.sol';
 import '../abstract/SwapCallback.sol';
-import '../interfaces/IMarginlyAdapter.sol';
 
-contract KyberElasticSwap is IMarginlyAdapter, SwapCallback {
+contract KyberSwapElasticAdapter is AdapterStorage, SwapCallback {
   uint160 private constant MIN_SQRT_RATIO = 4295128739;
   uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
-  constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
+  constructor(PoolInput[] memory pools) AdapterStorage(pools) {}
 
   function swapExactInput(
     address recipient,

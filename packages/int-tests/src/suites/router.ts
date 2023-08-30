@@ -23,7 +23,7 @@ export async function routerSwaps(sut: SystemUnderTest) {
     // balancer adapter abi is used since it has both getPool and balancerVault methods
     const adapter = new ethers.Contract(
       adapterAddress,
-      require(`@marginly/router/artifacts/contracts/adapters/BalancerSwap.sol/BalancerSwap.json`).abi,
+      require(`@marginly/router/artifacts/contracts/adapters/BalancerAdapter.sol/BalancerAdapter.json`).abi,
       provider.provider
     );
     const dexPoolAddress =
@@ -126,7 +126,7 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
     // balancer adapter abi is used since it has both getPool and balancerVault methods
     const adapter = new ethers.Contract(
       await swapRouter.adapters(dexInfo[1]),
-      require(`@marginly/router/artifacts/contracts/adapters/BalancerSwap.sol/BalancerSwap.json`).abi,
+      require(`@marginly/router/artifacts/contracts/adapters/BalancerAdapter.sol/BalancerAdapter.json`).abi,
       provider.provider
     );
     const dexPoolAddress =

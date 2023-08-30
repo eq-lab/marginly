@@ -3,13 +3,15 @@ pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 
+import '../interfaces/IMarginlyAdapter.sol';
+
 struct PoolInput {
   address token0;
   address token1;
   address pool;
 }
 
-abstract contract AdapterPoolsStorage is Ownable {
+abstract contract AdapterStorage is IMarginlyAdapter, Ownable {
   error UnknownPool();
 
   mapping(address => mapping(address => address)) public getPool;

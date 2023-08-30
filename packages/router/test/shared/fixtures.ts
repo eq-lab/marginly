@@ -45,7 +45,7 @@ export async function createUniswapV3Pool(
   await token1.mint(uniswapV3Pool.address, parseUnits('100000', 18));
 
   const adapterInput = [{token0: token0.address, token1: token1.address, pool: uniswapV3Pool.address}];
-  const uniswapV3Adapter = await (await ethers.getContractFactory('UniswapV3Swap')).deploy(adapterInput);
+  const uniswapV3Adapter = await (await ethers.getContractFactory('UniswapV3Adapter')).deploy(adapterInput);
   return {
     uniswapV3Pool,
     uniswapV3Adapter,
@@ -71,7 +71,7 @@ export async function createUniswapV2Pair(
   await uniswapV2Pair.sync();
 
   const adapterInput = [{token0: token0.address, token1: token1.address, pool: uniswapV2Pair.address}];
-  const uniswapV2Adapter = await (await ethers.getContractFactory('QuickSwap')).deploy(adapterInput);
+  const uniswapV2Adapter = await (await ethers.getContractFactory('QuickSwapAdapter')).deploy(adapterInput);
   return {
     uniswapV2Pair,
     uniswapV2Adapter,
@@ -93,7 +93,7 @@ export async function createBalancer(
 
   const adapterInput = [{token0: token0.address, token1: token1.address, pool: balancerPool.address}];
   const balancerAdapter = await (
-    await ethers.getContractFactory('BalancerSwap')
+    await ethers.getContractFactory('BalancerAdapter')
   ).deploy(adapterInput, balancerVault.address);
   return {
     balancerVault,
@@ -117,7 +117,7 @@ export async function createWooPool(
   await wooPool.sync(token1.address);
 
   const adapterInput = [{token0: token0.address, token1: token1.address, pool: wooPool.address}];
-  const wooFiAdapter = await (await ethers.getContractFactory('WooFiSwap')).deploy(adapterInput);
+  const wooFiAdapter = await (await ethers.getContractFactory('WooFiAdapter')).deploy(adapterInput);
   return {
     wooPool,
     wooFiAdapter,

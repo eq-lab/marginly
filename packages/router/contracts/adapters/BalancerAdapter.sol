@@ -3,14 +3,13 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import '../abstract/AdapterPoolsStorage.sol';
-import '../interfaces/IMarginlyAdapter.sol';
+import '../abstract/AdapterStorage.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
-contract BalancerSwap is IMarginlyAdapter, AdapterPoolsStorage {
+contract BalancerAdapter is AdapterStorage {
   address public immutable balancerVault;
 
-  constructor(PoolInput[] memory pools, address _balancerVault) AdapterPoolsStorage(pools) {
+  constructor(PoolInput[] memory pools, address _balancerVault) AdapterStorage(pools) {
     balancerVault = _balancerVault;
   }
 

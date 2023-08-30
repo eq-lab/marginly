@@ -25,10 +25,10 @@ import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
 import { keeper } from './keeper';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
-import BalancerMarginlyAdapter, { BalancerSwapContract } from '../contract-api/BalancerMarginlyAdapter';
-import KyberClassicMarginlyAdapter, { KyberClassicSwapContract } from '../contract-api/KyberClassicMarginlyAdapter';
-import SushiSwapMarginlyAdapter, { SushiSwapContract } from '../contract-api/SushiSwapMarginlyAdapter';
-import UniswapV3MarginlyAdapter, { UniswapV3SwapContract } from '../contract-api/UniswapV3MarginlyAdapter';
+import BalancerMarginlyAdapter from '../contract-api/BalancerMarginlyAdapter';
+import KyberClassicMarginlyAdapter from '../contract-api/KyberClassicMarginlyAdapter';
+import SushiSwapMarginlyAdapter from '../contract-api/SushiSwapMarginlyAdapter';
+import UniswapV3MarginlyAdapter from '../contract-api/UniswapV3MarginlyAdapter';
 import {
   deleveragePrecisionLong,
   deleveragePrecisionShort,

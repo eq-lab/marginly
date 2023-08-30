@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './AdapterCallback.sol';
-import './AdapterPoolsStorage.sol';
+import './AdapterStorage.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
 struct CallbackData {
@@ -14,7 +14,7 @@ struct CallbackData {
   AdapterCallbackData data;
 }
 
-abstract contract SwapCallback is AdapterPoolsStorage {
+abstract contract SwapCallback is AdapterStorage {
   function swapCallbackInner(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) internal {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     CallbackData memory data = abi.decode(_data, (CallbackData));
@@ -25,11 +25,8 @@ abstract contract SwapCallback is AdapterPoolsStorage {
       ? (tokenIn < tokenOut, uint256(amount0Delta))
       : (tokenOut < tokenIn, uint256(amount1Delta));
 
+    require(isExactInput);
+
     IMarginlyRouter(data.initiator).adapterCallback(msg.sender, amountToPay, data.data);
-    // if (isExactInput) {
-    //   TransferHelper.safeTransferFrom(tokenIn, data.payer, msg.sender, amountToPay);
-    // } else {
-    //   TransferHelper.safeTransferFrom(tokenOut, data.payer, msg.sender, amountToPay);
-    // }
   }
 }

@@ -4,13 +4,14 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import '../interfaces/IMarginlyAdapter.sol';
+import '../interfaces/IMarginlyRouter.sol';
 
 struct AdapterInput {
   uint256 dexIndex;
   address adapter;
 }
 
-abstract contract RouterAdaptersStorage is Ownable {
+abstract contract RouterStorage is IMarginlyRouter, Ownable {
   error UnknownDex();
 
   mapping(uint256 => address) public adapters;

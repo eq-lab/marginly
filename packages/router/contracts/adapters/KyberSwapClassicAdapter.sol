@@ -3,17 +3,16 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
-import '../abstract/AdapterPoolsStorage.sol';
+import '../abstract/AdapterStorage.sol';
 import '../abstract/UniswapV2LikeSwap.sol';
-import '../interfaces/IMarginlyAdapter.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
-contract KyberClassicSwap is IMarginlyAdapter, AdapterPoolsStorage, UniswapV2LikeSwap {
+contract KyberSwapClassicAdapter is AdapterStorage, UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
   uint256 private constant PRECISION = 1e18;
 
-  constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
+  constructor(PoolInput[] memory pools) AdapterStorage(pools) {}
 
   function swapExactInput(
     address recipient,

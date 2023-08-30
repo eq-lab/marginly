@@ -3,10 +3,9 @@ pragma solidity ^0.8.0;
 
 import '../abstract/SwapCallback.sol';
 import '../abstract/UniswapV3LikeSwap.sol';
-import '../interfaces/IMarginlyAdapter.sol';
 
-contract UniswapV3Swap is IMarginlyAdapter, UniswapV3LikeSwap, SwapCallback {
-  constructor(PoolInput[] memory pools) AdapterPoolsStorage(pools) {}
+contract UniswapV3Adapter is UniswapV3LikeSwap, SwapCallback {
+  constructor(PoolInput[] memory pools) AdapterStorage(pools) {}
 
   function swapExactInput(
     address recipient,

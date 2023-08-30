@@ -14,10 +14,10 @@ import {
   ContractFactory,
 } from 'ethers';
 // @ts-ignore
-import { abi, bytecode } from '@marginly/router/artifacts/contracts/adapters/BalancerSwap.sol/BalancerSwap.json';
+import { abi, bytecode } from '@marginly/router/artifacts/contracts/adapters/BalancerAdapter.sol/BalancerAdapter.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
-export interface BalancerSwapInterface extends utils.Interface {
+export interface BalancerAdapterInterface extends utils.Interface {
   functions: {
     'addPools(tuple[])': utils.FunctionFragment;
     'balancerVault()': utils.FunctionFragment;
@@ -42,12 +42,12 @@ export interface BalancerSwapInterface extends utils.Interface {
   ): utils.FunctionFragment;
 }
 
-export interface BalancerSwapContract extends BaseContract {
+export interface BalancerAdapterContract extends BaseContract {
   connect(signerOrProvider: Signer | providers.Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: BalancerSwapInterface;
+  interface: BalancerAdapterInterface;
 
   addPools(
     pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
@@ -178,13 +178,16 @@ export async function deploy(
   pools: { token0: string; token1: string; pool: string }[],
   _balancerVault: string,
   signer?: Signer
-): Promise<BalancerSwapContract> {
+): Promise<BalancerAdapterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
   const contract = await factory.deploy(pools, _balancerVault);
   return (await contract.deployed()) as any;
 }
 
-export function connect(addressOrName: string, signerOrProvider?: Signer | providers.Provider): BalancerSwapContract {
+export function connect(
+  addressOrName: string,
+  signerOrProvider?: Signer | providers.Provider
+): BalancerAdapterContract {
   return new BaseContract(addressOrName, abi, signerOrProvider) as any;
 }
 

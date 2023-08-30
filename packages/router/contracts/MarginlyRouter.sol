@@ -6,13 +6,13 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './abstract/AdapterCallback.sol';
-import './abstract/RouterAdaptersStorage.sol';
+import './abstract/RouterStorage.sol';
 import './interfaces/IMarginlyRouter.sol';
 import './interfaces/IMarginlyAdapter.sol';
 import './libraries/SwapsDecoder.sol';
 
-contract MarginlyRouter is IMarginlyRouter, RouterAdaptersStorage, AdapterCallback {
-  constructor(AdapterInput[] memory _adapters) RouterAdaptersStorage(_adapters) {}
+contract MarginlyRouter is RouterStorage, AdapterCallback {
+  constructor(AdapterInput[] memory _adapters) RouterStorage(_adapters) {}
 
   /// @inheritdoc IMarginlyRouter
   function swapExactInput(
