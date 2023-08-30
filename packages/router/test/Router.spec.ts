@@ -619,3 +619,50 @@ describe('MarginlyRouter WooFi', () => {
     ).to.be.revertedWithCustomError(wooFi.adapter, 'NotSupported');
   });
 });
+
+describe('Callbacks', () => {
+  it('adapter callback fails if sender is unknown', async () => {
+    const { marginlyRouter, token0 } = await loadFixture(createMarginlyRouter);
+    const [_, user, fraud] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token0.mint(user.address, amountToSwap);
+    await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
+    
+    await expect(
+      marginlyRouter.connect(fraud).adapterCallback(
+        fraud.address, amountToSwap, { payer: user.address, tokenIn: token0.address, dexIndex: 0}
+      )
+    ).to.be.revertedWithoutReason();
+  });
+
+  it('uniswapV3 callback fails if sender is unknown', async () => {
+    const { marginlyRouter, token0, token1, uniswapV3, } = await loadFixture(createMarginlyRouter);
+    const [_, user, fraud] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token0.mint(user.address, amountToSwap);
+    await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
+
+    const encodedData = ethers.utils.defaultAbiCoder.encode(
+      ["address", "address", "address", "address", "address", "uint256"],
+      [ 
+        token0.address, 
+        token1.address, 
+        marginlyRouter.address, 
+        user.address,
+        token0.address,
+        `0`,
+      ]
+    );
+    
+    await expect(
+      // @ts-ignore
+      uniswapV3.adapter.connect(fraud).uniswapV3SwapCallback(
+        amountToSwap, 
+        0, 
+        encodedData
+      )
+    ).to.be.revertedWithoutReason();
+  });
+});
