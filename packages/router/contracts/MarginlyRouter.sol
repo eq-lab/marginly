@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './abstract/AdapterCallback.sol';
@@ -24,12 +23,16 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
   ) external returns (uint256 amountOut) {
     require(amountIn != 0, 'zero amount');
 
-    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
+    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(
+      swapCalldata,
+      amountIn,
+      minAmountOut
+    );
 
     for (uint256 i; i < swapsNumber; ++i) {
-      uint256 dexIndex = swapInfos[i].dexIndex;
-      uint256 dexAmountIn = Math.mulDiv(amountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
-      uint256 dexMinAmountOut = Math.mulDiv(minAmountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
+      SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
+      uint256 dexIndex = swapInfo.dexIndex;
+      uint256 dexAmountIn = swapInfo.dexAmountIn;
 
       AdapterCallbackData memory data = AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex});
       uint256 dexAmountOut = getAdapterSafe(dexIndex).swapExactInput(
@@ -37,7 +40,7 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
         tokenIn,
         tokenOut,
         dexAmountIn,
-        dexMinAmountOut,
+        swapInfo.dexAmountOut,
         data
       );
 
@@ -56,19 +59,23 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
   ) external returns (uint256 amountIn) {
     require(amountOut != 0, 'zero amount');
 
-    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(swapCalldata);
+    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(
+      swapCalldata,
+      maxAmountIn,
+      amountOut
+    );
 
     for (uint256 i; i < swapsNumber; ++i) {
-      uint256 dexIndex = swapInfos[i].dexIndex;
-      uint256 dexMaxAmountIn = Math.mulDiv(maxAmountIn, swapInfos[i].swapRatio, SwapsDecoder.ONE);
-      uint256 dexAmountOut = Math.mulDiv(amountOut, swapInfos[i].swapRatio, SwapsDecoder.ONE);
+      SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
+      uint256 dexIndex = swapInfo.dexIndex;
+      uint256 dexAmountOut = swapInfo.dexAmountOut;
 
       AdapterCallbackData memory data = AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex});
       uint256 dexAmountIn = getAdapterSafe(dexIndex).swapExactOutput(
         msg.sender,
         tokenIn,
         tokenOut,
-        dexMaxAmountIn,
+        swapInfo.dexAmountIn,
         dexAmountOut,
         data
       );

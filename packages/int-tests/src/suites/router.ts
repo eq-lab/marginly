@@ -205,7 +205,7 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
     const secondPoolUsdcDelta = oldSecondPoolUsdcBalance.sub(currentSecondPoolUsdcBalance);
     const usdcDelta = currentUsdcBalance.sub(oldUsdcBalance);
     assert(usdcDelta.eq(firstPoolUsdcDelta.add(secondPoolUsdcDelta)));
-    assert(usdcDelta.sub(usdcAmount).abs().lte(BigNumber.from(1)));
+    assert(usdcDelta.eq(usdcAmount));
   }
 
   {
@@ -240,7 +240,7 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
     const secondPoolWethDelta = currentSecondPoolWethBalance.sub(oldSecondPoolWethBalance);
     const wethDelta = oldWethBalance.sub(currentWethBalance);
     assert(wethDelta.eq(firstPoolWethDelta.add(secondPoolWethDelta)));
-    assert(wethDelta.sub(wethAmount).abs().lte(BigNumber.from(1)));
+    assert(wethDelta.eq(wethAmount));
 
     logger.info(`    Checking usdc balances`);
     const firstPoolUsdcDelta = oldFirstPoolUsdcBalance.sub(currentFirstPoolUsdcBalance);

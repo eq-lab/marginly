@@ -44,7 +44,7 @@ export async function createUniswapV3Pool(
   await token0.mint(uniswapV3Pool.address, parseUnits('100000', 18));
   await token1.mint(uniswapV3Pool.address, parseUnits('100000', 18));
 
-  const adapterInput = [{token0: token0.address, token1: token1.address, pool: uniswapV3Pool.address}];
+  const adapterInput = [{ token0: token0.address, token1: token1.address, pool: uniswapV3Pool.address }];
   const uniswapV3Adapter = await (await ethers.getContractFactory('UniswapV3Adapter')).deploy(adapterInput);
   return {
     uniswapV3Pool,
@@ -70,7 +70,7 @@ export async function createUniswapV2Pair(
   await token1.mint(uniswapV2Pair.address, parseUnits(token1Supply.toString(), 18));
   await uniswapV2Pair.sync();
 
-  const adapterInput = [{token0: token0.address, token1: token1.address, pool: uniswapV2Pair.address}];
+  const adapterInput = [{ token0: token0.address, token1: token1.address, pool: uniswapV2Pair.address }];
   const uniswapV2Adapter = await (await ethers.getContractFactory('UniswapV2Adapter')).deploy(adapterInput);
   return {
     uniswapV2Pair,
@@ -91,7 +91,7 @@ export async function createBalancer(
   await token0.mint(balancerVault.address, parseUnits('100000', 18));
   await token1.mint(balancerVault.address, parseUnits('100000', 18));
 
-  const adapterInput = [{token0: token0.address, token1: token1.address, pool: balancerPool.address}];
+  const adapterInput = [{ token0: token0.address, token1: token1.address, pool: balancerPool.address }];
   const balancerAdapter = await (
     await ethers.getContractFactory('BalancerAdapter')
   ).deploy(adapterInput, balancerVault.address);
@@ -116,7 +116,7 @@ export async function createWooPool(
   await wooPool.sync(token0.address);
   await wooPool.sync(token1.address);
 
-  const adapterInput = [{token0: token0.address, token1: token1.address, pool: wooPool.address}];
+  const adapterInput = [{ token0: token0.address, token1: token1.address, pool: wooPool.address }];
   const wooFiAdapter = await (await ethers.getContractFactory('WooFiAdapter')).deploy(adapterInput);
   return {
     wooPool,
@@ -128,10 +128,10 @@ export async function createMarginlyRouter(): Promise<{
   marginlyRouter: MarginlyRouter;
   token0: TestERC20Token;
   token1: TestERC20Token;
-  uniswapV3: { pool: RouterTestUniswapV3Pool, adapter: IMarginlyAdapter };
-  uniswapV2: { pool: RouterTestUniswapV2Pair, adapter: IMarginlyAdapter };
-  balancer: { vault: TestVault, adapter: IMarginlyAdapter };
-  wooFi: { pool: TestWooPPV2, adapter: IMarginlyAdapter };
+  uniswapV3: { pool: RouterTestUniswapV3Pool; adapter: IMarginlyAdapter };
+  uniswapV2: { pool: RouterTestUniswapV2Pair; adapter: IMarginlyAdapter };
+  balancer: { vault: TestVault; adapter: IMarginlyAdapter };
+  wooFi: { pool: TestWooPPV2; adapter: IMarginlyAdapter };
 }> {
   const tokenA = await createToken('TokenA', 'TKA');
   const tokenB = await createToken('TokenB', 'TKB');
@@ -177,7 +177,7 @@ export async function createMarginlyRouter(): Promise<{
     uniswapV3: { pool: uniswapV3Pool, adapter: uniswapV3Adapter },
     uniswapV2: { pool: uniswapV2Pair, adapter: uniswapV2Adapter },
     balancer: { vault: balancerVault, adapter: balancerAdapter },
-    wooFi:  { pool: wooPool, adapter: wooFiAdapter },
+    wooFi: { pool: wooPool, adapter: wooFiAdapter },
   };
 }
 
