@@ -98,12 +98,12 @@ const defsKyberClassicMarginlyAdapter = genDefinitions(
 );
 writeFileSync(`./src/contract-api/KyberClassicMarginlyAdapter.ts`, defsKyberClassicMarginlyAdapter);
 
-const defsSushiSwapMarginlyAdapter = genDefinitions(
-  require(`@marginly/router/artifacts/contracts/adapters/SushiSwapAdapter.sol/SushiSwapAdapter.json`),
-  `@marginly/router/artifacts/contracts/adapters/SushiSwapAdapter.sol/SushiSwapAdapter.json`,
+const defsUniswapV2MarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/UniswapV2Adapter.sol/UniswapV2Adapter.json`),
+  `@marginly/router/artifacts/contracts/adapters/UniswapV2Adapter.sol/UniswapV2Adapter.json`,
   { ignoreImportError: true }
 );
-writeFileSync(`./src/contract-api/SushiSwapMarginlyAdapter.ts`, defsSushiSwapMarginlyAdapter);
+writeFileSync(`./src/contract-api/UniswapV2MarginlyAdapter.ts`, defsUniswapV2MarginlyAdapter);
 
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),

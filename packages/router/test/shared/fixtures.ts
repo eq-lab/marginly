@@ -71,7 +71,7 @@ export async function createUniswapV2Pair(
   await uniswapV2Pair.sync();
 
   const adapterInput = [{token0: token0.address, token1: token1.address, pool: uniswapV2Pair.address}];
-  const uniswapV2Adapter = await (await ethers.getContractFactory('QuickSwapAdapter')).deploy(adapterInput);
+  const uniswapV2Adapter = await (await ethers.getContractFactory('UniswapV2Adapter')).deploy(adapterInput);
   return {
     uniswapV2Pair,
     uniswapV2Adapter,

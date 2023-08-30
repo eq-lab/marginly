@@ -17,10 +17,10 @@ import {
 import {
   abi,
   bytecode,
-} from '@marginly/router/artifacts/contracts/adapters/SushiSwapAdapter.sol/SushiSwapAdapter.json';
+} from '@marginly/router/artifacts/contracts/adapters/UniswapV2Adapter.sol/UniswapV2Adapter.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
-export interface SushiSwapAdapterInterface extends utils.Interface {
+export interface UniswapV2AdapterInterface extends utils.Interface {
   functions: {
     'addPools(tuple[])': utils.FunctionFragment;
     'getPool(address,address)': utils.FunctionFragment;
@@ -43,12 +43,12 @@ export interface SushiSwapAdapterInterface extends utils.Interface {
   ): utils.FunctionFragment;
 }
 
-export interface SushiSwapAdapterContract extends BaseContract {
+export interface UniswapV2AdapterContract extends BaseContract {
   connect(signerOrProvider: Signer | providers.Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: SushiSwapAdapterInterface;
+  interface: UniswapV2AdapterInterface;
 
   addPools(
     pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
@@ -176,7 +176,7 @@ export interface SushiSwapAdapterContract extends BaseContract {
 export async function deploy(
   pools: { token0: string; token1: string; pool: string }[],
   signer?: Signer
-): Promise<SushiSwapAdapterContract> {
+): Promise<UniswapV2AdapterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
   const contract = await factory.deploy(pools);
   return (await contract.deployed()) as any;
@@ -185,7 +185,7 @@ export async function deploy(
 export function connect(
   addressOrName: string,
   signerOrProvider?: Signer | providers.Provider
-): SushiSwapAdapterContract {
+): UniswapV2AdapterContract {
   return new BaseContract(addressOrName, abi, signerOrProvider) as any;
 }
 

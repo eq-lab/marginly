@@ -5,8 +5,8 @@ import '../abstract/AdapterStorage.sol';
 import '../abstract/UniswapV2LikeSwap.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
-contract TraderJoeAdapter is AdapterStorage, UniswapV2LikeSwap {
-  uint256 private constant TRADER_JOE_FEE = 997;
+contract UniswapV2Adapter is AdapterStorage, UniswapV2LikeSwap {
+  uint256 private constant UNISWAP_V2_FEE = 997;
 
   constructor(PoolInput[] memory pools) AdapterStorage(pools) {}
 
@@ -19,7 +19,7 @@ contract TraderJoeAdapter is AdapterStorage, UniswapV2LikeSwap {
     AdapterCallbackData calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
-    amountOut = uniswapV2LikeGetAmountOut(pool, amountIn, tokenIn, tokenOut, TRADER_JOE_FEE);
+    amountOut = uniswapV2LikeGetAmountOut(pool, amountIn, tokenIn, tokenOut, UNISWAP_V2_FEE);
     if (amountOut < minAmountOut) revert InsufficientAmount();
     IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
     uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);
@@ -34,7 +34,7 @@ contract TraderJoeAdapter is AdapterStorage, UniswapV2LikeSwap {
     AdapterCallbackData calldata data
   ) external returns (uint256 amountIn) {
     address pool = getPoolSafe(tokenIn, tokenOut);
-    amountIn = uniswapV2LikeGetAmountIn(pool, amountOut, tokenIn, tokenOut, TRADER_JOE_FEE);
+    amountIn = uniswapV2LikeGetAmountIn(pool, amountOut, tokenIn, tokenOut, UNISWAP_V2_FEE);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
     uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);

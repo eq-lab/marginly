@@ -27,7 +27,7 @@ import { keeper } from './keeper';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
 import BalancerMarginlyAdapter from '../contract-api/BalancerMarginlyAdapter';
 import KyberClassicMarginlyAdapter from '../contract-api/KyberClassicMarginlyAdapter';
-import SushiSwapMarginlyAdapter from '../contract-api/SushiSwapMarginlyAdapter';
+import UniswapV2MarginlyAdapter from '../contract-api/UniswapV2MarginlyAdapter';
 import UniswapV3MarginlyAdapter from '../contract-api/UniswapV3MarginlyAdapter';
 import {
   deleveragePrecisionLong,
@@ -102,7 +102,7 @@ async function initializeTestSystem(
     treasury,
   );
 
-  const sushiSwapAdapter = await SushiSwapMarginlyAdapter.deploy(
+  const sushiSwapAdapter = await UniswapV2MarginlyAdapter.deploy(
     [{token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0'}],
     treasury,
   );
