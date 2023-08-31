@@ -171,7 +171,7 @@ export async function balanceSyncWithdrawQuote(sut: SystemUnderTest) {
     await marginlyPool
       .connect(longer)
       .execute(CallType.DepositBase, baseTransferAmount, baseTransferAmount, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
-        gasLimit: 500_000,
+        gasLimit: 1_000_000,
       })
   ).wait();
 

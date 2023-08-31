@@ -4,11 +4,11 @@ import { SystemUnderTest } from '.';
 import { logger } from '../utils/logger';
 import { ZERO_ADDRESS } from '../utils/const';
 import { constructSwap, Dex, SWAP_ONE } from '../utils/chain-ops';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 
 export async function routerSwaps(sut: SystemUnderTest) {
   logger.info(`Starting routerSwaps test suite`);
-  const { treasury, usdc, weth, swapRouter } = sut;
+  const { treasury, usdc, weth, swapRouter, provider } = sut;
 
   let currentWethBalance = await weth.balanceOf(treasury.address);
   let currentUsdcBalance = await usdc.balanceOf(treasury.address);
@@ -17,10 +17,20 @@ export async function routerSwaps(sut: SystemUnderTest) {
   const usdcAmount = parseUnits('10', 6);
 
   for (const dexInfo of Object.entries(Dex)) {
+    const adapterAddress = await swapRouter.adapters(dexInfo[1]);
+    if (adapterAddress == ZERO_ADDRESS) continue;
+
+    // balancer adapter abi is used since it has both getPool and balancerVault methods
+    const adapter = new ethers.Contract(
+      adapterAddress,
+      require(`@marginly/router/artifacts/contracts/adapters/BalancerAdapter.sol/BalancerAdapter.json`).abi,
+      provider.provider
+    );
     const dexPoolAddress =
       dexInfo[0] == 'Balancer'
-        ? await swapRouter.balancerVault()
-        : await swapRouter.getPool(dexInfo[1], weth.address, usdc.address);
+        ? await adapter.balancerVault()
+        : await adapter.getPool(weth.address, usdc.address);
+         
     if (dexPoolAddress == ZERO_ADDRESS) continue;
     logger.info(`Testing ${dexInfo[0]} dex`);
 
@@ -99,7 +109,7 @@ export async function routerSwaps(sut: SystemUnderTest) {
 
 export async function routerMultipleSwaps(sut: SystemUnderTest) {
   logger.info(`Starting routerMultipleSwaps test suite`);
-  const { treasury, usdc, weth, swapRouter } = sut;
+  const { treasury, usdc, weth, swapRouter, provider } = sut;
 
   let currentWethBalance = await weth.balanceOf(treasury.address);
   let currentUsdcBalance = await usdc.balanceOf(treasury.address);
@@ -110,10 +120,19 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
   const dexs = new Array<{ dexName: string; dexIndex: number; address: string } | undefined>();
 
   for (const dexInfo of Object.entries(Dex)) {
+    const adapterAddress = await swapRouter.adapters(dexInfo[1]);
+    if (adapterAddress == ZERO_ADDRESS) continue;
+
+    // balancer adapter abi is used since it has both getPool and balancerVault methods
+    const adapter = new ethers.Contract(
+      await swapRouter.adapters(dexInfo[1]),
+      require(`@marginly/router/artifacts/contracts/adapters/BalancerAdapter.sol/BalancerAdapter.json`).abi,
+      provider.provider
+    );
     const dexPoolAddress =
       dexInfo[0] == 'Balancer'
-        ? await swapRouter.balancerVault()
-        : await swapRouter.getPool(dexInfo[1], weth.address, usdc.address);
+        ? await adapter.balancerVault()
+        : await adapter.getPool(weth.address, usdc.address);
 
     const element =
       dexPoolAddress != ZERO_ADDRESS
@@ -140,7 +159,10 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
   const secondDexRatio = SWAP_ONE - firstDexRatio;
   logger.info(`${dexs[secondDex]!.dexName} dex ratio: ${secondDexRatio}`);
 
-  const swapCalldata = constructSwap([firstDex, secondDex], [firstDexRatio, secondDexRatio]);
+  const swapCalldata = constructSwap(
+    [dexs[firstDex]?.dexIndex!, dexs[secondDex]?.dexIndex!], 
+    [firstDexRatio, secondDexRatio]
+  );
   logger.info(`swap calldata: ${swapCalldata}`);
 
   {
@@ -183,7 +205,7 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
     const secondPoolUsdcDelta = oldSecondPoolUsdcBalance.sub(currentSecondPoolUsdcBalance);
     const usdcDelta = currentUsdcBalance.sub(oldUsdcBalance);
     assert(usdcDelta.eq(firstPoolUsdcDelta.add(secondPoolUsdcDelta)));
-    assert(usdcDelta.sub(usdcAmount).abs().lte(BigNumber.from(1)));
+    assert(usdcDelta.eq(usdcAmount));
   }
 
   {
@@ -218,7 +240,7 @@ export async function routerMultipleSwaps(sut: SystemUnderTest) {
     const secondPoolWethDelta = currentSecondPoolWethBalance.sub(oldSecondPoolWethBalance);
     const wethDelta = oldWethBalance.sub(currentWethBalance);
     assert(wethDelta.eq(firstPoolWethDelta.add(secondPoolWethDelta)));
-    assert(wethDelta.sub(wethAmount).abs().lte(BigNumber.from(1)));
+    assert(wethDelta.eq(wethAmount));
 
     logger.info(`    Checking usdc balances`);
     const firstPoolUsdcDelta = oldFirstPoolUsdcBalance.sub(currentFirstPoolUsdcBalance);

@@ -3,23 +3,25 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import '../Dex.sol';
+import '../abstract/AdapterStorage.sol';
+import '../interfaces/IMarginlyRouter.sol';
 
-abstract contract BalancerSwap is DexPoolMapping {
+contract BalancerAdapter is AdapterStorage {
   address public immutable balancerVault;
 
-  constructor(address _balancerVault) {
+  constructor(PoolInput[] memory pools, address _balancerVault) AdapterStorage(pools) {
     balancerVault = _balancerVault;
   }
 
-  function balancerSwapExactInput(
-    Dex dex,
+  function swapExactInput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
-    uint256 minAmountOut
-  ) internal returns (uint256 amountOut) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
+    uint256 minAmountOut,
+    bytes calldata data
+  ) external returns (uint256 amountOut) {
+    address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_IN;
@@ -29,22 +31,23 @@ abstract contract BalancerSwap is DexPoolMapping {
 
     FundManagement memory funds;
     funds.sender = address(this);
-    funds.recipient = payable(msg.sender);
+    funds.recipient = payable(recipient);
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), amountIn);
+    IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
     TransferHelper.safeApprove(tokenIn, balancerVault, amountIn);
     amountOut = IVault(balancerVault).swap(swap, funds, minAmountOut, block.timestamp);
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
-  function balancerSwapExactOutput(
-    Dex dex,
+  function swapExactOutput(
+    address recipient,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
-    uint256 amountOut
-  ) internal returns (uint256 amountIn) {
-    address pool = getPoolSafe(dex, tokenIn, tokenOut);
+    uint256 amountOut,
+    bytes calldata data
+  ) external returns (uint256 amountIn) {
+    address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
     swap.poolId = IBasePool(pool).getPoolId();
     swap.kind = SwapKind.GIVEN_OUT;
@@ -54,14 +57,14 @@ abstract contract BalancerSwap is DexPoolMapping {
 
     FundManagement memory funds;
     funds.sender = address(this);
-    funds.recipient = payable(msg.sender);
+    funds.recipient = payable(recipient);
 
-    TransferHelper.safeTransferFrom(tokenIn, msg.sender, address(this), maxAmountIn);
+    IMarginlyRouter(msg.sender).adapterCallback(address(this), maxAmountIn, data);
     TransferHelper.safeApprove(tokenIn, balancerVault, maxAmountIn);
     amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     TransferHelper.safeApprove(tokenIn, balancerVault, 0);
-    TransferHelper.safeTransfer(tokenIn, msg.sender, maxAmountIn - amountIn);
+    TransferHelper.safeTransfer(tokenIn, abi.decode(data, (AdapterCallbackData)).payer, maxAmountIn - amountIn);
   }
 }
 
