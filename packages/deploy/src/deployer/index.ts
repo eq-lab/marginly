@@ -293,7 +293,6 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         positionSlippage: config.params.positionSlippage.mul(one).toInteger(),
         mcSlippage: config.params.mcSlippage.mul(one).toInteger(),
         positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
-        baseLimit: config.params.baseLimit.mul(baseOne).toInteger(),
         quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
       };
       const tx = await marginlyPoolFactoryContract.createPool(

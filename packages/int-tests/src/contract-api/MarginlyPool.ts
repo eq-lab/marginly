@@ -129,7 +129,6 @@ export interface MarginlyPoolContract extends BaseContract {
       positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
-      baseLimit: BigNumberish;
       quoteLimit: BigNumberish;
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
@@ -147,7 +146,6 @@ export interface MarginlyPoolContract extends BaseContract {
     positionSlippage: BigNumber;
     mcSlippage: BigNumber;
     positionMinAmount: BigNumber;
-    baseLimit: BigNumber;
     quoteLimit: BigNumber;
   }>;
   positions(
@@ -173,7 +171,6 @@ export interface MarginlyPoolContract extends BaseContract {
       positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
-      baseLimit: BigNumberish;
       quoteLimit: BigNumberish;
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
@@ -214,7 +211,6 @@ export interface MarginlyPoolContract extends BaseContract {
       positionSlippage: BigNumber;
       mcSlippage: BigNumber;
       positionMinAmount: BigNumber;
-      baseLimit: BigNumber;
       quoteLimit: BigNumber;
     }>;
     positions(
@@ -257,7 +253,6 @@ export interface MarginlyPoolContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -272,7 +267,6 @@ export interface MarginlyPoolContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -304,7 +298,6 @@ export interface MarginlyPoolContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -319,7 +312,6 @@ export interface MarginlyPoolContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -351,7 +343,6 @@ export interface MarginlyPoolContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -366,7 +357,6 @@ export interface MarginlyPoolContract extends BaseContract {
         positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }

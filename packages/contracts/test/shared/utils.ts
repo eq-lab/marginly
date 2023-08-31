@@ -152,7 +152,6 @@ export const paramsDefaultLeverageWithoutIr = {
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
-  baseLimit: 1_000_000,
   quoteLimit: 1_000_000,
 };
 
@@ -165,7 +164,6 @@ export const paramsLowLeverageWithoutIr = {
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
-  baseLimit: 1_000_000,
   quoteLimit: 1_000_000,
 };
 
@@ -178,7 +176,6 @@ export const paramsLowLeverageWithIr = {
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
-  baseLimit: 1_000_000,
   quoteLimit: 1_000_000,
 };
 

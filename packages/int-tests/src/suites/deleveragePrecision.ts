@@ -16,7 +16,6 @@ const paramsDefaultLeverage = {
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
   positionMinAmount: 10000000000000000n, // 0,01 ETH
-  baseLimit: 10n ** 9n * 10n ** 18n,
   quoteLimit: 10n ** 12n * 10n ** 6n,
 };
 
@@ -29,7 +28,6 @@ const paramsLowLeverage = {
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
   positionMinAmount: 10000000000000000n, // 0,01 ETH
-  baseLimit: 10n ** 9n * 10n ** 18n,
   quoteLimit: 10n ** 12n * 10n ** 6n,
 };
 
@@ -42,7 +40,6 @@ const paramsWithIr = {
   positionSlippage: 20000, // 2%
   mcSlippage: 50000, //5%
   positionMinAmount: 10000000000000000n, // 0,01 ETH
-  baseLimit: 10n ** 9n * 10n ** 18n,
   quoteLimit: 10n ** 12n * 10n ** 6n,
 };
 

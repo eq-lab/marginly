@@ -132,7 +132,6 @@ export interface MarginlyDeployConfig {
       positionSlippage: string;
       mcSlippage: string;
       positionMinAmount: string;
-      baseLimit: string;
       quoteLimit: string;
     };
   }[];
