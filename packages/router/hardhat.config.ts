@@ -8,7 +8,7 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 100_000,
       },
     },
   },
@@ -23,7 +23,7 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly'],
+    only: ['Marginly', 'Adapter'],
   },
 };
 
