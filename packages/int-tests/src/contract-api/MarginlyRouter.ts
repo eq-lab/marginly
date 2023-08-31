@@ -19,7 +19,7 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
-    'adapterCallback(address,uint256,tuple)': utils.FunctionFragment;
+    'adapterCallback(address,uint256,bytes)': utils.FunctionFragment;
     'adapters(uint256)': utils.FunctionFragment;
     'addDexAdapters(tuple[])': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
@@ -52,7 +52,7 @@ export interface MarginlyRouterContract extends BaseContract {
   adapterCallback(
     recipient: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+    _data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   adapters(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<string>;
@@ -91,7 +91,7 @@ export interface MarginlyRouterContract extends BaseContract {
     adapterCallback(
       recipient: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      _data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     addDexAdapters(
@@ -124,7 +124,7 @@ export interface MarginlyRouterContract extends BaseContract {
     adapterCallback(
       recipient: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      _data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     addDexAdapters(
@@ -157,7 +157,7 @@ export interface MarginlyRouterContract extends BaseContract {
     adapterCallback(
       recipient: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      _data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     addDexAdapters(

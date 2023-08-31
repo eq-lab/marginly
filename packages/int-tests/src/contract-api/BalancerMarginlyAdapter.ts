@@ -24,8 +24,8 @@ export interface BalancerAdapterInterface extends utils.Interface {
     'getPool(address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
-    'swapExactInput(address,address,address,uint256,uint256,tuple)': utils.FunctionFragment;
-    'swapExactOutput(address,address,address,uint256,uint256,tuple)': utils.FunctionFragment;
+    'swapExactInput(address,address,address,uint256,uint256,bytes)': utils.FunctionFragment;
+    'swapExactOutput(address,address,address,uint256,uint256,bytes)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
   };
 
@@ -63,7 +63,7 @@ export interface BalancerAdapterContract extends BaseContract {
     tokenOut: PromiseOrValue<string>,
     amountIn: PromiseOrValue<BigNumberish>,
     minAmountOut: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+    data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   swapExactOutput(
@@ -72,7 +72,7 @@ export interface BalancerAdapterContract extends BaseContract {
     tokenOut: PromiseOrValue<string>,
     maxAmountIn: PromiseOrValue<BigNumberish>,
     amountOut: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+    data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   transferOwnership(
@@ -97,7 +97,7 @@ export interface BalancerAdapterContract extends BaseContract {
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
       minAmountOut: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
@@ -106,7 +106,7 @@ export interface BalancerAdapterContract extends BaseContract {
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
       amountOut: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     transferOwnership(
@@ -126,7 +126,7 @@ export interface BalancerAdapterContract extends BaseContract {
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
       minAmountOut: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     swapExactOutput(
@@ -135,7 +135,7 @@ export interface BalancerAdapterContract extends BaseContract {
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
       amountOut: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     transferOwnership(
@@ -155,7 +155,7 @@ export interface BalancerAdapterContract extends BaseContract {
       tokenOut: PromiseOrValue<string>,
       amountIn: PromiseOrValue<BigNumberish>,
       minAmountOut: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     swapExactOutput(
@@ -164,7 +164,7 @@ export interface BalancerAdapterContract extends BaseContract {
       tokenOut: PromiseOrValue<string>,
       maxAmountIn: PromiseOrValue<BigNumberish>,
       amountOut: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<{ payer: string; tokenIn: string; dexIndex: BigNumberish }>,
+      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     transferOwnership(
