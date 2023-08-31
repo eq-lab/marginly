@@ -26,16 +26,16 @@ library SwapsDecoder {
     uint256 encodedSwaps,
     uint256 amountIn,
     uint256 amountOut
-  ) internal pure returns (SwapInfo[] memory swapInfos, uint256 swapsNumber) {
+  ) internal pure returns (SwapInfo[] memory swapInfos) {
     unchecked {
       // default value
       if (encodedSwaps == 0) {
         swapInfos = new SwapInfo[](1);
         swapInfos[0] = SwapInfo({dexIndex: 0, dexAmountIn: amountIn, dexAmountOut: amountOut});
-        return (swapInfos, 1);
+        return swapInfos;
       }
 
-      swapsNumber = encodedSwaps & SWAP_NUMBER_MASK;
+      uint256 swapsNumber = encodedSwaps & SWAP_NUMBER_MASK;
       if (swapsNumber == 0) revert WrongSwapsNumber();
       swapInfos = new SwapInfo[](swapsNumber);
       encodedSwaps >>= 4;
@@ -50,7 +50,7 @@ library SwapsDecoder {
         encodedSwaps >>= 22;
 
         bool isLastSwap = swap + 1 == swapsNumber;
-        uint256 dexAmountIn = isLastSwap ? amountIn - totalAmountIn : Math.mulDiv(amountIn, swapRatio, ONE) ;
+        uint256 dexAmountIn = isLastSwap ? amountIn - totalAmountIn : Math.mulDiv(amountIn, swapRatio, ONE);
         totalAmountIn += dexAmountIn;
         uint256 dexAmountOut = isLastSwap ? amountOut - totalAmountOut : Math.mulDiv(amountOut, swapRatio, ONE);
         totalAmountOut += dexAmountOut;

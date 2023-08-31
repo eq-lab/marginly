@@ -9,6 +9,7 @@ contract TestSwapInfo {
     uint256 amountIn,
     uint256 amountOut
   ) public pure returns (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 size) {
-    return SwapsDecoder.decodeSwapInfo(swaps, amountIn, amountOut);
+    swapInfos = SwapsDecoder.decodeSwapInfo(swaps, amountIn, amountOut);
+    return (swapInfos, swapInfos.length);
   }
 }

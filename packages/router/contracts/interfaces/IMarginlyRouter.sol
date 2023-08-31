@@ -5,6 +5,11 @@ import '../abstract/AdapterCallback.sol';
 import '../abstract/RouterStorage.sol';
 
 interface IMarginlyRouter {
+  /// @notice Emitted when swap with zero input or output was called
+  error ZeroAmount();
+  /// @notice Emitted if balance difference doesn't equal amountOut
+  error WrongAmountOut();
+
   /// @notice Emitted when swap happened
   /// @param isExactInput true if swapExactInput, false if swapExactOutput
   /// @param dexIndex index of the dex used for swap
@@ -56,6 +61,6 @@ interface IMarginlyRouter {
   /// @notice this function can be called by known adapters only
   /// @param recipient to whom transfer the tokens from swap initiator
   /// @param amount amount of tokens to transfer
-  /// @param data callback data with transfer details and info to verify sender 
+  /// @param data callback data with transfer details and info to verify sender
   function adapterCallback(address recipient, uint256 amount, bytes calldata data) external;
 }

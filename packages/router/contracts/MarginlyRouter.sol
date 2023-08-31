@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './abstract/AdapterCallback.sol';
@@ -21,15 +22,13 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
     uint256 amountIn,
     uint256 minAmountOut
   ) external returns (uint256 amountOut) {
-    require(amountIn != 0, 'zero amount');
+    if (amountIn == 0) revert ZeroAmount();
 
-    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(
-      swapCalldata,
-      amountIn,
-      minAmountOut
-    );
+    uint256 balanceBefore = IERC20(tokenOut).balanceOf(msg.sender);
 
-    for (uint256 i; i < swapsNumber; ++i) {
+    SwapsDecoder.SwapInfo[] memory swapInfos = SwapsDecoder.decodeSwapInfo(swapCalldata, amountIn, minAmountOut);
+
+    for (uint256 i; i < swapInfos.length; ++i) {
       SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountIn = swapInfo.dexAmountIn;
@@ -47,6 +46,8 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
       amountOut += dexAmountOut;
       emit Swap(true, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
+
+    if (amountOut != IERC20(tokenOut).balanceOf(msg.sender) - balanceBefore) revert WrongAmountOut();
   }
 
   /// @inheritdoc IMarginlyRouter
@@ -57,15 +58,13 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
     uint256 maxAmountIn,
     uint256 amountOut
   ) external returns (uint256 amountIn) {
-    require(amountOut != 0, 'zero amount');
+    if (amountOut == 0) revert ZeroAmount();
 
-    (SwapsDecoder.SwapInfo[] memory swapInfos, uint256 swapsNumber) = SwapsDecoder.decodeSwapInfo(
-      swapCalldata,
-      maxAmountIn,
-      amountOut
-    );
+    uint256 balanceBefore = IERC20(tokenOut).balanceOf(msg.sender);
 
-    for (uint256 i; i < swapsNumber; ++i) {
+    SwapsDecoder.SwapInfo[] memory swapInfos = SwapsDecoder.decodeSwapInfo(swapCalldata, maxAmountIn, amountOut);
+
+    for (uint256 i; i < swapInfos.length; ++i) {
       SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountOut = swapInfo.dexAmountOut;
@@ -83,5 +82,7 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
       amountIn += dexAmountIn;
       emit Swap(false, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
+
+    if (amountOut != IERC20(tokenOut).balanceOf(msg.sender) - balanceBefore) revert WrongAmountOut();
   }
 }

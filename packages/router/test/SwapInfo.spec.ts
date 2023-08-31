@@ -114,22 +114,13 @@ describe('SwapInfo decoding', () => {
   it('WrongSwapsNumber: not zero in the end', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
 
-    const firstDexRatio = Math.floor(Math.random() * SWAP_ONE);
-    const secondDexRatio = SWAP_ONE - firstDexRatio;
-
     const dexNumber = Object.entries(Dex).length;
-    const firstDex = Math.floor(Math.random() * dexNumber);
-    let secondDex;
+    const dex = Math.floor(Math.random() * dexNumber);
 
-    do {
-      secondDex = Math.floor(Math.random() * dexNumber);
-    } while (secondDex === firstDex);
+    console.log([dex]);
 
-    console.log([firstDex, secondDex]);
-    console.log([firstDexRatio, secondDexRatio]);
-
-    let swap = constructSwap([firstDex, secondDex], [firstDexRatio, secondDexRatio]);
-    swap = swap.add(2 ** (Math.ceil(Math.log2(swap.toNumber()) + 6)));
+    let swap = constructSwap([dex], [SWAP_ONE]);
+    swap = swap.add(2 ** Math.ceil(Math.log2(swap.toNumber()) + 8));
     await expect(swapInfoTest.decodeSwapInfo(swap, SWAP_ONE, SWAP_ONE)).to.be.revertedWithCustomError(
       swapInfoTest,
       'WrongSwapsNumber'

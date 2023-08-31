@@ -635,9 +635,7 @@ describe('Callbacks', () => {
     );
 
     await expect(
-      marginlyRouter
-        .connect(fraud)
-        .adapterCallback(fraud.address, amountToSwap, encodedData)
+      marginlyRouter.connect(fraud).adapterCallback(fraud.address, amountToSwap, encodedData)
     ).to.be.revertedWithoutReason();
   });
 
