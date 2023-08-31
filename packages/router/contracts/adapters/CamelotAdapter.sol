@@ -14,7 +14,7 @@ contract CamelotAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountOut = ICamelotPair(pool).getAmountOut(amountIn, tokenIn);
@@ -29,7 +29,7 @@ contract CamelotAdapter is AdapterStorage, UniswapV2LikeSwap {
     address /*tokenOut*/,
     uint256 /*amountIn*/,
     uint256 /*minAmountOut*/,
-    AdapterCallbackData calldata /*data*/
+    bytes calldata /*data*/
   ) external pure returns (uint256 /*amountOut*/) {
     revert NotSupported();
   }

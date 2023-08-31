@@ -15,7 +15,7 @@ contract WooFiAdapter is AdapterStorage {
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountOut) {
     IWooPoolV2 wooPool = IWooPoolV2(getPoolSafe(tokenIn, tokenOut));
 
@@ -31,7 +31,7 @@ contract WooFiAdapter is AdapterStorage {
     address /*tokenOut*/,
     uint256 /*amountIn*/,
     uint256 /*minAmountOut*/,
-    AdapterCallbackData calldata /*data*/
+    bytes calldata /*data*/
   ) external pure returns (uint256 /*amountOut*/) {
     revert NotSupported();
   }

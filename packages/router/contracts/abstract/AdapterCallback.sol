@@ -12,7 +12,9 @@ struct AdapterCallbackData {
 }
 
 abstract contract AdapterCallback is RouterStorage {
-  function adapterCallbackInner(address recipient, uint256 amount, AdapterCallbackData calldata data) internal {
+  /// @inheritdoc IMarginlyRouter
+  function adapterCallback(address recipient, uint256 amount, bytes calldata _data) external {
+    AdapterCallbackData memory data = abi.decode(_data, (AdapterCallbackData));
     require(msg.sender == adapters[data.dexIndex]);
     TransferHelper.safeTransferFrom(data.tokenIn, data.payer, recipient, amount);
   }

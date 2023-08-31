@@ -34,7 +34,7 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountIn = swapInfo.dexAmountIn;
 
-      AdapterCallbackData memory data = AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex});
+      bytes memory data = abi.encode(AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex}));
       uint256 dexAmountOut = getAdapterSafe(dexIndex).swapExactInput(
         msg.sender,
         tokenIn,
@@ -70,7 +70,7 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountOut = swapInfo.dexAmountOut;
 
-      AdapterCallbackData memory data = AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex});
+      bytes memory data = abi.encode(AdapterCallbackData({payer: msg.sender, tokenIn: tokenIn, dexIndex: dexIndex}));
       uint256 dexAmountIn = getAdapterSafe(dexIndex).swapExactOutput(
         msg.sender,
         tokenIn,
@@ -83,10 +83,5 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
       amountIn += dexAmountIn;
       emit Swap(false, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
     }
-  }
-
-  /// @inheritdoc IMarginlyRouter
-  function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external {
-    adapterCallbackInner(recipient, amount, data);
   }
 }

@@ -16,7 +16,7 @@ contract UniswapV2Adapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountOut = uniswapV2LikeGetAmountOut(pool, amountIn, tokenIn, tokenOut, UNISWAP_V2_FEE);
@@ -31,7 +31,7 @@ contract UniswapV2Adapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountIn) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountIn = uniswapV2LikeGetAmountIn(pool, amountOut, tokenIn, tokenOut, UNISWAP_V2_FEE);

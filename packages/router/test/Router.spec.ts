@@ -629,10 +629,15 @@ describe('Callbacks', () => {
     await token0.mint(user.address, amountToSwap);
     await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
 
+    const encodedData = ethers.utils.defaultAbiCoder.encode(
+      ['address', 'address', 'uint256'],
+      [user.address, token0.address, `0`]
+    );
+
     await expect(
       marginlyRouter
         .connect(fraud)
-        .adapterCallback(fraud.address, amountToSwap, { payer: user.address, tokenIn: token0.address, dexIndex: 0 })
+        .adapterCallback(fraud.address, amountToSwap, encodedData)
     ).to.be.revertedWithoutReason();
   });
 

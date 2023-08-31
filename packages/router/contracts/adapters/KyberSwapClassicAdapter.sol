@@ -20,7 +20,7 @@ contract KyberSwapClassicAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountOut = getAmountOut(pool, amountIn, tokenIn, tokenOut);
@@ -35,7 +35,7 @@ contract KyberSwapClassicAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountIn) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     amountIn = getAmountIn(pool, amountOut, tokenIn, tokenOut);

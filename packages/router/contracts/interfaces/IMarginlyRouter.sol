@@ -57,5 +57,5 @@ interface IMarginlyRouter {
   /// @param recipient to whom transfer the tokens from swap initiator
   /// @param amount amount of tokens to transfer
   /// @param data callback data with transfer details and info to verify sender 
-  function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external;
+  function adapterCallback(address recipient, uint256 amount, bytes calldata data) external;
 }

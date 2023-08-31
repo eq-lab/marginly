@@ -16,7 +16,7 @@ contract KyberSwapElasticAdapter is AdapterStorage, SwapCallback {
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountOut) {
     require(amountIn < 1 << 255);
 
@@ -38,7 +38,7 @@ contract KyberSwapElasticAdapter is AdapterStorage, SwapCallback {
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountIn) {
     require(amountOut < 1 << 255);
 

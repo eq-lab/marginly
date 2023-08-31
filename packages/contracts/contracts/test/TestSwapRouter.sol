@@ -57,5 +57,5 @@ contract TestSwapRouter is IMarginlyRouter {
     require(amountIn <= maxAmountIn);
   }
 
-  function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external {} 
+  function adapterCallback(address recipient, uint256 amount, bytes calldata data) external {} 
 }

@@ -19,7 +19,7 @@ contract BalancerAdapter is AdapterStorage {
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountOut) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
@@ -45,7 +45,7 @@ contract BalancerAdapter is AdapterStorage {
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut,
-    AdapterCallbackData calldata data
+    bytes calldata data
   ) external returns (uint256 amountIn) {
     address pool = getPoolSafe(tokenIn, tokenOut);
     SingleSwap memory swap;
@@ -64,7 +64,7 @@ contract BalancerAdapter is AdapterStorage {
     amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     TransferHelper.safeApprove(tokenIn, balancerVault, 0);
-    TransferHelper.safeTransfer(tokenIn, data.payer, maxAmountIn - amountIn);
+    TransferHelper.safeTransfer(tokenIn, abi.decode(data, (AdapterCallbackData)).payer, maxAmountIn - amountIn);
   }
 }
 

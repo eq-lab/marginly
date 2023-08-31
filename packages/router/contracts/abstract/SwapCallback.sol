@@ -11,7 +11,7 @@ struct CallbackData {
   address tokenIn;
   address tokenOut;
   address initiator;
-  AdapterCallbackData data;
+  bytes data;
 }
 
 abstract contract SwapCallback is AdapterStorage {
