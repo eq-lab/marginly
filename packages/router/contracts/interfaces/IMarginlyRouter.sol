@@ -29,13 +29,14 @@ interface IMarginlyRouter {
   /// @param tokenOut address of a token to receive from dex
   /// @param amountIn exact amount of tokenIn to swap
   /// @param minAmountOut minimal amount of tokenOut to receive
+  /// @param amountOut resulting amount of tokenOut output
   function swapExactInput(
     uint256 swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
     uint256 minAmountOut
-  ) external returns (uint256);
+  ) external returns (uint256 amountOut);
 
   /// @notice swap with exact output
   /// @param swapCalldata calldata for multiple swaps
@@ -43,13 +44,18 @@ interface IMarginlyRouter {
   /// @param tokenOut address of a token to receive from dex
   /// @param maxAmountIn maximal amount of tokenIn to swap
   /// @param amountOut exact amount of tokenOut to receive
+  /// @param amountIn resulting amount of tokenIn input
   function swapExactOutput(
     uint256 swapCalldata,
     address tokenIn,
     address tokenOut,
     uint256 maxAmountIn,
     uint256 amountOut
-  ) external returns (uint256);
+  ) external returns (uint256 amountIn);
 
+  /// @notice this function can be called by known adapters only
+  /// @param recipient to whom transfer the tokens from swap initiator
+  /// @param amount amount of tokens to transfer
+  /// @param data callback data with transfer details and info to verify sender 
   function adapterCallback(address recipient, uint256 amount, AdapterCallbackData calldata data) external;
 }
