@@ -4,6 +4,7 @@ import { Contract, ContractFactory } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import * as ethers from 'ethers';
 import {
+  MarginlyAdapterParam,
   MarginlyConfigMarginlyPool,
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
@@ -47,9 +48,15 @@ export interface IMarginlyDeployer {
   getOrCreateMockAavePoolAddressesProvider(aavePoolAddress: EthAddress): Promise<LimitedDeployResult>;
   getAavePoolAddressesProvider(address: EthAddress): ethers.Contract;
   deployMintableToken(name: string, symbol: string, decimals: number): Promise<DeployResult>;
+  deployMarginlyAdapter(
+    tokenRepository: ITokenRepository,
+    dexId: BigNumber,
+    name: string,
+    pools: MarginlyAdapterParam[],
+    balancerVault?: EthAddress,
+  ): Promise<DeployResult>;
   deployMarginlyRouter(
-    pools: { dex: number; token0: EthAddress; token1: EthAddress; pool: EthAddress }[],
-    balancerVault: EthAddress,
+    adapters: { dexId: BigNumber; adapter: EthAddress }[],
   ): Promise<DeployResult>;
   deployUniswapRouterMock(weth9: MarginlyConfigToken, tokenRepository: ITokenRepository): Promise<DeployResult>;
   deployUniswapPoolMock(
