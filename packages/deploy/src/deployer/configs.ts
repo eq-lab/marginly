@@ -14,6 +14,7 @@ import { createRootLogger, textFormatter } from '@marginly/logger';
 import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
+import { BigNumber } from 'ethers';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -104,16 +105,21 @@ export interface MarginlyConfigMarginlyPool {
   params: MarginlyPoolParams;
 }
 
-export interface MarginlyRouterConstructorParam {
-  dex: Dex;
+export interface MarginlyAdapterParam {
   token0: MarginlyConfigToken;
   token1: MarginlyConfigToken;
   pool: EthAddress;
 }
 
+export interface MarginlyConfigAdapter {
+  dexId: BigNumber;
+  name: string;
+  balancerVault?: EthAddress;
+  marginlyAdapterParams: MarginlyAdapterParam[];
+}
+
 export interface MarginlyConfigMarginlyRouter {
-  pools: MarginlyRouterConstructorParam[];
-  balancerVault: EthAddress;
+  adapters: MarginlyConfigAdapter[];
 }
 
 export interface MarginlyConfigMarginlyKeeper {
@@ -202,7 +208,6 @@ export class StrictMarginlyDeployConfig {
     let uniswap: MarginlyConfigUniswap;
 
     const uniswapPools = new Map<string, MarginlyConfigUniswapPool>();
-    const routerPools: MarginlyRouterConstructorParam[] = [];
 
     if (isMarginlyDeployConfigUniswapGenuine(config.uniswap)) {
       const genuinePools: MarginlyConfigUniswapPoolGenuine[] = [];
@@ -373,13 +378,36 @@ export class StrictMarginlyDeployConfig {
       );
     }
 
-    if (!EthAddress.isValidAddress(config.router.balancerVault)) {
-      throw new Error(`Config error. You should either provide address of balancerVault`);
+    const adapters: MarginlyConfigAdapter[] = [];
+
+    for (const adapter of config.adapters) {
+      const adapterParams: MarginlyAdapterParam[] = [];
+      for (const pool of adapter.pools) {
+        const poolAddress = EthAddress.parse(pool.poolAddress);
+        const token0 = tokens.get(pool.tokenAId);
+        if (token0 === undefined) {
+          throw new Error(`Can not find token0 '${pool.tokenAId}' for adapter with dexId ${adapter.dexId}`);
+        }
+        const token1 = tokens.get(pool.tokenBId);
+        if (token1 === undefined) {
+          throw new Error(`Can not find token1 '${pool.tokenBId}' for adapter with dexId ${adapter.dexId}`);
+        }
+        adapterParams.push({
+          token0: token0,
+          token1: token1,
+          pool: poolAddress,
+        });
+      }
+
+      adapters.push({
+        dexId: BigNumber.from(adapter.dexId),
+        balancerVault: adapter.balancerVault ? EthAddress.parse(adapter.balancerVault) : undefined,
+        name: adapter.adapterName,
+        marginlyAdapterParams: adapterParams,
+      });
     }
-    const marginlyRouter: MarginlyConfigMarginlyRouter = {
-      pools: routerPools,
-      balancerVault: EthAddress.parse(config.router.balancerVault),
-    };
+
+    const marginlyRouter: MarginlyConfigMarginlyRouter = { adapters };
 
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
       aavePoolAddressesProvider: {
