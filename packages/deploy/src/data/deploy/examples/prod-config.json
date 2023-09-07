@@ -1,0 +1,96 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://node.url/rpc"
+  },
+  "connection": {
+    "assertChainId": 12345,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0x000000000000000000000000000000000000FAdE",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "ExampleToken1",
+      "address": "0x000000000000000000000000000000000000dEaD",
+      "assertSymbol": "ET1",
+      "assertDecimals": 8
+    },
+    {
+      "id": "ExampleToken2",
+      "address": "0xdEad000000000000000000000000000000000000",
+      "assertSymbol": "ET2",
+      "assertDecimals": 6
+    }
+  ],
+  "prices": [],
+  "uniswap": {
+    "factory": "0x000000000000000000000000000000000000AbBa",
+    "pools": [
+      {
+        "id": "ET1-ET2",
+        "tokenAId": "ExampleToken1",
+        "tokenBId": "ExampleToken2",
+        "fee": "0.03%",
+        "allowCreate": false,
+        "assertAddress": "0xabBa000000000000000000000000000000000000"
+      }
+    ]
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x0000000000000000000000000000000000000FEE",
+    "techPositionOwner": "0xfEE0000000000000000000000000000000000000",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "ET1-ET2",
+      "uniswapPoolId": "ET1-ET2",
+      "baseTokenId": "ExampleToken1",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.1",
+        "quoteLimit": "123_456_789"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "ExampleToken1",
+          "tokenBId": "ExampleToken2",
+          "poolAddress": "0xabBa000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "dexId": 1,
+      "adapterName": "UniswapV2Adapter",
+      "pools": [
+        {
+          "tokenAId": "ExampleToken1",
+          "tokenBId": "ExampleToken2",
+          "poolAddress": "0x000000000000000000000000000000000000dEAf"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0x0000000000000000000000000000000000000bad"
+    }
+  }
+}

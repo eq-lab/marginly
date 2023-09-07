@@ -1,0 +1,106 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://node.url/rpc"
+  },
+  "connection": {
+    "assertChainId": 12345,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0x000000000000000000000000000000000000FAdE",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "ExampleToken1",
+      "name": "Example Token 1",
+      "symbol": "ET1",
+      "decimals": 8
+    },
+    {
+      "type": "mintable",
+      "id": "ExampleToken2",
+      "name": "Example Token 2",
+      "symbol": "ET2",
+      "decimals": 6
+    }
+  ],
+  "prices": [
+    {
+      "id": "et1-et2",
+      "label": "et1/et2",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.price.source.url/price?symbol=ET1ET2).price"
+    }
+  ],
+  "uniswap": {
+    "type": "mock",
+    "oracle": "0x000000000000000000000000000000000000AbBa",
+    "weth9TokenId": "weth",
+    "priceLogSize": 60,
+    "pools": [
+      {
+        "id": "et1-et2",
+        "tokenAId": "ExampleToken1",
+        "tokenBId": "ExampleToken2",
+        "fee": "0.05%",
+        "tokenABalance": "1_234_567_890",
+        "tokenBBalance": "1_234_567_890",
+        "priceId": "et1-et2",
+        "priceBaseTokenId": "ExampleToken1"
+      }
+    ]
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x0000000000000000000000000000000000000FEE",
+    "techPositionOwner": "0xfEE0000000000000000000000000000000000000",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "ET1-ET2",
+      "uniswapPoolId": "ET1-ET2",
+      "baseTokenId": "ExampleToken1",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.1",
+        "quoteLimit": "123_456_789"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "id": "ET1-ET2",
+      "uniswapPoolId": "ET1-ET2",
+      "baseTokenId": "ExampleToken1",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "recoveryMaxLeverage": "17",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "positionSlippage": "2.0%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "positionMinAmount": "0.1",
+        "quoteLimit": "123_456_789"
+      }
+    }
+  ],
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0x0000000000000000000000000000000000000bad"
+    }
+  }
+}
