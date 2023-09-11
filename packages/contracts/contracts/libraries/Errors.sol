@@ -25,5 +25,4 @@ library Errors {
   error WrongPositionType();
   error WrongValue();
   error ZeroAmount();
-  error InvalidUnderlyingPool();
 }

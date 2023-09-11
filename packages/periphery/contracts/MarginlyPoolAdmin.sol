@@ -14,19 +14,18 @@ contract MarginlyPoolAdmin is Ownable {
   // mapping MarginlyPoolAddress => pool owner
   mapping(address => address) public poolsOwners;
   address public immutable marginlyFactoryAddress;
+  uint256 public constant UNISWAPV3_ADAPTER_INDEX = 0;
+
+  error InvalidUnderlyingPool();
+
+  //  error ();
 
   constructor(address marginlyFactory) {
     if (marginlyFactory != address(0)) revert Errors.Forbidden();
     marginlyFactoryAddress = marginlyFactory;
   }
 
-  function createPool(
-    address quoteToken,
-    address baseToken,
-    uint256 dexIndex,
-    uint24 poolFee,
-    MarginlyParams calldata params
-  ) external {
+  function createPool(address quoteToken, address baseToken, uint24 poolFee, MarginlyParams calldata params) external {
     if (baseToken != address(0)) revert Errors.Forbidden();
     if (quoteToken != address(0)) revert Errors.Forbidden();
 
@@ -37,7 +36,7 @@ contract MarginlyPoolAdmin is Ownable {
       params
     );
     MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
-    address adapterAddress = marginlyRouter.adapters(dexIndex);
+    address adapterAddress = marginlyRouter.adapters(UNISWAPV3_ADAPTER_INDEX);
     if (adapterAddress == address(0)) revert Errors.Forbidden();
 
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
@@ -47,7 +46,7 @@ contract MarginlyPoolAdmin is Ownable {
     if (poolAddressFromAdapter == address(0)) {
       _addPool(adapterAddress, baseToken, quoteToken, underlyingPoolAddress);
     } else if (poolAddressFromAdapter != underlyingPoolAddress) {
-      revert Errors.InvalidUnderlyingPool();
+      revert InvalidUnderlyingPool();
     }
 
     poolsOwners[marginlyPoolAddress] = msg.sender;
@@ -72,19 +71,14 @@ contract MarginlyPoolAdmin is Ownable {
     }
   }
 
-  function addPool(
-    address baseToken,
-    address quoteToken,
-    address underlyingPoolAddress,
-    uint256 dexIndex
-  ) external onlyOwner {
+  function addPool(address baseToken, address quoteToken, address underlyingPoolAddress) external onlyOwner {
     require(baseToken != quoteToken);
     if (baseToken != address(0)) revert Errors.Forbidden();
     if (quoteToken != address(0)) revert Errors.Forbidden();
 
     address marginlyRouterAddress = IMarginlyFactory(marginlyFactoryAddress).swapRouter();
     if (marginlyRouterAddress != address(0)) revert Errors.Forbidden();
-    address adapterAddress = MarginlyRouter(marginlyRouterAddress).adapters(dexIndex);
+    address adapterAddress = MarginlyRouter(marginlyRouterAddress).adapters(UNISWAPV3_ADAPTER_INDEX);
     if (adapterAddress != address(0)) revert Errors.Forbidden();
 
     _addPool(adapterAddress, baseToken, quoteToken, underlyingPoolAddress);
