@@ -22,8 +22,8 @@ const config = {
   },
   etherscan: {
     apiKey: {
-      polygonMumbai: '',
-      arbitrumGoerli: '',
+      polygonMumbai: process.env.API_KEY,
+      arbitrumGoerli: process.env.API_KEY,
     },
   },
   mocha: {
