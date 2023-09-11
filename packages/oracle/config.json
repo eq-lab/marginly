@@ -229,7 +229,7 @@
           "periodMs": 60000
         },
         {
-          "poolMockId": "pepe-usdc",
+          "poolMockId": "pepe-usdc1",
           "periodMs": 60000
         }
       ]
