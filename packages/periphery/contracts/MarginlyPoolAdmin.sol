@@ -13,38 +13,43 @@ import '@marginly/router/contracts/abstract/AdapterStorage.sol';
 contract MarginlyPoolAdmin is Ownable {
   // mapping MarginlyPoolAddress => pool owner
   mapping(address => address) public poolsOwners;
-  address public marginlyFactoryAddress;
-  address public marginlyRouterAddress;
+  address public immutable marginlyFactoryAddress;
 
-  constructor(address factory) {
-    marginlyFactoryAddress = factory;
-    marginlyRouterAddress = IMarginlyFactory(marginlyFactoryAddress).swapRouter();
+  constructor(address marginlyFactory) {
+    if (marginlyFactory != address(0)) revert Errors.Forbidden();
+    marginlyFactoryAddress = marginlyFactory;
   }
 
   function createPool(
     address quoteToken,
     address baseToken,
     uint256 dexIndex,
-    uint24 uniswapFee,
+    uint24 poolFee,
     MarginlyParams calldata params
   ) external {
+    if (baseToken != address(0)) revert Errors.Forbidden();
+    if (quoteToken != address(0)) revert Errors.Forbidden();
+
     address marginlyPoolAddress = IMarginlyFactory(marginlyFactoryAddress).createPool(
       quoteToken,
       baseToken,
-      uniswapFee,
+      poolFee,
       params
     );
-    MarginlyRouter marginlyRouter = MarginlyRouter(marginlyRouterAddress);
+    MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
     address adapterAddress = marginlyRouter.adapters(dexIndex);
     if (adapterAddress == address(0)) revert Errors.Forbidden();
 
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
-    if (adapterStorage.getPool(baseToken, quoteToken) == address(0)) {
-      address uniswapPoolAddress = IMarginlyPool(marginlyPoolAddress).uniswapPool();
-      PoolInput[] memory poolInput = new PoolInput[](1);
-      poolInput[0] = PoolInput(baseToken, quoteToken, uniswapPoolAddress);
-      adapterStorage.addPools(poolInput);
+    address poolAddressFromAdapter = adapterStorage.getPool(baseToken, quoteToken);
+    address underlyingPoolAddress = IMarginlyPool(marginlyPoolAddress).uniswapPool();
+
+    if (poolAddressFromAdapter == address(0)) {
+      _addPool(adapterAddress, baseToken, quoteToken, underlyingPoolAddress);
+    } else if (poolAddressFromAdapter != underlyingPoolAddress) {
+      revert Errors.InvalidUnderlyingPool();
     }
+
     poolsOwners[marginlyPoolAddress] = msg.sender;
   }
 
@@ -65,5 +70,35 @@ contract MarginlyPoolAdmin is Ownable {
       IMarginlyPool(marginlyPool).sweepETH();
       TransferHelper.safeTransferETH(msg.sender, poolBalance);
     }
+  }
+
+  function addPool(
+    address baseToken,
+    address quoteToken,
+    address underlyingPoolAddress,
+    uint256 dexIndex
+  ) external onlyOwner {
+    require(baseToken != quoteToken);
+    if (baseToken != address(0)) revert Errors.Forbidden();
+    if (quoteToken != address(0)) revert Errors.Forbidden();
+
+    address marginlyRouterAddress = IMarginlyFactory(marginlyFactoryAddress).swapRouter();
+    if (marginlyRouterAddress != address(0)) revert Errors.Forbidden();
+    address adapterAddress = MarginlyRouter(marginlyRouterAddress).adapters(dexIndex);
+    if (adapterAddress != address(0)) revert Errors.Forbidden();
+
+    _addPool(adapterAddress, baseToken, quoteToken, underlyingPoolAddress);
+  }
+
+  function _addPool(
+    address adapterAddress,
+    address baseToken,
+    address quoteToken,
+    address underlyingPoolAddress
+  ) internal {
+    AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
+    PoolInput[] memory poolInput = new PoolInput[](1);
+    poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPoolAddress);
+    adapterStorage.addPools(poolInput);
   }
 }
