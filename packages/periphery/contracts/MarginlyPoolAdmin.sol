@@ -44,7 +44,9 @@ contract MarginlyPoolAdmin is Ownable {
     address underlyingPoolAddress = IMarginlyPool(marginlyPoolAddress).uniswapPool();
 
     if (poolAddressFromAdapter == address(0)) {
-      _addPool(adapterAddress, baseToken, quoteToken, underlyingPoolAddress);
+      PoolInput[] memory poolInput = new PoolInput[](1);
+      poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPoolAddress);
+      adapterStorage.addPools(poolInput);
     } else if (poolAddressFromAdapter != underlyingPoolAddress) {
       revert InvalidUnderlyingPool();
     }
@@ -71,28 +73,13 @@ contract MarginlyPoolAdmin is Ownable {
     }
   }
 
-  function addPool(address baseToken, address quoteToken, address underlyingPoolAddress) external onlyOwner {
-    require(baseToken != quoteToken);
-    if (baseToken != address(0)) revert Errors.Forbidden();
-    if (quoteToken != address(0)) revert Errors.Forbidden();
-
+  function addPools(PoolInput[] calldata pools) external onlyOwner {
     address marginlyRouterAddress = IMarginlyFactory(marginlyFactoryAddress).swapRouter();
     if (marginlyRouterAddress != address(0)) revert Errors.Forbidden();
     address adapterAddress = MarginlyRouter(marginlyRouterAddress).adapters(UNISWAPV3_ADAPTER_INDEX);
     if (adapterAddress != address(0)) revert Errors.Forbidden();
 
-    _addPool(adapterAddress, baseToken, quoteToken, underlyingPoolAddress);
-  }
-
-  function _addPool(
-    address adapterAddress,
-    address baseToken,
-    address quoteToken,
-    address underlyingPoolAddress
-  ) internal {
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
-    PoolInput[] memory poolInput = new PoolInput[](1);
-    poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPoolAddress);
-    adapterStorage.addPools(poolInput);
+    adapterStorage.addPools(pools);
   }
 }
