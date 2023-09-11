@@ -4,9 +4,7 @@
   },
   "connection": {
     "assertChainId": 421613,
-    "ethOptions": {
-      "gasLimit": 10000000
-    }
+    "ethOptions": {}
   },
   "tokens": [
     {
