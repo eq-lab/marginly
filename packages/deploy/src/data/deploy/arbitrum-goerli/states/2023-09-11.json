@@ -1,0 +1,48 @@
+{
+  "contracts": {
+    "token_FWETH": {
+      "address": "0x7Ce58b8C640D3F1ff2bF01F7CC259E2De8d1B16B",
+      "txHash": "0xe558dd42763d1b7785d1add588ddc8408aa0e842ef8b9a4e054268cd6fdebaba"
+    },
+    "token_USDC": {
+      "address": "0x389487b52B0911a22fE3104e87ffD7733905DDEb",
+      "txHash": "0xaadc9ebcec5666936209bf9ef5ccdc7629577a9d7be2a142852731a251069023"
+    },
+    "token_PEPE": {
+      "address": "0x856C8Bbd425A33e8a716A873848Be25e5520AA07",
+      "txHash": "0x7cfdeebb3a9f5ca31a7e76a041f01d133a2e4ec394a013ea9eab8fb4903f7e59"
+    },
+    "swapRouterMock": {
+      "address": "0xF54595f46FAB4FEA574Ff0BE8972936c27F133a3",
+      "txHash": "0xe15dda610d4fc9b9b4ea1faa80978faf355a6956349915a90f84a7561ac844da"
+    },
+    "uniswapV3PoolMock_pepe-usdc": {
+      "address": "0xD3375e4E938B1089BCc8E85C4aa344102De47232",
+      "txHash": "0xb832a0961885d81d842a1102a600e227b9ad30160445b126d8416a4c7db2fcfe"
+    },
+    "UniswapV3Adapter_0": {
+      "address": "0x420c187B1960c99e0A6bEd7641BeA9BA9Eb6E53b",
+      "txHash": "0xbc4a62b50c2e90dd3ec5f4d9a512a5a1299ef6e7d8726d0336260c550db3175e"
+    },
+    "MarginlyRouter": {
+      "address": "0x66029d4c6b7AC17Cc7202dDB09663aC1f909c721",
+      "txHash": "0x64bce3136495133158b193f74ef86c5ca38a1fb0029f80f3986a05d40033cc68"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0xf4C6538D3eCb0e0373CCdF1343ebE0a3b698D3bD",
+      "txHash": "0xfe883c2fad66fff4fec8f4a1a654e8d314601f9cdbb60d8a7c92ed0a62921cdc"
+    },
+    "marginlyFactory": {
+      "address": "0xc7f5cC0065dae3fE7834E53f463e77F904dd4471",
+      "txHash": "0xbc747be684590ecb94a25e12362480daf063a53e6fa4a54e4bc12dbdb5c2037d"
+    },
+    "marginlyPool_pepe-usdc": {
+      "address": "0xe6d716b59dCDb828d6AF8a0a141f557Df9515fd0",
+      "txHash": "0x10b3d63a5cbaf10b9485254b85d7224748a5353d8b14a92d2368a7d1f84ad68b"
+    },
+    "marginlyKeeper": {
+      "address": "0xfab48F2eFB3CCeaD9f69eadF94C9E231A1b1e1eb",
+      "txHash": "0x492b25a6cc7952f2953b9df3a82a1cc06277b9df4f9e1518d32a40d89e3ea74d"
+    }
+  }
+}
