@@ -8,7 +8,6 @@ export type MarginlyPoolParameters = {
   positionSlippage: BigNumber;
   mcSlippage: BigNumber;
   positionMinAmount: BigNumber;
-  baseLimit: BigNumber;
   quoteLimit: BigNumber;
 };
 

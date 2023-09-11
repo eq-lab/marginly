@@ -16,9 +16,10 @@ import { TokenRepository } from './token-repository';
 import {
   isMarginlyConfigUniswapGenuine,
   isMarginlyConfigUniswapMock,
-  MarginlyRouterConstructorParam,
+  MarginlyConfigMarginlyRouter,
   StrictMarginlyDeployConfig,
 } from './deployer/configs';
+import { DeployResult } from './common/interfaces';
 
 export { DeployConfig } from './config';
 export { DeployState, StateStore, BaseState, MarginlyDeployment, mergeMarginlyDeployments } from './common';
@@ -96,7 +97,7 @@ export async function deployMarginly(
       return tokenRepository;
     });
 
-    const routerPools: { dex: number, token0: EthAddress, token1: EthAddress, pool: EthAddress }[] = [];
+    const routerPools: { dex: number; token0: EthAddress; token1: EthAddress; pool: EthAddress }[] = [];
 
     const uniswapFactoryAddress = await using(logger.beginScope('Process uniswap'), async () => {
       if (isMarginlyConfigUniswapGenuine(config.uniswap)) {
@@ -210,25 +211,30 @@ export async function deployMarginly(
       }
     });
 
-    const marginlyRouterDeployResult = await using(
-      logger.beginScope('Deploy marginly router'),
-      async () => {
-        for (const pool of config.marginlyRouter.pools) {
-          const token0 = tokenRepository.getTokenInfo(pool.token0.id).address;
-          const token1 = tokenRepository.getTokenInfo(pool.token1.id).address;
-    
-          routerPools.push(
-            { dex: pool.dex, token0: token0, token1: token1, pool: pool.pool }
+    const marginlyRouterDeployResult = await using(logger.beginScope('Deploy marginly router'), async () => {
+      const adapterDeployResults: { dexId: ethers.BigNumber, adapter: EthAddress }[] = [];
+      for (const adapter of config.marginlyRouter.adapters) {
+        await using(logger.beginScope('Deploy marginly adapter'), async () => {
+          const marginlyAdapterDeployResult = await marginlyDeployer.deployMarginlyAdapter(
+            tokenRepository,
+            adapter.dexId,
+            adapter.name,
+            adapter.marginlyAdapterParams,
+            adapter.balancerVault
           );
-        }
-        const balancerVault = config.marginlyRouter.balancerVault;
-
-        const marginlyRouterDeployResult = await marginlyDeployer.deployMarginlyRouter(routerPools, balancerVault);
-        printDeployState('Marginly router', marginlyRouterDeployResult, logger);
-
-        return marginlyRouterDeployResult;
+          printDeployState('Marginly adapter', marginlyAdapterDeployResult, logger);
+          adapterDeployResults.push({
+            dexId: adapter.dexId, 
+            adapter: EthAddress.parse(marginlyAdapterDeployResult.address)
+          });
+        }); 
       }
-    );
+
+      const marginlyRouterDeployResult = await marginlyDeployer.deployMarginlyRouter(adapterDeployResults);
+      printDeployState('Marginly router', marginlyRouterDeployResult, logger);
+
+      return marginlyRouterDeployResult;
+    });
 
     const marginlyPoolImplDeployResult = await using(
       logger.beginScope('Deploy marginly pool implementation'),

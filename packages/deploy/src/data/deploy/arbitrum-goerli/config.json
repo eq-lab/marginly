@@ -29,16 +29,9 @@
     },
     {
       "type": "mintable",
-      "id": "arb",
-      "name": "Arbitrum",
-      "symbol": "ARB",
-      "decimals": 18
-    },
-    {
-      "type": "mintable",
-      "id": "gmx",
-      "name": "GMX",
-      "symbol": "GMX",
+      "id": "pepe",
+      "name": "Pepe",
+      "symbol": "PEPE",
       "decimals": 18
     }
   ],
@@ -51,34 +44,15 @@
       "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
     },
     {
-      "id": "arb-usdc",
-      "label": "arb/usdc",
+      "id": "pepe-usdc",
+      "label": "pepe/usdc",
       "type": "composite",
       "sources": [
         {
           "type": "http-get",
-          "label": "arb/usdt",
+          "label": "pepe/usdt",
           "direction": "forward",
-          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBUSDT).price"
-        },
-        {
-          "type": "http-get",
-          "label": "usdt/usdc",
-          "direction": "backward",
-          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
-        }
-      ]
-    },
-    {
-      "id": "gmx-usdc",
-      "label": "gmx/usdc",
-      "type": "composite",
-      "sources": [
-        {
-          "type": "http-get",
-          "label": "gmx/usdt",
-          "direction": "forward",
-          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GMXUSDT).price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
         },
         {
           "type": "http-get",
@@ -96,34 +70,14 @@
     "priceLogSize": 60,
     "pools": [
       {
-        "id": "fweth-usdc",
-        "tokenAId": "fweth",
-        "tokenBId": "usdc",
-        "fee": "0.05%",
-        "tokenABalance": "1_000_000",
-        "tokenBBalance": "2_000_000_000",
-        "priceId": "eth-usdc",
-        "priceBaseTokenId": "fweth"
-      },
-      {
-        "id": "arb-usdc",
-        "tokenAId": "arb",
-        "tokenBId": "usdc",
-        "fee": "0.05%",
-        "tokenABalance": "2_180_000",
-        "tokenBBalance": "780_000",
-        "priceId": "arb-usdc",
-        "priceBaseTokenId": "arb"
-      },
-      {
-        "id": "gmx-usdc",
-        "tokenAId": "gmx",
+        "id": "pepe-usdc",
+        "tokenAId": "pepe",
         "tokenBId": "usdc",
         "fee": "0.3%",
         "tokenABalance": "100_000_000",
         "tokenBBalance": "5_200_000_000",
-        "priceId": "gmx-usdc",
-        "priceBaseTokenId": "gmx"
+        "priceId": "pepe-usdc",
+        "priceBaseTokenId": "pepe"
       }
     ]
   },
@@ -134,61 +88,35 @@
   },
   "marginlyPools": [
     {
-      "id": "fweth-usdc",
-      "uniswapPoolId": "fweth-usdc",
-      "baseTokenId": "fweth",
+      "id": "pepe-usdc",
+      "uniswapPoolId": "pepe-usdc",
+      "baseTokenId": "pepe",
       "params": {
         "interestRate": "5.4%",
         "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
         "fee": "2%",
         "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "50_000",
-        "quoteLimit": "100_000_000"
-      }
-    },
-    {
-      "id": "arb-usdc",
-      "uniswapPoolId": "arb-usdc",
-      "baseTokenId": "arb",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.001",
-        "baseLimit": "100_000_000",
-        "quoteLimit": "100_000_000"
-      }
-    },
-    {
-      "id": "gmx-usdc",
-      "uniswapPoolId": "gmx-usdc",
-      "baseTokenId": "gmx",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.001",
-        "baseLimit": "2_000_000",
         "quoteLimit": "100_000_000"
       }
     }
   ],
-  "routerPools": [],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "pepe",
+          "tokenBId": "usdc",
+          "poolAddress": "0xD3375e4E938B1089BCc8E85C4aa344102De47232"
+        }
+      ]
+    }
+  ],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0x4EEE0BB72C2717310318f27628B3c8a708E4951C"

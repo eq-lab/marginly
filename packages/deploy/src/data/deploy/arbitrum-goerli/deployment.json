@@ -19,9 +19,13 @@
     {
       "id": "gmx-usdc",
       "address": "0x4D005dc006DD1339Da4A2AB9FEA0f573208a2c4b"
+    },
+    {
+      "id": "pepe-usdc",
+      "address": "0xe6d716b59dCDb828d6AF8a0a141f557Df9515fd0"
     }
   ],
   "marginlyKeeper": {
-    "address": "0xF8B479c5C318C096007aeeFA3a4293de4272C177"
+    "address": "0xfab48F2eFB3CCeaD9f69eadF94C9E231A1b1e1eb"
   }
 }

@@ -19,30 +19,26 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
-    'addPools(tuple[])': utils.FunctionFragment;
-    'balancerVault()': utils.FunctionFragment;
-    'getPool(uint8,address,address)': utils.FunctionFragment;
+    'adapterCallback(address,uint256,bytes)': utils.FunctionFragment;
+    'adapters(uint256)': utils.FunctionFragment;
+    'addDexAdapters(tuple[])': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
-    'swapCallback(int256,int256,bytes)': utils.FunctionFragment;
     'swapExactInput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'swapExactOutput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
-    'uniswapV3SwapCallback(int256,int256,bytes)': utils.FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | 'addPools'
-      | 'balancerVault'
-      | 'getPool'
+      | 'adapterCallback'
+      | 'adapters'
+      | 'addDexAdapters'
       | 'owner'
       | 'renounceOwnership'
-      | 'swapCallback'
       | 'swapExactInput'
       | 'swapExactOutput'
       | 'transferOwnership'
-      | 'uniswapV3SwapCallback'
   ): utils.FunctionFragment;
 }
 
@@ -53,25 +49,19 @@ export interface MarginlyRouterContract extends BaseContract {
 
   interface: MarginlyRouterInterface;
 
-  addPools(
-    pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+  adapterCallback(
+    recipient: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
+    _data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  balancerVault(override?: CallOverrides): Promise<string>;
-  getPool(
-    arg0: PromiseOrValue<BigNumberish>,
-    arg1: PromiseOrValue<string>,
-    arg2: PromiseOrValue<string>,
-    override?: CallOverrides
-  ): Promise<string>;
+  adapters(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<string>;
+  addDexAdapters(
+    _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   owner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-  swapCallback(
-    deltaQty0: PromiseOrValue<BigNumberish>,
-    deltaQty1: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
   swapExactInput(
     swapCalldata: PromiseOrValue<BigNumberish>,
     tokenIn: PromiseOrValue<string>,
@@ -92,35 +82,23 @@ export interface MarginlyRouterContract extends BaseContract {
     newOwner: PromiseOrValue<string>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  uniswapV3SwapCallback(
-    amount0Delta: PromiseOrValue<BigNumberish>,
-    amount1Delta: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
 
   functions: {
-    balancerVault(override?: CallOverrides): Promise<[string]>;
-    getPool(
-      arg0: PromiseOrValue<BigNumberish>,
-      arg1: PromiseOrValue<string>,
-      arg2: PromiseOrValue<string>,
-      override?: CallOverrides
-    ): Promise<[string]>;
+    adapters(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
-    addPools(
-      pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+    adapterCallback(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      _data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+    addDexAdapters(
+      _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-    swapCallback(
-      deltaQty0: PromiseOrValue<BigNumberish>,
-      deltaQty1: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
     swapExactInput(
       swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
@@ -139,27 +117,21 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<BigNumber>;
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-    uniswapV3SwapCallback(
-      amount0Delta: PromiseOrValue<BigNumberish>,
-      amount1Delta: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
   populateTransaction: {
-    addPools(
-      pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+    adapterCallback(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      _data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+    addDexAdapters(
+      _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-    swapCallback(
-      deltaQty0: PromiseOrValue<BigNumberish>,
-      deltaQty1: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
     swapExactInput(
       swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
@@ -178,27 +150,21 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-    uniswapV3SwapCallback(
-      amount0Delta: PromiseOrValue<BigNumberish>,
-      amount1Delta: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
-    addPools(
-      pools: PromiseOrValue<{ dex: BigNumberish; token0: string; token1: string; pool: string }[]>,
+    adapterCallback(
+      recipient: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
+      _data: PromiseOrValue<BytesLike>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
+    addDexAdapters(
+      _adapters: PromiseOrValue<{ dexIndex: BigNumberish; adapter: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
-    swapCallback(
-      deltaQty0: PromiseOrValue<BigNumberish>,
-      deltaQty1: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<void>;
     swapExactInput(
       swapCalldata: PromiseOrValue<BigNumberish>,
       tokenIn: PromiseOrValue<string>,
@@ -217,24 +183,17 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<BigNumber>;
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      override?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<void>;
-    uniswapV3SwapCallback(
-      amount0Delta: PromiseOrValue<BigNumberish>,
-      amount1Delta: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
   };
 }
 
 export async function deploy(
-  pools: { dex: BigNumberish; token0: string; token1: string; pool: string }[],
-  balancerVault: string,
+  _adapters: { dexIndex: BigNumberish; adapter: string }[],
   signer?: Signer
 ): Promise<MarginlyRouterContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy(pools, balancerVault);
+  const contract = await factory.deploy(_adapters);
   return (await contract.deployed()) as any;
 }
 

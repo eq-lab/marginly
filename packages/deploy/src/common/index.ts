@@ -68,6 +68,10 @@ export function readUniswapMockContract(name: string): ContractDescription {
   return require(`@marginly/contracts-uniswap-mock/artifacts/contracts/${name}.sol/${name}.json`);
 }
 
+export function readMarginlyAdapterContract(name: string): ContractDescription {
+  return require(`@marginly/router/artifacts/contracts/adapters/${name}.sol/${name}.json`);
+}
+
 export function readMarginlyRouterContract(name: string): ContractDescription {
   return require(`@marginly/router/artifacts/contracts/${name}.sol/${name}.json`);
 }

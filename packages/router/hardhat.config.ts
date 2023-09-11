@@ -8,8 +8,22 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 100_000,
       },
+    },
+  },
+  networks: {
+    polygonMumbai: {
+      url: 'https://rpc.ankr.com/polygon_mumbai',
+    },
+    arbitrumGoerli: {
+      url: 'https://goerli-rollup.arbitrum.io/rpc',
+    },
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.API_KEY,
+      arbitrumGoerli: process.env.API_KEY,
     },
   },
   mocha: {
@@ -23,7 +37,7 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly'],
+    only: ['Marginly', 'Adapter'],
   },
 };
 

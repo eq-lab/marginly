@@ -105,15 +105,16 @@ export interface MarginlyDeployConfig {
   tokens: MarginlyDeployConfigToken[];
   prices: RootPriceConfig[];
   uniswap: MarginlyDeployConfigUniswap;
-  router: {
+  adapters: {
+    dexId: number;
+    adapterName: string;
+    balancerVault?: string;
     pools: {
-      dex: Dex;
       tokenAId: string;
       tokenBId: string;
-      assertAddress?: string;
+      poolAddress: string;
     }[];
-    balancerVault: string;
-  };
+  }[];
   marginlyFactory: {
     feeHolder: string;
     techPositionOwner: string;
@@ -132,7 +133,6 @@ export interface MarginlyDeployConfig {
       positionSlippage: string;
       mcSlippage: string;
       positionMinAmount: string;
-      baseLimit: string;
       quoteLimit: string;
     };
   }[];

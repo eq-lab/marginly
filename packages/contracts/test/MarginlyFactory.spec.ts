@@ -18,7 +18,6 @@ describe('MarginlyFactory', () => {
       mcSlippage: 50000, //5%
       priceSecondsAgo: 900, // 15 min
       positionMinAmount: 1, // 1 WEI
-      baseLimit: 1_000_000_000_000,
       quoteLimit: 1_000_000_000_000,
     };
 

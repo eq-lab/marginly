@@ -37,7 +37,6 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       positionSlippage: 300000,
       mcSlippage: 400000,
-      baseLimit: 1_000_000_000,
       quoteLimit: 1_000_000_000,
     };
 
@@ -73,7 +72,6 @@ describe('MarginlyPool.Base', () => {
     const params = await marginlyPool.params();
     await marginlyPool.connect(owner).setParameters({
       ...params,
-      baseLimit: 10000n * 10n ** 18n,
       quoteLimit: 10000n * 10n ** 18n,
     });
 
@@ -112,7 +110,6 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       positionSlippage: 300000,
       mcSlippage: 400000,
-      baseLimit: 1_000_000_000,
       quoteLimit: 1_000_000_000,
     });
 
@@ -125,7 +122,6 @@ describe('MarginlyPool.Base', () => {
     expect(params.positionMinAmount).to.equal(100);
     expect(params.positionSlippage).to.equal(300000);
     expect(params.mcSlippage).to.equal(400000);
-    expect(params.baseLimit).to.equal(1_000_000_000);
     expect(params.quoteLimit).to.equal(1_000_000_000);
     expect(params.fee).to.equal(1);
   });
@@ -146,7 +142,6 @@ describe('MarginlyPool.Base', () => {
         positionMinAmount: 100,
         positionSlippage: 300000,
         mcSlippage: 400000,
-        baseLimit: 1_000_000_000,
         quoteLimit: 1_000_000_000,
       })
     ).to.be.revertedWithCustomError(pool, 'AccessDenied');
@@ -169,7 +164,7 @@ describe('MarginlyPool.Base', () => {
       await expect(
         marginlyPool
           .connect(otherSigner)
-          .execute(CallType.DepositBase, 2_000_000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
+          .execute(CallType.DepositBase, 8_000_000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
@@ -750,7 +745,7 @@ describe('MarginlyPool.Base', () => {
       const [_, signer] = await ethers.getSigners();
 
       const params = await marginlyPool.params();
-      await marginlyPool.setParameters({ ...params, baseLimit: BigNumber.from(1000n * 10n ** 18n) });
+      await marginlyPool.setParameters({ ...params, quoteLimit: BigNumber.from(4000n * 10n ** 18n) });
 
       const amountToDeposit = BigNumber.from(2n * 10n ** 18n); //2 ETH
       await marginlyPool
@@ -1380,10 +1375,13 @@ describe('MarginlyPool.Base', () => {
         .connect(longer)
         .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
+      const basePrice = (await marginlyPool.getBasePrice()).inner;
+      const quoteLimit = (await marginlyPool.params()).quoteLimit;
+      const longAmount = quoteLimit.mul(FP96.one).div(basePrice);
       await expect(
         marginlyPool
           .connect(longer)
-          .execute(CallType.Long, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
+          .execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 

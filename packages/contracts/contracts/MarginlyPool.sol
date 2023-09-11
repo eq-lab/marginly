@@ -451,7 +451,7 @@ contract MarginlyPool is IMarginlyPool {
 
     FP96.FixedPoint memory _baseDebtCoeff = baseDebtCoeff;
 
-    if (newPoolBaseBalance(amount) > params.baseLimit) revert Errors.ExceedsLimit();
+    if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
 
     uint256 positionDiscountedBaseAmountPrev = position.discountedBaseAmount;
     if (position._type == PositionType.Short) {
@@ -843,7 +843,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 swapCalldata
   ) private {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
-    if (newPoolBaseBalance(realBaseAmount) > params.baseLimit) revert Errors.ExceedsLimit();
+    if (basePrice.mul(newPoolBaseBalance(realBaseAmount)) > params.quoteLimit) revert Errors.ExceedsLimit();
 
     PositionType _type = position._type;
     if (_type != PositionType.Long && !(_type == PositionType.Lend && position.discountedQuoteAmount == 0))

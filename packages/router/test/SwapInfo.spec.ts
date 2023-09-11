@@ -7,23 +7,25 @@ describe('SwapInfo decoding', () => {
   it('default', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
     const defaultUniswapV3Swap = 0;
-    const decodingResult = await swapInfoTest.decodeSwapInfo(defaultUniswapV3Swap);
+    const decodingResult = await swapInfoTest.decodeSwapInfo(defaultUniswapV3Swap, SWAP_ONE, SWAP_ONE);
     expect(decodingResult[1]).to.be.equal(1);
 
     const swapInfo = decodingResult[0][0];
-    expect(swapInfo.dex).to.be.equal(Dex.UniswapV3);
-    expect(swapInfo.swapRatio).to.be.equal(1 << 15);
+    expect(swapInfo.dexIndex).to.be.equal(Dex.UniswapV3);
+    expect(swapInfo.dexAmountIn).to.be.equal(1 << 15);
+    expect(swapInfo.dexAmountOut).to.be.equal(1 << 15);
   });
 
   it('only uniswapV3', async () => {
     const swapInfoTest = await loadFixture(createTestSwapInfo);
     const onlyUniswapV3Swap = constructSwap([Dex.UniswapV3], [SWAP_ONE]);
-    const decodingResult = await swapInfoTest.decodeSwapInfo(onlyUniswapV3Swap);
+    const decodingResult = await swapInfoTest.decodeSwapInfo(onlyUniswapV3Swap, SWAP_ONE, SWAP_ONE);
     expect(decodingResult[1]).to.be.equal(1);
 
     const swapInfo = decodingResult[0][0];
-    expect(swapInfo.dex).to.be.equal(Dex.UniswapV3);
-    expect(swapInfo.swapRatio).to.be.equal(1 << 15);
+    expect(swapInfo.dexIndex).to.be.equal(Dex.UniswapV3);
+    expect(swapInfo.dexAmountIn).to.be.equal(1 << 15);
+    expect(swapInfo.dexAmountOut).to.be.equal(1 << 15);
   });
 
   it('split randomly between 2 Dexs', async () => {
@@ -44,16 +46,18 @@ describe('SwapInfo decoding', () => {
     console.log([firstDexRatio, secondDexRatio]);
 
     const swap = constructSwap([firstDex, secondDex], [firstDexRatio, secondDexRatio]);
-    const decodingResult = await swapInfoTest.decodeSwapInfo(swap);
+    const decodingResult = await swapInfoTest.decodeSwapInfo(swap, SWAP_ONE, SWAP_ONE);
     expect(decodingResult[1]).to.be.equal(2);
 
     const swapInfoFirst = decodingResult[0][1];
-    expect(swapInfoFirst.dex).to.be.equal(firstDex);
-    expect(swapInfoFirst.swapRatio).to.be.equal(firstDexRatio);
+    expect(swapInfoFirst.dexIndex).to.be.equal(firstDex);
+    expect(swapInfoFirst.dexAmountIn).to.be.equal(firstDexRatio);
+    expect(swapInfoFirst.dexAmountOut).to.be.equal(firstDexRatio);
 
     const swapInfoSecond = decodingResult[0][0];
-    expect(swapInfoSecond.dex).to.be.equal(secondDex);
-    expect(swapInfoSecond.swapRatio).to.be.equal(secondDexRatio);
+    expect(swapInfoSecond.dexIndex).to.be.equal(secondDex);
+    expect(swapInfoSecond.dexAmountIn).to.be.equal(secondDexRatio);
+    expect(swapInfoSecond.dexAmountOut).to.be.equal(secondDexRatio);
   });
 
   it('Wrong swap ratios', async () => {
@@ -77,7 +81,10 @@ describe('SwapInfo decoding', () => {
     console.log([firstDexRatio, secondDexRatio]);
 
     const swap = constructSwap([firstDex, secondDex], [firstDexRatio, secondDexRatio]);
-    expect(swapInfoTest.decodeSwapInfo(swap)).to.be.revertedWithCustomError(swapInfoTest, 'WrongSwapRatios');
+    await expect(swapInfoTest.decodeSwapInfo(swap, SWAP_ONE, SWAP_ONE)).to.be.revertedWithCustomError(
+      swapInfoTest,
+      'WrongSwapRatios'
+    );
   });
 
   it('Wrong swaps number', async () => {
@@ -98,6 +105,25 @@ describe('SwapInfo decoding', () => {
     console.log([firstDexRatio, secondDexRatio]);
 
     const swap = constructSwap([firstDex, secondDex], [firstDexRatio, secondDexRatio]).sub(2);
-    expect(swapInfoTest.decodeSwapInfo(swap)).to.be.revertedWithCustomError(swapInfoTest, 'WrongSwapsNumber');
+    await expect(swapInfoTest.decodeSwapInfo(swap, SWAP_ONE, SWAP_ONE)).to.be.revertedWithCustomError(
+      swapInfoTest,
+      'WrongSwapsNumber'
+    );
+  });
+
+  it('WrongSwapsNumber: not zero in the end', async () => {
+    const swapInfoTest = await loadFixture(createTestSwapInfo);
+
+    const dexNumber = Object.entries(Dex).length;
+    const dex = Math.floor(Math.random() * dexNumber);
+
+    console.log([dex]);
+
+    let swap = constructSwap([dex], [SWAP_ONE]);
+    swap = swap.add(2 ** Math.ceil(Math.log2(swap.toNumber()) + 8));
+    await expect(swapInfoTest.decodeSwapInfo(swap, SWAP_ONE, SWAP_ONE)).to.be.revertedWithCustomError(
+      swapInfoTest,
+      'WrongSwapsNumber'
+    );
   });
 });

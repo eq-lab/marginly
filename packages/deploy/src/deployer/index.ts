@@ -7,12 +7,13 @@ import * as ethers from 'ethers';
 import {
   isMarginlyConfigMintableToken,
   MarginlyConfigToken,
+  readMarginlyAdapterContract,
   readMarginlyRouterContract,
   readUniswapMockContract,
   StateStore,
 } from '../common';
 import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult } from '../common/interfaces';
-import { MarginlyConfigMarginlyPool, MarginlyConfigUniswapPoolGenuine, MarginlyConfigUniswapPoolMock } from './configs';
+import { MarginlyAdapterParam, MarginlyConfigMarginlyPool, MarginlyConfigUniswapPoolGenuine, MarginlyConfigUniswapPoolMock } from './configs';
 import { sortUniswapPoolTokens } from '@marginly/common/math';
 
 export class MarginlyDeployer implements IMarginlyDeployer {
@@ -293,7 +294,6 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         positionSlippage: config.params.positionSlippage.mul(one).toInteger(),
         mcSlippage: config.params.mcSlippage.mul(one).toInteger(),
         positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
-        baseLimit: config.params.baseLimit.mul(baseOne).toInteger(),
         quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
       };
       const tx = await marginlyPoolFactoryContract.createPool(
@@ -395,13 +395,32 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy('MintableToken', [name, symbol, decimals], `token_${symbol}`, readUniswapMockContract);
   }
 
+  public async deployMarginlyAdapter(
+    tokenRepository: ITokenRepository,
+    dexId: BigNumber,
+    adapterName: string,
+    pools: MarginlyAdapterParam[],
+    balancerVault?: EthAddress,
+  ): Promise<DeployResult> {
+    const args: any[] = [
+      pools.map((x) => [ 
+        tokenRepository.getTokenInfo(x.token0.id).address.toString(), 
+        tokenRepository.getTokenInfo(x.token1.id).address.toString(), 
+        x.pool.toString(),
+      ])
+    ];
+    if (balancerVault !== undefined) {
+      args.push(balancerVault.toString());
+    }
+
+    return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);
+  }
+
   public async deployMarginlyRouter(
-    pools: { dex: number; token0: EthAddress; token1: EthAddress; pool: EthAddress }[],
-    balancerVault: EthAddress,
+    adapters: { dexId: BigNumber; adapter: EthAddress; }[],
   ): Promise<DeployResult> {
     const args = [
-      pools.map((x) => [x.dex, x.token0.toString(), x.token1.toString(), x.pool.toString()]), 
-      balancerVault.toString(),
+      adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()]), 
     ];
     return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
   }
