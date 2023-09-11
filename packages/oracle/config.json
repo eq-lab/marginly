@@ -181,6 +181,12 @@
           "address": "0x856C8Bbd425A33e8a716A873848Be25e5520AA07",
           "assertSymbol": "PEPE",
           "assertDecimals": 18
+        },
+        {
+          "id": "usdc1",
+          "address": "0x389487b52B0911a22fE3104e87ffD7733905DDEb",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
         }
       ],
       "uniswapV3PoolMocks": [
@@ -203,7 +209,7 @@
           "priceBaseTokenId": "gmx"
         },
         {
-          "id": "pepe-usdc",
+          "id": "pepe-usdc1",
           "address": "0xD3375e4E938B1089BCc8E85C4aa344102De47232",
           "priceId": "pepe-usdc",
           "priceBaseTokenId": "pepe"
