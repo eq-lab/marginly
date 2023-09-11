@@ -14,6 +14,10 @@ echo "build router"
 yarn workspace @marginly/router install
 yarn workspace @marginly/router compile
 
+echo "build periphery"
+yarn workspace @marginly/periphery install
+yarn workspace @marginly/periphery compile
+
 echo "build common"
 yarn workspace @marginly/common install
 yarn workspace @marginly/common build
