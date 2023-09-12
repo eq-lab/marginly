@@ -595,7 +595,7 @@ describe('MarginlyRouter WooFi', () => {
     ).to.be.revertedWith('WooPPV2: base2Amount_LT_minBase2Amount');
   });
 
-  it('swapExactOutput error', async () => {
+  it('swapExactOutput 0 to 1', async () => {
     const { marginlyRouter, token0, token1, wooFi } = await loadFixture(createMarginlyRouter);
     const [_, user] = await ethers.getSigners();
 
@@ -612,11 +612,37 @@ describe('MarginlyRouter WooFi', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
 
     const swapCalldata = constructSwap([Dex.Woofi], [SWAP_ONE]);
-    await expect(
-      marginlyRouter
-        .connect(user)
-        .swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred, amountToGet)
-    ).to.be.revertedWithCustomError(wooFi.adapter, 'NotSupported');
+    await marginlyRouter
+      .connect(user)
+      .swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred, amountToGet);
+
+    expect(await token0.balanceOf(user.address)).to.be.lt(initialAmount0);
+    expect(await token1.balanceOf(user.address)).to.be.equal(amountToGet);
+  });
+
+  it('swapExactOutput 1 to 0', async () => {
+    const { marginlyRouter, token0, token1, wooFi } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price0 = (await wooFi.pool.getTokenState(token0.address)).price;
+    const price1 = (await wooFi.pool.getTokenState(token1.address)).price;
+
+    const amountToGet = 1000;
+    const amountTransferred = price0.mul(amountToGet).div(price1).mul(105).div(100);
+    const initialAmount1 = amountTransferred.mul(100);
+    await token1.mint(user.address, initialAmount1);
+    await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(0);
+    expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
+
+    const swapCalldata = constructSwap([Dex.Woofi], [SWAP_ONE]);
+    await marginlyRouter
+      .connect(user)
+      .swapExactOutput(swapCalldata, token1.address, token0.address, amountTransferred, amountToGet);
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(amountToGet);
+    expect(await token1.balanceOf(user.address)).to.be.lt(initialAmount1);
   });
 });
 

@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
+import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '../abstract/AdapterStorage.sol';
+import '../abstract/UniswapV3LikeSwap.sol';
 import '../interfaces/IMarginlyRouter.sol';
+import '../libraries/SwapsDecoder.sol';
 
-contract WooFiAdapter is AdapterStorage {
+contract WooFiAdapter is AdapterStorage, UniswapV3LikeSwap {
+  uint16 constant EXACT_OUTPUT_SWAP_RATIO = 24576; // 0.75 * SwapsDecoder.ONE
+
   constructor(PoolInput[] memory pools) AdapterStorage(pools) {}
 
   function swapExactInput(
@@ -26,14 +31,55 @@ contract WooFiAdapter is AdapterStorage {
   }
 
   function swapExactOutput(
-    address /*recipient*/,
-    address /*tokenIn*/,
-    address /*tokenOut*/,
-    uint256 /*amountIn*/,
-    uint256 /*minAmountOut*/,
-    bytes calldata /*data*/
-  ) external pure returns (uint256 /*amountOut*/) {
-    revert NotSupported();
+    address recipient,
+    address tokenIn,
+    address tokenOut,
+    uint256 maxAmountIn,
+    uint256 amountOut,
+    bytes calldata data
+  ) external returns (uint256 amountIn) {
+    amountIn += EXACT_OUTPUT_SWAP_RATIO * maxAmountIn / SwapsDecoder.ONE;
+    IWooPoolV2 wooPool = IWooPoolV2(getPoolSafe(tokenIn, tokenOut));
+
+    IMarginlyRouter(msg.sender).adapterCallback(address(wooPool), amountIn, data);
+    uint256 wooFiAmountOut = wooPool.swap(tokenIn, tokenOut, amountIn, 0, recipient, address(0));
+
+    require(wooFiAmountOut < amountOut);
+
+    address uniswapV3 = AdapterStorage(RouterStorage(msg.sender).adapters(0)).getPool(tokenIn, tokenOut);
+    bool zeroForOne = tokenIn < tokenOut;
+    CallbackData memory swapData = CallbackData({
+      tokenIn: tokenIn,
+      tokenOut: tokenOut,
+      initiator: msg.sender,
+      data: data
+    });
+
+    (uint256 uniswapAmountIn, uint256 uniswapAmountOut) = uniswapV3LikeSwap(
+      recipient, 
+      uniswapV3, 
+      zeroForOne, 
+      -int256(amountOut - wooFiAmountOut), 
+      swapData
+    );
+    require(uniswapAmountOut + wooFiAmountOut == amountOut);
+    amountIn += uniswapAmountIn;
+  }
+
+  function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {
+    require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
+    CallbackData memory data = abi.decode(_data, (CallbackData));
+    (address tokenIn, address tokenOut) = (data.tokenIn, data.tokenOut);
+    address uniswapV3 = AdapterStorage(RouterStorage(data.initiator).adapters(0)).getPool(tokenIn, tokenOut);
+    require(msg.sender == uniswapV3);
+
+    (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
+      ? (tokenIn < tokenOut, uint256(amount0Delta))
+      : (tokenOut < tokenIn, uint256(amount1Delta));
+
+    require(isExactInput);
+
+    IMarginlyRouter(data.initiator).adapterCallback(msg.sender, amountToPay, data.data);
   }
 }
 
