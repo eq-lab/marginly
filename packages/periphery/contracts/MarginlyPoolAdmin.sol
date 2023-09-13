@@ -18,23 +18,21 @@ contract MarginlyPoolAdmin is Ownable {
 
   error InvalidUnderlyingPool();
 
-  //  error ();
-
   constructor(address marginlyFactory) {
-    if (marginlyFactory != address(0)) revert Errors.Forbidden();
+    if (marginlyFactory == address(0)) revert Errors.Forbidden();
     marginlyFactoryAddress = marginlyFactory;
   }
 
-  function createPool(address quoteToken, address baseToken, uint24 poolFee, MarginlyParams calldata params) external {
-    if (baseToken != address(0)) revert Errors.Forbidden();
-    if (quoteToken != address(0)) revert Errors.Forbidden();
+  function createPool(
+    address quoteToken,
+    address baseToken,
+    uint24 poolFee,
+    MarginlyParams calldata params
+  ) external returns (address marginlyPoolAddress) {
+    if (baseToken == address(0)) revert Errors.Forbidden();
+    if (quoteToken == address(0)) revert Errors.Forbidden();
 
-    address marginlyPoolAddress = IMarginlyFactory(marginlyFactoryAddress).createPool(
-      quoteToken,
-      baseToken,
-      poolFee,
-      params
-    );
+    marginlyPoolAddress = IMarginlyFactory(marginlyFactoryAddress).createPool(quoteToken, baseToken, poolFee, params);
     MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
     address adapterAddress = marginlyRouter.adapters(UNISWAPV3_ADAPTER_INDEX);
     if (adapterAddress == address(0)) revert Errors.Forbidden();
@@ -64,22 +62,24 @@ contract MarginlyPoolAdmin is Ownable {
     IMarginlyPool(marginlyPool).shutDown();
   }
 
-  function sweepETH(address marginlyPool) external {
+  function sweepETH(address marginlyPool) external returns (uint256 amount){
     if (msg.sender != poolsOwners[marginlyPool]) revert Errors.NotOwner();
-    uint256 poolBalance = marginlyPool.balance;
-    if (poolBalance > 0) {
+    amount = marginlyPool.balance;
+    if (amount > 0) {
       IMarginlyPool(marginlyPool).sweepETH();
-      TransferHelper.safeTransferETH(msg.sender, poolBalance);
+      TransferHelper.safeTransferETH(msg.sender, amount);
     }
   }
 
   function addPools(PoolInput[] calldata pools) external onlyOwner {
     address marginlyRouterAddress = IMarginlyFactory(marginlyFactoryAddress).swapRouter();
-    if (marginlyRouterAddress != address(0)) revert Errors.Forbidden();
+    if (marginlyRouterAddress == address(0)) revert Errors.Forbidden();
     address adapterAddress = MarginlyRouter(marginlyRouterAddress).adapters(UNISWAPV3_ADAPTER_INDEX);
-    if (adapterAddress != address(0)) revert Errors.Forbidden();
+    if (adapterAddress == address(0)) revert Errors.Forbidden();
 
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
     adapterStorage.addPools(pools);
   }
+
+  receive() external payable {}
 }
