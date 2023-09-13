@@ -189,4 +189,48 @@ describe('MarginlyPoolAdmin', () => {
 
     expect(await marginlyPoolAdmin.owner()).to.be.equal(signer2.address);
   });
+
+  it('transferMarginlyFactoryOwnership', async () => {
+    const { marginlyPoolAdmin, marginlyFactory } = await loadFixture(createMarginlyPoolAdmin);
+
+    const [rootSigner, signer1, signer2] = await ethers.getSigners();
+
+    expect(await marginlyFactory.owner()).to.be.equal(marginlyPoolAdmin.address);
+
+    await expect(
+      marginlyPoolAdmin.connect(signer1).transferMarginlyFactoryOwnership(signer2.address)
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+
+    await marginlyPoolAdmin.connect(rootSigner).transferMarginlyFactoryOwnership(signer2.address);
+
+    expect(await marginlyFactory.owner()).to.be.equal(signer2.address);
+  });
+
+  it('transferMarginlyPoolOwnership', async () => {
+    const { marginlyPoolAdmin, marginlyFactory, uniswapFactory } = await loadFixture(createMarginlyPoolAdmin);
+
+    const { uniswapPool, token0, token1 } = await createUniswapPool();
+    await uniswapFactory.addPool(uniswapPool.address);
+
+    const { fee, params } = getPoolParams();
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
+      marginlyFactory,
+      'NotOwner'
+    );
+
+    const [, signer1, signer2] = await ethers.getSigners();
+    const marginlyPoolAddress = await marginlyPoolAdmin
+      .connect(signer1)
+      .callStatic.createPool(token0.address, token1.address, fee, params);
+
+    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+    expect(await marginlyPoolAdmin.poolsOwners(marginlyPoolAddress)).to.be.equal(signer1.address);
+
+    await expect(
+      marginlyPoolAdmin.connect(signer2).transferMarginlyPoolOwnership(marginlyPoolAddress, signer2.address)
+    ).to.be.revertedWithCustomError(marginlyFactory, 'NotOwner');
+
+    await marginlyPoolAdmin.connect(signer1).transferMarginlyPoolOwnership(marginlyPoolAddress, signer2.address);
+    expect(await marginlyPoolAdmin.poolsOwners(marginlyPoolAddress)).to.be.equal(signer2.address);
+  });
 });
