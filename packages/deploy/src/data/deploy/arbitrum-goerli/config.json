@@ -70,16 +70,6 @@
     "priceLogSize": 60,
     "pools": [
       {
-        "id": "pepe-usdc",
-        "tokenAId": "pepe",
-        "tokenBId": "usdc",
-        "fee": "0.3%",
-        "tokenABalance": "100_000_000",
-        "tokenBBalance": "5_200_000_000",
-        "priceId": "pepe-usdc",
-        "priceBaseTokenId": "pepe"
-      },
-      {
         "id": "fweth-usdc",
         "tokenAId": "fweth",
         "tokenBId": "usdc",
@@ -97,22 +87,6 @@
     "wethTokenId": "weth"
   },
   "marginlyPools": [
-    {
-      "id": "pepe-usdc",
-      "uniswapPoolId": "pepe-usdc",
-      "baseTokenId": "pepe",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.001",
-        "quoteLimit": "100_000_000"
-      }
-    },
     {
       "id": "fweth-usdc",
       "uniswapPoolId": "fweth-usdc",
@@ -135,11 +109,6 @@
       "dexId": 0,
       "adapterName": "UniswapV3Adapter",
       "pools": [
-        {
-          "tokenAId": "pepe",
-          "tokenBId": "usdc",
-          "poolAddress": "0xc7172FCB28Ee2c1EB29bFbf186EBDf3827cc2ce1"
-        },
         {
           "tokenAId": "fweth",
           "tokenBId": "usdc",
