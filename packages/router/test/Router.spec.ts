@@ -617,6 +617,7 @@ describe('MarginlyRouter WooFi', () => {
       .swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred, amountToGet);
 
     expect(await token0.balanceOf(user.address)).to.be.lt(initialAmount0);
+    expect(await token0.balanceOf(user.address)).to.be.gt(initialAmount0.sub(amountTransferred));
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToGet);
   });
 
@@ -631,7 +632,7 @@ describe('MarginlyRouter WooFi', () => {
     const amountTransferred = price0.mul(amountToGet).div(price1).mul(105).div(100);
     const initialAmount1 = amountTransferred.mul(100);
     await token1.mint(user.address, initialAmount1);
-    await token1.connect(user).approve(marginlyRouter.address, initialAmount1);
+    await token1.connect(user).approve(marginlyRouter.address, amountTransferred);
 
     expect(await token0.balanceOf(user.address)).to.be.equal(0);
     expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
@@ -643,6 +644,7 @@ describe('MarginlyRouter WooFi', () => {
 
     expect(await token0.balanceOf(user.address)).to.be.equal(amountToGet);
     expect(await token1.balanceOf(user.address)).to.be.lt(initialAmount1);
+    expect(await token1.balanceOf(user.address)).to.be.gt(initialAmount1.sub(amountTransferred));
   });
 });
 
