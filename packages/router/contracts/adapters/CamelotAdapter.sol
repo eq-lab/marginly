@@ -43,7 +43,7 @@ contract CamelotAdapter is AdapterStorage, UniswapV2LikeSwap, UniswapV3LikeSwap 
     require(camelotAmountOut < amountOut);
 
     IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
-    uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);
+    uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, camelotAmountOut);
 
     address uniswapV3 = AdapterStorage(RouterStorage(msg.sender).adapters(UNISWAP_V3_ADAPTER_INDEX)).getPool(
       tokenIn,
