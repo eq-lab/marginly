@@ -43,6 +43,14 @@
     "marginlyPool_fweth-usdc": {
       "address": "0xd9C73862dECA952B9E68bc31939aBA978FC91a70",
       "txHash": "0x964c49f89c6f4f586f30eebc1863def8d6f18b65114f61e027ddcc026c87c293"
+    },
+    "uniswapV3PoolMock_pepe-usdc": {
+      "address": "0xf3C8a72797Ae279E997f40af1a7146CD25c70eBB",
+      "txHash": "0x4f35a6a0c4af1803b97dd0b0b7b7e9139df5c1b109cb214e054e71bd0e5e972f"
+    },
+    "marginlyPool_pepe-usdc": {
+      "address": "0x3325F1C91d2A699786AE9e9Ec9e7613941a31Eda",
+      "txHash": "0xa94e07a83edf57508dca24c169bc81cb876f2b0d1b8a79c040b2c310bd914ac9"
     }
   }
 }
