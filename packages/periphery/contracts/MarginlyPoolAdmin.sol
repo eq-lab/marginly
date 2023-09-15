@@ -104,6 +104,21 @@ contract MarginlyPoolAdmin is Ownable {
     IMarginlyFactory(marginlyFactoryAddress).setOwner(to);
   }
 
+  /// @dev Set a new owner of a Marginly router contract. Allowed only for MarginlyPoolAdmin owner
+  /// @param to Address of a new Marginly router owner
+  function transferMarginlyRouterOwnership(address to) external onlyOwner {
+    MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter()).transferOwnership(to);
+  }
+
+  /// @dev Set a new owner of a Marginly router adapter contract. Allowed only for MarginlyPoolAdmin owner
+  /// @param to Address of a new Marginly router adapter owner
+  function transferRouterAdapterOwnership(uint256 dexIdx, address to) external onlyOwner {
+    MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
+    address adapterAddress = marginlyRouter.adapters(dexIdx);
+    if (adapterAddress == address(0)) revert Errors.Forbidden();
+    AdapterStorage(adapterAddress).transferOwnership(to);
+  }
+
   /// @dev Set a new owner of a Marginly pool. Allowed only for Marginly pool owner
   /// @param marginlyPool Address of a Marginly pool
   /// @param to Address of a new Marginly pool owner
