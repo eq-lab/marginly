@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+
 import '../abstract/AdapterStorage.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
@@ -34,7 +36,7 @@ contract BalancerAdapter is AdapterStorage {
     funds.recipient = payable(recipient);
 
     IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
-    TransferHelper.safeApprove(tokenIn, balancerVault, amountIn);
+    SafeERC20.forceApprove(IERC20(tokenIn), balancerVault, amountIn);
     amountOut = IVault(balancerVault).swap(swap, funds, minAmountOut, block.timestamp);
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
@@ -60,10 +62,10 @@ contract BalancerAdapter is AdapterStorage {
     funds.recipient = payable(recipient);
 
     IMarginlyRouter(msg.sender).adapterCallback(address(this), maxAmountIn, data);
-    TransferHelper.safeApprove(tokenIn, balancerVault, maxAmountIn);
+    SafeERC20.forceApprove(IERC20(tokenIn), balancerVault, maxAmountIn);
     amountIn = IVault(balancerVault).swap(swap, funds, maxAmountIn, block.timestamp);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
-    TransferHelper.safeApprove(tokenIn, balancerVault, 0);
+    SafeERC20.forceApprove(IERC20(tokenIn), balancerVault, 0);
     TransferHelper.safeTransfer(tokenIn, abi.decode(data, (AdapterCallbackData)).payer, maxAmountIn - amountIn);
   }
 }

@@ -8,6 +8,7 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 
@@ -184,7 +185,7 @@ contract MarginlyPool is IMarginlyPool {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
 
-    TransferHelper.safeApprove(tokenIn, swapRouter, amountInMaximum);
+    SafeERC20.forceApprove(IERC20(tokenIn), swapRouter, amountInMaximum);
 
     amountInActual = IMarginlyRouter(swapRouter).swapExactOutput(
       swapCalldata,
@@ -194,7 +195,7 @@ contract MarginlyPool is IMarginlyPool {
       amountOut
     );
 
-    TransferHelper.safeApprove(tokenIn, swapRouter, 0);
+    SafeERC20.forceApprove(IERC20(tokenIn), swapRouter, 0);
   }
 
   /// @dev Swaps tokens to spend exact amountIn and receive at least amountOutMinimum
@@ -207,7 +208,7 @@ contract MarginlyPool is IMarginlyPool {
     address swapRouter = getSwapRouter();
     (address tokenIn, address tokenOut) = quoteIn ? (quoteToken, baseToken) : (baseToken, quoteToken);
 
-    TransferHelper.safeApprove(tokenIn, swapRouter, amountIn);
+    SafeERC20.forceApprove(IERC20(tokenIn), swapRouter, amountIn);
 
     amountOutActual = IMarginlyRouter(swapRouter).swapExactInput(
       swapCalldata,
