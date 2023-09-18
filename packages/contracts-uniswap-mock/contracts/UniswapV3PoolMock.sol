@@ -113,7 +113,7 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         int24 tick = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
 
         if (slot0.sqrtPriceX96 == 0) {
-            (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
+            (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(1);
 
             slot0 = Slot0({
                 sqrtPriceX96: sqrtPriceX96,
