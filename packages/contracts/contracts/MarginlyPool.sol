@@ -1060,6 +1060,8 @@ contract MarginlyPool is IMarginlyPool {
   /// @param quoteAmount amount of quote token to be deposited
   /// @param baseAmount amount of base token to be deposited
   function receivePosition(address badPositionAddress, uint256 quoteAmount, uint256 baseAmount) private {
+    if (mode != Mode.Regular) revert Errors.EmergencyMode();
+
     Position storage position = positions[msg.sender];
     if (position._type != PositionType.Uninitialized) revert Errors.PositionInitialized();
 
@@ -1389,6 +1391,8 @@ contract MarginlyPool is IMarginlyPool {
       emergencyWithdraw(flag);
       return;
     }
+
+    if (mode != Mode.Regular) revert Errors.EmergencyMode();
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
