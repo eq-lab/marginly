@@ -199,6 +199,47 @@ describe('MaxBinaryHeapTest', () => {
     expect(position.heapPosition).to.be.eq(0);
   });
 
+  it('should remove element and update tree', async () => {
+    /**
+     * Create tree
+     *          1008
+     *        /      \
+     *      1003     1006
+     *     /   \      /
+     *   1002  1000  1005
+     */
+    const { contract, signers } = await loadFixture(deployMaxBinaryHeapTestFixture);
+    await contract.connect(signers[0]).add(1008, signers[0].address);
+    await contract.connect(signers[1]).add(1003, signers[1].address);
+    await contract.connect(signers[2]).add(1006, signers[2].address);
+    await contract.connect(signers[3]).add(1002, signers[3].address);
+    await contract.connect(signers[4]).add(1000, signers[4].address);
+    await contract.connect(signers[5]).add(1005, signers[5].address);
+
+    //remove signer[4] node and
+    const toRemove = 4;
+    const [, node] = await contract.getNodeByIndex(toRemove);
+    expect(node.account).to.be.eq(signers[4].address);
+    expect(node.key).to.be.eq(1000);
+    const position = await contract.positions(node.account);
+    expect(position.heapPosition).to.be.eq(toRemove + 1);
+
+    await contract.remove(toRemove);
+    contract.updateByIndex(0, 1001);
+
+    let prevKey = null;
+    for (let i = 0; i < 5; i++) {
+      const [, root] = await contract.getNodeByIndex(0);
+      await contract.remove(0);
+
+      if (prevKey) {
+        expect(prevKey).to.be.greaterThanOrEqual(root.key);
+      }
+
+      prevKey = root.key;
+    }
+  });
+
   describe('Should update heap by index', () => {
     /**
      * Deploy contract and prepare heap
