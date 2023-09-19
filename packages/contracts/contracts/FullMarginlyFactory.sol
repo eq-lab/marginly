@@ -92,5 +92,6 @@ contract FullMarginlyFactory is IMarginlyFactory {
     require(newSwapRouter != address(0));
 
     swapRouter = newSwapRouter;
+    emit NewSwapRouter(newSwapRouter);
   }
 }

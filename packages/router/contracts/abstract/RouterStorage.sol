@@ -12,6 +12,9 @@ struct AdapterInput {
 }
 
 abstract contract RouterStorage is IMarginlyRouter, Ownable {
+  /// @notice Emitted when new adapter is added
+  event NewAdapter(uint256 dexIndex, address indexed adapter);
+
   error UnknownDex();
 
   mapping(uint256 => address) public adapters;
@@ -21,6 +24,7 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable {
     for (uint256 i; i < _adapters.length; ++i) {
       input = _adapters[i];
       adapters[input.dexIndex] = input.adapter;
+      emit NewAdapter(input.dexIndex, input.adapter);
     }
   }
 
@@ -29,6 +33,7 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable {
     for (uint256 i; i < _adapters.length; ++i) {
       input = _adapters[i];
       adapters[input.dexIndex] = input.adapter;
+      emit NewAdapter(input.dexIndex, input.adapter);
     }
   }
 

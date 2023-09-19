@@ -90,5 +90,6 @@ contract MarginlyFactory is IMarginlyFactory {
     require(newSwapRouter != address(0));
 
     swapRouter = newSwapRouter;
+    emit NewSwapRouter(newSwapRouter);
   }
 }
