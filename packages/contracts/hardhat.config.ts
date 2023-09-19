@@ -13,6 +13,11 @@ const config = {
     },
   },
   networks: {
+    hardhat: {
+      accounts: {
+        count: 30,
+      },
+    },
     polygonMumbai: {
       url: 'https://rpc.ankr.com/polygon_mumbai',
     },

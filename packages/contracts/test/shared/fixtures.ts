@@ -15,7 +15,14 @@ import {
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { generateWallets, CallType, ZERO_ADDRESS, paramsDefaultLeverageWithoutIr, paramsLowLeverageWithoutIr, uniswapV3Swapdata } from './utils';
+import {
+  generateWallets,
+  CallType,
+  ZERO_ADDRESS,
+  paramsDefaultLeverageWithoutIr,
+  paramsLowLeverageWithoutIr,
+  uniswapV3Swapdata,
+} from './utils';
 import { Wallet } from 'ethers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
@@ -199,7 +206,10 @@ export async function getInitializedPool(): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
-  wallets: Wallet[];
+  wallets: SignerWithAddress[];
+  shorters: SignerWithAddress[];
+  longers: SignerWithAddress[];
+  lenders: SignerWithAddress[];
 }> {
   const { marginlyPool, factoryOwner, uniswapPoolInfo } = await createMarginlyPool();
 
@@ -213,24 +223,11 @@ export async function getInitializedPool(): Promise<{
     await uniswapPoolInfo.token1.connect(signers[i]).approve(marginlyPool.address, amountToDeposit);
   }
 
-  const additionalWallets = await generateWallets(10);
-  for (let i = 0; i < additionalWallets.length; i++) {
-    await signers[0].sendTransaction({
-      to: additionalWallets[i].address,
-      value: ethers.utils.parseEther('1'), // 1 ETH
-    });
-
-    await uniswapPoolInfo.token0.mint(additionalWallets[i].address, amountToDeposit);
-    await uniswapPoolInfo.token1.mint(additionalWallets[i].address, amountToDeposit);
-
-    await uniswapPoolInfo.token0.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-    await uniswapPoolInfo.token1.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-  }
-
   const accounts = await ethers.getSigners();
   const lenders = accounts.slice(0, 10);
   const shorters = accounts.slice(10, 15);
   const longers = accounts.slice(15, 20);
+  const other = accounts.slice(20, 30);
 
   for (let i = 0; i < lenders.length; i++) {
     await marginlyPool
@@ -262,7 +259,7 @@ export async function getInitializedPool(): Promise<{
   // shift time to 1 day
   await time.increase(24 * 60 * 60);
 
-  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: additionalWallets };
+  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: other, shorters, longers, lenders };
 }
 
 // pool with non-zero deleverage coeffs
@@ -270,7 +267,7 @@ export async function getDeleveragedPool(): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
-  wallets: Wallet[];
+  wallets: SignerWithAddress[];
 }> {
   const { marginlyPool, factoryOwner, uniswapPoolInfo } = await createMarginlyPool();
 
@@ -286,38 +283,30 @@ export async function getDeleveragedPool(): Promise<{
     await uniswapPoolInfo.token1.connect(signers[i]).approve(marginlyPool.address, amountToDeposit);
   }
 
-  const additionalWallets = await generateWallets(10);
-  for (let i = 0; i < additionalWallets.length; i++) {
-    await signers[0].sendTransaction({
-      to: additionalWallets[i].address,
-      value: ethers.utils.parseEther('1'), // 1 ETH
-    });
-
-    await uniswapPoolInfo.token0.mint(additionalWallets[i].address, amountToDeposit);
-    await uniswapPoolInfo.token1.mint(additionalWallets[i].address, amountToDeposit);
-
-    await uniswapPoolInfo.token0.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-    await uniswapPoolInfo.token1.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-  }
-
   const accounts = await (await ethers.getSigners()).slice(15, 20);
 
   let lender = accounts[0];
   await marginlyPool.connect(lender).execute(CallType.DepositBase, 10000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
-  await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata()); 
+  await marginlyPool.connect(lender).execute(CallType.DepositQuote, 10000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   let longer = accounts[1];
-  await marginlyPool.connect(longer).execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS, uniswapV3Swapdata());
+  await marginlyPool
+    .connect(longer)
+    .execute(CallType.DepositBase, 1000, 18000, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   let shorter = accounts[2];
-  await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS, uniswapV3Swapdata());
+  await marginlyPool
+    .connect(shorter)
+    .execute(CallType.DepositQuote, 100000, 20000, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithoutIr);
   await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
   await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
 
   await marginlyPool.connect(shorter).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
-  await marginlyPool.connect(shorter).execute(CallType.WithdrawQuote, 100000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+  await marginlyPool
+    .connect(shorter)
+    .execute(CallType.WithdrawQuote, 100000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   await marginlyPool.connect(lender).execute(CallType.WithdrawQuote, 9000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
@@ -325,25 +314,33 @@ export async function getDeleveragedPool(): Promise<{
   expect(quoteDelevCoeff).to.be.greaterThan(0);
 
   shorter = accounts[3];
-  await marginlyPool.connect(shorter).execute(CallType.DepositQuote, 100, 7200, false, ZERO_ADDRESS, uniswapV3Swapdata());
+  await marginlyPool
+    .connect(shorter)
+    .execute(CallType.DepositQuote, 100, 7200, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   longer = accounts[4];
-  await marginlyPool.connect(longer).execute(CallType.DepositBase, 10000, 8000, false, ZERO_ADDRESS, uniswapV3Swapdata());
+  await marginlyPool
+    .connect(longer)
+    .execute(CallType.DepositBase, 10000, 8000, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   await marginlyPool.connect(factoryOwner).setParameters(paramsLowLeverageWithoutIr);
   await marginlyPool.connect(lender).execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
   await marginlyPool.connect(factoryOwner).setParameters(paramsDefaultLeverageWithoutIr);
 
   await marginlyPool.connect(longer).execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
-  await marginlyPool.connect(longer).execute(CallType.WithdrawBase, 100000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+  await marginlyPool
+    .connect(longer)
+    .execute(CallType.WithdrawBase, 100000, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
   await marginlyPool.connect(lender).execute(CallType.WithdrawBase, 10018, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
   await marginlyPool.connect(lender).execute(CallType.WithdrawQuote, 1001, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-  const baseDelevCoeff = await marginlyPool.baseDelevCoeff()
+  const baseDelevCoeff = await marginlyPool.baseDelevCoeff();
   expect(baseDelevCoeff).to.be.greaterThan(0);
 
-  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: additionalWallets };
+  const other = accounts.slice(20, 30);
+
+  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: other };
 }
 
 export async function createAavePool(): Promise<MockAavePool> {
