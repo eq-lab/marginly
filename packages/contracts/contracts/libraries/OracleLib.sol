@@ -33,6 +33,7 @@ library OracleLib {
 
   /// @notice Calculates sqrt(1.0001^tick) * 2^96
   /// @dev Throws if |tick| > max tick
+  /// @dev Copied from uniswap v4 TickMath.sol https://github.com/Uniswap/v4-core/blob/eb61604467ae331259298585c290da85b46f6aaa/contracts/libraries/TickMath.sol
   /// @param tick The input tick for the above formula
   /// @return sqrtPriceX96 A Fixed point Q64.96 number representing the sqrt of the ratio of the two assets (token1/token0)
   /// at the given tick
