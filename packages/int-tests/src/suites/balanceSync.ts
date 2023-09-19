@@ -30,7 +30,7 @@ export async function balanceSync(sut: SystemUnderTest) {
   logger.info(`Reinit`);
   await marginlyPool
     .connect(treasury)
-    .execute(CallType.Reinit, 0, 0, true, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 });
+    .execute(CallType.Reinit, 0, 0, 0, true, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 });
 
   assert((await weth.balanceOf(marginlyPool.address)).eq(baseTransferAmount));
   assert((await usdc.balanceOf(marginlyPool.address)).eq(quoteTransferAmount));
@@ -66,7 +66,7 @@ export async function balanceSyncWithdrawBase(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, baseTransferAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositBase, baseTransferAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 1_000_000,
       })
   ).wait();
@@ -75,6 +75,7 @@ export async function balanceSyncWithdrawBase(sut: SystemUnderTest) {
   await (await usdc.connect(treasury).transfer(shorter.address, quoteTransferAmount, { gasLimit: 80_000 })).wait();
   await (await usdc.connect(shorter).approve(marginlyPool.address, quoteTransferAmount)).wait();
   logger.info(`Shorter deposits`);
+  const minPrice = (await marginlyPool.getBasePrice()).inner.div(2);
   await (
     await marginlyPool
       .connect(shorter)
@@ -82,6 +83,7 @@ export async function balanceSyncWithdrawBase(sut: SystemUnderTest) {
         CallType.DepositQuote,
         quoteTransferAmount,
         baseTransferAmount,
+        minPrice,
         false,
         ZERO_ADDRESS,
         uniswapV3Swapdata(),
@@ -99,7 +101,7 @@ export async function balanceSyncWithdrawBase(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.WithdrawBase, baseTransferAmount.div(2), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.WithdrawBase, baseTransferAmount.div(2), 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 1_000_000,
       })
   ).wait();
@@ -119,7 +121,7 @@ export async function balanceSyncWithdrawBase(sut: SystemUnderTest) {
   logger.info(`Reinit`);
   await marginlyPool
     .connect(treasury)
-    .execute(CallType.Reinit, 0, 0, true, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 });
+    .execute(CallType.Reinit, 0, 0, 0, true, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 });
 
   const baseCollCoeffAfter = await marginlyPool.baseCollateralCoeff();
   const baseDebtCoeffAfter = await marginlyPool.baseDebtCoeff();
@@ -158,7 +160,7 @@ export async function balanceSyncWithdrawQuote(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, quoteTransferAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositQuote, quoteTransferAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 1_000_000,
       })
   ).wait();
@@ -167,10 +169,11 @@ export async function balanceSyncWithdrawQuote(sut: SystemUnderTest) {
   await (await weth.connect(treasury).transfer(longer.address, baseTransferAmount, { gasLimit: 80_000 })).wait();
   await (await weth.connect(longer).approve(marginlyPool.address, baseTransferAmount)).wait();
   logger.info(`Long`);
+  const maxPrice = (await marginlyPool.getBasePrice()).inner.mul(2);
   await (
     await marginlyPool
       .connect(longer)
-      .execute(CallType.DepositBase, baseTransferAmount, baseTransferAmount, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositBase, baseTransferAmount, baseTransferAmount, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 1_000_000,
       })
   ).wait();
@@ -185,7 +188,7 @@ export async function balanceSyncWithdrawQuote(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.WithdrawQuote, quoteTransferAmount.div(2), 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.WithdrawQuote, quoteTransferAmount.div(2), 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 1_000_000,
       })
   ).wait();
@@ -205,7 +208,7 @@ export async function balanceSyncWithdrawQuote(sut: SystemUnderTest) {
   logger.info(`Reinit`);
   await marginlyPool
     .connect(treasury)
-    .execute(CallType.Reinit, 0, 0, true, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 });
+    .execute(CallType.Reinit, 0, 0, 0, true, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 });
 
   const quoteCollCoeffAfter = await marginlyPool.quoteCollateralCoeff();
   const quoteDebtCoeffAfter = await marginlyPool.quoteDebtCoeff();

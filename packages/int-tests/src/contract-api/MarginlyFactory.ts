@@ -69,7 +69,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
       quoteLimit: BigNumberish;
@@ -124,7 +123,6 @@ export interface MarginlyFactoryContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -151,7 +149,6 @@ export interface MarginlyFactoryContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -178,7 +175,6 @@ export interface MarginlyFactoryContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;

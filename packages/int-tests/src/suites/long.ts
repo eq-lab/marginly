@@ -36,13 +36,13 @@ export async function long(sut: SystemUnderTest) {
       'depositQuote',
       await marginlyPool
         .connect(lenders[i])
-        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, quoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     );
     await gasReporter.saveGasUsage(
       'depositBase',
       marginlyPool
         .connect(lenders[i])
-        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, baseAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     );
   }
 
@@ -73,7 +73,7 @@ export async function long(sut: SystemUnderTest) {
       'depositBase',
       await marginlyPool
         .connect(borrowers[i])
-        .execute(CallType.DepositBase, initialBorrBaseBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        .execute(CallType.DepositBase, initialBorrBaseBalance, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
           gasLimit: 500_000,
         })
     );
@@ -103,10 +103,11 @@ export async function long(sut: SystemUnderTest) {
     const realBaseBalanceBefore = await weth.balanceOf(marginlyPool.address);
     const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
     logger.info(`Before long transaction`);
+    const maxPrice = (await marginlyPool.getBasePrice()).inner.mul(2);
     const txReceipt = await (
       await marginlyPool
         .connect(borrowers[i])
-        .execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_900_000 })
+        .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_900_000 })
     ).wait();
     await gasReporter.saveGasUsage('long', txReceipt);
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
@@ -216,7 +217,7 @@ export async function long(sut: SystemUnderTest) {
     const txReceipt = await (
       await marginlyPool
         .connect(treasury)
-        .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Reinit, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
     ).wait();
     await gasReporter.saveGasUsage('reinit', txReceipt);
 

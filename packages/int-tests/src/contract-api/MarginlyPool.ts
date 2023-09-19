@@ -28,7 +28,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'discountedQuoteCollateral()': utils.FunctionFragment;
     'discountedQuoteDebt()': utils.FunctionFragment;
     'emergencyWithdrawCoeff()': utils.FunctionFragment;
-    'execute(uint8,uint256,uint256,bool,address,uint256)': utils.FunctionFragment;
+    'execute(uint8,uint256,uint256,uint256,bool,address,uint256)': utils.FunctionFragment;
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getCurrentBasePrice()': utils.FunctionFragment;
@@ -102,6 +102,7 @@ export interface MarginlyPoolContract extends BaseContract {
     call: BigNumberish,
     amount1: BigNumberish,
     amount2: BigNumberish,
+    limitPrice: BigNumberish,
     flag: boolean,
     receivePositionAddress: string,
     swapCalldata: BigNumberish,
@@ -126,7 +127,6 @@ export interface MarginlyPoolContract extends BaseContract {
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
       quoteLimit: BigNumberish;
@@ -143,7 +143,6 @@ export interface MarginlyPoolContract extends BaseContract {
     interestRate: BigNumber;
     fee: BigNumber;
     swapFee: BigNumber;
-    positionSlippage: BigNumber;
     mcSlippage: BigNumber;
     positionMinAmount: BigNumber;
     quoteLimit: BigNumber;
@@ -168,7 +167,6 @@ export interface MarginlyPoolContract extends BaseContract {
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
       quoteLimit: BigNumberish;
@@ -208,7 +206,6 @@ export interface MarginlyPoolContract extends BaseContract {
       interestRate: BigNumber;
       fee: BigNumber;
       swapFee: BigNumber;
-      positionSlippage: BigNumber;
       mcSlippage: BigNumber;
       positionMinAmount: BigNumber;
       quoteLimit: BigNumber;
@@ -234,6 +231,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
+      limitPrice: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -250,7 +248,6 @@ export interface MarginlyPoolContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -264,7 +261,6 @@ export interface MarginlyPoolContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -279,6 +275,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
+      limitPrice: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -295,7 +292,6 @@ export interface MarginlyPoolContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -309,7 +305,6 @@ export interface MarginlyPoolContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -324,6 +319,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
+      limitPrice: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -340,7 +336,6 @@ export interface MarginlyPoolContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -354,7 +349,6 @@ export interface MarginlyPoolContract extends BaseContract {
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
