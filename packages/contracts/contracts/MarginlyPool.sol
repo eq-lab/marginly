@@ -172,7 +172,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPoolOwnerActions
   function setParameters(MarginlyParams calldata _params) external override onlyFactoryOwner {
     params = _params;
-    emit NewParameters();
+    emit ParametersChanged();
   }
 
   /// @dev Swaps tokens to receive exact amountOut and send at most amountInMaximum

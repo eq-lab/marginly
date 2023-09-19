@@ -119,7 +119,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   event BalanceSync();
 
   /// @dev Emitted when setParameters method was called
-  event NewParameters();
+  event ParametersChanged();
 
   /// @dev Initializes the pool
   function initialize(
