@@ -25,7 +25,9 @@ export async function longIncome(sut: SystemUnderTest) {
       'depositQuote',
       marginlyPool
         .connect(lenders[i])
-        .execute(CallType.DepositQuote, quoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, quoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     );
   }
 
@@ -58,7 +60,9 @@ export async function longIncome(sut: SystemUnderTest) {
     'long',
     marginlyPool
       .connect(borrower)
-      .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
+      .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 1_500_000,
+      })
   );
 
   logger.info(`Increasing WETH price by ~10%`);
@@ -95,7 +99,9 @@ export async function longIncome(sut: SystemUnderTest) {
     'closePosition',
     await marginlyPool
       .connect(borrower)
-      .execute(CallType.ClosePosition, 0, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+      .execute(CallType.ClosePosition, 0, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 1_000_000,
+      })
   );
   const closePosSwapEvent = decodeSwapEvent(closePosReceipt, uniswap.address);
   const swapAmount = closePosSwapEvent.amount1;

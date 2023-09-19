@@ -212,7 +212,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
     const longTx = await (
       await marginlyPool
         .connect(liquidatedLong)
-        .execute(CallType.Long, longerLongAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Long, longerLongAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('long', longTx);
 
@@ -326,7 +328,9 @@ export async function deleveragePrecisionLong(sut: SystemUnderTest) {
       const closePosTx = await (
         await marginlyPool
           .connect(shorters[j])
-          .execute(CallType.ClosePosition, 0, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.ClosePosition, 0, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('closePosition', closePosTx);
       const swapPrice = BigNumber.from(
@@ -495,7 +499,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     const longTx = await (
       await marginlyPool
         .connect(liquidatedLong)
-        .execute(CallType.Long, longerLongAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Long, longerLongAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('long', longTx);
     let swapPrice = BigNumber.from(longTx.events?.find((e) => e.event == 'Long')?.args?.swapPriceX96).mul(10n ** 12n);
@@ -546,7 +552,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     const shortTx = await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.Short, shorterBaseDebt, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Short, shorterBaseDebt, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('short', shortTx);
     swapPrice = BigNumber.from(shortTx.events?.find((e) => e.event == 'Short')?.args?.swapPriceX96).mul(10n ** 12n);
@@ -625,7 +633,9 @@ async function deleveragePrecisionLongCollateralReinitInner(sut: SystemUnderTest
     const closePosTx = await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.ClosePosition, 0, 0, closePosMaxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.ClosePosition, 0, 0, closePosMaxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('closePosition', closePosTx);
     swapPrice = BigNumber.from(closePosTx.events?.find((e) => e.event == 'ClosePosition')?.args?.swapPriceX96).mul(
@@ -852,7 +862,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
     const shortTx = await (
       await marginlyPool
         .connect(liquidatedShort)
-        .execute(CallType.Short, shorterShortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Short, shorterShortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('short', shortTx);
     const swapPrice = BigNumber.from(shortTx.events?.find((e) => e.event == 'Short')?.args?.swapPriceX96).mul(
@@ -975,7 +987,9 @@ export async function deleveragePrecisionShort(sut: SystemUnderTest) {
       const closePosTx = await (
         await marginlyPool
           .connect(longers[j])
-          .execute(CallType.ClosePosition, 0, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.ClosePosition, 0, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+            gasLimit: 500_000,
+          })
       ).wait();
       await gasReporter.saveGasUsage('closePosition', closePosTx);
       const swapPrice = BigNumber.from(
@@ -1146,7 +1160,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     const shortTx = await (
       await marginlyPool
         .connect(liquidatedShort)
-        .execute(CallType.Short, shorterShortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Short, shorterShortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('short', shortTx);
     let swapPrice = BigNumber.from(shortTx.events?.find((e) => e.event == 'Short')?.args?.swapPriceX96).mul(10n ** 12n);
@@ -1199,7 +1215,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     const longTx = await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('long', longTx);
     swapPrice = BigNumber.from(longTx.events?.find((e) => e.event == 'Long')?.args?.swapPriceX96).mul(10n ** 12n);
@@ -1278,7 +1296,9 @@ async function deleveragePrecisionShortCollateralReinitInner(sut: SystemUnderTes
     const closePosTx = await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.ClosePosition, 0, 0, closeMinPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.ClosePosition, 0, 0, closeMinPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     ).wait();
     await gasReporter.saveGasUsage('closePosition', closePosTx);
     swapPrice = BigNumber.from(closePosTx.events?.find((e) => e.event == 'ClosePosition')?.args?.swapPriceX96).mul(

@@ -122,7 +122,9 @@ export async function longAndShort(sut: SystemUnderTest) {
       'long',
       marginlyPool
         .connect(longer)
-        .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+        .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 1_000_000,
+        })
     );
     logger.info(`long call success`);
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
@@ -153,7 +155,9 @@ export async function longAndShort(sut: SystemUnderTest) {
       'short',
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.Short, shortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+        .execute(CallType.Short, shortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 1_000_000,
+        })
     );
     logger.info(`short call success`);
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);

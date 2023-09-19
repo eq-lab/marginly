@@ -173,9 +173,18 @@ export async function balanceSyncWithdrawQuote(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(longer)
-      .execute(CallType.DepositBase, baseTransferAmount, baseTransferAmount, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
-        gasLimit: 1_000_000,
-      })
+      .execute(
+        CallType.DepositBase,
+        baseTransferAmount,
+        baseTransferAmount,
+        maxPrice,
+        false,
+        ZERO_ADDRESS,
+        uniswapV3Swapdata(),
+        {
+          gasLimit: 1_000_000,
+        }
+      )
   ).wait();
 
   assert((await marginlyPool.positions(lender.address))._type == 1);
