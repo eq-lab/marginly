@@ -50,7 +50,7 @@ describe('MarginlyFactory', () => {
     const newAddress = factory.address;
 
     await factory.changeSwapRouter(newAddress);
-    
+
     const currentRouterAddress = await factory.swapRouter();
     expect(currentRouterAddress).to.be.not.eq(routerAddress);
     expect(currentRouterAddress).to.be.eq(newAddress);
@@ -63,7 +63,10 @@ describe('MarginlyFactory', () => {
     const { fee, params } = getPoolParams();
 
     await factory.createPool(quoteToken, baseToken, fee, params);
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWith('Pool already created');
+    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'PoolAlreadyCreated'
+    );
   });
 
   it('should raise error when Uniswap pool not found for pair', async () => {
@@ -73,7 +76,10 @@ describe('MarginlyFactory', () => {
     const baseToken = uniswapPoolInfo.token1.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWith('Uniswap pool not found');
+    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'UniswapPoolNotFound'
+    );
   });
 
   it('should raise error when trying to create pool with the same tokens', async () => {
@@ -81,6 +87,9 @@ describe('MarginlyFactory', () => {
     const quoteToken = uniswapPoolInfo.token0.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithoutReason();
+    expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'PoolAlreadyCreated'
+    );
   });
 });
