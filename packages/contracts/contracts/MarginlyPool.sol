@@ -1123,6 +1123,8 @@ contract MarginlyPool is IMarginlyPool {
       }
     }
 
+    updateHeap(position);
+
     updateSystemLeverageShort(basePrice);
     updateSystemLeverageLong(basePrice);
 
