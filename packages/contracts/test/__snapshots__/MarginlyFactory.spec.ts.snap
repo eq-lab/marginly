@@ -3,6 +3,6 @@
 exports[`MarginlyFactory should create pool 1`] = `
 Object {
   "calldataByteLength": 388,
-  "gasUsed": 450023,
+  "gasUsed": 450163,
 }
 `;

@@ -52,6 +52,7 @@ contract MarginlyFactory is IMarginlyFactory {
 
   /// @inheritdoc IOwnable
   function setOwner(address _owner) external override {
+    if (_owner == address(0)) revert Errors.WrongValue();
     if (msg.sender != owner) revert Errors.NotOwner();
     owner = _owner;
     emit OwnerChanged(msg.sender, _owner);
@@ -86,8 +87,8 @@ contract MarginlyFactory is IMarginlyFactory {
 
   /// @inheritdoc IMarginlyFactory
   function changeSwapRouter(address newSwapRouter) external {
-    require(msg.sender == owner, 'NO'); // Not an owner
-    require(newSwapRouter != address(0));
+    if (msg.sender != owner) revert Errors.NotOwner();
+    if (newSwapRouter == address(0)) revert Errors.WrongValue();
 
     swapRouter = newSwapRouter;
   }
