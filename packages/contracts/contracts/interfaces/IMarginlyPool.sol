@@ -143,6 +143,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     CallType call,
     uint256 amount1,
     uint256 amount2,
+    uint256 limitPrice,
     bool unwrapWETH,
     address receivePositionAddress,
     uint256 swapCalldata

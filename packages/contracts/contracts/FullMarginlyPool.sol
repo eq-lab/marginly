@@ -33,7 +33,6 @@ contract FullMarginlyPool is MarginlyPool {
       uint16 priceSecondsAgo,
       uint24 interestRate,
       uint24 swapFee,
-      uint24 positionSlippage,
       uint24 mcSlippage,
       uint184 positionMinAmount,
       uint184 quoteLimit
@@ -43,7 +42,6 @@ contract FullMarginlyPool is MarginlyPool {
     priceSecondsAgo = params.priceSecondsAgo;
     interestRate = params.interestRate;
     swapFee = params.swapFee;
-    positionSlippage = params.positionSlippage;
     mcSlippage = params.mcSlippage;
     positionMinAmount = params.positionMinAmount;
     quoteLimit = params.quoteLimit;

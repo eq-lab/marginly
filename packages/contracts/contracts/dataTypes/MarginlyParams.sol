@@ -12,8 +12,6 @@ struct MarginlyParams {
   uint24 fee;
   /// @dev Pool fee. When users take leverage they pay `swapFee` on the notional borrow amount. 1% = 10000
   uint24 swapFee;
-  /// @dev Max slippage when open/close position
-  uint24 positionSlippage;
   /// @dev Max slippage when margin call
   uint24 mcSlippage;
   /// @dev Min amount of base token to open short/long position

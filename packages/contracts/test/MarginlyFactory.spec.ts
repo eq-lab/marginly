@@ -14,7 +14,6 @@ describe('MarginlyFactory', () => {
       fee: 10000, //1%
       maxLeverage: 20,
       swapFee: 1000, // 0.1%
-      positionSlippage: 20000, // 2%
       mcSlippage: 50000, //5%
       priceSecondsAgo: 900, // 15 min
       positionMinAmount: 1, // 1 WEI
@@ -50,7 +49,7 @@ describe('MarginlyFactory', () => {
     const newAddress = factory.address;
 
     await factory.changeSwapRouter(newAddress);
-    
+
     const currentRouterAddress = await factory.swapRouter();
     expect(currentRouterAddress).to.be.not.eq(routerAddress);
     expect(currentRouterAddress).to.be.eq(newAddress);
