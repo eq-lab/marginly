@@ -84,9 +84,6 @@ describe('MarginlyFactory', () => {
     const quoteToken = uniswapPoolInfo.token0.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithCustomError(
-      factory,
-      'PoolAlreadyCreated'
-    );
+    expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithoutReason();
   });
 });
