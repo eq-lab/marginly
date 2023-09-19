@@ -63,7 +63,7 @@ describe('MarginlyFactory', () => {
     const { fee, params } = getPoolParams();
 
     await factory.createPool(quoteToken, baseToken, fee, params);
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
+    await expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
       factory,
       'PoolAlreadyCreated'
     );
@@ -76,7 +76,7 @@ describe('MarginlyFactory', () => {
     const baseToken = uniswapPoolInfo.token1.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithoutReason();
+    await expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithoutReason();
   });
 
   it('should raise error when trying to create pool with the same tokens', async () => {
@@ -84,6 +84,6 @@ describe('MarginlyFactory', () => {
     const quoteToken = uniswapPoolInfo.token0.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithoutReason();
+    await expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithoutReason();
   });
 });
