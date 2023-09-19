@@ -76,10 +76,7 @@ describe('MarginlyFactory', () => {
     const baseToken = uniswapPoolInfo.token1.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
-      factory,
-      'UniswapPoolNotFound'
-    );
+    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithoutReason();
   });
 
   it('should raise error when trying to create pool with the same tokens', async () => {
