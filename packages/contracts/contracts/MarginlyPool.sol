@@ -1098,7 +1098,6 @@ contract MarginlyPool is IMarginlyPool {
         discountedBaseDebt = discountedBaseDebt.sub(discountedBaseAmount);
 
         shortHeap.updateAccount(heapIndex, msg.sender);
-        updateHeap(position);
       }
     } else {
       discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseAmount);
@@ -1121,9 +1120,10 @@ contract MarginlyPool is IMarginlyPool {
         discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteAmount);
 
         longHeap.updateAccount(heapIndex, msg.sender);
-        updateHeap(position);
       }
     }
+
+    updateHeap(position);
 
     updateSystemLeverageShort(basePrice);
     updateSystemLeverageLong(basePrice);
