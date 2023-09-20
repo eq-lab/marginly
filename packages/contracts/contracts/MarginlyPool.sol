@@ -924,7 +924,7 @@ contract MarginlyPool is IMarginlyPool {
       FP96.FixedPoint memory quoteDebtCoeffPrev = quoteDebtCoeff;
       uint256 realQuoteDebtPrev = quoteDebtCoeffPrev.mul(discountedQuoteDebt);
       FP96.FixedPoint memory onePlusIR = interestRate
-        .mul(FP96.FixedPoint({inner: params.maxLeverage}))
+        .mul(FP96.FixedPoint({inner: systemLeverage.longX96}))
         .div(secondsInYear)
         .add(FP96.one());
 
