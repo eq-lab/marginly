@@ -1144,7 +1144,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function shutDown() external onlyFactoryOwner lock {
+  function shutDown(uint256 swapCalldata) external onlyFactoryOwner lock {
     if (mode != Mode.Regular) revert Errors.EmergencyMode();
     accrueInterest();
 
@@ -1170,7 +1170,8 @@ contract MarginlyPool is IMarginlyPool {
         baseDebt,
         _discountedBaseCollateral,
         quoteCollateral,
-        quoteDebt
+        quoteDebt,
+        swapCalldata
       );
       return;
     }
@@ -1182,7 +1183,8 @@ contract MarginlyPool is IMarginlyPool {
         quoteDebt,
         _discountedQuoteCollateral,
         baseCollateral,
-        baseDebt
+        baseDebt,
+        swapCalldata
       );
       return;
     }
@@ -1197,7 +1199,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 debt,
     uint256 discountedCollateral,
     uint256 emergencyCollateral,
-    uint256 emergencyDebt
+    uint256 emergencyDebt,
+    uint256 swapCalldata
   ) private {
     mode = _mode;
 
@@ -1206,7 +1209,7 @@ contract MarginlyPool is IMarginlyPool {
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
-      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, UNISWAP_V3_ROUTER_SWAP);
+      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, swapCalldata);
 
       newCollateral = newCollateral.add(collateralSurplus);
     }

@@ -48,7 +48,7 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function setParameters(MarginlyParams calldata _params) external {}
 
-  function shutDown() external {}
+  function shutDown(uint256 swapCalldata) external {}
 
   function setRecoveryMode(bool set) external {}
 

@@ -113,7 +113,7 @@ export async function shortEmergency(sut: SystemUnderTest) {
 
       await showSystemAggregates(sut);
 
-      await (await marginlyPool.connect(treasury).shutDown({ gasLimit: 500_000 })).wait();
+      await (await marginlyPool.connect(treasury).shutDown(uniswapV3Swapdata(), { gasLimit: 500_000 })).wait();
       break;
     }
     await showSystemAggregates(sut);
@@ -246,7 +246,7 @@ export async function longEmergency(sut: SystemUnderTest) {
       await showSystemAggregates(sut);
       logger.info(`Before shutdown`);
 
-      await (await marginlyPool.connect(treasury).shutDown({ gasLimit: 500_000 })).wait();
+      await (await marginlyPool.connect(treasury).shutDown(uniswapV3Swapdata(), { gasLimit: 500_000 })).wait();
 
       logger.info(`🛑 system in switched to emergency mode`);
       break;
