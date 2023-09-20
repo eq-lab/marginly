@@ -445,13 +445,16 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
-    if (position._type == PositionType.Uninitialized) {
+    PositionType positionType = position._type;
+    if(positionType != PositionType.Long){
+      if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
+    }
+
+    if (positionType == PositionType.Uninitialized) {
       position._type = PositionType.Lend;
     }
 
     FP96.FixedPoint memory _baseDebtCoeff = baseDebtCoeff;
-
-    if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
 
     uint256 positionDiscountedBaseAmountPrev = position.discountedBaseAmount;
     if (position._type == PositionType.Short) {
@@ -511,13 +514,16 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
-    if (position._type == PositionType.Uninitialized) {
+    PositionType positionType = position._type;
+    if(positionType != PositionType.Short){
+      if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
+    }
+
+    if (positionType == PositionType.Uninitialized) {
       position._type = PositionType.Lend;
     }
 
     FP96.FixedPoint memory _quoteDebtCoeff = quoteDebtCoeff;
-
-    if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
 
     uint256 positionDiscountedQuoteAmountPrev = position.discountedQuoteAmount;
     if (position._type == PositionType.Long) {
