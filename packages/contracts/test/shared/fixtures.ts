@@ -158,7 +158,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     maxLeverage: 20,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900, // 15 min
-    priceSecondsAgoMC: 60,
+    priceSecondsAgoMC: 900, // 15 min
     mcSlippage: 50000, //5%
     positionMinAmount: 5, // 5 Wei
     quoteLimit: 1_000_000,

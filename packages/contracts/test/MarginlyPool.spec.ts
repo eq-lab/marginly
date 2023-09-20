@@ -1051,6 +1051,63 @@ describe('MarginlyPool.Base', () => {
       ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
 
+    it('close short slippage fail', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      const price = (await marginlyPool.getBasePrice()).inner;
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositBase, 1000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      const amountToDeposit = 1000;
+      const amountOfShort = 100;
+
+      await marginlyPool
+        .connect(signer)
+        .execute(
+          CallType.DepositQuote,
+          amountToDeposit,
+          amountOfShort,
+          price,
+          false,
+          ZERO_ADDRESS,
+          uniswapV3Swapdata()
+        );
+
+      {
+        const position = await marginlyPool.positions(signer.address);
+        expect(position._type).to.be.equal(PositionType.Short);
+      }
+
+      await expect(
+        marginlyPool
+          .connect(signer)
+          .execute(CallType.ClosePosition, 0, 0, price.mul(99).div(100), false, ZERO_ADDRESS, uniswapV3Swapdata())
+      ).to.be.revertedWithCustomError(marginlyPool, 'SlippageLimit');
+    });
+
+    it('close long slippage fail', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      const price = (await marginlyPool.getBasePrice()).inner;
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositQuote, 1000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      const amountToDeposit = 1000;
+      const amountOfLong = 63;
+
+      await marginlyPool
+        .connect(signer)
+        .execute(CallType.DepositBase, amountToDeposit, amountOfLong, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      await expect(
+        marginlyPool
+          .connect(signer)
+          .execute(CallType.ClosePosition, 0, 0, price.mul(101).div(100), false, ZERO_ADDRESS, uniswapV3Swapdata())
+      ).to.be.revertedWithCustomError(marginlyPool, 'SlippageLimit');
+    });
+
     it('should close short position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
@@ -1201,8 +1258,37 @@ describe('MarginlyPool.Base', () => {
       await expect(
         marginlyPool
           .connect(shorter)
-          .execute(CallType.Short, shortAmount, 0, basePrice, false, ZERO_ADDRESS, uniswapV3Swapdata())
+          .execute(CallType.Short, shortAmount, 0, basePrice.mul(99).div(100), false, ZERO_ADDRESS, uniswapV3Swapdata())
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
+    });
+
+    it('slippage fail', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, shorter, depositor] = await ethers.getSigners();
+      const amountToDeposit = 450_000;
+      const basePrice = (await marginlyPool.getBasePrice()).inner;
+      const shortAmount = 50_000;
+
+      await marginlyPool
+        .connect(depositor)
+        .execute(CallType.DepositBase, amountToDeposit, 0, basePrice, false, ZERO_ADDRESS, uniswapV3Swapdata());
+      await marginlyPool
+        .connect(depositor)
+        .execute(CallType.DepositQuote, amountToDeposit, 0, basePrice, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      await expect(
+        marginlyPool
+          .connect(shorter)
+          .execute(
+            CallType.DepositQuote,
+            amountToDeposit,
+            shortAmount,
+            basePrice.mul(101).div(100),
+            false,
+            ZERO_ADDRESS,
+            uniswapV3Swapdata()
+          )
+      ).to.be.revertedWith('TooMuchRequested');
     });
 
     it('short should update leverageShort', async () => {
@@ -1475,6 +1561,35 @@ describe('MarginlyPool.Base', () => {
           .connect(longer)
           .execute(CallType.Long, longAmount, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata())
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
+    });
+
+    it('slippage fail', async () => {
+      const { marginlyPool } = await loadFixture(createMarginlyPool);
+      const [_, longer, depositor] = await ethers.getSigners();
+      const price = (await marginlyPool.getBasePrice()).inner;
+      const amountToDeposit = 400_000;
+
+      await marginlyPool
+        .connect(depositor)
+        .execute(CallType.DepositBase, amountToDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+      await marginlyPool
+        .connect(depositor)
+        .execute(CallType.DepositQuote, amountToDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      const longAmount = 50_000;
+      await expect(
+        marginlyPool
+          .connect(longer)
+          .execute(
+            CallType.DepositBase,
+            amountToDeposit,
+            longAmount,
+            price.mul(99).div(100),
+            false,
+            ZERO_ADDRESS,
+            uniswapV3Swapdata()
+          )
+      ).to.be.revertedWith('ERC20: insufficient allowance');
     });
 
     it('long should update leverageLong', async () => {
