@@ -446,7 +446,7 @@ contract MarginlyPool is IMarginlyPool {
     if (amount == 0) revert Errors.ZeroAmount();
 
     PositionType positionType = position._type;
-    if(positionType != PositionType.Long){
+    if (positionType != PositionType.Short) {
       if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
     }
 
@@ -515,7 +515,7 @@ contract MarginlyPool is IMarginlyPool {
     if (amount == 0) revert Errors.ZeroAmount();
 
     PositionType positionType = position._type;
-    if(positionType != PositionType.Short){
+    if (positionType != PositionType.Long) {
       if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
     }
 

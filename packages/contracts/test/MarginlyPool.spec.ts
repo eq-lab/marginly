@@ -1116,38 +1116,40 @@ describe('MarginlyPool.Base', () => {
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
-    it('could exceed quoteLimit when deposit quote amount', async () => {
+    it('could exceed quoteLimit when deposit base amount', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, shorter, depositor] = await ethers.getSigners();
-      const amountToDeposit = 450_000;
+      const quoteAmountToDeposit = 450_000;
       const basePrice = (await marginlyPool.getBasePrice()).inner;
-      const baseAmountToDeposit = BigNumber.from(200_000).mul(FP96.one).div(basePrice);
-      console.log(baseAmountToDeposit);
-      console.log((await marginlyPool.params()).quoteLimit);
+      const baseAmountToDeposit = BigNumber.from((await marginlyPool.params()).quoteLimit)
+        .mul(FP96.one)
+        .div(basePrice);
 
       await marginlyPool
         .connect(depositor)
         .execute(CallType.DepositBase, baseAmountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
       await marginlyPool
         .connect(depositor)
-        .execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositQuote, quoteAmountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       const amountToShort = 200_000;
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositQuote, amountToDeposit, amountToShort, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositQuote, quoteAmountToDeposit, amountToShort, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      const additionalBaseDeposit = 205_000;
 
       //hard limit for lenders
       await expect(
         marginlyPool
           .connect(depositor)
-          .execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
+          .execute(CallType.DepositBase, additionalBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
 
       //soft limit for borrowers
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositBase, additionalBaseDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
     });
 
     it('short should update leverageShort', async () => {
@@ -1417,39 +1419,48 @@ describe('MarginlyPool.Base', () => {
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
-    it('could exceed limit when deposit base amount', async () => {
+    it.only('could exceed quoteLimit when deposit quote amount', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, longer, depositor] = await ethers.getSigners();
-      const amountToDeposit = 400_000;
+      const baseAmountToDeposit = 400_000;
+      const quoteLimit = (await marginlyPool.params()).quoteLimit;
+      const basePrice = (await marginlyPool.getBasePrice()).inner;
+      const quoteAmountToDeposit = quoteLimit;
 
       await marginlyPool
         .connect(depositor)
-        .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositBase, baseAmountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
       await marginlyPool
         .connect(depositor)
-        .execute(CallType.DepositQuote, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositQuote, quoteAmountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-      const amountToLong = 100_000;
+      const amountToLong = 400_000; // = 100_006 in quote
       await marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, amountToDeposit, amountToLong, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositBase, baseAmountToDeposit, amountToLong, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-      const basePrice = (await marginlyPool.getBasePrice()).inner;
-      const quoteLimit = (await marginlyPool.params()).quoteLimit;
+      const additionalQuoteDeposit = 100_106;
 
-      const secondDeposit = quoteLimit.mul(FP96.one).div(basePrice);
+      const quoteBalanceLeft = (await marginlyPool.params()).quoteLimit
+        .sub(
+          (await marginlyPool.discountedQuoteCollateral())
+            .mul(await marginlyPool.quoteCollateralCoeff())
+            .div(FP96.one)
+            .sub((await marginlyPool.discountedQuoteDebt()).mul(await marginlyPool.quoteDebtCoeff()).div(FP96.one))
+        )
+        .add(2); // precision loss
 
       //hard limit for lenders
       await expect(
         marginlyPool
           .connect(depositor)
-          .execute(CallType.DepositBase, secondDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
+          .execute(CallType.DepositQuote, quoteBalanceLeft, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
 
       //soft limit for borrowers
       await marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, secondDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+        .execute(CallType.DepositQuote, quoteBalanceLeft, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
     });
 
     it('long should update leverageLong', async () => {
