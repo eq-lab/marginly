@@ -148,22 +148,20 @@ describe('System initialized:', async () => {
   });
 
   it('closePosition', async () => {
-    const { marginlyPool } = await loadFixture(getInitializedPool);
+    const { marginlyPool, shorters } = await loadFixture(getInitializedPool);
     const price = (await marginlyPool.getBasePrice()).inner;
-    const signers = await ethers.getSigners();
-    const borrower = signers[signers.length - 1];
+    const borrower = shorters[0];
     await snapshotGasCost(
       marginlyPool
         .connect(borrower)
-        .execute(CallType.ClosePosition, 0, 0, price.mul(99).div(100), false, ZERO_ADDRESS, uniswapV3Swapdata())
+        .execute(CallType.ClosePosition, 0, 0, price.mul(101).div(100), false, ZERO_ADDRESS, uniswapV3Swapdata())
     );
   });
 
   it('withdrawBase', async () => {
-    const { marginlyPool } = await loadFixture(getInitializedPool);
+    const { marginlyPool, longers } = await loadFixture(getInitializedPool);
     const price = (await marginlyPool.getBasePrice()).inner;
-    const signers = await ethers.getSigners();
-    const longer = signers[signers.length - 1];
+    const longer = longers[0];
     await snapshotGasCost(
       marginlyPool
         .connect(longer)

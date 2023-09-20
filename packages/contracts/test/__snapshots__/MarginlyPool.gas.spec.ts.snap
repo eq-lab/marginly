@@ -59,7 +59,7 @@ Object {
 exports[`System initialized: closePosition 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 233269,
+  "gasUsed": 263660,
 }
 `;
 
@@ -108,7 +108,7 @@ Object {
 exports[`System initialized: withdrawBase 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 181095,
+  "gasUsed": 170556,
 }
 `;
 

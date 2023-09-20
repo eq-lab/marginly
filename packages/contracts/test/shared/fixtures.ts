@@ -206,7 +206,10 @@ export async function getInitializedPool(): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
-  wallets: Wallet[];
+  wallets: SignerWithAddress[];
+  shorters: SignerWithAddress[];
+  longers: SignerWithAddress[];
+  lenders: SignerWithAddress[];
 }> {
   const { marginlyPool, factoryOwner, uniswapPoolInfo } = await createMarginlyPool();
 
@@ -220,24 +223,11 @@ export async function getInitializedPool(): Promise<{
     await uniswapPoolInfo.token1.connect(signers[i]).approve(marginlyPool.address, amountToDeposit);
   }
 
-  const additionalWallets = await generateWallets(10);
-  for (let i = 0; i < additionalWallets.length; i++) {
-    await signers[0].sendTransaction({
-      to: additionalWallets[i].address,
-      value: ethers.utils.parseEther('1'), // 1 ETH
-    });
-
-    await uniswapPoolInfo.token0.mint(additionalWallets[i].address, amountToDeposit);
-    await uniswapPoolInfo.token1.mint(additionalWallets[i].address, amountToDeposit);
-
-    await uniswapPoolInfo.token0.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-    await uniswapPoolInfo.token1.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-  }
-
   const accounts = await ethers.getSigners();
   const lenders = accounts.slice(0, 10);
   const shorters = accounts.slice(10, 15);
   const longers = accounts.slice(15, 20);
+  const other = accounts.slice(20, 30);
   const price = (await marginlyPool.getBasePrice()).inner;
 
   for (let i = 0; i < lenders.length; i++) {
@@ -270,7 +260,7 @@ export async function getInitializedPool(): Promise<{
   // shift time to 1 day
   await time.increase(24 * 60 * 60);
 
-  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: additionalWallets };
+  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: other, shorters, longers, lenders };
 }
 
 // pool with non-zero deleverage coeffs
@@ -278,7 +268,7 @@ export async function getDeleveragedPool(): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
-  wallets: Wallet[];
+  wallets: SignerWithAddress[];
 }> {
   const { marginlyPool, factoryOwner, uniswapPoolInfo } = await createMarginlyPool();
 
@@ -292,20 +282,6 @@ export async function getDeleveragedPool(): Promise<{
 
     await uniswapPoolInfo.token0.connect(signers[i]).approve(marginlyPool.address, amountToDeposit);
     await uniswapPoolInfo.token1.connect(signers[i]).approve(marginlyPool.address, amountToDeposit);
-  }
-
-  const additionalWallets = await generateWallets(10);
-  for (let i = 0; i < additionalWallets.length; i++) {
-    await signers[0].sendTransaction({
-      to: additionalWallets[i].address,
-      value: ethers.utils.parseEther('1'), // 1 ETH
-    });
-
-    await uniswapPoolInfo.token0.mint(additionalWallets[i].address, amountToDeposit);
-    await uniswapPoolInfo.token1.mint(additionalWallets[i].address, amountToDeposit);
-
-    await uniswapPoolInfo.token0.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
-    await uniswapPoolInfo.token1.connect(additionalWallets[i]).approve(marginlyPool.address, amountToDeposit);
   }
 
   const accounts = await (await ethers.getSigners()).slice(15, 20);
@@ -379,7 +355,9 @@ export async function getDeleveragedPool(): Promise<{
   const baseDelevCoeff = await marginlyPool.baseDelevCoeff();
   expect(baseDelevCoeff).to.be.greaterThan(0);
 
-  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: additionalWallets };
+  const other = accounts.slice(20, 30);
+
+  return { marginlyPool, factoryOwner, uniswapPoolInfo, wallets: other };
 }
 
 export async function createAavePool(): Promise<MockAavePool> {
