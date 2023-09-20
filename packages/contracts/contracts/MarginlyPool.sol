@@ -439,7 +439,7 @@ contract MarginlyPool is IMarginlyPool {
   function depositBase(
     uint256 amount,
     uint256 longAmount,
-    uint256 limitPrice,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -494,7 +494,7 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
 
     if (longAmount != 0) {
-      long(longAmount, limitPrice, basePrice, position, swapCalldata);
+      long(longAmount, limitPriceX96, basePrice, position, swapCalldata);
     }
   }
 
@@ -506,7 +506,7 @@ contract MarginlyPool is IMarginlyPool {
   function depositQuote(
     uint256 amount,
     uint256 shortAmount,
-    uint256 limitPrice,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -561,7 +561,7 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
 
     if (shortAmount != 0) {
-      short(shortAmount, limitPrice, basePrice, position, swapCalldata);
+      short(shortAmount, limitPriceX96, basePrice, position, swapCalldata);
     }
   }
 
@@ -667,7 +667,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Close position
   /// @param position msg.sender position
-  function closePosition(uint256 limitPrice, Position storage position, uint256 swapCalldata) private {
+  function closePosition(uint256 limitPriceX96, Position storage position, uint256 swapCalldata) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -683,8 +683,8 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realBaseDebt = baseDebtCoeff.mul(positionDiscountedBaseDebtPrev, Math.Rounding.Up);
 
       {
-        // quoteInMaximum is defined by user input limitPrice
-        uint256 quoteInMaximum = Math.mulDiv(limitPrice, realBaseDebt, FP96.Q96);
+        // quoteInMaximum is defined by user input limitPriceX96
+        uint256 quoteInMaximum = Math.mulDiv(limitPriceX96, realBaseDebt, FP96.Q96);
 
         realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
         if (realCollateralDelta > quoteInMaximum) revert Errors.SlippageLimit();
@@ -722,8 +722,8 @@ contract MarginlyPool is IMarginlyPool {
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
 
       {
-        // baseInMaximum is defined by user input limitPrice
-        uint256 baseInMaximum = Math.mulDiv(FP96.Q96, exactQuoteOut, limitPrice);
+        // baseInMaximum is defined by user input limitPriceX96
+        uint256 baseInMaximum = Math.mulDiv(FP96.Q96, exactQuoteOut, limitPriceX96);
 
         realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
         if (realCollateralDelta > baseInMaximum) revert Errors.SlippageLimit();
@@ -790,7 +790,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param position msg.sender position
   function short(
     uint256 realBaseAmount,
-    uint256 limitPrice,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -801,8 +801,8 @@ contract MarginlyPool is IMarginlyPool {
     if (_type != PositionType.Short && !(_type == PositionType.Lend && position.discountedBaseAmount == 0))
       revert Errors.WrongPositionType();
 
-    // quoteOutMinimum is defined by user input limitPrice
-    uint256 quoteOutMinimum = Math.mulDiv(limitPrice, realBaseAmount, FP96.Q96);
+    // quoteOutMinimum is defined by user input limitPriceX96
+    uint256 quoteOutMinimum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
     uint256 realQuoteCollateralChangeWithFee = swapExactInput(false, realBaseAmount, quoteOutMinimum, swapCalldata);
     uint256 swapPriceX96 = getSwapPrice(realQuoteCollateralChangeWithFee, realBaseAmount);
 
@@ -840,7 +840,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param position msg.sender position
   function long(
     uint256 realBaseAmount,
-    uint256 limitPrice,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -852,8 +852,8 @@ contract MarginlyPool is IMarginlyPool {
     if (_type != PositionType.Long && !(_type == PositionType.Lend && position.discountedQuoteAmount == 0))
       revert Errors.WrongPositionType();
 
-    // realQuoteInMaximum is defined by user input limitPrice
-    uint256 realQuoteInMaximum = Math.mulDiv(limitPrice, realBaseAmount, FP96.Q96);
+    // realQuoteInMaximum is defined by user input limitPriceX96
+    uint256 realQuoteInMaximum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
     uint256 realQuoteAmount = swapExactOutput(true, realQuoteInMaximum, realBaseAmount, swapCalldata);
     uint256 swapPriceX96 = getSwapPrice(realQuoteAmount, realBaseAmount);
 
@@ -1383,7 +1383,7 @@ contract MarginlyPool is IMarginlyPool {
     CallType call,
     uint256 amount1,
     uint256 amount2,
-    uint256 limitPrice,
+    uint256 limitPriceX96,
     bool flag,
     address receivePositionAddress,
     uint256 swapCalldata
@@ -1411,19 +1411,19 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     if (call == CallType.DepositBase) {
-      depositBase(amount1, amount2, limitPrice, basePrice, position, swapCalldata);
+      depositBase(amount1, amount2, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.DepositQuote) {
-      depositQuote(amount1, amount2, limitPrice, basePrice, position, swapCalldata);
+      depositQuote(amount1, amount2, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.WithdrawBase) {
       withdrawBase(amount1, flag, basePrice, position);
     } else if (call == CallType.WithdrawQuote) {
       withdrawQuote(amount1, flag, basePrice, position);
     } else if (call == CallType.Short) {
-      short(amount1, limitPrice, basePrice, position, swapCalldata);
+      short(amount1, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.Long) {
-      long(amount1, limitPrice, basePrice, position, swapCalldata);
+      long(amount1, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.ClosePosition) {
-      closePosition(limitPrice, position, swapCalldata);
+      closePosition(limitPriceX96, position, swapCalldata);
     } else if (call == CallType.Reinit && flag) {
       // reinit itself has already taken place
       syncBaseBalance();
