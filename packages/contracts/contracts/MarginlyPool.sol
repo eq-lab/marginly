@@ -902,10 +902,10 @@ contract MarginlyPool is IMarginlyPool {
     if (discountedBaseCollateral != 0) {
       FP96.FixedPoint memory baseDebtCoeffPrev = baseDebtCoeff;
       uint256 realBaseDebtPrev = baseDebtCoeffPrev.mul(discountedBaseDebt);
-      FP96.FixedPoint memory onePlusIR = interestRate
-        .mul(FP96.FixedPoint({inner: systemLeverage.shortX96}))
-        .div(secondsInYear)
-        .add(FP96.one());
+      uint128 leverage = systemLeverage.shortX96 < params.maxLeverage ? systemLeverage.shortX96 : params.maxLeverage;
+      FP96.FixedPoint memory onePlusIR = interestRate.mul(FP96.FixedPoint({inner: leverage})).div(secondsInYear).add(
+        FP96.one()
+      );
 
       // AR(dt) =  (1+ ir)^dt
       FP96.FixedPoint memory accruedRateDt = FP96.powTaylor(onePlusIR, secondsPassed);
@@ -923,10 +923,10 @@ contract MarginlyPool is IMarginlyPool {
     if (discountedQuoteCollateral != 0) {
       FP96.FixedPoint memory quoteDebtCoeffPrev = quoteDebtCoeff;
       uint256 realQuoteDebtPrev = quoteDebtCoeffPrev.mul(discountedQuoteDebt);
-      FP96.FixedPoint memory onePlusIR = interestRate
-        .mul(FP96.FixedPoint({inner: systemLeverage.longX96}))
-        .div(secondsInYear)
-        .add(FP96.one());
+      uint128 leverage = systemLeverage.longX96 < params.maxLeverage ? systemLeverage.longX96 : params.maxLeverage;
+      FP96.FixedPoint memory onePlusIR = interestRate.mul(FP96.FixedPoint({inner: leverage})).div(secondsInYear).add(
+        FP96.one()
+      );
 
       // AR(dt) =  (1+ ir)^dt
       FP96.FixedPoint memory accruedRateDt = FP96.powTaylor(onePlusIR, secondsPassed);
