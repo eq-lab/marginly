@@ -1507,11 +1507,12 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositQuote, amountToDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       const longAmount = 1000;
-      expect(
+
+      await expect(
         marginlyPool
           .connect(longer)
           .execute(CallType.Long, longAmount, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata())
-      ).to.be.revertedWithCustomError(marginlyPool, 'UninitializedPosition');
+      ).to.be.revertedWithCustomError(marginlyPool, 'WrongPositionType');
     });
 
     it('long minAmount violation', async () => {
