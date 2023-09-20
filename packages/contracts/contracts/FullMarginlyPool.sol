@@ -31,6 +31,7 @@ contract FullMarginlyPool is MarginlyPool {
     returns (
       uint8 maxLeverage,
       uint16 priceSecondsAgo,
+      uint16 priceSecondsAgoMC,
       uint24 interestRate,
       uint24 swapFee,
       uint24 mcSlippage,
@@ -40,6 +41,7 @@ contract FullMarginlyPool is MarginlyPool {
   {
     maxLeverage = params.maxLeverage;
     priceSecondsAgo = params.priceSecondsAgo;
+    priceSecondsAgoMC = params.priceSecondsAgoMC;
     interestRate = params.interestRate;
     swapFee = params.swapFee;
     mcSlippage = params.mcSlippage;
