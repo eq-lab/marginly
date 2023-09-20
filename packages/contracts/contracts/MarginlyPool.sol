@@ -445,12 +445,7 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
-    PositionType positionType = position._type;
-    if (positionType != PositionType.Short) {
-      if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
-    }
-
-    if (positionType == PositionType.Uninitialized) {
+    if (position._type == PositionType.Uninitialized) {
       position._type = PositionType.Lend;
     }
 
@@ -483,6 +478,8 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseDebt = discountedBaseDebt.sub(discountedBaseDebtDelta);
       discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedQuoteCollDelta);
     } else {
+      if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
+
       // Lend position, increase collateral on amount
       // discountedCollateralDelta = amount / baseCollateralCoeff
       uint256 discountedCollateralDelta = baseCollateralCoeff.recipMul(amount);
@@ -514,12 +511,7 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
-    PositionType positionType = position._type;
-    if (positionType != PositionType.Long) {
-      if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
-    }
-
-    if (positionType == PositionType.Uninitialized) {
+    if (position._type == PositionType.Uninitialized) {
       position._type = PositionType.Lend;
     }
 
@@ -552,6 +544,8 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteDebtDelta);
       discountedBaseCollateral = discountedBaseCollateral.sub(discountedBaseCollDelta);
     } else {
+      if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
+
       // Lend position, increase collateral on amount
       // discountedQuoteCollateralDelta = amount / quoteCollateralCoeff
       uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(amount);

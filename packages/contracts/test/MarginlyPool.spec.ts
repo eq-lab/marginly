@@ -1419,12 +1419,11 @@ describe('MarginlyPool.Base', () => {
       ).to.be.revertedWithCustomError(marginlyPool, 'ExceedsLimit');
     });
 
-    it.only('could exceed quoteLimit when deposit quote amount', async () => {
+    it('could exceed quoteLimit when deposit quote amount', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, longer, depositor] = await ethers.getSigners();
       const baseAmountToDeposit = 400_000;
       const quoteLimit = (await marginlyPool.params()).quoteLimit;
-      const basePrice = (await marginlyPool.getBasePrice()).inner;
       const quoteAmountToDeposit = quoteLimit;
 
       await marginlyPool
