@@ -324,7 +324,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 swappedBaseDebt;
       if (realQuoteCollateral != 0) {
         uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-          getCurrentBasePrice().recipMul(realQuoteCollateral)
+          getLiquidationPrice().recipMul(realQuoteCollateral)
         );
         swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, UNISWAP_V3_ROUTER_SWAP);
         swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
@@ -367,7 +367,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 swappedQuoteDebt;
       if (realBaseCollateral != 0) {
         uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-          getCurrentBasePrice().mul(realBaseCollateral)
+          getLiquidationPrice().mul(realBaseCollateral)
         );
         swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, UNISWAP_V3_ROUTER_SWAP);
         swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
@@ -760,14 +760,19 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Get oracle price baseToken / quoteToken
   function getBasePrice() public view returns (FP96.FixedPoint memory) {
-    uint256 sqrtPriceX96 = OracleLib.getSqrtPriceX96(uniswapPool, params.priceSecondsAgo);
+    uint256 sqrtPriceX96 = getTwapPrice(params.priceSecondsAgo);
     return sqrtPriceX96ToPrice(sqrtPriceX96);
   }
 
-  /// @notice Get current price of the pool
-  function getCurrentBasePrice() public view returns (FP96.FixedPoint memory) {
-    (uint256 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(uniswapPool).slot0();
+  /// @notice Get TWAP price used in mc slippage calculations
+  function getLiquidationPrice() public view returns (FP96.FixedPoint memory) {
+    uint256 sqrtPriceX96 = getTwapPrice(params.priceSecondsAgoMC);
     return sqrtPriceX96ToPrice(sqrtPriceX96);
+  }
+
+  /// @notice returns uniswapV3 oracle TWAP sqrt price for `priceSecondsAgo` period
+  function getTwapPrice(uint16 priceSecondsAgo) private view returns (uint256) {
+    return OracleLib.getSqrtPriceX96(uniswapPool, priceSecondsAgo);
   }
 
   function sqrtPriceX96ToPrice(uint256 sqrtPriceX96) private view returns (FP96.FixedPoint memory price) {

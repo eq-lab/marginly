@@ -155,6 +155,7 @@ async function initializeTestSystem(
     maxLeverage: 20n,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900n, // 15 min
+    priceSecondsAgoMC: 60n, // 1 min
     positionSlippage: 20000, // 2%
     mcSlippage: 50000, //5%
     positionMinAmount: 10000000000000000n, // 0,01 ETH

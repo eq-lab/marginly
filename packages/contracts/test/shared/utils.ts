@@ -149,7 +149,7 @@ export const paramsDefaultLeverageWithoutIr = {
   swapFee: 1000, // 0.1%
   fee: 0,
   priceSecondsAgo: 900, // 15 min
-  positionSlippage: 20000, // 2%
+  priceSecondsAgoMC: 60, // 1 min
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
@@ -161,7 +161,7 @@ export const paramsLowLeverageWithoutIr = {
   swapFee: 1000, // 0.1%
   fee: 0,
   priceSecondsAgo: 900, // 15 min
-  positionSlippage: 20000, // 2%
+  priceSecondsAgoMC: 60, // 1 min
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
@@ -173,7 +173,7 @@ export const paramsLowLeverageWithIr = {
   swapFee: 1000, // 0.1%
   fee: 20000,
   priceSecondsAgo: 900, // 15 min
-  positionSlippage: 20000, // 2%
+  priceSecondsAgoMC: 60, // 1 min
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,

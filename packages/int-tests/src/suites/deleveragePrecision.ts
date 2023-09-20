@@ -13,6 +13,7 @@ const paramsDefaultLeverage = {
   swapFee: 0,
   fee: 0,
   priceSecondsAgo: 900n, // 15 min
+  priceSecondsAgoMC: 60n, // 1 min
   mcSlippage: 50000, //5%
   positionMinAmount: 10000000000000000n, // 0,01 ETH
   quoteLimit: 10n ** 12n * 10n ** 6n,
@@ -24,6 +25,7 @@ const paramsLowLeverage = {
   swapFee: 0,
   fee: 0,
   priceSecondsAgo: 900n, // 15 min
+  priceSecondsAgoMC: 60n, // 1 min
   mcSlippage: 50000, //5%
   positionMinAmount: 10000000000000000n, // 0,01 ETH
   quoteLimit: 10n ** 12n * 10n ** 6n,
@@ -35,6 +37,7 @@ const paramsWithIr = {
   swapFee: 0,
   fee: 20000,
   priceSecondsAgo: 900n, // 15 min
+  priceSecondsAgoMC: 60n, // 1 min
   mcSlippage: 50000, //5%
   positionMinAmount: 10000000000000000n, // 0,01 ETH
   quoteLimit: 10n ** 12n * 10n ** 6n,

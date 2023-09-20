@@ -34,6 +34,7 @@ describe('MarginlyPool.Base', () => {
       fee: 1,
       swapFee: 1000,
       priceSecondsAgo: 1000,
+      priceSecondsAgoMC: 100,
       positionMinAmount: 100,
       positionSlippage: 300000,
       mcSlippage: 400000,
@@ -111,6 +112,7 @@ describe('MarginlyPool.Base', () => {
       maxLeverage: 15,
       swapFee: 1000,
       priceSecondsAgo: 1000,
+      priceSecondsAgoMC: 100,
       positionMinAmount: 100,
       mcSlippage: 400000,
       quoteLimit: 1_000_000_000,
@@ -122,6 +124,7 @@ describe('MarginlyPool.Base', () => {
     expect(params.maxLeverage).to.equal(15);
     expect(params.swapFee).to.equal(1000);
     expect(params.priceSecondsAgo).to.equal(1000);
+    expect(params.priceSecondsAgoMC).to.equal(100);
     expect(params.positionMinAmount).to.equal(100);
     expect(params.mcSlippage).to.equal(400000);
     expect(params.quoteLimit).to.equal(1_000_000_000);
@@ -141,6 +144,7 @@ describe('MarginlyPool.Base', () => {
         fee: 1,
         swapFee: 1000,
         priceSecondsAgo: 1000,
+        priceSecondsAgoMC: 100,
         positionMinAmount: 100,
         mcSlippage: 400000,
         quoteLimit: 1_000_000_000,
