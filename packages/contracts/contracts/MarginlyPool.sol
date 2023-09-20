@@ -902,10 +902,10 @@ contract MarginlyPool is IMarginlyPool {
     if (discountedBaseCollateral != 0) {
       FP96.FixedPoint memory baseDebtCoeffPrev = baseDebtCoeff;
       uint256 realBaseDebtPrev = baseDebtCoeffPrev.mul(discountedBaseDebt);
-      uint128 leverage = systemLeverage.shortX96 < params.maxLeverage ? systemLeverage.shortX96 : params.maxLeverage;
-      FP96.FixedPoint memory onePlusIR = interestRate.mul(FP96.FixedPoint({inner: leverage})).div(secondsInYear).add(
-        FP96.one()
-      );
+      FP96.FixedPoint memory onePlusIR = interestRate
+        .mul(FP96.FixedPoint({inner: systemLeverage.shortX96}))
+        .div(secondsInYear)
+        .add(FP96.one());
 
       // AR(dt) =  (1+ ir)^dt
       FP96.FixedPoint memory accruedRateDt = FP96.powTaylor(onePlusIR, secondsPassed);
@@ -923,10 +923,10 @@ contract MarginlyPool is IMarginlyPool {
     if (discountedQuoteCollateral != 0) {
       FP96.FixedPoint memory quoteDebtCoeffPrev = quoteDebtCoeff;
       uint256 realQuoteDebtPrev = quoteDebtCoeffPrev.mul(discountedQuoteDebt);
-      uint128 leverage = systemLeverage.longX96 < params.maxLeverage ? systemLeverage.longX96 : params.maxLeverage;
-      FP96.FixedPoint memory onePlusIR = interestRate.mul(FP96.FixedPoint({inner: leverage})).div(secondsInYear).add(
-        FP96.one()
-      );
+      FP96.FixedPoint memory onePlusIR = interestRate
+        .mul(FP96.FixedPoint({inner: params.maxLeverage}))
+        .div(secondsInYear)
+        .add(FP96.one());
 
       // AR(dt) =  (1+ ir)^dt
       FP96.FixedPoint memory accruedRateDt = FP96.powTaylor(onePlusIR, secondsPassed);
@@ -1260,7 +1260,9 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realBaseCollateral = basePrice.mul(calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt));
     uint256 realQuoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt);
-    systemLeverage.longX96 = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
+    uint128 leverageX96 = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
+    uint128 maxLeverageX96 = uint128(params.maxLeverage * FP96.Q96);
+    systemLeverage.longX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
   function updateSystemLeverageShort(FP96.FixedPoint memory basePrice) private {
@@ -1271,9 +1273,9 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realQuoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
     uint256 realBaseDebt = baseDebtCoeff.mul(basePrice).mul(discountedBaseDebt);
-    systemLeverage.shortX96 = uint128(
-      Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt))
-    );
+    uint128 leverageX96 = uint128(Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt)));
+    uint128 maxLeverageX96 = uint128(params.maxLeverage * FP96.Q96);
+    systemLeverage.shortX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
   /// @dev Wraps ETH into WETH if need and makes transfer from `payer`
