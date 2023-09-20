@@ -1261,7 +1261,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 realBaseCollateral = basePrice.mul(calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt));
     uint256 realQuoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt);
     uint128 leverageX96 = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
-    uint128 maxLeverageX96 = uint128(params.maxLeverage * FP96.Q96);
+    uint128 maxLeverageX96 = uint128(params.maxLeverage) << FP96.RESOLUTION;
     systemLeverage.longX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
@@ -1274,7 +1274,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 realQuoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
     uint256 realBaseDebt = baseDebtCoeff.mul(basePrice).mul(discountedBaseDebt);
     uint128 leverageX96 = uint128(Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt)));
-    uint128 maxLeverageX96 = uint128(params.maxLeverage * FP96.Q96);
+    uint128 maxLeverageX96 = uint128(params.maxLeverage) << FP96.RESOLUTION;
     systemLeverage.shortX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
