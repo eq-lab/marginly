@@ -11,7 +11,7 @@ import './interfaces/IMarginlyRouter.sol';
 import './interfaces/IMarginlyAdapter.sol';
 import './libraries/SwapsDecoder.sol';
 
-contract MarginlyRouter is RouterStorage, AdapterCallback {
+contract MarginlyRouter is AdapterCallback {
   constructor(AdapterInput[] memory _adapters) RouterStorage(_adapters) {}
 
   /// @inheritdoc IMarginlyRouter
