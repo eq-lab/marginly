@@ -80,8 +80,8 @@ contract MarginlyPool is IMarginlyPool {
   FP96.FixedPoint public quoteDelevCoeff;
   /// @dev Accrued interest rate and fee for quote debt
   FP96.FixedPoint public quoteDebtCoeff;
-  /// @dev Initial price. Used to sort key calculation.
-  FP96.FixedPoint private initialPrice;
+  /// @dev Initial price. Used to sort key and shutdown calculations. Value gets reset for the latter one
+  FP96.FixedPoint public initialPrice;
   /// @dev Ratio of best side collaterals before and after margin call of opposite side in shutdown mode
   FP96.FixedPoint public emergencyWithdrawCoeff;
 
@@ -1211,14 +1211,17 @@ contract MarginlyPool is IMarginlyPool {
       newCollateral = newCollateral.add(collateralSurplus);
     }
 
-    /**
-      Explanation:
-      emergencyCoeff = collatCoeff * (newCollateral/collateral) = 
-        collatCoeff * newCollateral/ (discountedCollateral * collatCoeff) = 
-        newCollateral / discountedCollateral
-     */
+    FP96.FixedPoint memory shutDownPrice = getBasePrice();
+    initialPrice = shutDownPrice;
 
-    emergencyWithdrawCoeff = FP96.fromRatio(newCollateral, discountedCollateral);
+    if (mode == Mode.ShortEmergency) {
+      emergencyWithdrawCoeff = FP96.fromRatio(
+        shutDownPrice.mul(newCollateral),
+        shutDownPrice.mul(collateral).sub(emergencyDebt)
+      );
+    } else {
+      emergencyWithdrawCoeff = FP96.fromRatio(newCollateral, collateral.sub(shutDownPrice.mul(emergencyDebt)));
+    }
 
     emit Emergency(_mode);
   }
@@ -1228,7 +1231,7 @@ contract MarginlyPool is IMarginlyPool {
   function emergencyWithdraw(bool unwrapWETH) private {
     if (mode == Mode.Regular) revert Errors.NotEmergency();
 
-    Position storage position = positions[msg.sender];
+    Position memory position = positions[msg.sender];
     if (position._type == PositionType.Uninitialized) revert Errors.UninitializedPosition();
 
     address token;
@@ -1237,12 +1240,18 @@ contract MarginlyPool is IMarginlyPool {
     if (mode == Mode.ShortEmergency) {
       if (position._type == PositionType.Short) revert Errors.ShortEmergency();
 
-      transferAmount = emergencyWithdrawCoeff.mul(position.discountedBaseAmount);
+      // baseNet =  baseColl - quoteDebt / price
+      uint256 positionBaseNet = calcRealBaseCollateral(position.discountedBaseAmount, position.discountedQuoteAmount)
+        .sub(initialPrice.recipMul(quoteDebtCoeff.mul(position.discountedQuoteAmount)));
+      transferAmount = emergencyWithdrawCoeff.mul(positionBaseNet);
       token = baseToken;
     } else {
       if (position._type == PositionType.Long) revert Errors.LongEmergency();
 
-      transferAmount = emergencyWithdrawCoeff.mul(position.discountedQuoteAmount);
+      // quoteNet = quoteColl - baseDebt * price
+      uint256 positionQuoteNet = calcRealQuoteCollateral(position.discountedQuoteAmount, position.discountedBaseAmount)
+        .sub(baseDebtCoeff.mul(initialPrice).mul(position.discountedBaseAmount));
+      transferAmount = emergencyWithdrawCoeff.mul(positionQuoteNet);
       token = quoteToken;
     }
 

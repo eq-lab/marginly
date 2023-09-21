@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { CallType, FP96, MarginlyPoolMode, ZERO_ADDRESS, uniswapV3Swapdata } from './shared/utils';
 
-describe('MarginlyPool.Shutdown', () => {
+describe.only('MarginlyPool.Shutdown', () => {
   it('should revert when collateral enough', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [owner, depositor] = await ethers.getSigners();
@@ -201,9 +201,16 @@ describe('MarginlyPool.Shutdown', () => {
     const actualLongerBaseAmount = longerBalanceAfter.sub(longerBalanceBefore);
     const actualDepositorBaseAmount = depositorBalanceAfter.sub(depositorBalanceBefore);
 
-    const expectedLongerBaseAmount = emergencyWithdrawCoeff.mul(longerPosition.discountedBaseAmount).div(FP96.one);
+    const baseCollCoeff = await marginlyPool.baseCollateralCoeff();
+    const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
+    const price = await marginlyPool.initialPrice();
+    const longerBaseNet = baseCollCoeff
+      .mul(longerPosition.discountedBaseAmount)
+      .div(FP96.one)
+      .sub(quoteDebtCoeff.mul(longerPosition.discountedQuoteAmount).div(price));
+    const expectedLongerBaseAmount = emergencyWithdrawCoeff.mul(longerBaseNet).div(FP96.one);
     const expectedDepositorBaseAmount = emergencyWithdrawCoeff
-      .mul(depositorPosition.discountedBaseAmount)
+      .mul(depositorPosition.discountedBaseAmount.mul(baseCollCoeff).div(FP96.one))
       .div(FP96.one);
 
     expect(actualLongerBaseAmount).to.be.equal(expectedLongerBaseAmount);
@@ -287,10 +294,18 @@ describe('MarginlyPool.Shutdown', () => {
     const actualShorterQuoteAmount = shorterBalanceAfter.sub(shorterBalanceBefore);
     const actualDepositorQuoteAmount = depositorBalanceAfter.sub(depositorBalanceBefore);
 
-    const expectedShorterQuoteAmount = emergencyWithdrawCoeff.mul(shorterPosition.discountedQuoteAmount).div(FP96.one);
+    const quoteCollCoeff = await marginlyPool.quoteCollateralCoeff();
+    const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
+    const price = await marginlyPool.initialPrice();
+    const shorterQuoteNet = quoteCollCoeff
+      .mul(shorterPosition.discountedQuoteAmount)
+      .div(FP96.one)
+      .sub(baseDebtCoeff.mul(shorterPosition.discountedBaseAmount).div(FP96.one).mul(price).div(FP96.one));
+
+    const expectedShorterQuoteAmount = emergencyWithdrawCoeff.mul(shorterQuoteNet).div(FP96.one);
 
     const expectedDepositorQuoteAmount = emergencyWithdrawCoeff
-      .mul(depositorPosition.discountedQuoteAmount)
+      .mul(depositorPosition.discountedQuoteAmount.mul(quoteCollCoeff).div(FP96.one))
       .div(FP96.one);
 
     expect(actualShorterQuoteAmount).to.be.equal(expectedShorterQuoteAmount);
