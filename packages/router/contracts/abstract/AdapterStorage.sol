@@ -18,19 +18,29 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable {
 
   constructor(PoolInput[] memory pools) {
     PoolInput memory input;
-    for (uint256 i; i < pools.length; ++i) {
+    uint256 length = pools.length;
+    for (uint256 i; i < length; ) {
       input = pools[i];
       getPool[input.token0][input.token1] = input.pool;
       getPool[input.token1][input.token0] = input.pool;
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
   function addPools(PoolInput[] calldata pools) external onlyOwner {
     PoolInput memory input;
-    for (uint256 i; i < pools.length; ++i) {
+    uint256 length = pools.length;
+    for (uint256 i; i < length; ) {
       input = pools[i];
       getPool[input.token0][input.token1] = input.pool;
       getPool[input.token1][input.token0] = input.pool;
+
+      unchecked {
+        ++i;
+      }
     }
   }
 

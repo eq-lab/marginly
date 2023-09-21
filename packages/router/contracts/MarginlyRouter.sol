@@ -28,7 +28,7 @@ contract MarginlyRouter is AdapterCallback {
 
     SwapsDecoder.SwapInfo[] memory swapInfos = SwapsDecoder.decodeSwapInfo(swapCalldata, amountIn, minAmountOut);
 
-    for (uint256 i; i < swapInfos.length; ++i) {
+    for (uint256 i; i < swapInfos.length; ) {
       SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountIn = swapInfo.dexAmountIn;
@@ -45,6 +45,10 @@ contract MarginlyRouter is AdapterCallback {
 
       amountOut += dexAmountOut;
       emit Swap(true, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
+
+      unchecked {
+        ++i;
+      }
     }
 
     if (amountOut != IERC20(tokenOut).balanceOf(msg.sender) - balanceBefore) revert WrongAmountOut();
@@ -64,7 +68,7 @@ contract MarginlyRouter is AdapterCallback {
 
     SwapsDecoder.SwapInfo[] memory swapInfos = SwapsDecoder.decodeSwapInfo(swapCalldata, maxAmountIn, amountOut);
 
-    for (uint256 i; i < swapInfos.length; ++i) {
+    for (uint256 i; i < swapInfos.length; ) {
       SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountOut = swapInfo.dexAmountOut;
@@ -81,6 +85,10 @@ contract MarginlyRouter is AdapterCallback {
 
       amountIn += dexAmountIn;
       emit Swap(false, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
+
+      unchecked {
+        ++i;
+      }
     }
 
     if (amountOut != IERC20(tokenOut).balanceOf(msg.sender) - balanceBefore) revert WrongAmountOut();
