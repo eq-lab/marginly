@@ -64,7 +64,7 @@ contract MarginlyFactory is IMarginlyFactory {
     MarginlyParams calldata params
   ) external override returns (address pool) {
     if (msg.sender != owner) revert Errors.NotOwner();
-    require(quoteToken != baseToken);
+    if (quoteToken == baseToken) revert Errors.Forbidden();
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
     if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
@@ -85,8 +85,8 @@ contract MarginlyFactory is IMarginlyFactory {
 
   /// @inheritdoc IMarginlyFactory
   function changeSwapRouter(address newSwapRouter) external {
-    require(msg.sender == owner, 'NO'); // Not an owner
-    require(newSwapRouter != address(0));
+    if (msg.sender != owner) revert Errors.NotOwner();
+    if (newSwapRouter == address(0)) revert Errors.Forbidden();
 
     swapRouter = newSwapRouter;
   }
