@@ -20,7 +20,7 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   /// @param liquidatedPosition liquidated position
   /// @param token profit token
   /// @param amount profit amount
-  event Profit(address liquidatedPosition, address token, uint256 amount);
+  event Profit(address indexed liquidatedPosition, address indexed token, uint256 amount);
 
   struct LiquidationParams {
     address marginlyPool;
