@@ -1338,7 +1338,7 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @dev for testing purposes
+  /// @dev Used by keeper service
   function getHeapPosition(
     uint32 index,
     bool _short
