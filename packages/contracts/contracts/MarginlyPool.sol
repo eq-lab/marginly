@@ -28,13 +28,13 @@ contract MarginlyPool is IMarginlyPool {
   using LowGasSafeMath for uint256;
 
   /// @dev FP96 inner value of count of seconds in year. Equal 365.25 * 24 * 60 * 60
-  uint256 constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
+  uint256 private constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
 
   /// @dev router calldata for swap on UniswapV3;
-  uint256 constant UNISWAP_V3_ROUTER_SWAP = 0;
+  uint256 private constant UNISWAP_V3_ROUTER_SWAP = 0;
 
   /// @dev Denominator of fee value
-  uint24 constant WHOLE_ONE = 1e6;
+  uint24 private constant WHOLE_ONE = 1e6;
 
   /// @inheritdoc IMarginlyPool
   address public override factory;
