@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { CallType, FP96, MarginlyPoolMode, ZERO_ADDRESS, uniswapV3Swapdata } from './shared/utils';
 
-describe.only('MarginlyPool.Shutdown', () => {
+describe('MarginlyPool.Shutdown', () => {
   it('should revert when collateral enough', async () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [owner, depositor] = await ethers.getSigners();

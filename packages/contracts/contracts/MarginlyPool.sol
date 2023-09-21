@@ -1149,8 +1149,6 @@ contract MarginlyPool is IMarginlyPool {
     accrueInterest();
 
     FP96.FixedPoint memory basePrice = getBasePrice();
-    uint256 _discountedQuoteCollateral = discountedQuoteCollateral;
-    uint256 _discountedBaseCollateral = discountedBaseCollateral;
 
     /* We use Rounding.Up in baseDebt/quoteDebt calculation 
        to avoid case when "surplus = quoteCollateral - quoteDebt"
@@ -1158,32 +1156,18 @@ contract MarginlyPool is IMarginlyPool {
      */
 
     uint256 baseDebt = baseDebtCoeff.mul(discountedBaseDebt, Math.Rounding.Up);
-    uint256 quoteCollateral = calcRealQuoteCollateral(_discountedQuoteCollateral, discountedBaseDebt);
+    uint256 quoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
 
     uint256 quoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt, Math.Rounding.Up);
-    uint256 baseCollateral = calcRealBaseCollateral(_discountedBaseCollateral, discountedQuoteDebt);
+    uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
 
     if (basePrice.mul(baseDebt) > quoteCollateral) {
-      setEmergencyMode(
-        Mode.ShortEmergency,
-        baseCollateral,
-        baseDebt,
-        _discountedBaseCollateral,
-        quoteCollateral,
-        quoteDebt
-      );
+      setEmergencyMode(Mode.ShortEmergency, basePrice, baseCollateral, baseDebt, quoteCollateral, quoteDebt);
       return;
     }
 
     if (quoteDebt > basePrice.mul(baseCollateral)) {
-      setEmergencyMode(
-        Mode.LongEmergency,
-        quoteCollateral,
-        quoteDebt,
-        _discountedQuoteCollateral,
-        baseCollateral,
-        baseDebt
-      );
+      setEmergencyMode(Mode.LongEmergency, basePrice, quoteCollateral, quoteDebt, baseCollateral, baseDebt);
       return;
     }
 
@@ -1193,34 +1177,34 @@ contract MarginlyPool is IMarginlyPool {
   ///@dev Set emergency mode and calc emergencyWithdrawCoeff
   function setEmergencyMode(
     Mode _mode,
+    FP96.FixedPoint memory shutDownPrice,
     uint256 collateral,
     uint256 debt,
-    uint256 discountedCollateral,
     uint256 emergencyCollateral,
     uint256 emergencyDebt
   ) private {
     mode = _mode;
+    initialPrice = shutDownPrice;
 
-    uint256 newCollateral = collateral >= debt ? collateral.sub(debt) : 0;
+    uint256 balance = collateral >= debt ? collateral.sub(debt) : 0;
 
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
       uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, UNISWAP_V3_ROUTER_SWAP);
 
-      newCollateral = newCollateral.add(collateralSurplus);
+      balance = balance.add(collateralSurplus);
     }
 
-    FP96.FixedPoint memory shutDownPrice = getBasePrice();
-    initialPrice = shutDownPrice;
-
     if (mode == Mode.ShortEmergency) {
+      // coeff = price * baseBalance / (price * baseCollateral - quoteDebt)
       emergencyWithdrawCoeff = FP96.fromRatio(
-        shutDownPrice.mul(newCollateral),
+        shutDownPrice.mul(balance),
         shutDownPrice.mul(collateral).sub(emergencyDebt)
       );
     } else {
-      emergencyWithdrawCoeff = FP96.fromRatio(newCollateral, collateral.sub(shutDownPrice.mul(emergencyDebt)));
+      // coeff = quoteBalance / (quoteCollateral - price * baseDebt)
+      emergencyWithdrawCoeff = FP96.fromRatio(balance, collateral.sub(shutDownPrice.mul(emergencyDebt)));
     }
 
     emit Emergency(_mode);
