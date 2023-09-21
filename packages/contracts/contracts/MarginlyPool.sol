@@ -68,7 +68,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Aggregate for base collateral time change calculations
   FP96.FixedPoint public baseCollateralCoeff;
-  /// @dev Accrued interest rate and fee for base debt
+  /// @dev Aggregate for deleveraged base collateral
   FP96.FixedPoint public baseDelevCoeff;
   /// @dev Aggregate for base debt time change calculations
   FP96.FixedPoint public baseDebtCoeff;
