@@ -2,11 +2,9 @@
 pragma solidity ^0.8.0;
 
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
-import '@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
 import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';

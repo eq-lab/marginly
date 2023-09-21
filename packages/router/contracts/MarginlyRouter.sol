@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './abstract/AdapterCallback.sol';
 import './abstract/RouterStorage.sol';
-import './interfaces/IMarginlyRouter.sol';
-import './interfaces/IMarginlyAdapter.sol';
 import './libraries/SwapsDecoder.sol';
 
 contract MarginlyRouter is AdapterCallback {
