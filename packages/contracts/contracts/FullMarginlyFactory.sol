@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
+
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
 import './libraries/Errors.sol';
@@ -12,9 +14,7 @@ import './FullMarginlyPool.sol';
 
 /// @title Marginly contract factory
 /// @notice Deploys Marginly and manages ownership and control over pool
-contract FullMarginlyFactory is IMarginlyFactory {
-  /// @inheritdoc IOwnable
-  address public override owner;
+contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
   /// @notice Address of uniswap factory
   address public immutable uniswapFactory;
   /// @notice Address of uniswap swap router
@@ -36,21 +36,11 @@ contract FullMarginlyFactory is IMarginlyFactory {
     address _WETH9,
     address _techPositionOwner
   ) {
-    owner = msg.sender;
-    emit OwnerChanged(address(0), msg.sender);
-
     uniswapFactory = _uniswapFactory;
     swapRouter = _swapRouter;
     feeHolder = _feeHolder;
     WETH9 = _WETH9;
     techPositionOwner = _techPositionOwner;
-  }
-
-  /// @inheritdoc IOwnable
-  function setOwner(address _owner) external override {
-    if (msg.sender != owner) revert Errors.NotOwner();
-    owner = _owner;
-    emit OwnerChanged(msg.sender, _owner);
   }
 
   /// @inheritdoc IMarginlyFactory
@@ -59,8 +49,7 @@ contract FullMarginlyFactory is IMarginlyFactory {
     address baseToken,
     uint24 uniswapFee,
     MarginlyParams calldata params
-  ) external override returns (address pool) {
-    if (msg.sender != owner) revert Errors.NotOwner();
+  ) external override onlyOwner returns (address pool) {
     require(quoteToken != baseToken);
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
@@ -87,10 +76,8 @@ contract FullMarginlyFactory is IMarginlyFactory {
   }
 
   /// @inheritdoc IMarginlyFactory
-  function changeSwapRouter(address newSwapRouter) external {
-    require(msg.sender == owner, 'NO'); // Not an owner
-    require(newSwapRouter != address(0));
-
+  function changeSwapRouter(address newSwapRouter) external onlyOwner {
+    if (newSwapRouter == address(0)) revert Errors.WrongValue();
     swapRouter = newSwapRouter;
   }
 }

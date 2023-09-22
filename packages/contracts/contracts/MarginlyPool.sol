@@ -7,6 +7,7 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '@openzeppelin/contracts/access/AccessControl.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
@@ -162,7 +163,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function _onlyFactoryOwner() private view {
-    if (msg.sender != IMarginlyFactory(factory).owner()) revert Errors.AccessDenied();
+    if (msg.sender != Ownable2Step(factory).owner()) revert Errors.AccessDenied();
   }
 
   modifier onlyFactoryOwner() {
