@@ -115,12 +115,16 @@ contract MarginlyPool is IMarginlyPool {
     address _uniswapPool,
     MarginlyParams memory _params
   ) internal {
+    if (_quoteToken == address(0)) revert Errors.WrongValue();
+    if (_baseToken == address(0)) revert Errors.WrongValue();
+    if (_uniswapPool == address(0)) revert Errors.WrongValue();
+
     factory = msg.sender;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
     quoteTokenIsToken0 = _quoteTokenIsToken0;
     uniswapPool = _uniswapPool;
-    params = _params;
+    _setParameters(_params);
 
     baseCollateralCoeff = FP96.one();
     baseDebtCoeff = FP96.one();
@@ -173,6 +177,17 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @inheritdoc IMarginlyPoolOwnerActions
   function setParameters(MarginlyParams calldata _params) external override onlyFactoryOwner {
+    _setParameters(_params);
+  }
+
+  function _setParameters(MarginlyParams memory _params) private {
+    if (_params.interestRate > 1_000_000) revert Errors.WrongValue();
+    if (_params.fee > 1_000_000) revert Errors.WrongValue();
+    if (_params.swapFee > 1_000_000) revert Errors.WrongValue();
+    if (_params.mcSlippage > 1_000_000) revert Errors.WrongValue();
+    if (_params.priceSecondsAgo == 0) revert Errors.WrongValue();
+    if (_params.priceSecondsAgoMC == 0) revert Errors.WrongValue();
+
     params = _params;
   }
 
