@@ -324,7 +324,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 swappedBaseDebt;
       if (realQuoteCollateral != 0) {
         uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-          getCurrentBasePrice().recipMul(realQuoteCollateral)
+          getLiquidationPrice().recipMul(realQuoteCollateral)
         );
         swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, UNISWAP_V3_ROUTER_SWAP);
         swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
@@ -367,7 +367,7 @@ contract MarginlyPool is IMarginlyPool {
       uint256 swappedQuoteDebt;
       if (realBaseCollateral != 0) {
         uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
-          getCurrentBasePrice().mul(realBaseCollateral)
+          getLiquidationPrice().mul(realBaseCollateral)
         );
         swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, UNISWAP_V3_ROUTER_SWAP);
         swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
@@ -439,6 +439,7 @@ contract MarginlyPool is IMarginlyPool {
   function depositBase(
     uint256 amount,
     uint256 longAmount,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -493,7 +494,7 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
 
     if (longAmount != 0) {
-      long(longAmount, basePrice, position, swapCalldata);
+      long(longAmount, limitPriceX96, basePrice, position, swapCalldata);
     }
   }
 
@@ -505,6 +506,7 @@ contract MarginlyPool is IMarginlyPool {
   function depositQuote(
     uint256 amount,
     uint256 shortAmount,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -559,7 +561,7 @@ contract MarginlyPool is IMarginlyPool {
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
 
     if (shortAmount != 0) {
-      short(shortAmount, basePrice, position, swapCalldata);
+      short(shortAmount, limitPriceX96, basePrice, position, swapCalldata);
     }
   }
 
@@ -665,7 +667,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Close position
   /// @param position msg.sender position
-  function closePosition(Position storage position, uint256 swapCalldata) private {
+  function closePosition(uint256 limitPriceX96, Position storage position, uint256 swapCalldata) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
     address collateralToken;
@@ -681,10 +683,8 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realBaseDebt = baseDebtCoeff.mul(positionDiscountedBaseDebtPrev, Math.Rounding.Up);
 
       {
-        // Check slippage below params.positionSlippage
-        uint256 quoteInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
-          getCurrentBasePrice().mul(realBaseDebt)
-        );
+        // quoteInMaximum is defined by user input limitPriceX96
+        uint256 quoteInMaximum = Math.mulDiv(limitPriceX96, realBaseDebt, FP96.Q96);
 
         realCollateralDelta = swapExactOutput(true, realQuoteCollateral, realBaseDebt, swapCalldata);
         if (realCollateralDelta > quoteInMaximum) revert Errors.SlippageLimit();
@@ -722,10 +722,8 @@ contract MarginlyPool is IMarginlyPool {
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
 
       {
-        // Check slippage below params.positionSlippage
-        uint256 baseInMaximum = FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE).mul(
-          getCurrentBasePrice().recipMul(exactQuoteOut)
-        );
+        // baseInMaximum is defined by user input limitPriceX96
+        uint256 baseInMaximum = Math.mulDiv(FP96.Q96, exactQuoteOut, limitPriceX96);
 
         realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
         if (realCollateralDelta > baseInMaximum) revert Errors.SlippageLimit();
@@ -762,14 +760,19 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Get oracle price baseToken / quoteToken
   function getBasePrice() public view returns (FP96.FixedPoint memory) {
-    uint256 sqrtPriceX96 = OracleLib.getSqrtPriceX96(uniswapPool, params.priceSecondsAgo);
+    uint256 sqrtPriceX96 = getTwapPrice(params.priceSecondsAgo);
     return sqrtPriceX96ToPrice(sqrtPriceX96);
   }
 
-  /// @notice Get current price of the pool
-  function getCurrentBasePrice() public view returns (FP96.FixedPoint memory) {
-    (uint256 sqrtPriceX96, , , , , , ) = IUniswapV3Pool(uniswapPool).slot0();
+  /// @notice Get TWAP price used in mc slippage calculations
+  function getLiquidationPrice() public view returns (FP96.FixedPoint memory) {
+    uint256 sqrtPriceX96 = getTwapPrice(params.priceSecondsAgoMC);
     return sqrtPriceX96ToPrice(sqrtPriceX96);
+  }
+
+  /// @notice returns uniswapV3 oracle TWAP sqrt price for `priceSecondsAgo` period
+  function getTwapPrice(uint16 priceSecondsAgo) private view returns (uint256) {
+    return OracleLib.getSqrtPriceX96(uniswapPool, priceSecondsAgo);
   }
 
   function sqrtPriceX96ToPrice(uint256 sqrtPriceX96) private view returns (FP96.FixedPoint memory price) {
@@ -787,6 +790,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param position msg.sender position
   function short(
     uint256 realBaseAmount,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -797,10 +801,8 @@ contract MarginlyPool is IMarginlyPool {
     if (_type != PositionType.Short && !(_type == PositionType.Lend && position.discountedBaseAmount == 0))
       revert Errors.WrongPositionType();
 
-    // Make swap with max slippage params.positionSlippage
-    uint256 quoteOutMinimum = getCurrentBasePrice()
-      .mul(FP96.fromRatio(WHOLE_ONE - params.positionSlippage, WHOLE_ONE))
-      .mul(realBaseAmount);
+    // quoteOutMinimum is defined by user input limitPriceX96
+    uint256 quoteOutMinimum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
     uint256 realQuoteCollateralChangeWithFee = swapExactInput(false, realBaseAmount, quoteOutMinimum, swapCalldata);
     uint256 swapPriceX96 = getSwapPrice(realQuoteCollateralChangeWithFee, realBaseAmount);
 
@@ -838,6 +840,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param position msg.sender position
   function long(
     uint256 realBaseAmount,
+    uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
     uint256 swapCalldata
@@ -849,10 +852,8 @@ contract MarginlyPool is IMarginlyPool {
     if (_type != PositionType.Long && !(_type == PositionType.Lend && position.discountedQuoteAmount == 0))
       revert Errors.WrongPositionType();
 
-    // Make swap with max slippage params.positionSlippage
-    uint256 realQuoteInMaximum = getCurrentBasePrice()
-      .mul(FP96.fromRatio(WHOLE_ONE + params.positionSlippage, WHOLE_ONE))
-      .mul(realBaseAmount);
+    // realQuoteInMaximum is defined by user input limitPriceX96
+    uint256 realQuoteInMaximum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
     uint256 realQuoteAmount = swapExactOutput(true, realQuoteInMaximum, realBaseAmount, swapCalldata);
     uint256 swapPriceX96 = getSwapPrice(realQuoteAmount, realBaseAmount);
 
@@ -1378,6 +1379,7 @@ contract MarginlyPool is IMarginlyPool {
     CallType call,
     uint256 amount1,
     uint256 amount2,
+    uint256 limitPriceX96,
     bool flag,
     address receivePositionAddress,
     uint256 swapCalldata
@@ -1405,19 +1407,19 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     if (call == CallType.DepositBase) {
-      depositBase(amount1, amount2, basePrice, position, swapCalldata);
+      depositBase(amount1, amount2, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.DepositQuote) {
-      depositQuote(amount1, amount2, basePrice, position, swapCalldata);
+      depositQuote(amount1, amount2, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.WithdrawBase) {
       withdrawBase(amount1, flag, basePrice, position);
     } else if (call == CallType.WithdrawQuote) {
       withdrawQuote(amount1, flag, basePrice, position);
     } else if (call == CallType.Short) {
-      short(amount1, basePrice, position, swapCalldata);
+      short(amount1, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.Long) {
-      long(amount1, basePrice, position, swapCalldata);
+      long(amount1, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.ClosePosition) {
-      closePosition(position, swapCalldata);
+      closePosition(limitPriceX96, position, swapCalldata);
     } else if (call == CallType.Reinit && flag) {
       // reinit itself has already taken place
       syncBaseBalance();
