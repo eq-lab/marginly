@@ -457,13 +457,13 @@ contract MarginlyPool is IMarginlyPool {
       uint256 discountedBaseDebtDelta;
 
       if (amount >= realBaseDebt) {
-        uint256 realBaseCollateral = amount.sub(realBaseDebt);
-        if (basePrice.mul(newPoolBaseBalance(realBaseCollateral)) > params.quoteLimit) revert Errors.ExceedsLimit();
+        uint256 newRealBaseCollateral = amount.sub(realBaseDebt);
+        if (basePrice.mul(newPoolBaseBalance(newRealBaseCollateral)) > params.quoteLimit) revert Errors.ExceedsLimit();
 
         shortHeap.remove(positions, position.heapPosition - 1);
         // Short position debt <= depositAmount, increase collateral on delta, change position to Lend
         // discountedBaseCollateralDelta = (amount - realDebt)/ baseCollateralCoeff
-        uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(realBaseCollateral);
+        uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(newRealBaseCollateral);
         discountedBaseDebtDelta = positionDiscountedBaseAmountPrev;
         position._type = PositionType.Lend;
         position.discountedBaseAmount = discountedBaseCollateralDelta;
@@ -526,13 +526,13 @@ contract MarginlyPool is IMarginlyPool {
       uint256 discountedQuoteDebtDelta;
 
       if (amount >= realQuoteDebt) {
-        uint256 realQuoteCollateral = amount.sub(realQuoteDebt);
-        if (newPoolQuoteBalance(realQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
+        uint256 newRealQuoteCollateral = amount.sub(realQuoteDebt);
+        if (newPoolQuoteBalance(newRealQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
 
         longHeap.remove(positions, position.heapPosition - 1);
         // Long position, debt <= depositAmount, increase collateral on delta, move position to Lend
         // quoteCollateralChange = (amount - discountedDebt)/ quoteCollateralCoef
-        uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(realQuoteCollateral);
+        uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(newRealQuoteCollateral);
         discountedQuoteDebtDelta = positionDiscountedQuoteAmountPrev;
         position._type = PositionType.Lend;
         position.discountedQuoteAmount = discountedQuoteCollateralDelta;
