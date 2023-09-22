@@ -8,7 +8,8 @@ interface IMarginlyPoolOwnerActions {
   function setParameters(MarginlyParams calldata _params) external;
 
   /// @notice Switch to emergency mode when collateral of any side not enough to cover debt
-  function shutDown() external;
+  /// @param swapCalldata router calldata for splitting swap to reduce potential sandwich attacks impact
+  function shutDown(uint256 swapCalldata) external;
 
   /// @notice Sweep ETH balance of contract
   function sweepETH() external;

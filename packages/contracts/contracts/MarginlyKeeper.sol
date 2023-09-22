@@ -97,18 +97,18 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     address collateralToken;
     if (quoteToken == asset) {
       SafeERC20.forceApprove(IERC20(quoteToken), params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate, 0);
+      marginlyPool.execute(CallType.ReceivePosition, amount, 0, 0, false, params.positionToLiquidate, 0);
       collateralToken = baseToken;
     } else if (baseToken == asset) {
       SafeERC20.forceApprove(IERC20(baseToken), params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate, 0);
+      marginlyPool.execute(CallType.ReceivePosition, 0, amount, 0, false, params.positionToLiquidate, 0);
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');
     }
 
-    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0), 0);
-    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0), 0);
+    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, 0, false, address(0), 0);
+    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, 0, false, address(0), 0);
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 

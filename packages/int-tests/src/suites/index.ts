@@ -93,25 +93,25 @@ async function initializeTestSystem(
   logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
 
   const uniswapAdapter = await UniswapV3MarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: uniswap.address}],
-    treasury,
+    [{ token0: weth.address, token1: usdc.address, pool: uniswap.address }],
+    treasury
   );
 
   const kyberClassicAdapter = await KyberClassicMarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76'}],
-    treasury,
+    [{ token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76' }],
+    treasury
   );
 
   const sushiSwapAdapter = await UniswapV2MarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0'}],
-    treasury,
+    [{ token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0' }],
+    treasury
   );
 
   const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
   const balancerAdapter = await BalancerMarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8'}],
+    [{ token0: weth.address, token1: usdc.address, pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8' }],
     balancerVault,
-    treasury,
+    treasury
   );
 
   const routerConstructorInput = [];
@@ -155,6 +155,7 @@ async function initializeTestSystem(
     maxLeverage: 20n,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900n, // 15 min
+    priceSecondsAgoMC: 60n, // 1 min
     positionSlippage: 20000, // 2%
     mcSlippage: 50000, //5%
     positionMinAmount: 10000000000000000n, // 0,01 ETH
