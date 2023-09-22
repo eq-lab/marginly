@@ -43,7 +43,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'quoteDelevCoeff()': utils.FunctionFragment;
     'quoteToken()': utils.FunctionFragment;
     'setParameters(tuple)': utils.FunctionFragment;
-    'shutDown()': utils.FunctionFragment;
+    'shutDown(uint256)': utils.FunctionFragment;
     'sweepETH()': utils.FunctionFragment;
     'systemLeverage()': utils.FunctionFragment;
     'uniswapPool()': utils.FunctionFragment;
@@ -176,7 +176,10 @@ export interface MarginlyPoolContract extends BaseContract {
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+  shutDown(
+    swapCalldata: PromiseOrValue<BigNumberish>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
   uniswapPool(override?: CallOverrides): Promise<string>;
@@ -273,7 +276,10 @@ export interface MarginlyPoolContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
+    shutDown(
+      swapCalldata: PromiseOrValue<BigNumberish>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
     sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
   };
   populateTransaction: {
@@ -319,7 +325,10 @@ export interface MarginlyPoolContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+    shutDown(
+      swapCalldata: PromiseOrValue<BigNumberish>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
     sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
   };
   callStatic: {
@@ -365,7 +374,10 @@ export interface MarginlyPoolContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
-    shutDown(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
+    shutDown(
+      swapCalldata: PromiseOrValue<BigNumberish>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
     sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
   };
 }

@@ -1151,7 +1151,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
-  function shutDown() external onlyFactoryOwner lock {
+  function shutDown(uint256 swapCalldata) external onlyFactoryOwner lock {
     if (mode != Mode.Regular) revert Errors.EmergencyMode();
     accrueInterest();
 
@@ -1172,12 +1172,28 @@ contract MarginlyPool is IMarginlyPool {
     uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
 
     if (basePrice.mul(baseDebt) > quoteCollateral) {
-      setEmergencyMode(Mode.ShortEmergency, basePrice, baseCollateral, baseDebt, quoteCollateral, quoteDebt);
+      setEmergencyMode(
+        Mode.ShortEmergency,
+        basePrice,
+        baseCollateral,
+        baseDebt,
+        quoteCollateral,
+        quoteDebt,
+        swapCalldata
+      );
       return;
     }
 
     if (quoteDebt > basePrice.mul(baseCollateral)) {
-      setEmergencyMode(Mode.LongEmergency, basePrice, quoteCollateral, quoteDebt, baseCollateral, baseDebt);
+      setEmergencyMode(
+        Mode.LongEmergency,
+        basePrice,
+        quoteCollateral,
+        quoteDebt,
+        baseCollateral,
+        baseDebt,
+        swapCalldata
+      );
       return;
     }
 
@@ -1191,7 +1207,8 @@ contract MarginlyPool is IMarginlyPool {
     uint256 collateral,
     uint256 debt,
     uint256 emergencyCollateral,
-    uint256 emergencyDebt
+    uint256 emergencyDebt,
+    uint256 swapCalldata
   ) private {
     mode = _mode;
     initialPrice = shutDownPrice;
@@ -1201,7 +1218,7 @@ contract MarginlyPool is IMarginlyPool {
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
-      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, UNISWAP_V3_ROUTER_SWAP);
+      uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, swapCalldata);
 
       balance = balance.add(collateralSurplus);
     }
