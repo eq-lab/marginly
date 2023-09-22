@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import '../interfaces/IMarginlyAdapter.sol';
 
@@ -11,7 +11,7 @@ struct PoolInput {
   address pool;
 }
 
-abstract contract AdapterStorage is IMarginlyAdapter, Ownable {
+abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
   /// @notice Emitted when new pool is added
   event NewPool(address indexed token0, address indexed token1, address indexed pool);
 

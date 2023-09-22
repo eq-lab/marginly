@@ -9,6 +9,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
+    "test:coverage": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat coverage  --testfiles './test/*.spec.ts'",
     "gas": "hardhat test ./test/gas-costs/*.spec.ts",
     "test:unit": "REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "test:bench": "REPORT_GAS=true hardhat test ./test/benchmarks/*.bench.ts",

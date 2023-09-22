@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 /// @dev Accrue interest doesn't happen in emergency mode.
 /// @notice System mode. By default Regular, otherwise ShortEmergency/LongEmergency
