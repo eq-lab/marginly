@@ -2,15 +2,12 @@
 pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import './abstract/AdapterCallback.sol';
 import './abstract/RouterStorage.sol';
-import './interfaces/IMarginlyRouter.sol';
-import './interfaces/IMarginlyAdapter.sol';
 import './libraries/SwapsDecoder.sol';
 
-contract MarginlyRouter is RouterStorage, AdapterCallback {
+contract MarginlyRouter is AdapterCallback {
   constructor(AdapterInput[] memory _adapters) RouterStorage(_adapters) {}
 
   /// @inheritdoc IMarginlyRouter
@@ -27,7 +24,7 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
 
     SwapsDecoder.SwapInfo[] memory swapInfos = SwapsDecoder.decodeSwapInfo(swapCalldata, amountIn, minAmountOut);
 
-    for (uint256 i; i < swapInfos.length; ++i) {
+    for (uint256 i; i < swapInfos.length; ) {
       SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountIn = swapInfo.dexAmountIn;
@@ -44,6 +41,10 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
 
       amountOut += dexAmountOut;
       emit Swap(true, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
+
+      unchecked {
+        ++i;
+      }
     }
 
     if (amountOut != IERC20(tokenOut).balanceOf(msg.sender) - balanceBefore) revert WrongAmountOut();
@@ -63,7 +64,7 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
 
     SwapsDecoder.SwapInfo[] memory swapInfos = SwapsDecoder.decodeSwapInfo(swapCalldata, maxAmountIn, amountOut);
 
-    for (uint256 i; i < swapInfos.length; ++i) {
+    for (uint256 i; i < swapInfos.length; ) {
       SwapsDecoder.SwapInfo memory swapInfo = swapInfos[i];
       uint256 dexIndex = swapInfo.dexIndex;
       uint256 dexAmountOut = swapInfo.dexAmountOut;
@@ -80,6 +81,10 @@ contract MarginlyRouter is RouterStorage, AdapterCallback {
 
       amountIn += dexAmountIn;
       emit Swap(false, dexIndex, msg.sender, tokenIn, tokenOut, dexAmountIn, dexAmountOut);
+
+      unchecked {
+        ++i;
+      }
     }
 
     if (amountOut != IERC20(tokenOut).balanceOf(msg.sender) - balanceBefore) revert WrongAmountOut();

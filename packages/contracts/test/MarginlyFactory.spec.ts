@@ -73,10 +73,13 @@ describe('MarginlyFactory', () => {
     const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
 
     const quoteToken = uniswapPoolInfo.token1.address;
-    const baseToken = uniswapPoolInfo.token1.address;
+    const randomAddress = factory.address;
     const { fee, params } = getPoolParams();
 
-    await expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithoutReason();
+    await expect(factory.createPool(quoteToken, randomAddress, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'UniswapPoolNotFound'
+    );
   });
 
   it('should raise error when trying to create pool with the same tokens', async () => {
@@ -84,6 +87,9 @@ describe('MarginlyFactory', () => {
     const quoteToken = uniswapPoolInfo.token0.address;
     const { fee, params } = getPoolParams();
 
-    await expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithoutReason();
+    await expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'Forbidden'
+    );
   });
 });

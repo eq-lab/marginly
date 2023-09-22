@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.19;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
@@ -50,7 +49,7 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
     uint24 uniswapFee,
     MarginlyParams calldata params
   ) external override onlyOwner returns (address pool) {
-    require(quoteToken != baseToken);
+    if (quoteToken == baseToken) revert Errors.Forbidden();
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
     if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();

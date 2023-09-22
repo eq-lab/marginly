@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
 abstract contract UniswapV2LikeSwap {

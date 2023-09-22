@@ -21,19 +21,29 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
 
   constructor(AdapterInput[] memory _adapters) {
     AdapterInput memory input;
-    for (uint256 i; i < _adapters.length; ++i) {
+    uint256 length = _adapters.length;
+    for (uint256 i; i < length; ) {
       input = _adapters[i];
       adapters[input.dexIndex] = input.adapter;
       emit NewAdapter(input.dexIndex, input.adapter);
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
   function addDexAdapters(AdapterInput[] calldata _adapters) external onlyOwner {
     AdapterInput memory input;
-    for (uint256 i; i < _adapters.length; ++i) {
+    uint256 length = _adapters.length;
+    for (uint256 i; i < length; ) {
       input = _adapters[i];
       adapters[input.dexIndex] = input.adapter;
       emit NewAdapter(input.dexIndex, input.adapter);
+
+      unchecked {
+        ++i;
+      }
     }
   }
 

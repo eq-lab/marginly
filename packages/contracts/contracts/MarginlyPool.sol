@@ -2,11 +2,9 @@
 pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
-import '@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
-import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
@@ -32,13 +30,13 @@ contract MarginlyPool is IMarginlyPool {
   using LowGasSafeMath for uint256;
 
   /// @dev FP96 inner value of count of seconds in year. Equal 365.25 * 24 * 60 * 60
-  uint256 constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
+  uint256 private constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
 
   /// @dev router calldata for swap on UniswapV3;
-  uint256 constant UNISWAP_V3_ROUTER_SWAP = 0;
+  uint256 private constant UNISWAP_V3_ROUTER_SWAP = 0;
 
   /// @dev Denominator of fee value
-  uint24 constant WHOLE_ONE = 1e6;
+  uint24 private constant WHOLE_ONE = 1e6;
 
   /// @inheritdoc IMarginlyPool
   address public override factory;
@@ -72,7 +70,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Aggregate for base collateral time change calculations
   FP96.FixedPoint public baseCollateralCoeff;
-  /// @dev Accrued interest rate and fee for base debt
+  /// @dev Aggregate for deleveraged base collateral
   FP96.FixedPoint public baseDelevCoeff;
   /// @dev Aggregate for base debt time change calculations
   FP96.FixedPoint public baseDebtCoeff;
@@ -1380,7 +1378,7 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
-  /// @dev for testing purposes
+  /// @dev Used by keeper service
   function getHeapPosition(
     uint32 index,
     bool _short
