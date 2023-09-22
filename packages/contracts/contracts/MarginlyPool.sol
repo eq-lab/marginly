@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 import '@uniswap/v3-core/contracts/interfaces/IERC20Minimal.sol';
