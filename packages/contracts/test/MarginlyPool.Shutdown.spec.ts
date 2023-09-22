@@ -1,4 +1,4 @@
-import { createMarginlyPool } from './shared/fixtures';
+import { createMarginlyPool, TechnicalPositionOwner } from './shared/fixtures';
 import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
@@ -22,7 +22,8 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, shorter1, shorter2] = await ethers.getSigners();
+    const [owner, shorter1, shorter2] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -65,7 +66,8 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, shorter1, shorter2] = await ethers.getSigners();
+    const [owner, shorter1, shorter2] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -106,7 +108,8 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, longer1, longer2] = await ethers.getSigners();
+    const [owner, longer1, longer2] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -149,7 +152,8 @@ describe('MarginlyPool.Shutdown', () => {
       baseContract,
       quoteContract,
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, shorter, longer] = await ethers.getSigners();
+    const [owner, shorter, longer] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -157,6 +161,11 @@ describe('MarginlyPool.Shutdown', () => {
     await marginlyPool
       .connect(depositor)
       .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+    // for balance syncing
+    await marginlyPool
+      .connect(depositor)
+      .execute(CallType.DepositQuote, 2, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const shortAmount = 100;
 
@@ -176,7 +185,6 @@ describe('MarginlyPool.Shutdown', () => {
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
     await time.increase(timeShift);
-
     await marginlyPool.connect(owner).shutDown();
     expect(await marginlyPool.mode()).to.be.equal(MarginlyPoolMode.ShortEmergency);
 
@@ -241,7 +249,8 @@ describe('MarginlyPool.Shutdown', () => {
       quoteContract,
       baseContract,
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, longer, shorter] = await ethers.getSigners();
+    const [owner, longer, shorter] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -334,7 +343,8 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, shorter, longer] = await ethers.getSigners();
+    const [owner, shorter, longer] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -342,6 +352,11 @@ describe('MarginlyPool.Shutdown', () => {
     await marginlyPool
       .connect(depositor)
       .execute(CallType.DepositBase, amountToDeposit, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+    // for balance syncing
+    await marginlyPool
+      .connect(depositor)
+      .execute(CallType.DepositQuote, 2, 0, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     const shortAmount = 100;
 
@@ -392,7 +407,8 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, shorter] = await ethers.getSigners();
+    const [owner, shorter] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 
@@ -426,7 +442,8 @@ describe('MarginlyPool.Shutdown', () => {
       marginlyPool,
       uniswapPoolInfo: { pool },
     } = await loadFixture(createMarginlyPool);
-    const [owner, depositor, longer] = await ethers.getSigners();
+    const [owner, longer] = await ethers.getSigners();
+    const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
 

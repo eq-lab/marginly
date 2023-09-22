@@ -1148,6 +1148,9 @@ contract MarginlyPool is IMarginlyPool {
     if (mode != Mode.Regular) revert Errors.EmergencyMode();
     accrueInterest();
 
+    syncBaseBalance();
+    syncQuoteBalance();
+
     FP96.FixedPoint memory basePrice = getBasePrice();
 
     /* We use Rounding.Up in baseDebt/quoteDebt calculation 
