@@ -35,7 +35,7 @@ export async function shortEmergency(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, lenderDepositBaseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositBase, lenderDepositBaseAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 400_000,
       })
   ).wait();
@@ -48,12 +48,22 @@ export async function shortEmergency(sut: SystemUnderTest) {
     logger.info(`Shorter deposit ${formatUnits(shorterDepositQuote, 6)} USDC`);
     logger.info(`Short to ${formatUnits(shortAmount, 18)} WETH`);
     await (await usdc.connect(shorter).approve(marginlyPool.address, shorterDepositQuote)).wait();
+    const minPrice = (await marginlyPool.getBasePrice()).inner.div(2);
     await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositQuote, shorterDepositQuote, shortAmount, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
-          gasLimit: 900_000,
-        })
+        .execute(
+          CallType.DepositQuote,
+          shorterDepositQuote,
+          shortAmount,
+          minPrice,
+          false,
+          ZERO_ADDRESS,
+          uniswapV3Swapdata(),
+          {
+            gasLimit: 900_000,
+          }
+        )
     ).wait();
   }
   await showSystemAggregates(sut);
@@ -65,7 +75,7 @@ export async function shortEmergency(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(longer)
-      .execute(CallType.DepositBase, longDepositBase, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositBase, longDepositBase, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 400_000,
       })
   ).wait();
@@ -73,10 +83,11 @@ export async function shortEmergency(sut: SystemUnderTest) {
   // longer make long on 1.8 ETH
   const longAmount = parseUnits('0.5', 18);
   logger.info(`Long to ${formatUnits(longAmount, 18)} WETH`);
+  const maxPrice = (await marginlyPool.getBasePrice()).inner.mul(2);
   await (
     await marginlyPool
       .connect(longer)
-      .execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
+      .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
   ).wait();
   await showSystemAggregates(sut);
 
@@ -99,7 +110,7 @@ export async function shortEmergency(sut: SystemUnderTest) {
       const txReceipt = await (
         await marginlyPool
           .connect(treasury)
-          .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.Reinit, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
       ).wait();
       const marginCallEvent = txReceipt.events?.find((e) => e.event == 'EnactMarginCall');
       if (marginCallEvent) {
@@ -138,12 +149,12 @@ export async function shortEmergency(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(longer)
-      .execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
+      .execute(CallType.EmergencyWithdraw, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
   ).wait();
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
+      .execute(CallType.EmergencyWithdraw, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
   ).wait();
 
   await showSystemAggregates(sut);
@@ -166,7 +177,7 @@ export async function longEmergency(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, lenderDepositQuoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositQuote, lenderDepositQuoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 400_000,
       })
   ).wait();
@@ -180,12 +191,22 @@ export async function longEmergency(sut: SystemUnderTest) {
     const longAmount = parseUnits('0.9', 18);
     logger.info(`Long to ${formatUnits(longAmount, 18)} WETH`);
     await (await weth.connect(longer).approve(marginlyPool.address, longDepositBase)).wait();
+    const maxPrice = (await marginlyPool.getBasePrice()).inner.mul(2);
     await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, longDepositBase, longAmount, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
-          gasLimit: 900_000,
-        })
+        .execute(
+          CallType.DepositBase,
+          longDepositBase,
+          longAmount,
+          maxPrice,
+          false,
+          ZERO_ADDRESS,
+          uniswapV3Swapdata(),
+          {
+            gasLimit: 900_000,
+          }
+        )
     ).wait();
   }
   await showSystemAggregates(sut);
@@ -197,17 +218,20 @@ export async function longEmergency(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(shorter)
-      .execute(CallType.DepositQuote, shorterDepositQuote, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositQuote, shorterDepositQuote, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 400_000,
       })
   ).wait();
 
   //shorter make short on 2.0 ETH
   const shortAmount = parseUnits('2', 18);
+  const minPrice = (await marginlyPool.getBasePrice()).inner.div(2);
   await (
     await marginlyPool
       .connect(shorter)
-      .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 900_000 })
+      .execute(CallType.Short, shortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 900_000,
+      })
   ).wait();
   logger.info(`Short to ${formatUnits(shortAmount, 18)} WETH`);
   await showSystemAggregates(sut);
@@ -231,7 +255,7 @@ export async function longEmergency(sut: SystemUnderTest) {
       const txReceipt = await (
         await marginlyPool
           .connect(treasury)
-          .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+          .execute(CallType.Reinit, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
       ).wait();
       const marginCallEvent = txReceipt.events?.find((e) => e.event == 'EnactMarginCall');
       if (marginCallEvent) {
@@ -259,12 +283,12 @@ export async function longEmergency(sut: SystemUnderTest) {
   await (
     await marginlyPool
       .connect(shorter)
-      .execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
+      .execute(CallType.EmergencyWithdraw, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
   ).wait();
   await (
     await marginlyPool
       .connect(lender)
-      .execute(CallType.EmergencyWithdraw, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
+      .execute(CallType.EmergencyWithdraw, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 400_000 })
   ).wait();
 
   await showSystemAggregates(sut);

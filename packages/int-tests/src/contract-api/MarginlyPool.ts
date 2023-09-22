@@ -28,11 +28,11 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'discountedQuoteCollateral()': utils.FunctionFragment;
     'discountedQuoteDebt()': utils.FunctionFragment;
     'emergencyWithdrawCoeff()': utils.FunctionFragment;
-    'execute(uint8,uint256,uint256,bool,address,uint256)': utils.FunctionFragment;
+    'execute(uint8,uint256,uint256,uint256,bool,address,uint256)': utils.FunctionFragment;
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
-    'getCurrentBasePrice()': utils.FunctionFragment;
     'getHeapPosition(uint32,bool)': utils.FunctionFragment;
+    'getLiquidationPrice()': utils.FunctionFragment;
     'initialize(address,address,bool,address,tuple)': utils.FunctionFragment;
     'lastReinitTimestampSeconds()': utils.FunctionFragment;
     'mode()': utils.FunctionFragment;
@@ -63,8 +63,8 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'execute'
       | 'factory'
       | 'getBasePrice'
-      | 'getCurrentBasePrice'
       | 'getHeapPosition'
+      | 'getLiquidationPrice'
       | 'initialize'
       | 'lastReinitTimestampSeconds'
       | 'mode'
@@ -102,6 +102,7 @@ export interface MarginlyPoolContract extends BaseContract {
     call: BigNumberish,
     amount1: BigNumberish,
     amount2: BigNumberish,
+    limitPrice: BigNumberish,
     flag: boolean,
     receivePositionAddress: string,
     swapCalldata: BigNumberish,
@@ -109,12 +110,12 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<ContractTransaction>;
   factory(override?: CallOverrides): Promise<string>;
   getBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
-  getCurrentBasePrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
   getHeapPosition(
     index: PromiseOrValue<BigNumberish>,
     _short: PromiseOrValue<boolean>,
     override?: CallOverrides
   ): Promise<[boolean, { key: BigNumber; account: string }]>;
+  getLiquidationPrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
   initialize(
     _quoteToken: PromiseOrValue<string>,
     _baseToken: PromiseOrValue<string>,
@@ -123,10 +124,10 @@ export interface MarginlyPoolContract extends BaseContract {
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
+      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
       quoteLimit: BigNumberish;
@@ -140,10 +141,10 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<{
     maxLeverage: number;
     priceSecondsAgo: BigNumber;
+    priceSecondsAgoMC: BigNumber;
     interestRate: BigNumber;
     fee: BigNumber;
     swapFee: BigNumber;
-    positionSlippage: BigNumber;
     mcSlippage: BigNumber;
     positionMinAmount: BigNumber;
     quoteLimit: BigNumber;
@@ -165,10 +166,10 @@ export interface MarginlyPoolContract extends BaseContract {
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
+      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
       quoteLimit: BigNumberish;
@@ -192,12 +193,12 @@ export interface MarginlyPoolContract extends BaseContract {
     emergencyWithdrawCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     factory(override?: CallOverrides): Promise<[string]>;
     getBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
-    getCurrentBasePrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
     getHeapPosition(
       index: PromiseOrValue<BigNumberish>,
       _short: PromiseOrValue<boolean>,
       override?: CallOverrides
     ): Promise<[boolean, { key: BigNumber; account: string }]>;
+    getLiquidationPrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
     lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumber]>;
     mode(override?: CallOverrides): Promise<[number]>;
     params(
@@ -205,10 +206,10 @@ export interface MarginlyPoolContract extends BaseContract {
     ): Promise<{
       maxLeverage: number;
       priceSecondsAgo: BigNumber;
+      priceSecondsAgoMC: BigNumber;
       interestRate: BigNumber;
       fee: BigNumber;
       swapFee: BigNumber;
-      positionSlippage: BigNumber;
       mcSlippage: BigNumber;
       positionMinAmount: BigNumber;
       quoteLimit: BigNumber;
@@ -234,6 +235,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
+      limitPrice: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -247,10 +249,10 @@ export interface MarginlyPoolContract extends BaseContract {
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -261,10 +263,10 @@ export interface MarginlyPoolContract extends BaseContract {
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -279,6 +281,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
+      limitPrice: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -292,10 +295,10 @@ export interface MarginlyPoolContract extends BaseContract {
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -306,10 +309,10 @@ export interface MarginlyPoolContract extends BaseContract {
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -324,6 +327,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
+      limitPrice: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -337,10 +341,10 @@ export interface MarginlyPoolContract extends BaseContract {
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -351,10 +355,10 @@ export interface MarginlyPoolContract extends BaseContract {
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
