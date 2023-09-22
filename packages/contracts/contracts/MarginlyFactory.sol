@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
@@ -12,10 +13,8 @@ import './MarginlyPool.sol';
 
 /// @title Marginly contract factory
 /// @notice Deploys Marginly and manages ownership and control over pool
-contract MarginlyFactory is IMarginlyFactory {
+contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
   address public immutable marginlyPoolImplementation;
-  /// @inheritdoc IOwnable
-  address public override owner;
   /// @notice Address of uniswap factory
   address public immutable uniswapFactory;
   /// @notice Address of uniswap swap router
@@ -38,9 +37,6 @@ contract MarginlyFactory is IMarginlyFactory {
     address _WETH9,
     address _techPositionOwner
   ) {
-    owner = msg.sender;
-    emit OwnerChanged(address(0), msg.sender);
-
     marginlyPoolImplementation = _marginlyPoolImplementation;
     uniswapFactory = _uniswapFactory;
     swapRouter = _swapRouter;
@@ -49,21 +45,13 @@ contract MarginlyFactory is IMarginlyFactory {
     techPositionOwner = _techPositionOwner;
   }
 
-  /// @inheritdoc IOwnable
-  function setOwner(address _owner) external override {
-    if (msg.sender != owner) revert Errors.NotOwner();
-    owner = _owner;
-    emit OwnerChanged(msg.sender, _owner);
-  }
-
   /// @inheritdoc IMarginlyFactory
   function createPool(
     address quoteToken,
     address baseToken,
     uint24 uniswapFee,
     MarginlyParams calldata params
-  ) external override returns (address pool) {
-    if (msg.sender != owner) revert Errors.NotOwner();
+  ) external override onlyOwner returns (address pool) {
     if (quoteToken == baseToken) revert Errors.Forbidden();
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
@@ -84,10 +72,9 @@ contract MarginlyFactory is IMarginlyFactory {
   }
 
   /// @inheritdoc IMarginlyFactory
-  function changeSwapRouter(address newSwapRouter) external {
-    if (msg.sender != owner) revert Errors.NotOwner();
-    if (newSwapRouter == address(0)) revert Errors.Forbidden();
-
+  function changeSwapRouter(address newSwapRouter) external onlyOwner {
+    if (newSwapRouter == address(0)) revert Errors.WrongValue();
     swapRouter = newSwapRouter;
+    emit SwapRouterChanged(newSwapRouter);
   }
 }

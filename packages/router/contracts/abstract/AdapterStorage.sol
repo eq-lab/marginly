@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import '../interfaces/IMarginlyAdapter.sol';
 
@@ -11,7 +11,10 @@ struct PoolInput {
   address pool;
 }
 
-abstract contract AdapterStorage is IMarginlyAdapter, Ownable {
+abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
+  /// @notice Emitted when new pool is added
+  event NewPool(address indexed token0, address indexed token1, address indexed pool);
+
   error UnknownPool();
 
   mapping(address => mapping(address => address)) public getPool;
@@ -23,6 +26,7 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable {
       input = pools[i];
       getPool[input.token0][input.token1] = input.pool;
       getPool[input.token1][input.token0] = input.pool;
+      emit NewPool(input.token0, input.token1, input.pool);
 
       unchecked {
         ++i;
@@ -37,6 +41,7 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable {
       input = pools[i];
       getPool[input.token0][input.token1] = input.pool;
       getPool[input.token1][input.token0] = input.pool;
+      emit NewPool(input.token0, input.token1, input.pool);
 
       unchecked {
         ++i;

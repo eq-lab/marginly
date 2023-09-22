@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 import './TestUniswapPool.sol';
@@ -33,6 +33,8 @@ contract TestSwapRouter is IMarginlyRouter {
 
     IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
     IERC20(tokenOut).transfer(msg.sender, amountOut);
+
+    require(amountOut >= minAmountOut, 'TooMuchRequested');
   }
 
   function swapExactOutput(
@@ -54,8 +56,8 @@ contract TestSwapRouter is IMarginlyRouter {
     IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
     IERC20(tokenOut).transfer(msg.sender, amountOut);
 
-    require(amountIn <= maxAmountIn);
+    require(amountIn <= maxAmountIn, 'InsufficientAmount');
   }
 
-  function adapterCallback(address recipient, uint256 amount, bytes calldata data) external {} 
+  function adapterCallback(address recipient, uint256 amount, bytes calldata data) external {}
 }
