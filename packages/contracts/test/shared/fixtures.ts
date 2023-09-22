@@ -182,6 +182,19 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     await uniswapPoolInfo.token1.connect(signers[i]).approve(poolAddress, amountToDeposit);
   }
 
+  const techPositionOwner = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
+  const wallet = (await ethers.getSigners())[signers.length];
+  await wallet.sendTransaction({
+    to: TechnicalPositionOwner,
+    value: (await wallet.getBalance()).div(2),
+  });
+
+  await uniswapPoolInfo.token0.mint(TechnicalPositionOwner, amountToDeposit);
+  await uniswapPoolInfo.token1.mint(TechnicalPositionOwner, amountToDeposit);
+
+  await uniswapPoolInfo.token0.connect(techPositionOwner).approve(poolAddress, amountToDeposit);
+  await uniswapPoolInfo.token1.connect(techPositionOwner).approve(poolAddress, amountToDeposit);
+
   // await uniswapPoolInfo.token0.mint(pool.address, amountToDeposit);
   // await uniswapPoolInfo.token1.mint(pool.address, amountToDeposit);
 

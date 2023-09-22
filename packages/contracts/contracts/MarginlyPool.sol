@@ -80,8 +80,8 @@ contract MarginlyPool is IMarginlyPool {
   FP96.FixedPoint public quoteDelevCoeff;
   /// @dev Accrued interest rate and fee for quote debt
   FP96.FixedPoint public quoteDebtCoeff;
-  /// @dev Initial price. Used to sort key calculation.
-  FP96.FixedPoint private initialPrice;
+  /// @dev Initial price. Used to sort key and shutdown calculations. Value gets reset for the latter one
+  FP96.FixedPoint public initialPrice;
   /// @dev Ratio of best side collaterals before and after margin call of opposite side in shutdown mode
   FP96.FixedPoint public emergencyWithdrawCoeff;
 
@@ -1149,9 +1149,10 @@ contract MarginlyPool is IMarginlyPool {
     if (mode != Mode.Regular) revert Errors.EmergencyMode();
     accrueInterest();
 
+    syncBaseBalance();
+    syncQuoteBalance();
+
     FP96.FixedPoint memory basePrice = getBasePrice();
-    uint256 _discountedQuoteCollateral = discountedQuoteCollateral;
-    uint256 _discountedBaseCollateral = discountedBaseCollateral;
 
     /* We use Rounding.Up in baseDebt/quoteDebt calculation 
        to avoid case when "surplus = quoteCollateral - quoteDebt"
@@ -1159,32 +1160,18 @@ contract MarginlyPool is IMarginlyPool {
      */
 
     uint256 baseDebt = baseDebtCoeff.mul(discountedBaseDebt, Math.Rounding.Up);
-    uint256 quoteCollateral = calcRealQuoteCollateral(_discountedQuoteCollateral, discountedBaseDebt);
+    uint256 quoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
 
     uint256 quoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt, Math.Rounding.Up);
-    uint256 baseCollateral = calcRealBaseCollateral(_discountedBaseCollateral, discountedQuoteDebt);
+    uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
 
     if (basePrice.mul(baseDebt) > quoteCollateral) {
-      setEmergencyMode(
-        Mode.ShortEmergency,
-        baseCollateral,
-        baseDebt,
-        _discountedBaseCollateral,
-        quoteCollateral,
-        quoteDebt
-      );
+      setEmergencyMode(Mode.ShortEmergency, basePrice, baseCollateral, baseDebt, quoteCollateral, quoteDebt);
       return;
     }
 
     if (quoteDebt > basePrice.mul(baseCollateral)) {
-      setEmergencyMode(
-        Mode.LongEmergency,
-        quoteCollateral,
-        quoteDebt,
-        _discountedQuoteCollateral,
-        baseCollateral,
-        baseDebt
-      );
+      setEmergencyMode(Mode.LongEmergency, basePrice, quoteCollateral, quoteDebt, baseCollateral, baseDebt);
       return;
     }
 
@@ -1194,32 +1181,35 @@ contract MarginlyPool is IMarginlyPool {
   ///@dev Set emergency mode and calc emergencyWithdrawCoeff
   function setEmergencyMode(
     Mode _mode,
+    FP96.FixedPoint memory shutDownPrice,
     uint256 collateral,
     uint256 debt,
-    uint256 discountedCollateral,
     uint256 emergencyCollateral,
     uint256 emergencyDebt
   ) private {
     mode = _mode;
+    initialPrice = shutDownPrice;
 
-    uint256 newCollateral = collateral >= debt ? collateral.sub(debt) : 0;
+    uint256 balance = collateral >= debt ? collateral.sub(debt) : 0;
 
     if (emergencyCollateral > emergencyDebt) {
       uint256 surplus = emergencyCollateral.sub(emergencyDebt);
 
       uint256 collateralSurplus = swapExactInput(_mode == Mode.ShortEmergency, surplus, 0, UNISWAP_V3_ROUTER_SWAP);
 
-      newCollateral = newCollateral.add(collateralSurplus);
+      balance = balance.add(collateralSurplus);
     }
 
-    /**
-      Explanation:
-      emergencyCoeff = collatCoeff * (newCollateral/collateral) = 
-        collatCoeff * newCollateral/ (discountedCollateral * collatCoeff) = 
-        newCollateral / discountedCollateral
-     */
-
-    emergencyWithdrawCoeff = FP96.fromRatio(newCollateral, discountedCollateral);
+    if (mode == Mode.ShortEmergency) {
+      // coeff = price * baseBalance / (price * baseCollateral - quoteDebt)
+      emergencyWithdrawCoeff = FP96.fromRatio(
+        shutDownPrice.mul(balance),
+        shutDownPrice.mul(collateral).sub(emergencyDebt)
+      );
+    } else {
+      // coeff = quoteBalance / (quoteCollateral - price * baseDebt)
+      emergencyWithdrawCoeff = FP96.fromRatio(balance, collateral.sub(shutDownPrice.mul(emergencyDebt)));
+    }
 
     emit Emergency(_mode);
   }
@@ -1229,7 +1219,7 @@ contract MarginlyPool is IMarginlyPool {
   function emergencyWithdraw(bool unwrapWETH) private {
     if (mode == Mode.Regular) revert Errors.NotEmergency();
 
-    Position storage position = positions[msg.sender];
+    Position memory position = positions[msg.sender];
     if (position._type == PositionType.Uninitialized) revert Errors.UninitializedPosition();
 
     address token;
@@ -1238,12 +1228,18 @@ contract MarginlyPool is IMarginlyPool {
     if (mode == Mode.ShortEmergency) {
       if (position._type == PositionType.Short) revert Errors.ShortEmergency();
 
-      transferAmount = emergencyWithdrawCoeff.mul(position.discountedBaseAmount);
+      // baseNet =  baseColl - quoteDebt / price
+      uint256 positionBaseNet = calcRealBaseCollateral(position.discountedBaseAmount, position.discountedQuoteAmount)
+        .sub(initialPrice.recipMul(quoteDebtCoeff.mul(position.discountedQuoteAmount)));
+      transferAmount = emergencyWithdrawCoeff.mul(positionBaseNet);
       token = baseToken;
     } else {
       if (position._type == PositionType.Long) revert Errors.LongEmergency();
 
-      transferAmount = emergencyWithdrawCoeff.mul(position.discountedQuoteAmount);
+      // quoteNet = quoteColl - baseDebt * price
+      uint256 positionQuoteNet = calcRealQuoteCollateral(position.discountedQuoteAmount, position.discountedBaseAmount)
+        .sub(baseDebtCoeff.mul(initialPrice).mul(position.discountedBaseAmount));
+      transferAmount = emergencyWithdrawCoeff.mul(positionQuoteNet);
       token = quoteToken;
     }
 
