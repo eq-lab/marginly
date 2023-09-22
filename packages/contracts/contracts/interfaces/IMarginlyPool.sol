@@ -118,6 +118,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when balance sync happened
   event BalanceSync();
 
+  /// @dev Emitted when setParameters method was called
+  event ParametersChanged();
+
   /// @dev Initializes the pool
   function initialize(
     address quoteToken,

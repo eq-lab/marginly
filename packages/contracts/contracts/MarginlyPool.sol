@@ -189,6 +189,7 @@ contract MarginlyPool is IMarginlyPool {
     if (_params.priceSecondsAgoMC == 0) revert Errors.WrongValue();
 
     params = _params;
+    emit ParametersChanged();
   }
 
   /// @dev Swaps tokens to receive exact amountOut and send at most amountInMaximum

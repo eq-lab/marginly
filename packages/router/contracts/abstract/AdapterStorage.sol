@@ -12,6 +12,9 @@ struct PoolInput {
 }
 
 abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
+  /// @notice Emitted when new pool is added
+  event NewPool(address indexed token0, address indexed token1, address indexed pool);
+
   error UnknownPool();
 
   mapping(address => mapping(address => address)) public getPool;
@@ -22,6 +25,7 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
       input = pools[i];
       getPool[input.token0][input.token1] = input.pool;
       getPool[input.token1][input.token0] = input.pool;
+      emit NewPool(input.token0, input.token1, input.pool);
     }
   }
 
@@ -31,6 +35,7 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
       input = pools[i];
       getPool[input.token0][input.token1] = input.pool;
       getPool[input.token1][input.token0] = input.pool;
+      emit NewPool(input.token0, input.token1, input.pool);
     }
   }
 

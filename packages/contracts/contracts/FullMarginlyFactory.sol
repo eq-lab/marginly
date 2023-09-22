@@ -79,5 +79,6 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
   function changeSwapRouter(address newSwapRouter) external onlyOwner {
     if (newSwapRouter == address(0)) revert Errors.WrongValue();
     swapRouter = newSwapRouter;
+    emit SwapRouterChanged(newSwapRouter);
   }
 }
