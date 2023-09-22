@@ -1263,7 +1263,9 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realBaseCollateral = basePrice.mul(calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt));
     uint256 realQuoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt);
-    systemLeverage.longX96 = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
+    uint128 leverageX96 = uint128(Math.mulDiv(FP96.Q96, realBaseCollateral, realBaseCollateral.sub(realQuoteDebt)));
+    uint128 maxLeverageX96 = uint128(params.maxLeverage) << FP96.RESOLUTION;
+    systemLeverage.longX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
   function updateSystemLeverageShort(FP96.FixedPoint memory basePrice) private {
@@ -1274,9 +1276,9 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realQuoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
     uint256 realBaseDebt = baseDebtCoeff.mul(basePrice).mul(discountedBaseDebt);
-    systemLeverage.shortX96 = uint128(
-      Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt))
-    );
+    uint128 leverageX96 = uint128(Math.mulDiv(FP96.Q96, realQuoteCollateral, realQuoteCollateral.sub(realBaseDebt)));
+    uint128 maxLeverageX96 = uint128(params.maxLeverage) << FP96.RESOLUTION;
+    systemLeverage.shortX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
   /// @dev Wraps ETH into WETH if need and makes transfer from `payer`
