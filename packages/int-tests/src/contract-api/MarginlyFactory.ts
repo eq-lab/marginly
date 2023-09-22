@@ -66,10 +66,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     params: PromiseOrValue<{
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
+      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
       quoteLimit: BigNumberish;
@@ -121,10 +121,10 @@ export interface MarginlyFactoryContract extends BaseContract {
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -148,10 +148,10 @@ export interface MarginlyFactoryContract extends BaseContract {
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;
@@ -175,10 +175,10 @@ export interface MarginlyFactoryContract extends BaseContract {
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
         quoteLimit: BigNumberish;

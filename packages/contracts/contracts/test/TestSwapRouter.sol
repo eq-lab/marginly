@@ -33,6 +33,8 @@ contract TestSwapRouter is IMarginlyRouter {
 
     IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
     IERC20(tokenOut).transfer(msg.sender, amountOut);
+
+    require(amountOut >= minAmountOut, 'TooMuchRequested');
   }
 
   function swapExactOutput(
@@ -54,8 +56,8 @@ contract TestSwapRouter is IMarginlyRouter {
     IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
     IERC20(tokenOut).transfer(msg.sender, amountOut);
 
-    require(amountIn <= maxAmountIn);
+    require(amountIn <= maxAmountIn, 'InsufficientAmount');
   }
 
-  function adapterCallback(address recipient, uint256 amount, bytes calldata data) external {} 
+  function adapterCallback(address recipient, uint256 amount, bytes calldata data) external {}
 }

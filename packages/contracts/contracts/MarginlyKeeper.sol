@@ -96,19 +96,19 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
 
     address collateralToken;
     if (quoteToken == asset) {
-      IERC20(quoteToken).approve(params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, amount, 0, false, params.positionToLiquidate, 0);
+      SafeERC20.forceApprove(IERC20(quoteToken), params.marginlyPool, amount);
+      marginlyPool.execute(CallType.ReceivePosition, amount, 0, 0, false, params.positionToLiquidate, 0);
       collateralToken = baseToken;
     } else if (baseToken == asset) {
-      IERC20(baseToken).approve(params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, 0, amount, false, params.positionToLiquidate, 0);
+      SafeERC20.forceApprove(IERC20(baseToken), params.marginlyPool, amount);
+      marginlyPool.execute(CallType.ReceivePosition, 0, amount, 0, false, params.positionToLiquidate, 0);
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');
     }
 
-    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, false, address(0), 0);
-    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, false, address(0), 0);
+    marginlyPool.execute(CallType.WithdrawBase, type(uint256).max, 0, 0, false, address(0), 0);
+    marginlyPool.execute(CallType.WithdrawQuote, type(uint256).max, 0, 0, false, address(0), 0);
 
     IMarginlyFactory marginlyFactory = IMarginlyFactory(marginlyPool.factory());
 
@@ -120,7 +120,7 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
     uint256 resultingBalance = dust + amountOut - paybackAmount;
     require(resultingBalance >= params.minProfit, 'Less than minimum profit');
 
-    IERC20(asset).safeApprove(address(POOL), paybackAmount);
+    SafeERC20.forceApprove(IERC20(asset), address(POOL), paybackAmount);
 
     IERC20(asset).safeTransfer(params.liquidator, resultingBalance);
 
@@ -130,7 +130,7 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
   /// @notice Uniswap exchange
   function exactInputSwap(address swapRouter, address tokenIn, address tokenOut) private returns (uint256) {
     uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
-    IERC20(tokenIn).safeApprove(swapRouter, amountIn);
+    SafeERC20.forceApprove(IERC20(tokenIn), swapRouter, amountIn);
     return IMarginlyRouter(swapRouter).swapExactInput(0, tokenIn, tokenOut, amountIn, 0);
   }
 }
