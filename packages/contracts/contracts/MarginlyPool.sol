@@ -452,18 +452,19 @@ contract MarginlyPool is IMarginlyPool {
 
     FP96.FixedPoint memory _baseDebtCoeff = baseDebtCoeff;
 
-    if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
-
     uint256 positionDiscountedBaseAmountPrev = position.discountedBaseAmount;
     if (position._type == PositionType.Short) {
       uint256 realBaseDebt = _baseDebtCoeff.mul(positionDiscountedBaseAmountPrev);
       uint256 discountedBaseDebtDelta;
 
       if (amount >= realBaseDebt) {
+        uint256 newRealBaseCollateral = amount.sub(realBaseDebt);
+        if (basePrice.mul(newPoolBaseBalance(newRealBaseCollateral)) > params.quoteLimit) revert Errors.ExceedsLimit();
+
         shortHeap.remove(positions, position.heapPosition - 1);
         // Short position debt <= depositAmount, increase collateral on delta, change position to Lend
         // discountedBaseCollateralDelta = (amount - realDebt)/ baseCollateralCoeff
-        uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(amount.sub(realBaseDebt));
+        uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(newRealBaseCollateral);
         discountedBaseDebtDelta = positionDiscountedBaseAmountPrev;
         position._type = PositionType.Lend;
         position.discountedBaseAmount = discountedBaseCollateralDelta;
@@ -481,6 +482,8 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseDebt = discountedBaseDebt.sub(discountedBaseDebtDelta);
       discountedQuoteCollateral = discountedQuoteCollateral.sub(discountedQuoteCollDelta);
     } else {
+      if (basePrice.mul(newPoolBaseBalance(amount)) > params.quoteLimit) revert Errors.ExceedsLimit();
+
       // Lend position, increase collateral on amount
       // discountedCollateralDelta = amount / baseCollateralCoeff
       uint256 discountedCollateralDelta = baseCollateralCoeff.recipMul(amount);
@@ -519,18 +522,19 @@ contract MarginlyPool is IMarginlyPool {
 
     FP96.FixedPoint memory _quoteDebtCoeff = quoteDebtCoeff;
 
-    if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
-
     uint256 positionDiscountedQuoteAmountPrev = position.discountedQuoteAmount;
     if (position._type == PositionType.Long) {
       uint256 realQuoteDebt = _quoteDebtCoeff.mul(positionDiscountedQuoteAmountPrev);
       uint256 discountedQuoteDebtDelta;
 
       if (amount >= realQuoteDebt) {
+        uint256 newRealQuoteCollateral = amount.sub(realQuoteDebt);
+        if (newPoolQuoteBalance(newRealQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
+
         longHeap.remove(positions, position.heapPosition - 1);
         // Long position, debt <= depositAmount, increase collateral on delta, move position to Lend
         // quoteCollateralChange = (amount - discountedDebt)/ quoteCollateralCoef
-        uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(amount.sub(realQuoteDebt));
+        uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(newRealQuoteCollateral);
         discountedQuoteDebtDelta = positionDiscountedQuoteAmountPrev;
         position._type = PositionType.Lend;
         position.discountedQuoteAmount = discountedQuoteCollateralDelta;
@@ -548,6 +552,8 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteDebtDelta);
       discountedBaseCollateral = discountedBaseCollateral.sub(discountedBaseCollDelta);
     } else {
+      if (newPoolQuoteBalance(amount) > params.quoteLimit) revert Errors.ExceedsLimit();
+
       // Lend position, increase collateral on amount
       // discountedQuoteCollateralDelta = amount / quoteCollateralCoeff
       uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(amount);
