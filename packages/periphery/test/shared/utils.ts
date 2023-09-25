@@ -19,7 +19,7 @@ import {
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { parseEther } from 'ethers/lib/utils';
-import { MarginlyPoolAdmin, MarginlyRouter } from '../../typechain-types';
+import { MarginlyAdmin, MarginlyRouter } from '../../typechain-types';
 import { UniswapV3Adapter } from '@marginly/router/typechain-types';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
@@ -125,7 +125,7 @@ export async function createMarginlyFactory(): Promise<{
 }
 
 export async function createMarginlyPoolAdmin(): Promise<{
-  marginlyPoolAdmin: MarginlyPoolAdmin;
+  marginlyPoolAdmin: MarginlyAdmin;
   marginlyFactory: MarginlyFactory;
   uniswapFactory: TestUniswapFactory;
   marginlyRouter: MarginlyRouter;

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyPool.sol';
@@ -10,21 +9,9 @@ import '@marginly/contracts/contracts/libraries/Errors.sol';
 import '@marginly/router/contracts/MarginlyRouter.sol';
 import '@marginly/router/contracts/abstract/AdapterStorage.sol';
 
-contract MarginlyPoolAdmin is Ownable2Step {
-  /// @dev Mapping of Marginly pool address as key and pool owner as value
-  mapping(address => address) public poolsOwners;
-  /// @dev Address of Marginly factory
-  address public immutable marginlyFactoryAddress;
-  /// @dev UniswapV3 adapter index in Marginly router storage
-  uint256 public constant UNISWAPV3_ADAPTER_INDEX = 0;
+import './MarginlyAdminStorage.sol';
 
-  error InvalidUnderlyingPool();
-
-  constructor(address marginlyFactory) {
-    if (marginlyFactory == address(0)) revert Errors.Forbidden();
-    marginlyFactoryAddress = marginlyFactory;
-  }
-
+abstract contract PoolActions is MarginlyPoolAdminStorage {
   /// @dev Create a new Marginly pool. The signer will be granted owner role for a new pool
   /// @param quoteToken Address of a quote token
   /// @param baseToken Address of a base token
@@ -85,59 +72,6 @@ contract MarginlyPoolAdmin is Ownable2Step {
       IMarginlyPool(marginlyPool).sweepETH();
       TransferHelper.safeTransferETH(msg.sender, amount);
     }
-  }
-
-  /// @dev Add pools to router adapter storage. Allowed only for MarginlyPoolAdmin owner
-  /// @param pools New pool parameters
-  function addPools(PoolInput[] calldata pools) external onlyOwner {
-    address marginlyRouterAddress = IMarginlyFactory(marginlyFactoryAddress).swapRouter();
-    if (marginlyRouterAddress == address(0)) revert Errors.Forbidden();
-    address adapterAddress = MarginlyRouter(marginlyRouterAddress).adapters(UNISWAPV3_ADAPTER_INDEX);
-    if (adapterAddress == address(0)) revert Errors.Forbidden();
-
-    AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
-    adapterStorage.addPools(pools);
-  }
-
-  /// @dev Set a new owner of a Marginly factory contract. Allowed only for MarginlyPoolAdmin owner
-  /// @param to Address of a new Marginly factory owner
-  function transferMarginlyFactoryOwnership(address to) external onlyOwner {
-    Ownable2Step(marginlyFactoryAddress).transferOwnership(to);
-  }
-
-  /// @dev Accepts Marginly factory contract ownership
-  function acceptMarginlyFactoryOwnership() external onlyOwner {
-    Ownable2Step(marginlyFactoryAddress).acceptOwnership();
-  }
-
-  /// @dev Set a new owner of a Marginly router contract. Allowed only for MarginlyPoolAdmin owner
-  /// @param to Address of a new Marginly router owner
-  function transferMarginlyRouterOwnership(address to) external onlyOwner {
-    MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter()).transferOwnership(to);
-  }
-
-  /// @dev Accepts Marginly router contract ownership
-  function acceptMarginlyRouterOwnership() external onlyOwner {
-    Ownable2Step(IMarginlyFactory(marginlyFactoryAddress).swapRouter()).acceptOwnership();
-  }
-
-  /// @dev Set a new owner of a Marginly router adapter contract. Allowed only for MarginlyPoolAdmin owner
-  /// @param dexIdx Index of a dex
-  /// @param to Address of a new Marginly router adapter owner
-  function transferRouterAdapterOwnership(uint256 dexIdx, address to) external onlyOwner {
-    MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
-    address adapterAddress = marginlyRouter.adapters(dexIdx);
-    if (adapterAddress == address(0)) revert Errors.Forbidden();
-    AdapterStorage(adapterAddress).transferOwnership(to);
-  }
-
-  /// @dev Accepts ownership of adapter. Needed for new pools addition
-  /// @param dexIdx Index of a dex
-  function acceptRouterAdapterOwnership(uint256 dexIdx) external onlyOwner {
-    MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
-    address adapterAddress = marginlyRouter.adapters(dexIdx);
-    if (adapterAddress == address(0)) revert Errors.Forbidden();
-    Ownable2Step(adapterAddress).acceptOwnership();
   }
 
   /// @dev Set a new owner of a Marginly pool. Allowed only for Marginly pool owner

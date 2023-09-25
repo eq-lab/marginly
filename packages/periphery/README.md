@@ -1,6 +1,6 @@
 # Marginly periphery smart contracts
 
-## `MarginlyPoolAdmin.sol`
+## `MarginlyAdmin.sol`
 Proxy contract for creation and administration of Marginly pools.
 Anyone can create a new Marginly Pool by using the `createPool` method. 
 The creator will be granted owner rights and can control the pool with these methods:
