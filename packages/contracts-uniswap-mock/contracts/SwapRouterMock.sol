@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@openzeppelin/contracts/access/Ownable2Step.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
 import '@uniswap/v3-core/contracts/libraries/SafeCast.sol';
 import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
@@ -27,7 +27,7 @@ contract SwapRouterMock is
   PeripheryPaymentsWithFee,
   Multicall,
   SelfPermit,
-  Ownable2Step
+  Ownable
 {
   using Path for bytes;
   using SafeCast for uint256;
