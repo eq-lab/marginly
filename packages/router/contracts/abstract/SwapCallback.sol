@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-
-import './AdapterCallback.sol';
 import './AdapterStorage.sol';
 import '../interfaces/IMarginlyRouter.sol';
 

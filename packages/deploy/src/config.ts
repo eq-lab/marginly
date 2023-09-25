@@ -130,7 +130,7 @@ export interface MarginlyDeployConfig {
       maxLeverage: string;
       swapFee: string;
       priceAgo: string;
-      positionSlippage: string;
+      priceAgoMC: string;
       mcSlippage: string;
       positionMinAmount: string;
       quoteLimit: string;

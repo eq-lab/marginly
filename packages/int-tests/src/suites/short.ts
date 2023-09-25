@@ -48,7 +48,9 @@ export async function short(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(lender)
-        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, baseAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     );
     logger.info(`lender depositBase call success`);
     baseAmountsLenders.push(baseAmount);
@@ -59,7 +61,9 @@ export async function short(sut: SystemUnderTest) {
       'depositQuote',
       marginlyPool
         .connect(lender)
-        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositQuote, quoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     );
     logger.info(`lender depositQuote call success`);
   }
@@ -102,7 +106,7 @@ export async function short(sut: SystemUnderTest) {
       'depositQuote',
       marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositQuote, initCollateral, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        .execute(CallType.DepositQuote, initCollateral, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
           gasLimit: 700_000,
         })
     );
@@ -120,11 +124,14 @@ export async function short(sut: SystemUnderTest) {
 
     const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
     logger.info(`short call`);
+    const minPrice = (await marginlyPool.getBasePrice()).inner.div(2);
     const txReceipt = await gasReporter.saveGasUsage(
       'short',
       marginlyPool
         .connect(shorter)
-        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+        .execute(CallType.Short, shortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 1_000_000,
+        })
     );
     const swapEvent = decodeSwapEvent(txReceipt, uniswap.address);
     logger.info(`short call success`);
@@ -219,7 +226,7 @@ export async function short(sut: SystemUnderTest) {
       'reinit',
       marginlyPool
         .connect(treasury)
-        .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+        .execute(CallType.Reinit, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
     );
     const marginCallEvent = txReceipt.events?.find((e) => e.event == 'EnactMarginCall');
     if (marginCallEvent) {

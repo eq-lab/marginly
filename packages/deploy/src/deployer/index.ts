@@ -299,7 +299,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         maxLeverage: config.params.maxLeverage.toInteger(),
         swapFee: config.params.swapFee.mul(one).toInteger(),
         priceSecondsAgo: config.params.priceAgo.toSeconds(),
-        positionSlippage: config.params.positionSlippage.mul(one).toInteger(),
+        priceSecondsAgoMC: config.params.priceAgoMC.toSeconds(),
         mcSlippage: config.params.mcSlippage.mul(one).toInteger(),
         positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
         quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),

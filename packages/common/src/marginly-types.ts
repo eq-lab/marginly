@@ -5,7 +5,7 @@ export type MarginlyPoolParameters = {
   maxLeverage: BigNumber;
   swapFee: BigNumber;
   priceSecondsAgo: BigNumber;
-  positionSlippage: BigNumber;
+  priceSecondsAgoMC: BigNumber;
   mcSlippage: BigNumber;
   positionMinAmount: BigNumber;
   quoteLimit: BigNumber;
