@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import '@marginly/contracts/contracts/libraries/Errors.sol';
 
-abstract contract MarginlyPoolAdminStorage {
+abstract contract MarginlyAdminStorage {
   /// @dev Mapping of Marginly pool address as key and pool owner as value
   mapping(address => address) public poolsOwners;
   /// @dev Address of Marginly factory

@@ -7,5 +7,5 @@ import './abstract/PoolActions.sol';
 import './abstract/RouterActions.sol';
 
 contract MarginlyAdmin is AdapterActions, FactoryActions, PoolActions, RouterActions {
-  constructor(address marginlyFactory) MarginlyPoolAdminStorage(marginlyFactory) {}
+  constructor(address marginlyFactory) MarginlyAdminStorage(marginlyFactory) {}
 }

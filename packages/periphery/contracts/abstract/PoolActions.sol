@@ -11,7 +11,7 @@ import '@marginly/router/contracts/abstract/AdapterStorage.sol';
 
 import './MarginlyAdminStorage.sol';
 
-abstract contract PoolActions is MarginlyPoolAdminStorage {
+abstract contract PoolActions is MarginlyAdminStorage {
   /// @dev Create a new Marginly pool. The signer will be granted owner role for a new pool
   /// @param quoteToken Address of a quote token
   /// @param baseToken Address of a base token
@@ -57,7 +57,7 @@ abstract contract PoolActions is MarginlyPoolAdminStorage {
   /// @dev Switch Marginly pool to emergency mode when collateral of any side not enough to cover debt.
   /// @dev Allowed only for pool owner
   /// @param marginlyPool Address of a Marginly pool
-  /// @param swapCalldata param of IMarginlyPool.shutown method
+  /// @param swapCalldata param of IMarginlyPool.shutDown method
   function shutDown(address marginlyPool, uint256 swapCalldata) external {
     if (msg.sender != poolsOwners[marginlyPool]) revert Errors.NotOwner();
     IMarginlyPool(marginlyPool).shutDown(swapCalldata);

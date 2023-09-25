@@ -9,7 +9,7 @@ import {
   UniswapV3DexIndex,
 } from './shared/utils';
 import { ethers } from 'hardhat';
-import { PoolInputStruct } from '../typechain-types/contracts/MarginlyPoolAdmin';
+import { PoolInputStruct, AdapterInputStruct } from '../typechain-types/contracts/MarginlyAdmin';
 
 describe('MarginlyPoolAdmin', () => {
   function getPoolParams() {
@@ -141,6 +141,50 @@ describe('MarginlyPoolAdmin', () => {
 
     const signerBalanceAfter = await signer1.getBalance();
     expect(signerBalanceAfter).to.be.equal(signerBalanceBefore.add(transferAmount).sub(txFee));
+  });
+
+  it('changeSwapRouter', async () => {
+    const { marginlyPoolAdmin, uniswapFactory, marginlyFactory } = await loadFixture(createMarginlyPoolAdmin);
+
+    const { uniswapPool } = await createUniswapPool();
+    await uniswapFactory.addPool(uniswapPool.address);
+
+    const [rootSigner, signer1] = await ethers.getSigners();
+    
+    const oldSwapRouter = await marginlyFactory.swapRouter();
+
+    await expect(marginlyPoolAdmin.connect(signer1).changeSwapRouter(uniswapPool.address)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+
+    await marginlyPoolAdmin.connect(rootSigner).changeSwapRouter(uniswapPool.address);
+
+    expect(await marginlyFactory.swapRouter()).to.be.equal(uniswapPool.address);
+    expect(await marginlyFactory.swapRouter()).to.be.not.equal(oldSwapRouter);
+  });
+
+  it('addAdapter', async () => {
+    const { marginlyPoolAdmin, uniswapFactory, marginlyRouter } = await loadFixture(createMarginlyPoolAdmin);
+
+    const { uniswapPool } = await createUniswapPool();
+    await uniswapFactory.addPool(uniswapPool.address);
+
+    const [rootSigner, signer1] = await ethers.getSigners();
+
+    const newDexIndex = 1;
+    expect(await marginlyRouter.adapters(newDexIndex)).to.be.equal(ethers.constants.AddressZero);
+
+    const adapterInput = <AdapterInputStruct>{
+      dexIndex: newDexIndex,
+      adapter: uniswapPool.address,
+    };
+    await expect(marginlyPoolAdmin.connect(signer1).addDexAdapters([adapterInput])).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+
+    await marginlyPoolAdmin.connect(rootSigner).addDexAdapters([adapterInput]);
+
+    expect(await marginlyRouter.adapters(newDexIndex)).to.be.equal(uniswapPool.address);
   });
 
   it('addPools', async () => {
