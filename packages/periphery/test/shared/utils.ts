@@ -138,9 +138,12 @@ export async function createMarginlyPoolAdmin(): Promise<{
   );
   const marginlyPoolAdmin = (await marginlyPoolAdminFactory.deploy(marginlyFactory.address)) as MarginlyPoolAdmin;
 
-  await marginlyFactory.setOwner(marginlyPoolAdmin.address);
+  await marginlyFactory.transferOwnership(marginlyPoolAdmin.address);
+  await marginlyPoolAdmin.acceptMarginlyFactoryOwnership();
   await marginlyRouter.transferOwnership(marginlyPoolAdmin.address);
+  await marginlyPoolAdmin.acceptMarginlyRouterOwnership();
   await uniswapV3Adapter.transferOwnership(marginlyPoolAdmin.address);
+  await marginlyPoolAdmin.acceptRouterAdapterOwnership(0);
 
   return { marginlyPoolAdmin, marginlyFactory, uniswapFactory, marginlyRouter };
 }

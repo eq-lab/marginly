@@ -18,9 +18,9 @@ describe('MarginlyPoolAdmin', () => {
       fee: 10000, //1%
       maxLeverage: 20,
       swapFee: 1000, // 0.1%
-      positionSlippage: 20000, // 2%
       mcSlippage: 50000, //5%
       priceSecondsAgo: 900, // 15 min
+      priceSecondsAgoMC: 900, // 15 min
       positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000_000,
     };
@@ -35,9 +35,8 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
     const [, signer1] = await ethers.getSigners();
@@ -57,9 +56,8 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
     const [, signer1, signer2] = await ethers.getSigners();
@@ -73,7 +71,7 @@ describe('MarginlyPoolAdmin', () => {
     params.fee = 50000; // 5%
     await expect(
       marginlyPoolAdmin.connect(signer2).setParameters(marginlyPoolAddress, params)
-    ).to.be.revertedWithCustomError(marginlyFactory, 'NotOwner');
+    ).to.be.revertedWithCustomError(marginlyPoolAdmin, 'NotOwner');
     await marginlyPoolAdmin.connect(signer1).setParameters(marginlyPoolAddress, params);
     expect((await marginlyPool.params()).fee).to.be.equal(params.fee);
   });
@@ -85,9 +83,8 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
     const [, signer1, signer2] = await ethers.getSigners();
@@ -97,11 +94,11 @@ describe('MarginlyPoolAdmin', () => {
     await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
     const marginlyPool = await attachMarginlyPool(marginlyPoolAddress);
 
-    await expect(marginlyPoolAdmin.connect(signer2).shutDown(marginlyPoolAddress)).to.be.revertedWithCustomError(
-      marginlyFactory,
+    await expect(marginlyPoolAdmin.connect(signer2).shutDown(marginlyPoolAddress, 0)).to.be.revertedWithCustomError(
+      marginlyPoolAdmin,
       'NotOwner'
     );
-    await expect(marginlyPoolAdmin.connect(signer1).shutDown(marginlyPoolAddress)).to.be.revertedWithCustomError(
+    await expect(marginlyPoolAdmin.connect(signer1).shutDown(marginlyPoolAddress, 0)).to.be.revertedWithCustomError(
       marginlyPool,
       'NotEmergency'
     );
@@ -114,9 +111,8 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
     const [, signer1, signer2] = await ethers.getSigners();
@@ -133,7 +129,7 @@ describe('MarginlyPoolAdmin', () => {
     const signerBalanceBefore = await signer1.getBalance();
 
     await expect(marginlyPoolAdmin.connect(signer2).sweepETH(marginlyPoolAddress)).to.be.revertedWithCustomError(
-      marginlyFactory,
+      marginlyPoolAdmin,
       'NotOwner'
     );
 
@@ -177,33 +173,35 @@ describe('MarginlyPoolAdmin', () => {
   it('transferOwnership', async () => {
     const { marginlyPoolAdmin } = await loadFixture(createMarginlyPoolAdmin);
 
-    const [rootSigner, signer1, signer2] = await ethers.getSigners();
+    const [rootSigner, signer1, newOwner] = await ethers.getSigners();
 
     expect(await marginlyPoolAdmin.owner()).to.be.equal(rootSigner.address);
 
-    await expect(marginlyPoolAdmin.connect(signer1).transferOwnership(signer2.address)).to.be.revertedWith(
+    await expect(marginlyPoolAdmin.connect(signer1).transferOwnership(newOwner.address)).to.be.revertedWith(
       'Ownable: caller is not the owner'
     );
 
-    await marginlyPoolAdmin.connect(rootSigner).transferOwnership(signer2.address);
+    await marginlyPoolAdmin.connect(rootSigner).transferOwnership(newOwner.address);
+    await marginlyPoolAdmin.connect(newOwner).acceptOwnership();
 
-    expect(await marginlyPoolAdmin.owner()).to.be.equal(signer2.address);
+    expect(await marginlyPoolAdmin.owner()).to.be.equal(newOwner.address);
   });
 
   it('transferMarginlyFactoryOwnership', async () => {
     const { marginlyPoolAdmin, marginlyFactory } = await loadFixture(createMarginlyPoolAdmin);
 
-    const [rootSigner, signer1, signer2] = await ethers.getSigners();
+    const [rootSigner, signer1, newOwner] = await ethers.getSigners();
 
     expect(await marginlyFactory.owner()).to.be.equal(marginlyPoolAdmin.address);
 
     await expect(
-      marginlyPoolAdmin.connect(signer1).transferMarginlyFactoryOwnership(signer2.address)
+      marginlyPoolAdmin.connect(signer1).transferMarginlyFactoryOwnership(newOwner.address)
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
-    await marginlyPoolAdmin.connect(rootSigner).transferMarginlyFactoryOwnership(signer2.address);
+    await marginlyPoolAdmin.connect(rootSigner).transferMarginlyFactoryOwnership(newOwner.address);
+    await marginlyFactory.connect(newOwner).acceptOwnership();
 
-    expect(await marginlyFactory.owner()).to.be.equal(signer2.address);
+    expect(await marginlyFactory.owner()).to.be.equal(newOwner.address);
   });
 
   it('transferMarginlyPoolOwnership', async () => {
@@ -213,9 +211,8 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
     const [, signer1, signer2] = await ethers.getSigners();
@@ -228,7 +225,7 @@ describe('MarginlyPoolAdmin', () => {
 
     await expect(
       marginlyPoolAdmin.connect(signer2).transferMarginlyPoolOwnership(marginlyPoolAddress, signer2.address)
-    ).to.be.revertedWithCustomError(marginlyFactory, 'NotOwner');
+    ).to.be.revertedWithCustomError(marginlyPoolAdmin, 'NotOwner');
 
     await marginlyPoolAdmin.connect(signer1).transferMarginlyPoolOwnership(marginlyPoolAddress, signer2.address);
     expect(await marginlyPoolAdmin.poolsOwners(marginlyPoolAddress)).to.be.equal(signer2.address);
@@ -243,22 +240,22 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
-    const [rootSigner, signer1, signer2] = await ethers.getSigners();
+    const [rootSigner, signer1, newOwner] = await ethers.getSigners();
 
     await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
     expect(await marginlyRouter.owner()).to.be.equal(marginlyPoolAdmin.address);
 
     await expect(
-      marginlyPoolAdmin.connect(signer1).transferMarginlyRouterOwnership(signer2.address)
+      marginlyPoolAdmin.connect(signer1).transferMarginlyRouterOwnership(newOwner.address)
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
-    await marginlyPoolAdmin.connect(rootSigner).transferMarginlyRouterOwnership(signer2.address);
-    expect(await marginlyRouter.owner()).to.be.equal(signer2.address);
+    await marginlyPoolAdmin.connect(rootSigner).transferMarginlyRouterOwnership(newOwner.address);
+    await marginlyRouter.connect(newOwner).acceptOwnership();
+    expect(await marginlyRouter.owner()).to.be.equal(newOwner.address);
   });
 
   it('transferRouterAdapterOwnership', async () => {
@@ -270,21 +267,21 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const { fee, params } = getPoolParams();
-    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWithCustomError(
-      marginlyFactory,
-      'NotOwner'
+    await expect(marginlyFactory.createPool(token0.address, token1.address, fee, params)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
 
-    const [rootSigner, signer1, signer2] = await ethers.getSigners();
+    const [rootSigner, signer1, newOwner] = await ethers.getSigners();
     const routerAdapter = await attachAdapterStorage(await marginlyRouter.adapters(0));
     await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
     expect(await routerAdapter.owner()).to.be.equal(marginlyPoolAdmin.address);
 
     await expect(
-      marginlyPoolAdmin.connect(signer1).transferRouterAdapterOwnership(0, signer2.address)
+      marginlyPoolAdmin.connect(signer1).transferRouterAdapterOwnership(0, newOwner.address)
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
-    await marginlyPoolAdmin.connect(rootSigner).transferRouterAdapterOwnership(0, signer2.address);
-    expect(await routerAdapter.owner()).to.be.equal(signer2.address);
+    await marginlyPoolAdmin.connect(rootSigner).transferRouterAdapterOwnership(0, newOwner.address);
+    await routerAdapter.connect(newOwner).acceptOwnership();
+    expect(await routerAdapter.owner()).to.be.equal(newOwner.address);
   });
 });
