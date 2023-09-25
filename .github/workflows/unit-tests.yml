@@ -23,4 +23,9 @@ jobs:
             cd packages/router
             yarn
             yarn test
+        - name: Build for testing periphery
+          run: |
+            cd packages/periphery
+            yarn
+            yarn test
         
