@@ -92,9 +92,9 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
         "quoteLimit": "20000000"
       }
@@ -108,9 +108,9 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
         "quoteLimit": "10000000"
       }
@@ -124,9 +124,9 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
         "quoteLimit": "1500000"
       }
@@ -140,9 +140,9 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
         "quoteLimit": "400000"
       }
