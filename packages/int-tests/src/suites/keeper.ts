@@ -67,10 +67,10 @@ export async function keeper(sut: SystemUnderTest) {
 
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs);
+      .execute(CallType.DepositBase, baseAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs);
     await marginlyPool
       .connect(lender)
-      .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs);
+      .execute(CallType.DepositQuote, quoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs);
   }
 
   const longer = accounts[1];
@@ -85,12 +85,13 @@ export async function keeper(sut: SystemUnderTest) {
     await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
+        .execute(CallType.DepositBase, baseAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
+    const maxPrice = (await marginlyPool.getBasePrice()).inner.mul(2);
     await (
       await marginlyPool
         .connect(longer)
-        .execute(CallType.Long, longAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
+        .execute(CallType.Long, longAmount, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
   }
 
@@ -105,12 +106,13 @@ export async function keeper(sut: SystemUnderTest) {
     await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.DepositQuote, quoteAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
+        .execute(CallType.DepositQuote, quoteAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
+    const minPrice = (await marginlyPool.getBasePrice()).inner.div(2);
     await (
       await marginlyPool
         .connect(shorter)
-        .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
+        .execute(CallType.Short, shortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), ethArgs)
     ).wait();
   }
 

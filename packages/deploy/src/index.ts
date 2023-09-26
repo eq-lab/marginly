@@ -1,7 +1,7 @@
 import * as ethers from 'ethers';
 import { EthAddress, RationalNumber } from '@marginly/common';
 import { Dex, MarginlyDeployConfig } from './config';
-import { priceToPriceFp18, priceToSqrtPriceX96, sortUniswapPoolTokens } from '@marginly/common/math';
+import { priceToPriceFp27, priceToSqrtPriceX96, sortUniswapPoolTokens } from '@marginly/common/math';
 import { Logger } from './logger';
 import {
   getMarginlyKeeperAddress,
@@ -126,6 +126,7 @@ export async function deployMarginly(
           tokenRepository
         );
         const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
+        await uniswapRouterContract.setRejectArbitraryRecipient(true);
         for (const pool of uniswapConfig.pools) {
           const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
             uniswapConfig.oracle,
@@ -164,13 +165,16 @@ export async function deployMarginly(
           const { decimals: token0Decimals } = tokenRepository.getTokenInfo(token0.id);
           const { decimals: token1Decimals } = tokenRepository.getTokenInfo(token1.id);
 
-          const priceFp18 = priceToPriceFp18(price, token0Decimals, token1Decimals);
+          const priceFp27 = priceToPriceFp27(price, token0Decimals, token1Decimals);
           const sqrtPriceX96 = priceToSqrtPriceX96(price, token0Decimals, token1Decimals);
 
           const uniswapPoolContract = uniswapPoolDeploymentResult.contract;
 
-          await uniswapPoolContract.setPrice(priceFp18, sqrtPriceX96);
+          await uniswapPoolContract.setPrice(priceFp27, sqrtPriceX96);
           await uniswapPoolContract.increaseObservationCardinalityNext(config.uniswap.priceLogSize);
+
+          await uniswapPoolContract.setAllowListEnabled(true);
+          await uniswapPoolContract.addToAllowList(uniswapRouterDeploymentResult.address);
 
           const uniswapPoolAddress = EthAddress.parse(uniswapPoolDeploymentResult.address);
 
@@ -212,7 +216,7 @@ export async function deployMarginly(
     });
 
     const marginlyRouterDeployResult = await using(logger.beginScope('Deploy marginly router'), async () => {
-      const adapterDeployResults: { dexId: ethers.BigNumber, adapter: EthAddress }[] = [];
+      const adapterDeployResults: { dexId: ethers.BigNumber; adapter: EthAddress }[] = [];
       for (const adapter of config.marginlyRouter.adapters) {
         await using(logger.beginScope('Deploy marginly adapter'), async () => {
           const marginlyAdapterDeployResult = await marginlyDeployer.deployMarginlyAdapter(
@@ -224,10 +228,10 @@ export async function deployMarginly(
           );
           printDeployState('Marginly adapter', marginlyAdapterDeployResult, logger);
           adapterDeployResults.push({
-            dexId: adapter.dexId, 
-            adapter: EthAddress.parse(marginlyAdapterDeployResult.address)
+            dexId: adapter.dexId,
+            adapter: EthAddress.parse(marginlyAdapterDeployResult.address),
           });
-        }); 
+        });
       }
 
       const marginlyRouterDeployResult = await marginlyDeployer.deployMarginlyRouter(adapterDeployResults);

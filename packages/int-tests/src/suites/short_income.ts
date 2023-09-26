@@ -30,7 +30,9 @@ export async function shortIncome(sut: SystemUnderTest) {
       'depositBase',
       marginlyPool
         .connect(lenders[i])
-        .execute(CallType.DepositBase, baseAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 500_000 })
+        .execute(CallType.DepositBase, baseAmount, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+          gasLimit: 500_000,
+        })
     );
   }
 
@@ -51,7 +53,7 @@ export async function shortIncome(sut: SystemUnderTest) {
     'depositQuote',
     marginlyPool
       .connect(borrower)
-      .execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+      .execute(CallType.DepositQuote, initialBorrQuoteBalance, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
         gasLimit: 500_000,
       })
   );
@@ -60,11 +62,14 @@ export async function shortIncome(sut: SystemUnderTest) {
   const shortAmount = parseUnits('5', 18);
   logger.info(`Open ${formatUnits(shortAmount, 18)} WETH short position`);
 
+  const minPrice = (await marginlyPool.getBasePrice()).inner.div(2);
   await gasReporter.saveGasUsage(
     'short',
     marginlyPool
       .connect(borrower)
-      .execute(CallType.Short, shortAmount, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_500_000 })
+      .execute(CallType.Short, shortAmount, 0, minPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 1_500_000,
+      })
   );
 
   logger.info(`Decreasing WETH price by ~10%`);
@@ -81,7 +86,7 @@ export async function shortIncome(sut: SystemUnderTest) {
     'reinit',
     marginlyPool
       .connect(treasury)
-      .execute(CallType.Reinit, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+      .execute(CallType.Reinit, 0, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
   );
   logger.info(`reinit executed`);
   const marginCallEvent = reinitReceipt.events?.find((e) => e.event == 'EnactMarginCall');
@@ -96,11 +101,14 @@ export async function shortIncome(sut: SystemUnderTest) {
   const discountedQuoteCollBefore = BigNumber.from(await marginlyPool.discountedQuoteCollateral());
 
   logger.info(`Closing position`);
+  const maxPrice = (await marginlyPool.getBasePrice()).inner.mul(2);
   const closePosReceipt = await gasReporter.saveGasUsage(
     'closePosition',
     marginlyPool
       .connect(borrower)
-      .execute(CallType.ClosePosition, 0, 0, false, ZERO_ADDRESS, uniswapV3Swapdata(), { gasLimit: 1_000_000 })
+      .execute(CallType.ClosePosition, 0, 0, maxPrice, false, ZERO_ADDRESS, uniswapV3Swapdata(), {
+        gasLimit: 1_000_000,
+      })
   );
   const closePosSwapEvent = decodeSwapEvent(closePosReceipt, uniswap.address);
   const swapAmount = closePosSwapEvent.amount0;

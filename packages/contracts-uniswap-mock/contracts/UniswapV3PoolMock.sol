@@ -13,8 +13,9 @@ import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.so
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
 import './NoDelegateCall.sol';
+import './AllowListSupport.sol';
 
-contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents {
+contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents, AllowListSupport {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
     using SafeCast for uint256;
@@ -25,7 +26,7 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
     event SetPrice(uint256 price, uint160 sqrtPriceX96);
 
     bytes32 public constant ORACLE_ROLE = keccak256('ORACLE_ROLE');
-    uint256 public constant PRICE_DENOMINATOR = 10 ** 18;
+    uint256 public constant PRICE_DENOMINATOR = 10 ** 27;
 
     address public immutable token0;
     address public immutable token1;
@@ -185,6 +186,8 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         uint160 sqrtPriceLimitX96,
         bytes calldata data
     ) external lock noDelegateCall returns (int256 amount0, int256 amount1) {
+        require(isAccountAllowed(msg.sender), 'NA');
+
         require(amountSpecified != 0, 'AS');
 
         require(

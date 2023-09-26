@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '../dataTypes/Position.sol';
 import './Errors.sol';
@@ -84,9 +84,16 @@ library MaxBinaryHeapLib {
     positions[self.nodes[index].account].heapPosition = 0;
 
     if (last != index) {
+      uint96 oldKey = self.nodes[index].key;
+
       self.nodes[index] = self.nodes[last];
       positions[self.nodes[index].account].heapPosition = index + 1;
-      heapifyDown(self, positions, index);
+
+      if (oldKey < self.nodes[index].key) {
+        heapifyUp(self, positions, index);
+      } else {
+        heapifyDown(self, positions, index);
+      }
     }
 
     delete self.nodes[last];

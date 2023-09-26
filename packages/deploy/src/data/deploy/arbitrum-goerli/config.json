@@ -78,6 +78,16 @@
         "tokenBBalance": "5_200_000_000",
         "priceId": "pepe-usdc",
         "priceBaseTokenId": "pepe"
+      },
+      {
+        "id": "fweth-usdc",
+        "tokenAId": "fweth",
+        "tokenBId": "usdc",
+        "fee": "0.05%",
+        "tokenABalance": "1_000_000",
+        "tokenBBalance": "2_000_000_000",
+        "priceId": "eth-usdc",
+        "priceBaseTokenId": "fweth"
       }
     ]
   },
@@ -96,9 +106,25 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "100_000_000"
+      }
+    },
+    {
+      "id": "fweth-usdc",
+      "uniswapPoolId": "fweth-usdc",
+      "baseTokenId": "fweth",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
         "quoteLimit": "100_000_000"
       }
@@ -113,6 +139,11 @@
           "tokenAId": "pepe",
           "tokenBId": "usdc",
           "poolAddress": "0xc7172FCB28Ee2c1EB29bFbf186EBDf3827cc2ce1"
+        },
+        {
+          "tokenAId": "fweth",
+          "tokenBId": "usdc",
+          "poolAddress": "0x035b26AF837e78798AD7c89050939B9AB2E192A0"
         }
       ]
     }

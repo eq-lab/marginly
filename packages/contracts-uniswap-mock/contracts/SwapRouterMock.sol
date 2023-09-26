@@ -32,6 +32,8 @@ contract SwapRouterMock is
   using Path for bytes;
   using SafeCast for uint256;
 
+  event RejectArbitraryRecipientChanged(bool allowed);
+
   /// @dev Used as the placeholder value for amountInCached, because the computed amount in for an exact output swap
   /// can never actually be this value
   uint256 private constant DEFAULT_AMOUNT_IN_CACHED = type(uint256).max;
@@ -40,6 +42,8 @@ contract SwapRouterMock is
   uint256 private amountInCached = DEFAULT_AMOUNT_IN_CACHED;
 
   mapping(address => mapping(address => mapping(uint24 => address))) public pools;
+
+  bool public rejectArbitraryRecipient;
 
   constructor(address _WETH9) PeripheryImmutableState(address(0), _WETH9) {}
 
@@ -102,6 +106,8 @@ contract SwapRouterMock is
     uint160 sqrtPriceLimitX96,
     SwapCallbackData memory data
   ) private returns (uint256 amountOut) {
+    require(isValidRecipient(recipient), 'Invalid recipient');
+
     // allow swapping to the router address with address 0
     if (recipient == address(0)) recipient = address(this);
 
@@ -175,6 +181,8 @@ contract SwapRouterMock is
     uint160 sqrtPriceLimitX96,
     SwapCallbackData memory data
   ) private returns (uint256 amountIn) {
+    require(isValidRecipient(recipient), 'Invalid recipient');
+
     // allow swapping to the router address with address 0
     if (recipient == address(0)) recipient = address(this);
 
@@ -234,5 +242,16 @@ contract SwapRouterMock is
     amountIn = amountInCached;
     require(amountIn <= params.amountInMaximum, 'Too much requested');
     amountInCached = DEFAULT_AMOUNT_IN_CACHED;
+  }
+
+  function setRejectArbitraryRecipient(bool value) public onlyOwner {
+    if (rejectArbitraryRecipient != value) {
+      rejectArbitraryRecipient = value;
+      emit RejectArbitraryRecipientChanged(value);
+    }
+  }
+
+  function isValidRecipient(address recipient) internal view returns (bool) {
+    return !rejectArbitraryRecipient || recipient == address(0) || recipient == address(this) || msg.sender == recipient;
   }
 }

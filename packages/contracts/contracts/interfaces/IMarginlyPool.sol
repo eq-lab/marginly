@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import './IMarginlyPoolOwnerActions.sol';
 import '../dataTypes/Mode.sol';
@@ -118,6 +118,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @dev Emitted when balance sync happened
   event BalanceSync();
 
+  /// @dev Emitted when setParameters method was called
+  event ParametersChanged();
+
   /// @dev Initializes the pool
   function initialize(
     address quoteToken,
@@ -143,6 +146,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     CallType call,
     uint256 amount1,
     uint256 amount2,
+    uint256 limitPriceX96,
     bool unwrapWETH,
     address receivePositionAddress,
     uint256 swapCalldata
