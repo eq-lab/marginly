@@ -26,7 +26,7 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
     event SetPrice(uint256 price, uint160 sqrtPriceX96);
 
     bytes32 public constant ORACLE_ROLE = keccak256('ORACLE_ROLE');
-    uint256 public constant PRICE_DENOMINATOR = 10 ** 18;
+    uint256 public constant PRICE_DENOMINATOR = 10 ** 27;
 
     address public immutable token0;
     address public immutable token1;
