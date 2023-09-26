@@ -155,11 +155,11 @@ export class OracleWorker implements Worker {
       let priceFp;
       let fpNumber;
       if (priceDenominator.eq(priceDenominator27)) {
-        priceFp = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
+        priceFp = priceToPriceFp27(token0Price, token0.decimals, token1.decimals);
         fpNumber = 27;
       } else if (priceDenominator.eq(priceDenominator18) || priceDenominator.eq(priceDenominatorPepe)) {
         // to support old uniswap mocks and support pepe uniswap mock with priceDenominatorPepe
-        priceFp = priceToPriceFp27(token0Price, token0.decimals, token1.decimals);
+        priceFp = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
         fpNumber = 18;
       } else {
         throw new Error(
