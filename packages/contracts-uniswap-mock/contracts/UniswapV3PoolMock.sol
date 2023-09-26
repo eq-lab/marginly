@@ -13,8 +13,9 @@ import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.so
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
 import './NoDelegateCall.sol';
+import './AllowListSupport.sol';
 
-contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents {
+contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents, AllowListSupport {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
     using SafeCast for uint256;
@@ -185,6 +186,8 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         uint160 sqrtPriceLimitX96,
         bytes calldata data
     ) external lock noDelegateCall returns (int256 amount0, int256 amount1) {
+        require(isAccountAllowed(msg.sender), 'NA');
+
         require(amountSpecified != 0, 'AS');
 
         require(

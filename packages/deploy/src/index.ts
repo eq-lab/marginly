@@ -126,6 +126,7 @@ export async function deployMarginly(
           tokenRepository
         );
         const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
+        await uniswapRouterContract.setRejectArbitraryRecipient(true);
         for (const pool of uniswapConfig.pools) {
           const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
             uniswapConfig.oracle,
@@ -171,6 +172,9 @@ export async function deployMarginly(
 
           await uniswapPoolContract.setPrice(priceFp18, sqrtPriceX96);
           await uniswapPoolContract.increaseObservationCardinalityNext(config.uniswap.priceLogSize);
+
+          await uniswapPoolContract.setAllowListEnabled(true);
+          await uniswapPoolContract.addToAllowList(uniswapRouterDeploymentResult.address);
 
           const uniswapPoolAddress = EthAddress.parse(uniswapPoolDeploymentResult.address);
 
