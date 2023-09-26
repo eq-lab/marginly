@@ -2,7 +2,7 @@ import { CancellationTokenSource, Worker } from '@marginly/common/lifecycle';
 import { Logger } from '@marginly/common/logger';
 import { Executor } from '@marginly/common/execution';
 import { StrictConfig, StrictOracleWorkerConfig, StrictTokenConfig, UniswapV3PoolMockConfig } from '../config';
-import { priceToPriceFp18, priceToSqrtPriceX96 } from '@marginly/common/math';
+import { priceToPriceFp18, priceToPriceFp27, priceToSqrtPriceX96 } from '@marginly/common/math';
 import * as ethers from 'ethers';
 import { ContractDescription, EthAddress, sleep } from '@marginly/common';
 import { using } from '@marginly/common/resource';
@@ -28,6 +28,7 @@ type PoolMock = UniswapV3PoolMockConfig & {
   contract: ethers.Contract;
   token0Address: EthAddress;
   token1Address: EthAddress;
+  priceDenominator: BigNumber;
 };
 
 export class OracleWorker implements Worker {
@@ -131,6 +132,7 @@ export class OracleWorker implements Worker {
 
       const token0 = this.findTokenByAddress(poolMock.token0Address);
       const token1 = this.findTokenByAddress(poolMock.token1Address);
+      const priceDenominator = poolMock.priceDenominator;
 
       let token0Price: number;
       if (token0.id === priceBaseToken.id) {
@@ -144,15 +146,26 @@ export class OracleWorker implements Worker {
       logger.debug(
         `For pool ${poolMock.id} token0 is ${token0.id} (${token0.decimals}), token1 is ${token1.id}, (${token1.decimals})`
       );
-      const priceFp18 = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
       const sqrtPriceX96 = priceToSqrtPriceX96(token0Price, token0.decimals, token1.decimals);
+
+      let priceFp;
+      let fpNumber;
+      if (priceDenominator.eq(BigNumber.from(10).pow(27))) {
+        priceFp = priceToPriceFp18(token0Price, token0.decimals, token1.decimals);
+        fpNumber = 27;
+      } else {
+        // by default and for old uniswapMocks use 18
+        priceFp = priceToPriceFp27(token0Price, token0.decimals, token1.decimals);
+        fpNumber = 18;
+      }
+
       logger.info(
-        `About to set ${poolMock.priceId} price: ${token0Price}, fp18: ${priceFp18}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`
+        `About to set ${poolMock.priceId} price: ${token0Price}, fp${fpNumber}: ${priceFp}, sqrtPriceX96: ${sqrtPriceX96} to ${poolMock.id} pool mock`
       );
 
       let tx;
       try {
-        tx = await poolMock.contract.setPrice(priceFp18, sqrtPriceX96);
+        tx = await poolMock.contract.setPrice(priceFp, sqrtPriceX96);
       } catch (error) {
         const errorRecord = error as Record<string, unknown>;
 
@@ -189,11 +202,11 @@ export class OracleWorker implements Worker {
 
         const event = setPriceEvents[0];
 
-        const actualPriceFp18 = event.args?.price;
-        if (actualPriceFp18 === undefined) {
+        const actualPriceFp = event.args?.price;
+        if (actualPriceFp === undefined) {
           throw new Error('SetPrice field actualPrice is not found');
         }
-        if (!BigNumber.from(priceFp18).eq(actualPriceFp18)) {
+        if (!BigNumber.from(priceFp).eq(actualPriceFp)) {
           throw new Error('Set price differs from actual');
         }
 
@@ -262,12 +275,14 @@ export class OracleWorker implements Worker {
         );
         const token0 = await contract.token0();
         const token1 = await contract.token1();
+        const priceDenominator = BigNumber.from(await contract.PRICE_DENOMINATOR());
         poolMocks.set(poolMockConfig.id, {
           ...poolMockConfig,
           validated: alreadyValidatedPoolIds.has(poolMockConfig.id),
           contract,
           token0Address: EthAddress.parse(token0),
           token1Address: EthAddress.parse(token1),
+          priceDenominator: priceDenominator,
         });
       }
 
