@@ -47,6 +47,7 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
     }
   }
 
+  /// @dev return dex adapter with given dexIndex. Throws error if dexIndex is unknown
   function getAdapterSafe(uint256 dexIndex) internal view returns (IMarginlyAdapter) {
     address adapterAddress = adapters[dexIndex];
     if (adapterAddress == address(0)) revert UnknownDex();

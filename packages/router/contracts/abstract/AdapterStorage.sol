@@ -49,6 +49,7 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
     }
   }
 
+  /// @dev returns pool address with given tokens. Throws error if pool is unknown
   function getPoolSafe(address tokenA, address tokenB) internal view returns (address pool) {
     pool = getPool[tokenA][tokenB];
     if (pool == address(0)) revert UnknownPool();

@@ -7,6 +7,12 @@ import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 abstract contract UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
+  /// @dev performs a swap in pool with similar to UniswapV2Pair interface
+  /// @param recipient swap output recipient
+  /// @param pool address of a pool to make the IUniswapV2Pair swap request
+  /// @param tokenIn address of a swap tokenIn
+  /// @param tokenOut address of a swap tokenOut
+  /// @param amountOut resulting amount of tokenOut to get after swap
   function uniswapV2LikeSwap(
     address recipient,
     address pool,
@@ -18,6 +24,7 @@ abstract contract UniswapV2LikeSwap {
     IUniswapV2Pair(pool).swap(amount0Out, amount1Out, recipient, new bytes(0));
   }
 
+  /// @dev returns IUniswapV2Pair(pool) amountOut of a swap with according params
   function uniswapV2LikeGetAmountOut(
     address pool,
     uint256 amountIn,
@@ -32,6 +39,7 @@ abstract contract UniswapV2LikeSwap {
     amountOut = numerator / denominator;
   }
 
+  /// @dev returns IUniswapV2Pair(pool) amountIn of a swap with according params
   function uniswapV2LikeGetAmountIn(
     address pool,
     uint256 amountOut,
@@ -45,6 +53,7 @@ abstract contract UniswapV2LikeSwap {
     amountIn = (numerator / denominator).add(1);
   }
 
+  /// @dev return reserves of IUniswapV2Pair(pool)
   function getReserves(
     address pool,
     address tokenA,

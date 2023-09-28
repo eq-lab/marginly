@@ -191,6 +191,10 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @dev Swaps tokens to receive exact amountOut and send at most amountInMaximum
+  /// @param quoteIn true if quote token is paid for the swap, false otherwise
+  /// @param amountInMaximum maximal amount of token paid for the swap
+  /// @param amountOut exact amount of tokens received after the swap
+  /// @param swapCalldata calldata for Marginly router
   function swapExactOutput(
     bool quoteIn,
     uint256 amountInMaximum,
@@ -214,6 +218,10 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @dev Swaps tokens to spend exact amountIn and receive at least amountOutMinimum
+  /// @param quoteIn true if quote token is paid for the swap, false otherwise
+  /// @param amountIn exact amount of token paid for the swap
+  /// @param amountOutMinimum minimal amount of tokens received after the swap
+  /// @param swapCalldata calldata for Marginly router
   function swapExactInput(
     bool quoteIn,
     uint256 amountIn,
@@ -237,6 +245,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev User liquidation: applies deleverage if needed then enacts MC
   /// @param user User's address
   /// @param position User's position to reinit
+  /// @param basePrice TWAP price used in calculations
   function liquidate(address user, Position storage position, FP96.FixedPoint memory basePrice) private {
     if (position._type == PositionType.Short) {
       uint256 realQuoteCollateral = calcRealQuoteCollateral(
@@ -450,8 +459,10 @@ contract MarginlyPool is IMarginlyPool {
   /// @notice Deposit base token
   /// @param amount Amount of base token to deposit
   /// @param longAmount Amount of base token to open long position
+  /// @param limitPriceX96 user input maximal price of a swap. Used in the next `long` call
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
+  /// @param swapCalldata calldata for Marginly router
   function depositBase(
     uint256 amount,
     uint256 longAmount,
@@ -520,8 +531,10 @@ contract MarginlyPool is IMarginlyPool {
   /// @notice Deposit quote token
   /// @param amount Amount of quote token
   /// @param shortAmount Amount of base token to open short position
+  /// @param limitPriceX96 user input minimal price of a swap. Used in the next `short` call
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
+  /// @param swapCalldata calldata for Marginly router
   function depositQuote(
     uint256 amount,
     uint256 shortAmount,
@@ -688,7 +701,9 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @notice Close position
+  /// @param limitPriceX96 user input maximal price of a swap
   /// @param position msg.sender position
+  /// @param swapCalldata calldata for Marginly router
   function closePosition(uint256 limitPriceX96, Position storage position, uint256 swapCalldata) private {
     uint256 realCollateralDelta;
     uint256 discountedCollateralDelta;
@@ -797,6 +812,7 @@ contract MarginlyPool is IMarginlyPool {
     return OracleLib.getSqrtPriceX96(uniswapPool, priceSecondsAgo);
   }
 
+  /// @notice transforms uniswapV3 token0/token1 sqrt price to base/quote price 
   function sqrtPriceX96ToPrice(uint256 sqrtPriceX96) private view returns (FP96.FixedPoint memory price) {
     price = FP96.FixedPoint({inner: sqrtPriceX96});
     price = price.mul(price);
@@ -808,8 +824,10 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Short with leverage
   /// @param realBaseAmount Amount of base token
+  /// @param limitPriceX96 user input minimal price of a swap
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
+  /// @param swapCalldata calldata for Marginly router
   function short(
     uint256 realBaseAmount,
     uint256 limitPriceX96,
@@ -858,8 +876,10 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Long with leverage
   /// @param realBaseAmount Amount of base token
+  /// @param limitPriceX96 user input maximal price of a swap
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
+  /// @param swapCalldata calldata for Marginly router
   function long(
     uint256 realBaseAmount,
     uint256 limitPriceX96,
@@ -1001,14 +1021,18 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
+  /// @notice calculates base collateral from give discounted values
   function calcRealBaseCollateral(uint256 disBaseCollateral, uint256 disQuoteDebt) private view returns (uint256) {
     return baseCollateralCoeff.mul(disBaseCollateral).sub(baseDelevCoeff.mul(disQuoteDebt));
   }
 
+  /// @notice calculates quote collateral from give discounted values 
   function calcRealQuoteCollateral(uint256 disQuoteCollateral, uint256 disBaseDebt) private view returns (uint256) {
     return quoteCollateralCoeff.mul(disQuoteCollateral).sub(quoteDelevCoeff.mul(disBaseDebt));
   }
 
+  /// @notice calculates new pool base balance. Used for liquidity limits calculations
+  /// @param extraRealBaseCollateral additional base collateral to the current one
   function newPoolBaseBalance(uint256 extraRealBaseCollateral) private view returns (uint256) {
     return
       calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt).add(extraRealBaseCollateral).sub(
@@ -1016,6 +1040,8 @@ contract MarginlyPool is IMarginlyPool {
       );
   }
 
+  /// @notice calculates new pool quote balance. Used for liquidity limits calculations
+  /// @param extraRealQuoteCollateral additional quote collateral to the current one
   function newPoolQuoteBalance(uint256 extraRealQuoteCollateral) private view returns (uint256) {
     return
       calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt).add(extraRealQuoteCollateral).sub(
@@ -1033,6 +1059,7 @@ contract MarginlyPool is IMarginlyPool {
     }
   }
 
+  /// @notice returns if given position has leverage greater then max allowed one
   function positionHasBadLeverage(
     Position storage position,
     FP96.FixedPoint memory basePrice
@@ -1056,16 +1083,19 @@ contract MarginlyPool is IMarginlyPool {
     return leverageX96 > maxLeverageX96;
   }
 
+  /// @dev changes baseCollCoeff and baseDelevCoeff by the same factor. Used in accrueInterest and MC calculations
   function updateBaseCollateralCoeffs(FP96.FixedPoint memory factor) private {
     baseCollateralCoeff = baseCollateralCoeff.mul(factor);
     baseDelevCoeff = baseDelevCoeff.mul(factor);
   }
 
+  /// @dev changes quoteCollCoeff and quoteDelevCoeff by the same factor. Used in accrueInterest and MC calculations
   function updateQuoteCollateralCoeffs(FP96.FixedPoint memory factor) private {
     quoteCollateralCoeff = quoteCollateralCoeff.mul(factor);
     quoteDelevCoeff = quoteDelevCoeff.mul(factor);
   }
 
+  /// @dev moves given position in according heap.
   function updateHeap(Position storage position) private {
     if (position._type == PositionType.Long) {
       uint96 sortKey = calcSortKey(initialPrice.mul(position.discountedBaseAmount), position.discountedQuoteAmount);
@@ -1167,6 +1197,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @inheritdoc IMarginlyPoolOwnerActions
+  /// @param swapCalldata calldata for Marginly router
   function shutDown(uint256 swapCalldata) external onlyFactoryOwner lock {
     if (mode != Mode.Regular) revert Errors.EmergencyMode();
     accrueInterest();
@@ -1288,6 +1319,7 @@ contract MarginlyPool is IMarginlyPool {
     emit EmergencyWithdraw(msg.sender, token, transferAmount);
   }
 
+  /// @notice recalculates system's long leverage
   function updateSystemLeverageLong(FP96.FixedPoint memory basePrice) private {
     if (discountedBaseCollateral == 0) {
       systemLeverage.longX96 = uint128(FP96.Q96);
@@ -1301,6 +1333,7 @@ contract MarginlyPool is IMarginlyPool {
     systemLeverage.longX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
+  /// @notice recalculates system's short leverage
   function updateSystemLeverageShort(FP96.FixedPoint memory basePrice) private {
     if (discountedQuoteCollateral == 0) {
       systemLeverage.shortX96 = uint128(FP96.Q96);
@@ -1415,6 +1448,7 @@ contract MarginlyPool is IMarginlyPool {
     return IERC20(erc20Token).balanceOf(address(this));
   }
 
+  /// @inheritdoc IMarginlyPool
   /// @param flag unwrapETH in case of withdraw calls or syncBalance in case of reinit call
   function execute(
     CallType call,

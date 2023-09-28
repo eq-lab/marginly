@@ -9,6 +9,12 @@ abstract contract UniswapV3LikeSwap {
   uint160 constant MIN_SQRT_RATIO = 4295128739;
   uint160 constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
+  /// @dev performs a swap in pool with similar to UniswapV3 interface
+  /// @param recipient swap output recipient
+  /// @param pool address of a pool to make the IUniswapV2Pair swap request
+  /// @param zeroForOne true if pool token0 is tokenIn, false otherwise
+  /// @param swapAmount amount of tokenIn
+  /// @param data data for UniswapV3 callback function (or its analogue)
   function uniswapV3LikeSwap(
     address recipient,
     address pool,

@@ -12,6 +12,7 @@ struct CallbackData {
 }
 
 abstract contract SwapCallback is AdapterStorage {
+  /// @dev function to call in `uniswapV3SwapCallback` function (or its analogues)
   function swapCallbackInner(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) internal {
     require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
     CallbackData memory data = abi.decode(_data, (CallbackData));

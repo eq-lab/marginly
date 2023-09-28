@@ -142,6 +142,12 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);
 
+  /// @notice common entry point for all user actions.
+  /// @param call type of user call to execute
+  /// @param limitPriceX96 maximal or minimal limit price for swaps
+  /// @param receivePositionAddress address of position for `receivePosition` call. Unused otherwise
+  /// @param swapCalldata calldata for Marginly router
+  /// other args meaning can vary depending on the call type
   function execute(
     CallType call,
     uint256 amount1,
