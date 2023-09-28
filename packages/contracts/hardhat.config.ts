@@ -13,6 +13,11 @@ const config = {
     },
   },
   networks: {
+    hardhat: {
+      accounts: {
+        count: 30,
+      },
+    },
     polygonMumbai: {
       url: 'https://rpc.ankr.com/polygon_mumbai',
     },
@@ -22,8 +27,8 @@ const config = {
   },
   etherscan: {
     apiKey: {
-      polygonMumbai: '',
-      arbitrumGoerli: '',
+      polygonMumbai: process.env.API_KEY,
+      arbitrumGoerli: process.env.API_KEY,
     },
   },
   mocha: {

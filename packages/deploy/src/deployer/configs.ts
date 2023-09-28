@@ -91,7 +91,7 @@ export interface MarginlyPoolParams {
   maxLeverage: RationalNumber;
   swapFee: RationalNumber;
   priceAgo: TimeSpan;
-  positionSlippage: RationalNumber;
+  priceAgoMC: TimeSpan;
   mcSlippage: RationalNumber;
   positionMinAmount: RationalNumber;
   quoteLimit: RationalNumber;
@@ -352,7 +352,7 @@ export class StrictMarginlyDeployConfig {
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
         priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
-        positionSlippage: RationalNumber.parsePercent(rawPool.params.positionSlippage),
+        priceAgoMC: TimeSpan.parse(rawPool.params.priceAgoMC),
         mcSlippage: RationalNumber.parsePercent(rawPool.params.mcSlippage),
         positionMinAmount: RationalNumber.parse(rawPool.params.positionMinAmount),
         quoteLimit: RationalNumber.parse(rawPool.params.quoteLimit),
