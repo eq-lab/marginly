@@ -1,5 +1,5 @@
 # Oracle for Uniswap Mock
-
+Package with oracle service which sets prices for [Uniswap-mock](../contracts-uniswap-mock/)
 ## Build
 
 ```shell

@@ -2,7 +2,7 @@
 
 Generate types for contracts before start
 
-```
+```bash
 yarn gen
 ```
 
@@ -10,7 +10,7 @@ yarn gen
 
 In order to run specific test, run command below and specify test name as "--suite" argument
 
-```
+```bash
 yarn start --suite=suiteName
 ```
 

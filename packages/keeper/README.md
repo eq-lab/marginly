@@ -1,6 +1,6 @@
 # Marginly keeper service
 
-Service for monitor and liquidate bad positions with help of MarginlyKeeper contract
+Service for monitoring and liquidating bad positions with help of [MarginlyKeeper](../contracts/contracts/MarginlyKeeper.sol) contract
 
 ## Install dependencies
 

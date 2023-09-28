@@ -1,4 +1,6 @@
 # Marginly deploy
+This package implements deployment of marginly contracts.
+However to run the deployment use [`cli` package](../cli/README.md).
 
 ## Install
 
@@ -11,12 +13,6 @@ yarn install
 ```shell
 yarn build
 ```
-
-## Deploy
-
-This package implements deployment of marginly contracts.
-However to run deployment use `cli` package. [More information](../cli/README.md)
-
 ## Deployment config files
 
 Config files general structure is described in `src/config.ts` file.

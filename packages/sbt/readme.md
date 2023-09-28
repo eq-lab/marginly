@@ -1,4 +1,5 @@
 # Soulbound token
+Package with souldbound token implementation used for Marginly d contests.
 ### Build
 ```bash
 yarn install && yarn build

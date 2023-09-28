@@ -1,4 +1,5 @@
 # Marginly CLI
+CLI package with set of different commands.
 
 ## Install
 
