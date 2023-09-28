@@ -71,9 +71,9 @@
         "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.1",
         "quoteLimit": "123_456_789"
       }
@@ -81,21 +81,15 @@
   ],
   "adapters": [
     {
-      "id": "ET1-ET2",
-      "uniswapPoolId": "ET1-ET2",
-      "baseTokenId": "ExampleToken1",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "recoveryMaxLeverage": "17",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "positionSlippage": "2.0%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "positionMinAmount": "0.1",
-        "quoteLimit": "123_456_789"
-      }
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "ExampleToken1",
+          "tokenBId": "ExampleToken2",
+          "poolAddress": "0xabBa000000000000000000000000000000000000"
+        }
+      ]
     }
   ],
   "marginlyKeeper": {
