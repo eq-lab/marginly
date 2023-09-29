@@ -23,4 +23,12 @@ jobs:
             cd packages/router
             yarn
             yarn test
+        - name: Build for testing uniswap mock
+          run: |
+            cd packages/common
+            yarn
+            yarn build
+            cd ../contracts-uniswap-mock
+            yarn
+            yarn test
         
