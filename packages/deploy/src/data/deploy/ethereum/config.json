@@ -92,11 +92,10 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "10000",
         "quoteLimit": "20000000"
       }
     },
@@ -109,11 +108,10 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "10000000",
         "quoteLimit": "10000000"
       }
     },
@@ -126,11 +124,10 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "1000000",
         "quoteLimit": "1500000"
       }
     },
@@ -143,15 +140,15 @@
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500",
         "quoteLimit": "400000"
       }
     }
   ],
+  "routerPools": [],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",

@@ -12,6 +12,25 @@ const config = {
       },
     },
   },
+  networks: {
+    hardhat: {
+      accounts: {
+        count: 30,
+      },
+    },
+    polygonMumbai: {
+      url: 'https://rpc.ankr.com/polygon_mumbai',
+    },
+    arbitrumGoerli: {
+      url: 'https://goerli-rollup.arbitrum.io/rpc',
+    },
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.API_KEY,
+      arbitrumGoerli: process.env.API_KEY,
+    },
+  },
   mocha: {
     timeout: 200_000,
   },

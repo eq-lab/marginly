@@ -10,6 +10,10 @@ echo "build contracts-uniswap-mock"
 yarn workspace @marginly/contracts-uniswap-mock install
 yarn workspace @marginly/contracts-uniswap-mock compile
 
+echo "build router"
+yarn workspace @marginly/router install
+yarn workspace @marginly/router compile
+
 echo "build common"
 yarn workspace @marginly/common install
 yarn workspace @marginly/common build

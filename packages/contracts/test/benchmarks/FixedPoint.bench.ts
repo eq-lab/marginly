@@ -31,7 +31,7 @@ describe('Gas Benchmark - FixedPoint', () => {
 
   it('Should pow x^y', async () => {
     const { contract, owner } = await loadFixture(deployFixedPointFixture);
-    const base = 1 + 10 * 0.05 / 31557600;
+    const base = 1 + (10 * 0.05) / 31557600;
     const baseFp = convertNumberToFP96(base);
     const exponents = [
       { time: 'same block', exp: 0 },
@@ -79,7 +79,7 @@ describe('Gas Benchmark - FixedPoint', () => {
 
   it('Should powTaylor x^y', async () => {
     const { contract, owner } = await loadFixture(deployFixedPointFixture);
-    const base = 1 + 10 * 0.05 / 31557600;
+    const base = 1 + (10 * 0.05) / 31557600;
     const baseFp = convertNumberToFP96(base);
     const exponents = [
       { time: 'same block', exp: 0 },

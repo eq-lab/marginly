@@ -48,14 +48,14 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "priceAgo": "15 min",
-        "positionSlippage": "2.0%",
+        "priceAgoMC": "1 min",
         "mcSlippage": "5.0%",
         "positionMinAmount": "0.001",
-        "baseLimit": "10000",
         "quoteLimit": "20000000"
       }
     }
   ],
+  "routerPools": [],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0xC911B590248d127aD18546B186cC6B324e99F02c",

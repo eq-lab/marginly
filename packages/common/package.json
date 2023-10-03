@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "ethers": "^5.7.2",
-    "node-fetch": "^2.6.9"
+    "node-fetch": "^2.6.9",
+    "ws": "^8.13.0"
   },
   "exports": {
     ".": "./dist/index.js",
@@ -38,7 +39,8 @@
     "./execution": "./dist/execution.js",
     "./lifecycle": "./dist/lifecycle.js",
     "./math": "./dist/math.js",
-    "./price": "./dist/price.js"
+    "./price": "./dist/price.js",
+    "./utils": "./dist/utils.js"
   },
   "typesVersions": {
     "*": {
@@ -48,7 +50,8 @@
       "execution": ["dist/execution.d.ts"],
       "lifecycle": ["dist/lifecycle.d.ts"],
       "math": ["dist/math.d.ts"],
-      "price": ["dist/price.d.ts"]
+      "price": ["dist/price.d.ts"],
+      "utils": ["dist/utils.d.ts"]
     }
   }
 }

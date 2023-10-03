@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import './IMarginlyPoolOwnerActions.sol';
 import '../dataTypes/Mode.sol';
@@ -12,6 +12,12 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param user User that was reinited
   /// @param swapPriceX96 Price of swap worth in quote token as Q96
   event EnactMarginCall(address indexed user, uint256 swapPriceX96);
+
+  /// @dev Emitted when deleverage took place
+  /// @param positionType deleveraged positions type
+  /// @param totalCollateralReduced total collateral reduced from all positions
+  /// @param totalDebtReduced total debt reduced from all positions
+  event Deleverage(PositionType positionType, uint256 totalCollateralReduced, uint256 totalDebtReduced);
 
   /// @dev Emitted when user deposited base token
   /// @param user Depositor
@@ -109,11 +115,16 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param reinitTimestamp timestamp when reinit happened
   event Reinit(uint256 reinitTimestamp);
 
+  /// @dev Emitted when balance sync happened
+  event BalanceSync();
+
+  /// @dev Emitted when setParameters method was called
+  event ParametersChanged();
+
   /// @dev Initializes the pool
   function initialize(
     address quoteToken,
     address baseToken,
-    uint24 uniswapFee,
     bool quoteTokenIsToken0,
     address uniswapPool,
     MarginlyParams memory _params
@@ -128,12 +139,6 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns the address of associated uniswap pool
   function uniswapPool() external view returns (address pool);
 
-  /// @notice Returns the fee for uniswap pool
-  function uniswapFee() external view returns (uint24 fee);
-
-  /// @notice Returns true if the token0 in Uniswap pool is a stable-coin
-  function quoteTokenIsToken0() external view returns (bool);
-
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);
 
@@ -141,7 +146,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     CallType call,
     uint256 amount1,
     uint256 amount2,
+    uint256 limitPriceX96,
     bool unwrapWETH,
-    address receivePositionAddress
+    address receivePositionAddress,
+    uint256 swapCalldata
   ) external payable;
 }

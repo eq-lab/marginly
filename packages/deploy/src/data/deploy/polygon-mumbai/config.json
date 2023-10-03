@@ -1,6 +1,6 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://rpc.ankr.com/polygon_mumbai"
+    "ethNodeUri": "https://rpc-mumbai.maticvigil.com/"
   },
   "connection": {
     "assertChainId": 80001,
@@ -41,14 +41,26 @@
       "label": "eth/usdc",
       "type": "http-get",
       "direction": "forward",
-      "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
     },
     {
       "id": "matic-usdc",
       "label": "matic/usdc",
-      "type": "http-get",
-      "direction": "forward",
-      "query": "json(https://www.mexc.com/open/api/v2/market/ticker?symbol=MATIC_USDC).data[0].last"
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "matic/usdt",
+          "direction": "forward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+        }
+      ]
     }
   ],
   "uniswap": {
@@ -99,8 +111,7 @@
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500_000",
-        "quoteLimit": "1_000_000"
+        "quoteLimit": "100_000_000"
       }
     },
     {
@@ -113,15 +124,15 @@
         "recoveryMaxLeverage": "17",
         "swapFee": "0.1%",
         "fee": "2%",
-        "positionSlippage": "2.0%",
         "mcSlippage": "5.0%",
         "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
         "positionMinAmount": "0.001",
-        "baseLimit": "500_000",
-        "quoteLimit": "400_000"
+        "quoteLimit": "100_000_000"
       }
     }
   ],
+  "routerPools": [],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "address": "0xeb7A892BB04A8f836bDEeBbf60897A7Af1Bf5d7F"

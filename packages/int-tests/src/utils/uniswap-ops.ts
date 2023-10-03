@@ -7,9 +7,10 @@ import { tickToPrice } from '@uniswap/v3-sdk';
 import { Token } from '@uniswap/sdk-core';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { WETH9Contract } from '../contract-api/WETH9';
-import { SwapRouterContract } from '../contract-api/SwapRouter';
 import { UniswapV3PoolContract } from '../contract-api/UniswapV3Pool';
 import { FiatTokenV2_1Contract } from '../contract-api/FiatTokenV2';
+import { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
+import { uniswapV3Swapdata } from './chain-ops';
 
 // from TickMath
 const MIN_TICK = -887272;
@@ -127,7 +128,7 @@ export async function changeWethPrice(
     weth: WETH9Contract;
     usdc: FiatTokenV2_1Contract;
     uniswap: UniswapV3PoolContract;
-    swapRouter: SwapRouterContract;
+    swapRouter: MarginlyRouterContract;
   },
   targetPrice: BigNumber
 ) {
@@ -172,19 +173,9 @@ export async function changeWethPrice(
     }
 
     await (
-      await swapRouter.connect(treasury).exactInputSingle(
-        {
-          tokenIn,
-          tokenOut,
-          fee,
-          recipient: treasury.address,
-          deadline: now + 10000,
-          amountIn,
-          amountOutMinimum: 0,
-          sqrtPriceLimitX96: 0,
-        },
-        { gasLimit: 1_900_000 }
-      )
+      await swapRouter
+        .connect(treasury)
+        .swapExactInput(uniswapV3Swapdata(), tokenIn, tokenOut, amountIn, 0, { gasLimit: 1_000_000 })
     ).wait();
 
     const { tick } = await uniswap.connect(provider).slot0();

@@ -2,14 +2,14 @@
   "marginlyPools": [
     {
       "id": "fmatic-usdc",
-      "address": "0xB6d95e63Fa6C8986ac5dF893157B93FF3313E4E1"
+      "address": "0xF94BD9F6Fb3357857AbBe92608C13cf8728864cf"
     },
     {
       "id": "fweth-usdc",
-      "address": "0x3A52326f13a60c4C5561CB078F3f02Bf09e87c89"
+      "address": "0x007eAcaCD91A39A0AF9F0BB9E7603c0d761391Ef"
     }
   ],
   "marginlyKeeper": {
-    "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD"
+    "address": "0x2c00BD8905d38a648f39c6108A1BD19ff9dC58C8"
   }
 }

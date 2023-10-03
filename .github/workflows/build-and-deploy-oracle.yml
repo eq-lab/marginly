@@ -104,6 +104,7 @@ jobs:
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
           --set image.tag=$IMAGE_TAG \
+          --set imagePullSecrets[0].name=$GH_SECR \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY=$PK \

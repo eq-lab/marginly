@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
-import './IOwnable.sol';
 import '../dataTypes/MarginlyParams.sol';
 
-interface IMarginlyFactory is IOwnable {
+interface IMarginlyFactory {
   /// @notice Emitted when a pool is created
   /// @param quoteToken The stable-coin
   /// @param baseToken The base token
@@ -18,6 +17,10 @@ interface IMarginlyFactory is IOwnable {
     bool quoteTokenIsToken0,
     address pool
   );
+
+  /// @notice Emitted when changeSwapRouter was executed
+  /// @param newSwapRouter new swap router address
+  event SwapRouterChanged(address indexed newSwapRouter);
 
   /// @notice Creates a pool for the two given tokens and fee
   /// @param quoteToken One of the two tokens in the desired pool
@@ -34,6 +37,10 @@ interface IMarginlyFactory is IOwnable {
     uint24 uniswapFee,
     MarginlyParams memory params
   ) external returns (address pool);
+
+  /// @notice Changes swap router address used by Marginly pools
+  /// @param newSwapRouter address of new swap router
+  function changeSwapRouter(address newSwapRouter) external;
 
   /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
   /// @dev quoteToken and baseToken may be passed in either token0/token1 or token1/token0 order

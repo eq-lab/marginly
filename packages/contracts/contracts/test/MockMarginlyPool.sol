@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
@@ -41,7 +41,6 @@ contract MockMarginlyPool is IMarginlyPool {
   function initialize(
     address _quoteToken,
     address _baseToken,
-    uint24 _uniswapFee,
     bool _quoteTokenIsToken0,
     address _uniswapPool,
     MarginlyParams memory _params
@@ -49,13 +48,11 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function setParameters(MarginlyParams calldata _params) external {}
 
-  function shutDown() external {}
+  function shutDown(uint256 swapCalldata) external {}
 
   function setRecoveryMode(bool set) external {}
 
   function uniswapPool() external pure returns (address pool) {}
-
-  function uniswapFee() external pure returns (uint24 fee) {}
 
   function quoteTokenIsToken0() external pure returns (bool) {}
 
@@ -63,8 +60,10 @@ contract MockMarginlyPool is IMarginlyPool {
     CallType call,
     uint256 amount1,
     uint256 amount2,
+    uint256 limitPriceX96,
     bool unwrapWETH,
-    address receivePositionAddress
+    address receivePositionAddress,
+    uint256 swapCalldata
   ) external payable override {
     if (call == CallType.ReceivePosition) {
       require(receivePositionAddress == badPositionAddress);

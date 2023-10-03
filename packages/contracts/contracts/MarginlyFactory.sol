@@ -1,31 +1,30 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
+import './libraries/Errors.sol';
 
 import './MarginlyPool.sol';
 
 /// @title Marginly contract factory
 /// @notice Deploys Marginly and manages ownership and control over pool
-contract MarginlyFactory is IMarginlyFactory {
-  address public marginlyPoolImplementation;
-  /// @inheritdoc IOwnable
-  address public override owner;
+contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
+  address public immutable marginlyPoolImplementation;
   /// @notice Address of uniswap factory
-  address public uniswapFactory;
+  address public immutable uniswapFactory;
   /// @notice Address of uniswap swap router
   address public override swapRouter;
   /// @notice Swap fee holder
-  address public override feeHolder;
+  address public immutable override feeHolder;
   /// @notice Address of wrapped ETH
-  address public override WETH9;
+  address public immutable override WETH9;
   /// @notice Technical position address
-  address public override techPositionOwner;
+  address public immutable override techPositionOwner;
 
   /// @inheritdoc IMarginlyFactory
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
@@ -38,9 +37,6 @@ contract MarginlyFactory is IMarginlyFactory {
     address _WETH9,
     address _techPositionOwner
   ) {
-    owner = msg.sender;
-    emit OwnerChanged(address(0), msg.sender);
-
     marginlyPoolImplementation = _marginlyPoolImplementation;
     uniswapFactory = _uniswapFactory;
     swapRouter = _swapRouter;
@@ -49,36 +45,36 @@ contract MarginlyFactory is IMarginlyFactory {
     techPositionOwner = _techPositionOwner;
   }
 
-  /// @inheritdoc IOwnable
-  function setOwner(address _owner) external override {
-    require(msg.sender == owner, 'NO'); // Not an owner
-    owner = _owner;
-    emit OwnerChanged(msg.sender, _owner);
-  }
-
   /// @inheritdoc IMarginlyFactory
   function createPool(
     address quoteToken,
     address baseToken,
     uint24 uniswapFee,
     MarginlyParams calldata params
-  ) external override returns (address pool) {
-    require(msg.sender == owner, 'NO'); // Not an owner
-    require(quoteToken != baseToken);
+  ) external override onlyOwner returns (address pool) {
+    if (quoteToken == baseToken) revert Errors.Forbidden();
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
-    require(existingPool == address(0), 'PC'); // Pool already created
+    if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
 
     address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
-    require(uniswapPool != address(0), 'UNF'); // Uniswap pool not found
+    if (uniswapPool == address(0)) revert Errors.UniswapPoolNotFound();
 
-    bool quoteTokenIsToken0 = quoteToken == IUniswapV3Pool(uniswapPool).token0();
+    // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
+    bool quoteTokenIsToken0 = quoteToken < baseToken;
 
     pool = Clones.cloneDeterministic(marginlyPoolImplementation, keccak256(abi.encode(uniswapPool)));
-    IMarginlyPool(pool).initialize(quoteToken, baseToken, uniswapFee, quoteTokenIsToken0, uniswapPool, params);
+    IMarginlyPool(pool).initialize(quoteToken, baseToken, quoteTokenIsToken0, uniswapPool, params);
 
     getPool[quoteToken][baseToken][uniswapFee] = pool;
     getPool[baseToken][quoteToken][uniswapFee] = pool;
     emit PoolCreated(quoteToken, baseToken, uniswapPool, quoteTokenIsToken0, pool);
+  }
+
+  /// @inheritdoc IMarginlyFactory
+  function changeSwapRouter(address newSwapRouter) external onlyOwner {
+    if (newSwapRouter == address(0)) revert Errors.WrongValue();
+    swapRouter = newSwapRouter;
+    emit SwapRouterChanged(newSwapRouter);
   }
 }

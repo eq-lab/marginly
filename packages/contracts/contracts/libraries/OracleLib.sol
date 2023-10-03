@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 
@@ -7,6 +7,7 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 /// @notice Provides functions to integrate with V3 pool oracle
 library OracleLib {
   error T();
+  error ZeroSeconds();
 
   /// @dev The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
   int24 private constant MAX_TICK = 887272;
@@ -15,7 +16,7 @@ library OracleLib {
   /// @param pool Address of the pool that we want to observe
   /// @param secondsAgo Number of seconds in the past from which to calculate the time-weighted means
   function getSqrtPriceX96(address pool, uint32 secondsAgo) internal view returns (uint256 priceX96) {
-    require(secondsAgo != 0, 'ZS'); // Zero seconds
+    if (secondsAgo == 0) revert ZeroSeconds();
 
     uint32[] memory secondsAgos = new uint32[](2);
     secondsAgos[0] = secondsAgo;
@@ -32,6 +33,8 @@ library OracleLib {
 
   /// @notice Calculates sqrt(1.0001^tick) * 2^96
   /// @dev Throws if |tick| > max tick
+  /// @dev Copied from uniswap v4 TickMath.sol https://github.com/Uniswap/v4-core/blob/eb61604467ae331259298585c290da85b46f6aaa/contracts/libraries/TickMath.sol
+  /// same in KyberSwap https://github.com/KyberNetwork/ks-elastic-sc-legacy/blob/15175cc06ecc26df1d2f14df4e1e8286dfa79318/contracts/libraries/TickMath.sol
   /// @param tick The input tick for the above formula
   /// @return sqrtPriceX96 A Fixed point Q64.96 number representing the sqrt of the ratio of the two assets (token1/token0)
   /// at the given tick

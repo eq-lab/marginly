@@ -1,6 +1,7 @@
 .idea/
 .vscode/
 .history/
+dist/
 gethdata/
 gethdata2/
 coverage/

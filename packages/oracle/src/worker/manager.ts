@@ -36,8 +36,8 @@ export class WorkerManager implements Worker {
     }
   }
 
-  private createWorker(workerId: string): OracleWorker {
-    return new OracleWorker(this.config, this.logger, this.executor, this.pricesRepository, workerId);
+  private createWorker(workerId: string, transientState?: string[]): OracleWorker {
+    return new OracleWorker(this.config, this.logger, this.executor, this.pricesRepository, workerId, transientState);
   }
 
   private getActivePromises(): Promise<[string, boolean]>[] {
@@ -48,8 +48,8 @@ export class WorkerManager implements Worker {
     return process.hrtime.bigint() / 1_000_000n;
   }
 
-  private createWorkerInfo(stoppedWorkerId: string, failedAtMs?: bigint): WorkerInfo {
-    const worker = this.createWorker(stoppedWorkerId);
+  private createWorkerInfo(stoppedWorkerId: string, failedAtMs?: bigint, transientState?: string[]): WorkerInfo {
+    const worker = this.createWorker(stoppedWorkerId, transientState);
     return {
       failedAtMs,
       worker,
@@ -95,7 +95,8 @@ export class WorkerManager implements Worker {
           await sleep(this.config.workerManager.restartDelayMs);
           this.logger.info(`Restarting worker ${stoppedWorkerId}`);
 
-          this.activeWorkers.set(stoppedWorkerId, this.createWorkerInfo(stoppedWorkerId, this.getNowMs()));
+          const transientState = this.activeWorkers.get(stoppedWorkerId)?.worker.getTransientState() ?? [];
+          this.activeWorkers.set(stoppedWorkerId, this.createWorkerInfo(stoppedWorkerId, this.getNowMs(), transientState));
         }
       }
     }

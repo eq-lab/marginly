@@ -12,26 +12,33 @@
         "label": "eth/usdc",
         "type": "http-get",
         "direction": "forward",
-        "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdc&size=1).data[0].data[0].price"
+        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
       },
       {
-        "id": "arb-eth",
-        "label": "arb/eth",
+        "id": "arb-usdc",
+        "label": "arb/usdc",
         "type": "composite",
         "sources": [
           {
             "type": "http-get",
             "label": "arb/usdt",
             "direction": "forward",
-            "query": "json(https://api.huobi.pro/market/history/trade?symbol=arbusdt&size=1).data[0].data[0].price"
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBUSDT).price"
           },
           {
             "type": "http-get",
-            "label": "usdt/eth",
+            "label": "usdt/usdc",
             "direction": "backward",
-            "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
           }
         ]
+      },
+      {
+        "id": "arb-eth",
+        "label": "arb/eth",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBETH).price"
       },
       {
         "id": "gmx-eth",
@@ -42,21 +49,100 @@
             "type": "http-get",
             "label": "gmx/usdt",
             "direction": "forward",
-            "query": "json(https://api.huobi.pro/market/history/trade?symbol=gmxusdt&size=1).data[0].data[0].price"
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GMXUSDT).price"
           },
           {
             "type": "http-get",
             "label": "usdt/eth",
             "direction": "backward",
-            "query": "json(https://api.huobi.pro/market/history/trade?symbol=ethusdt&size=1).data[0].data[0].price"
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT).price"
+          }
+        ]
+      },
+      {
+        "id": "matic-usdc",
+        "label": "matic/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "matic/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+          }
+        ]
+      },
+      {
+        "id": "gmx-usdc",
+        "label": "gmx/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "gmx/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GMXUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+          }
+        ]
+      },
+      {
+        "id": "btc-usdc",
+        "label": "btc/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
+      },
+      {
+        "id": "bitcoin-usdc",
+        "label": "bitcoin/usdc",
+        "type": "lbkex",
+        "priceChain": [
+          {
+            "direction": "forward",
+            "pair": "bitcoin_usdt"
+          },
+          {
+            "direction": "backward",
+            "pair": "usdc_usdt"
+          }
+        ]
+      },
+      {
+        "id": "pepe-usdc",
+        "label": "pepe/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "pepe/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
           }
         ]
       }
     ]
   },
   "workerManager": {
-    "sequentialFailsThresholdMs": 600000,
-    "restartDelayMs": 10000
+    "sequentialFailsThresholdMs": 180000,
+    "restartDelayMs": 30000
   },
   "oracleWorkers": [
     {
@@ -89,6 +175,12 @@
           "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD",
           "assertSymbol": "GMX",
           "assertDecimals": 18
+        },
+        {
+          "id": "pepe",
+          "address": "0x856C8Bbd425A33e8a716A873848Be25e5520AA07",
+          "assertSymbol": "PEPE",
+          "assertDecimals": 18
         }
       ],
       "uniswapV3PoolMocks": [
@@ -99,16 +191,22 @@
           "priceBaseTokenId": "fweth"
         },
         {
-          "id": "arb-fweth",
-          "address": "0xf97c7F7ccBB90ba32d3fb01aF18c8FFf5A94Bd65",
-          "priceId": "arb-eth",
+          "id": "arb-usdc",
+          "address": "0x9C653a10e4C51e9A784FeE3D5495de91cf3e1c51",
+          "priceId": "arb-usdc",
           "priceBaseTokenId": "arb"
         },
         {
-          "id": "gmx-fweth",
-          "address": "0x03fA449776FBE2a38771BD638be94E32592372f6",
-          "priceId": "gmx-eth",
+          "id": "gmx-usdc",
+          "address": "0x32859f88bB45fa5e25453Ba044D8fF5Fc243a8D9",
+          "priceId": "gmx-usdc",
           "priceBaseTokenId": "gmx"
+        },
+        {
+          "id": "pepe-usdc",
+          "address": "0xc7172FCB28Ee2c1EB29bFbf186EBDf3827cc2ce1",
+          "priceId": "pepe-usdc",
+          "priceBaseTokenId": "pepe"
         }
       ],
       "updatePriceJobs": [
@@ -117,12 +215,134 @@
           "periodMs": 60000
         },
         {
-          "poolMockId": "arb-fweth",
+          "poolMockId": "arb-usdc",
           "periodMs": 60000
         },
         {
-          "poolMockId": "gmx-fweth",
+          "poolMockId": "gmx-usdc",
           "periodMs": 60000
+        },
+        {
+          "poolMockId": "pepe-usdc",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "polygon-mumbai",
+      "ticksMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://rpc-mumbai.maticvigil.com"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0x230f4447F79DC52a5Bc8031Dfdd49da6929Ca290",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x33544752A157AeE7e78AD83DC61E95EF7aAe52a1",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "fmatic",
+          "address": "0x6ea7a8FecbFf190D6B504263BDD81b7F2B07700A",
+          "assertSymbol": "FMATIC",
+          "assertDecimals": 18
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x64BF3213666bC357155DDb21aD2404d3Df04e0A1",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "fmatic-usdc",
+          "address": "0xC931D0D6BDCc8b264983533a58ED80F1a3b99ef7",
+          "priceId": "matic-usdc",
+          "priceBaseTokenId": "fmatic"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "fmatic-usdc",
+          "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "zksync-goerli",
+      "ticksMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://testnet.era.zksync.dev"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0xf813Ede945d925f052bDFd37a649e14A587A2462",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x91f4d48Fc08b0383Dc3a20858911A0e6688bAD89",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "wbtc",
+          "address": "0x3f01E7165407Be31bB3e445c9060D694C70ac0C1",
+          "assertSymbol": "WBTC",
+          "assertDecimals": 8
+        },
+        {
+          "id": "bitcoin",
+          "address": "0x3c4816b74fe1C0B470e21a637591e4C0197A89f5",
+          "assertSymbol": "BITCOIN",
+          "assertDecimals": 8
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0xb9e37CAcACbc3fAF8F54b9dc9446eb4D8A64F7fc",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "wbtc-usdc",
+          "address": "0xC9363e55Fc7834Eb59977d48cC452eDBf0D47639",
+          "priceId": "btc-usdc",
+          "priceBaseTokenId": "wbtc"
+        },
+        {
+          "id": "bitcoin-usdc",
+          "address": "0x69dE9be22a0DcDc3551F66A778e9B2B6EA67d9eE",
+          "priceId": "bitcoin-usdc",
+          "priceBaseTokenId": "bitcoin"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 15000
+        },
+        {
+          "poolMockId": "wbtc-usdc",
+          "periodMs": 15000
+        },
+        {
+          "poolMockId": "bitcoin-usdc",
+          "periodMs": 15000
         }
       ]
     }

@@ -1,0 +1,48 @@
+{
+  "contracts": {
+    "token_FWETH": {
+      "address": "0x230f4447F79DC52a5Bc8031Dfdd49da6929Ca290",
+      "txHash": "0x5d8d779a0da29553d1782cfe2575c6b466c49d06b940df2c889395d56bed8d6c"
+    },
+    "token_USDC": {
+      "address": "0x33544752A157AeE7e78AD83DC61E95EF7aAe52a1",
+      "txHash": "0xedf573f9511cae16787e06da538f57c7eceb8f6e5ead9191e60763f64fabc1b7"
+    },
+    "token_FMATIC": {
+      "address": "0x6ea7a8FecbFf190D6B504263BDD81b7F2B07700A",
+      "txHash": "0x508057377fd73741e4bcf17e6f768bd92ceaac7a2d395de3ed1a4674f66a3711"
+    },
+    "swapRouterMock": {
+      "address": "0x3FF49b72F5c3B1E4d63b3DB4F2d8a729d4463E0E",
+      "txHash": "0xeb3f8a6ddc94beaf90aa456f20aff4bbd47d8d7a2393f98fa94e0324d69e9860"
+    },
+    "uniswapV3PoolMock_fweth-usdc": {
+      "address": "0x64BF3213666bC357155DDb21aD2404d3Df04e0A1",
+      "txHash": "0xd5b2c5b524e12e825d882fd7b6b57a4d5c966641b9a4e3ff00d118889f42fc46"
+    },
+    "uniswapV3PoolMock_fmatic-usdc": {
+      "address": "0xC931D0D6BDCc8b264983533a58ED80F1a3b99ef7",
+      "txHash": "0x28307033de4277ce74dfc3d05869cb563b81f8d2daace7926abab1d7730b76b9"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x3331f57018843334D3DE9a612bd0A6CE9e1c9ad9",
+      "txHash": "0x8bb15c1402322044ab82ed791fe176cac9d0e3625aff82610f2b206122ccb0f0"
+    },
+    "marginlyFactory": {
+      "address": "0x193856DaF7490BA1EBEF0eE56b93cfFda2313B13",
+      "txHash": "0xbfc8c841aa322cf1e2e4f00264bfde2564dfcb6fcb0e129e64653e8a90a11eac"
+    },
+    "marginlyPool_fweth-usdc": {
+      "address": "0x007eAcaCD91A39A0AF9F0BB9E7603c0d761391Ef",
+      "txHash": "0xa20df378f1ab0f22a394c9254e78937fc2388c33655095c8886a938031a1ef02"
+    },
+    "marginlyPool_fmatic-usdc": {
+      "address": "0xF94BD9F6Fb3357857AbBe92608C13cf8728864cf",
+      "txHash": "0x64221f1d366137d2b2a4cf90c5284d9e66e2e1e918bea298d057cf56df6a6b00"
+    },
+    "marginlyKeeper": {
+      "address": "0x2c00BD8905d38a648f39c6108A1BD19ff9dC58C8",
+      "txHash": "0x417980f2cfa7353876b8bb9066d1d473ca9c07d51d3f7c0c65831ea61cf8da32"
+    }
+  }
+}

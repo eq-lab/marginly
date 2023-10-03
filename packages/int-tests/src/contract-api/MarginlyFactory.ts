@@ -19,6 +19,7 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyFactoryInterface extends utils.Interface {
   functions: {
+    'changeSwapRouter(address)': utils.FunctionFragment;
     'createPool(address,address,uint24,tuple)': utils.FunctionFragment;
     'feeHolder()': utils.FunctionFragment;
     'getPool(address,address,uint24)': utils.FunctionFragment;
@@ -33,6 +34,7 @@ export interface MarginlyFactoryInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | 'changeSwapRouter'
       | 'createPool'
       | 'feeHolder'
       | 'getPool'
@@ -53,6 +55,10 @@ export interface MarginlyFactoryContract extends BaseContract {
 
   interface: MarginlyFactoryInterface;
 
+  changeSwapRouter(
+    newSwapRouter: PromiseOrValue<string>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   createPool(
     quoteToken: PromiseOrValue<string>,
     baseToken: PromiseOrValue<string>,
@@ -60,13 +66,12 @@ export interface MarginlyFactoryContract extends BaseContract {
     params: PromiseOrValue<{
       maxLeverage: BigNumberish;
       priceSecondsAgo: BigNumberish;
+      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
-      positionSlippage: BigNumberish;
       mcSlippage: BigNumberish;
       positionMinAmount: BigNumberish;
-      baseLimit: BigNumberish;
       quoteLimit: BigNumberish;
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
@@ -105,6 +110,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     WETH9(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
+    changeSwapRouter(
+      newSwapRouter: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
     createPool(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
@@ -112,13 +121,12 @@ export interface MarginlyFactoryContract extends BaseContract {
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -129,6 +137,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     ): Promise<BigNumber>;
   };
   populateTransaction: {
+    changeSwapRouter(
+      newSwapRouter: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
     createPool(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
@@ -136,13 +148,12 @@ export interface MarginlyFactoryContract extends BaseContract {
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -153,6 +164,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
+    changeSwapRouter(
+      newSwapRouter: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
     createPool(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
@@ -160,13 +175,12 @@ export interface MarginlyFactoryContract extends BaseContract {
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
         priceSecondsAgo: BigNumberish;
+        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
-        positionSlippage: BigNumberish;
         mcSlippage: BigNumberish;
         positionMinAmount: BigNumberish;
-        baseLimit: BigNumberish;
         quoteLimit: BigNumberish;
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
