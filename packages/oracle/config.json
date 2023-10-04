@@ -141,6 +141,25 @@
             "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
           }
         ]
+      },
+      {
+        "id": "matic-usdc",
+        "label": "matic/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "matic/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+          }
+        ]
       }
     ]
   },
@@ -210,7 +229,7 @@
           "id": "btc-usdc",
           "address": "0x27410978DC2E0271B618e8131E512B826bFe4753",
           "priceId": "btc-usdc",
-          "priceBaseTokenId": "btc"
+          "priceBaseTokenId": "wbtc"
         },
         {
           "id": "arb-usdc",
