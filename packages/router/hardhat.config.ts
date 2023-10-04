@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import 'solidity-docgen';
 require('hardhat-contract-sizer');
 
 const config = {
@@ -38,6 +39,13 @@ const config = {
     runOnCompile: true,
     strict: false,
     only: ['Marginly', 'Adapter'],
+  },
+  docgen: {
+    outputDir: '../docs/docs/contracts/router/reference',
+    templates: '../docs/templates',
+    clear: true,
+    pages: 'files',
+    exclude: ['test'],
   },
 };
 
