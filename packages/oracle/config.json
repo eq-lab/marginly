@@ -442,12 +442,6 @@
           "address": "0xC9363e55Fc7834Eb59977d48cC452eDBf0D47639",
           "priceId": "btc-usdc",
           "priceBaseTokenId": "wbtc"
-        },
-        {
-          "id": "bitcoin-usdc",
-          "address": "0x69dE9be22a0DcDc3551F66A778e9B2B6EA67d9eE",
-          "priceId": "bitcoin-usdc",
-          "priceBaseTokenId": "bitcoin"
         }
       ],
       "updatePriceJobs": [
@@ -457,10 +451,6 @@
         },
         {
           "poolMockId": "wbtc-usdc",
-          "periodMs": 15000
-        },
-        {
-          "poolMockId": "bitcoin-usdc",
           "periodMs": 15000
         }
       ]
