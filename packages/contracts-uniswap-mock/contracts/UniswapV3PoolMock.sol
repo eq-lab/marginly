@@ -27,6 +27,7 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
 
     bytes32 public constant ORACLE_ROLE = keccak256('ORACLE_ROLE');
     uint256 public constant PRICE_DENOMINATOR = 10 ** 27;
+    uint256 public constant FEE_DENOMINATOR = 1000000;
 
     address public immutable token0;
     address public immutable token1;
@@ -201,19 +202,21 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         uint256 amountSpecifiedAbs = uint256(amountSpecified >= 0 ? amountSpecified : - amountSpecified);
 
         if (exactInput) {
+            uint256 amountAfterFee = FullMath.mulDiv(amountSpecifiedAbs, FEE_DENOMINATOR - uint256(fee), FEE_DENOMINATOR);
             if (zeroForOne) {
                 amount0 = amountSpecified;
-                amount1 = - FullMath.mulDiv(amountSpecifiedAbs, latestPrice, PRICE_DENOMINATOR).toInt256();
+                amount1 = - FullMath.mulDiv(amountAfterFee, latestPrice, PRICE_DENOMINATOR).toInt256();
             } else {
                 amount1 = amountSpecified;
-                amount0 = - FullMath.mulDiv(amountSpecifiedAbs, PRICE_DENOMINATOR, latestPrice).toInt256();
+                amount0 = - FullMath.mulDiv(amountAfterFee, PRICE_DENOMINATOR, latestPrice).toInt256();
             }
         } else {
+            uint256 amountBeforeFee = FullMath.mulDiv(amountSpecifiedAbs, FEE_DENOMINATOR, FEE_DENOMINATOR - uint256(fee));
             if (zeroForOne) {
-                amount0 = FullMath.mulDiv(amountSpecifiedAbs, PRICE_DENOMINATOR, latestPrice).toInt256();
+                amount0 = FullMath.mulDiv(amountBeforeFee, PRICE_DENOMINATOR, latestPrice).toInt256();
                 amount1 = amountSpecified;
             } else {
-                amount1 = FullMath.mulDiv(amountSpecifiedAbs, latestPrice, PRICE_DENOMINATOR).toInt256();
+                amount1 = FullMath.mulDiv(amountBeforeFee, latestPrice, PRICE_DENOMINATOR).toInt256();
                 amount0 = amountSpecified;
             }
         }
