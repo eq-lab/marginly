@@ -1,6 +1,10 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@matterlabs/hardhat-zksync-solc';
+import '@matterlabs/hardhat-zksync-verify';
 require('hardhat-contract-sizer');
+
+import './scripts';
 
 const config = {
   solidity: {
@@ -12,6 +16,34 @@ const config = {
       },
     },
   },
+  networks: {
+    zkSyncGoerli: {
+      url: 'https://testnet.era.zksync.dev',
+      verifyURL: 'https://zksync2-testnet-explorer.zksync.dev/contract_verification',
+      ethNetwork: 'goerli',
+      zksync: true,
+    },
+    zkSyncMainnet: {
+      url: 'https://mainnet.era.zksync.io',
+      verifyURL: 'https://zksync2-mainnet-explorer.zksync.io/contract_verification',
+      ethNetwork: 'mainnet',
+      zksync: true,
+    },
+    arbitrumGoerli: {
+      url: 'https://goerli-rollup.arbitrum.io/rpc',
+      zksync: false,
+    },
+    arbitrumMainnet: {
+      url: 'https://arb1.arbitrum.io/rpc',
+      zksync: false,
+    },
+  },
+  etherscan: {
+    apiKey: {
+      arbitrumGoerli: process.env.API_KEY, // '4MXQ6UYYHSZBN8UYFJEI2VCQUW4T97S91V'
+      arbitrumMainnet: process.env.API_KEY, // '4MXQ6UYYHSZBN8UYFJEI2VCQUW4T97S91V'
+    },
+  },
   mocha: {
     timeout: 200_000,
   },
@@ -21,6 +53,10 @@ const config = {
     runOnCompile: true,
     strict: false,
     only: ['SBT'],
+  },
+  typechain: {
+    outDir: 'typechain-types',
+    target: 'ethers-v6',
   },
 };
 

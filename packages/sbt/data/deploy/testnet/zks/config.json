@@ -1,0 +1,13 @@
+{
+  "ethConnection": {
+    "assertChainId": 280,
+    "ethOptions": {
+      "gasPrice": 5000000000,
+      "gasLimit": 5000000
+    }
+  },
+  "owner": {
+    "address": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+    "comment": "Metamask Test acc"
+  }
+}
