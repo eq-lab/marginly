@@ -21,6 +21,20 @@ task('sbt:transfer-ownership')
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
+task('sbt:renounceOwnership-ownership')
+  .addParam('contract', 'The signer private key.')
+  .addParam('signer', 'The signer private key.')
+  .setAction(async function (args: TaskArguments, hre) {
+    const contract = initSbtContract(hre, args.signer, args.contract);
+
+    const tx = await contract.renounceOwnership();
+    await tx.wait();
+
+    const owner = await contract.owner();
+
+    console.log('Ownership has been successfully transferred to: ', owner);
+  });
+
 task('sbt:mint')
   .addParam('contract', 'The signer private key.')
   .addParam('signer', 'The signer private key.')
@@ -36,7 +50,7 @@ task('sbt:mint')
     const tx = await contract.mint(tokens, metadata);
     await tx.wait();
 
-    console.log('Tokens has been successfully minted', tokensMetadata);
+    console.log('Tokens has been successfully minted.', tokensMetadata);
   });
 
 task('sbt:award')
@@ -69,7 +83,7 @@ task('sbt:burn')
     const tx = await contract.burn(args.id, args.amount);
     await tx.wait();
 
-    console.log(`The amount of token ${id} has been successsfully decreased by ${amount}`);
+    console.log(`The amount of token ${args.id} has been successsfully decreased by ${args.amount}.`);
   });
 
 function initSbtContract(hre: HardhatRuntimeEnvironment, pk: string, contract: string): SBT {

@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@nomicfoundation/hardhat-ethers';
 import '@matterlabs/hardhat-zksync-solc';
 import '@matterlabs/hardhat-zksync-verify';
 require('hardhat-contract-sizer');
@@ -43,9 +44,6 @@ const config = {
       arbitrumGoerli: process.env.API_KEY, // '4MXQ6UYYHSZBN8UYFJEI2VCQUW4T97S91V'
       arbitrumMainnet: process.env.API_KEY, // '4MXQ6UYYHSZBN8UYFJEI2VCQUW4T97S91V'
     },
-  },
-  mocha: {
-    timeout: 200_000,
   },
   contractSizer: {
     alphaSort: true,

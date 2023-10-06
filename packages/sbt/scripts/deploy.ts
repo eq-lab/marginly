@@ -27,7 +27,7 @@ task('deploy:sbt:zks')
     const contract = await deployer.deploy(artifact, []);
     await contract.deployed();
 
-    console.log('Greeter deployed to: ', await contract.address);
+    console.log('Contract deployed to: ', await contract.address);
   });
 
 task('verify:sbt:arb')

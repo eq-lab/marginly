@@ -9,8 +9,10 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "compile:arb:testnet": "hardhat compile --network arbitrum-testnet",
-    "compile:zks:testnet": "hardhat compile --network zk-sync-testnet",
+    "compile:arb:testnet": "hardhat compile --network arbitrumGoerli",
+    "compile:zks:testnet": "hardhat compile --network zkSyncGoerli",
+    "compile:arb:mainnet": "hardhat compile --network arbitrumMainnet",
+    "compile:zks:mainnet": "hardhat compile --network zkSyncMainnet",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "lint:write": "prettier --write ./contracts",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
@@ -28,7 +30,7 @@
     "@openzeppelin/contracts": "^4.8.0",
     "@typechain/ethers-v6": "^0.5.0",
     "@typechain/hardhat": "^8.0.0",
-    "@types/jest": "^29.2.5",
+    "@types/chai": "^4.3.6",
     "@types/mocha": "^10.0.1",
     "chai": "^4.3.10",
     "cross-env": "^7.0.3",
@@ -37,10 +39,10 @@
     "hardhat-contract-sizer": "^2.6.1",
     "hardhat-deploy": "^0.11.37",
     "hardhat-gas-reporter": "^1.0.9",
+    "mocha": "^10.2.0",
     "solhint": "3.3.7",
     "solhint-plugin-prettier": "0.0.5",
     "solidity-coverage": "^0.8.5",
-    "ts-node": "^10.9.1",
     "typechain": "^8.3.1",
     "typescript": "^4.9.4"
   }
