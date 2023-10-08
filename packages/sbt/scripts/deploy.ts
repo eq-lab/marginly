@@ -1,49 +1,69 @@
 import '@nomicfoundation/hardhat-toolbox';
 import { task } from 'hardhat/config';
-import type { TaskArguments } from 'hardhat/types';
+import type { Network, TaskArguments } from 'hardhat/types';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { Wallet as ZkWallet } from 'zksync-web3';
+import * as fs from 'fs';
 
-task('deploy:sbt:arb')
-  .addParam('signer', 'The deployer private key.')
-  .setAction(async function (args: TaskArguments, { ethers, network }) {
-    const provider = new ethers.JsonRpcProvider((network.config as any).url);
-    const signer = new ethers.Wallet(args.signer, provider);
-
-    const factory = await ethers.getContractFactory('SBT', signer);
-    const contract = await factory.deploy();
-    await contract.waitForDeployment();
-
-    console.log('Contract deployed to: ', await contract.getAddress());
-  });
-
-task('deploy:sbt:zks')
+task('sbt:deploy')
   .addParam('signer', 'The deployer private key.')
   .setAction(async function (args: TaskArguments, hre) {
-    const signer = new ZkWallet(args.signer);
-    const deployer = new Deployer(hre, signer);
+    let txHash: string;
+    let contractAddress: string;
 
-    const artifact = await deployer.loadArtifact('SBT');
-    const contract = await deployer.deploy(artifact, []);
-    await contract.deployed();
+    if (hre.network.zksync) {
+      const signer = new ZkWallet(args.signer);
+      const deployer = new Deployer(hre, signer);
 
-    console.log('Contract deployed to: ', await contract.address);
+      const artifact = await deployer.loadArtifact('SBT');
+      const contract = await deployer.deploy(artifact, []);
+      const tx = contract.deployTransaction;
+      await contract.deployed();
+
+      txHash = tx!.hash;
+      contractAddress = contract.address;
+    } else {
+      const provider = new hre.ethers.JsonRpcProvider((hre.network.config as any).url);
+      const signer = new hre.ethers.Wallet(args.signer, provider);
+
+      const factory = await hre.ethers.getContractFactory('SBT', signer);
+      const contract = await factory.deploy();
+      const tx = contract.deploymentTransaction();
+      await contract.waitForDeployment();
+
+      txHash = tx!.hash;
+      contractAddress = await contract.getAddress();
+    }
+
+    saveDeploymentState(hre.network, txHash, contractAddress);
+
+    console.log('Contract has been successfully deployed to: ', contractAddress);
   });
 
-task('verify:sbt:arb')
+task('sbt:verify')
   .addParam('contract', 'The address of the verifying contract.')
-  .setAction(async function (args: TaskArguments, { run }) {
-    await run('verify:verify', {
-      address: args.contract,
-    });
+  .setAction(async function (args: TaskArguments, hre) {
+    if (hre.network.zksync) {
+      await hre.run('verify:verify', {
+        address: args.contract,
+        contract: 'contracts/SBT.sol:SBT',
+        constructorArguments: [],
+      });
+    } else {
+      await hre.run('verify:verify', {
+        address: args.contract,
+      });
+    }
   });
 
-task('verify:sbt:zks')
-  .addParam('contract', 'The address of the verifying contract.')
-  .setAction(async function (args: TaskArguments, { run }) {
-    await run('verify:verify', {
-      address: args.contract,
-      contract: 'contracts/SBT.sol:SBT',
-      constructorArguments: [],
-    });
-  });
+function saveDeploymentState(network: Network, txHash: string, address: string) {
+  const state = JSON.stringify(
+    {
+      address: address,
+      txHash: txHash,
+    },
+    null,
+    2
+  );
+  fs.writeFileSync(`./data/deployments/${network.name}-${new Date().toISOString()}`, state, { encoding: 'utf8' });
+}

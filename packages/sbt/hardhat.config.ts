@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@nomicfoundation/hardhat-verify';
 import '@nomicfoundation/hardhat-ethers';
 import '@matterlabs/hardhat-zksync-solc';
 import '@matterlabs/hardhat-zksync-verify';
@@ -41,8 +42,8 @@ const config = {
   },
   etherscan: {
     apiKey: {
-      arbitrumGoerli: process.env.API_KEY, // '4MXQ6UYYHSZBN8UYFJEI2VCQUW4T97S91V'
-      arbitrumMainnet: process.env.API_KEY, // '4MXQ6UYYHSZBN8UYFJEI2VCQUW4T97S91V'
+      arbitrumGoerli: process.env.API_KEY,
+      arbitrumMainnet: process.env.API_KEY,
     },
   },
   contractSizer: {

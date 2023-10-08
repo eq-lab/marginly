@@ -1,8 +1,8 @@
 import '@nomicfoundation/hardhat-toolbox';
 import { task } from 'hardhat/config';
-import type { HardhatRuntimeEnvironment, TaskArguments } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment, Network, TaskArguments } from 'hardhat/types';
+import { BigNumberish, ContractTransactionResponse, resolveAddress } from 'ethers';
 import * as fs from 'fs';
-import { BigNumberish } from 'ethers';
 
 import { SBT, SBT__factory } from '../typechain-types';
 
@@ -14,21 +14,21 @@ task('sbt:transfer-ownership')
     const contract = initSbtContract(hre, args.signer, args.contract);
 
     const tx = await contract.transferOwnership(args.owner);
-    await tx.wait();
+    await waitTransaction(hre.network, tx);
 
     const owner = await contract.owner();
 
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
-task('sbt:renounceOwnership-ownership')
+task('sbt:renounce-ownership')
   .addParam('contract', 'The signer private key.')
   .addParam('signer', 'The signer private key.')
   .setAction(async function (args: TaskArguments, hre) {
     const contract = initSbtContract(hre, args.signer, args.contract);
 
     const tx = await contract.renounceOwnership();
-    await tx.wait();
+    await waitTransaction(hre.network, tx);
 
     const owner = await contract.owner();
 
@@ -48,7 +48,7 @@ task('sbt:mint')
     const metadata = tokensMetadata.map((tm) => tm.metadata);
 
     const tx = await contract.mint(tokens, metadata);
-    await tx.wait();
+    await waitTransaction(hre.network, tx);
 
     console.log('Tokens has been successfully minted.', tokensMetadata);
   });
@@ -67,7 +67,7 @@ task('sbt:award')
     const amounts = winners.map((w) => w.amount);
 
     const tx = await contract.award(to, ids, amounts);
-    await tx.wait();
+    await waitTransaction(hre.network, tx);
 
     console.log(`The tokens has been successfully awarded to the winners.`, winners);
   });
@@ -81,7 +81,7 @@ task('sbt:burn')
     const contract = initSbtContract(hre, args.signer, args.contract);
 
     const tx = await contract.burn(args.id, args.amount);
-    await tx.wait();
+    await waitTransaction(hre.network, tx);
 
     console.log(`The amount of token ${args.id} has been successsfully decreased by ${args.amount}.`);
   });
@@ -92,6 +92,12 @@ function initSbtContract(hre: HardhatRuntimeEnvironment, pk: string, contract: s
   const sbt = SBT__factory.connect(contract, signer);
 
   return sbt;
+}
+
+async function waitTransaction(network: Network, response: ContractTransactionResponse) {
+  if (!network.zksync) {
+    await response.wait();
+  }
 }
 
 interface TokenMetadata {

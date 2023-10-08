@@ -6,14 +6,6 @@ import '@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol
 import '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 
-// TODO: deploy => set state after each deployment
-// TODO: mint data
-// TODO: award data
-// TODO: readme
-// TODO: test commands
-// TODO: test tokens appeared in opensea testnet
-// TODO: deployment => mint => award price
-
 contract SBT is Ownable, ERC165, IERC1155, IERC1155MetadataURI {
   // Mapping from token ID to account balances
   mapping(uint256 => mapping(address => uint256)) private _balances;

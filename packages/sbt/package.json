@@ -9,10 +9,6 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "compile:arb:testnet": "hardhat compile --network arbitrumGoerli",
-    "compile:zks:testnet": "hardhat compile --network zkSyncGoerli",
-    "compile:arb:mainnet": "hardhat compile --network arbitrumMainnet",
-    "compile:zks:mainnet": "hardhat compile --network zkSyncMainnet",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
     "lint:write": "prettier --write ./contracts",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
