@@ -35,7 +35,7 @@ task('sbt:renounce-ownership')
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
-task('sbt:createOrUpdate')
+task('sbt:create-or-update')
   .addParam('contract', 'The signer private key.')
   .addParam('signer', 'The signer private key.')
   .addParam('metadataFile', 'The file containing the following JSON structure [{id:number,metadata:string}].')
@@ -72,7 +72,7 @@ task('sbt:mint')
     console.log(`The tokens has been successfully minted to the recipients.`, recipients);
   });
 
-task('sbt:burnMinted')
+task('sbt:burn-minted')
   .addParam('contract', 'The signer private key.')
   .addParam('signer', 'The signer private key.')
   .addParam(
