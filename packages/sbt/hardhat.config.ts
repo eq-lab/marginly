@@ -1,27 +1,12 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@nomicfoundation/hardhat-verify';
+import '@nomicfoundation/hardhat-ethers';
+import '@matterlabs/hardhat-zksync-solc';
+import '@matterlabs/hardhat-zksync-verify';
 require('hardhat-contract-sizer');
 
-const config = {
-  solidity: {
-    version: '0.8.19',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 100,
-      },
-    },
-  },
-  mocha: {
-    timeout: 200_000,
-  },
-  contractSizer: {
-    alphaSort: true,
-    disambiguatePaths: false,
-    runOnCompile: true,
-    strict: false,
-    only: ['SBT'],
-  },
-};
+import './scripts';
+import { config } from './hardhat.common';
 
 export default config;

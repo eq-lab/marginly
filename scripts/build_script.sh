@@ -34,7 +34,6 @@ echo "build deploy"
 yarn workspace @marginly/deploy install
 yarn workspace @marginly/deploy build
 
-
 echo "build keeper"
 yarn workspace @marginly/keeper install
 yarn workspace @marginly/keeper build
@@ -45,6 +44,7 @@ yarn workspace @marginly/oracle build
 
 echo "build sbt"
 yarn workspace @marginly/sbt install
+yarn workspace @marginly/sbt typechain
 yarn workspace @marginly/sbt compile
 yarn workspace @marginly/sbt build
 
