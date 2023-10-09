@@ -4,6 +4,7 @@ import '@nomicfoundation/hardhat-verify';
 import '@nomicfoundation/hardhat-ethers';
 import '@matterlabs/hardhat-zksync-solc';
 import '@matterlabs/hardhat-zksync-verify';
+import 'hardhat-gas-reporter';
 require('hardhat-contract-sizer');
 
 import './scripts';
