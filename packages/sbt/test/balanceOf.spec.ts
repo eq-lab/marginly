@@ -32,7 +32,7 @@ describe('balanceOf()', function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
     const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
 
-    await admin.award([this.signers.users[0].address], [1], [123]);
+    await admin.mint([this.signers.users[0].address], [1], [123]);
 
     expect(await user.balanceOf(this.signers.users[0].address, 1)).be.equal(123);
   });
@@ -41,7 +41,7 @@ describe('balanceOf()', function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
     const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
 
-    await admin.award([this.signers.users[0].address], [1], [123]);
+    await admin.mint([this.signers.users[0].address], [1], [123]);
     await user.burn(1, 23);
 
     expect(await user.balanceOf(this.signers.users[0].address, 1)).be.equal(100);

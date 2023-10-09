@@ -14,11 +14,11 @@ contract SBT is Ownable, ERC165, IERC1155, IERC1155MetadataURI {
   mapping(uint256 => string) private _uris;
 
   /**
-   * @notice Allows admin to mint NFTs.
+   * @notice Allows admin to create or update NFTs.
    * @param ids The token ids being minted.
    * @param uris The URIs of the ERC1155 JSON metadata files.
    */
-  function mint(uint256[] calldata ids, string[] calldata uris) external onlyOwner {
+  function createOrUpdate(uint256[] calldata ids, string[] calldata uris) external onlyOwner {
     require(ids.length == uris.length, 'args invalid length');
 
     for (uint256 i = 0; i < ids.length; i++) {
@@ -31,12 +31,41 @@ contract SBT is Ownable, ERC165, IERC1155, IERC1155MetadataURI {
   }
 
   /**
-   * @notice Allows admin to award the winners with the minted NFTs.
-   * @param to The winners account addresses.
-   * @param ids The token ids being awarded.
-   * @param amounts The amounts of the tokens being awarded.
+   * @notice Allows admin to burn the given amounts of the NFTs.
+   * @param owners The owners of tokens being burned.
+   * @param ids The token ids being burned.
+   * @param amounts The amounts of tokens being burned.
    */
-  function award(address[] calldata to, uint256[] calldata ids, uint256[] calldata amounts) external onlyOwner {
+  function burnMinted(
+    address[] calldata owners,
+    uint256[] calldata ids,
+    uint256[] calldata amounts
+  ) external onlyOwner {
+    require(ids.length == amounts.length && ids.length == owners.length, 'args invalid length');
+
+    address operator = _msgSender();
+
+    for (uint256 i = 0; i < ids.length; i++) {
+      require(owners[i] != address(0), 'address zero is not a valid owner');
+      require(amounts[i] > 0, 'invalid amount');
+
+      uint256 balance = _balances[ids[i]][owners[i]];
+
+      require(balance >= amounts[i], 'burn amount exceeds balance');
+
+      _balances[ids[i]][owners[i]] = balance - amounts[i];
+
+      emit TransferSingle(operator, owners[i], address(0), ids[i], amounts[i]);
+    }
+  }
+
+  /**
+   * @notice Allows admin to mint the NFTs.
+   * @param to The recipients account addresses.
+   * @param ids The token ids being minted.
+   * @param amounts The amounts of the tokens being minted.
+   */
+  function mint(address[] calldata to, uint256[] calldata ids, uint256[] calldata amounts) external onlyOwner {
     require(to.length == ids.length && to.length == amounts.length, 'args invalid length');
 
     address operator = _msgSender();

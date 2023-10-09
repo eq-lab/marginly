@@ -25,15 +25,15 @@ describe('uri()', function () {
   it('should be empty by default', async function () {
     const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
 
-    expect(await user.uri(1)).be.equal("");
+    expect(await user.uri(1)).be.equal('');
   });
 
   it('should return token uri after mint', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await admin.mint([1, 2], ["1", "2"]);
+    await admin.createOrUpdate([1, 2], ['1', '2']);
 
-    expect(await admin.uri(1)).be.equal("1");
-    expect(await admin.uri(2)).be.equal("2");
+    expect(await admin.uri(1)).be.equal('1');
+    expect(await admin.uri(2)).be.equal('2');
   });
 });

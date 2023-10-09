@@ -22,54 +22,61 @@ describe('mint()', function () {
     this.sbt = contract;
   });
 
-  it('should require owner', async function () {
+  it('should require admin', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
     const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
 
-    await expect(user.mint([], [])).to.be.rejectedWith(
-      "Ownable: caller is not the owner",
-    );
-    await expect(admin.mint([], [])).not.to.be.rejected;
+    await expect(user.mint([], [], [])).to.be.rejectedWith('Ownable: caller is not the owner');
+    await expect(admin.mint([], [], [])).not.to.be.rejected;
   });
 
-  it("should throw error when arguments mismatch length", async function () {
+  it('should throw error when arguments mismatch length', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await expect(admin.mint([], [""])).to.be.rejectedWith(
-      "args invalid length",
-    );
-    await expect(admin.mint([1], [])).to.be.rejectedWith(
-      "args invalid length",
-    );
-    await expect(admin.mint([1], ["", ""])).to.be.rejectedWith(
-      "args invalid length",
-    );
-    await expect(admin.mint([1, 2], [""])).to.be.rejectedWith(
-      "args invalid length",
-    );
+    await expect(admin.mint([this.signers.users[0].address], [], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([], [1], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([], [], [1])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([this.signers.users[0].address], [1], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([], [1], [1])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([this.signers.users[0].address], [1, 2], [1])).to.be.rejectedWith('args invalid length');
   });
 
-  it("should throw error when uri is empty", async function () {
+  it('should throw error when awarding zero address', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await expect(admin.mint([1], [""])).to.be.rejectedWith(
-      "invalid uri",
+    await expect(admin.mint(['0x0000000000000000000000000000000000000000'], [1], [1])).to.be.rejectedWith(
+      'address zero is not a valid owner'
     );
   });
 
-  it("should mint tokens, set uris and emit URI event", async function () {
+  it('should throw error when amount is zero', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await expect(admin.mint([1, 2, 3], ["1", "2", "3"]))
-      .to.emit(admin, "URI")
-      .withArgs("1", 1)
-      .to.emit(admin, "URI")
-      .withArgs("2", 2)
-      .to.emit(admin, "URI")
-      .withArgs("3", 3);
+    await expect(admin.mint([this.signers.users[0].address], [1], [0])).to.be.rejectedWith('invalid amount');
+  });
 
-    expect(await admin.uri(1)).be.equal("1");
-    expect(await admin.uri(2)).be.equal("2");
-    expect(await admin.uri(3)).be.equal("3");
+  it('should award users and emit TransferSingle event', async function () {
+    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+
+    await expect(admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [1, 2]))
+      .to.emit(admin, 'TransferSingle')
+      .withArgs(
+        this.signers.admin.address,
+        '0x0000000000000000000000000000000000000000',
+        this.signers.users[0].address,
+        1,
+        1
+      )
+      .to.emit(admin, 'TransferSingle')
+      .withArgs(
+        this.signers.admin.address,
+        '0x0000000000000000000000000000000000000000',
+        this.signers.users[1].address,
+        2,
+        2
+      );
+
+    expect(await admin.balanceOf(this.signers.users[0].address, 1)).be.equal(1);
+    expect(await admin.balanceOf(this.signers.users[1].address, 2)).be.equal(2);
   });
 });

@@ -7,56 +7,6 @@ import '@matterlabs/hardhat-zksync-verify';
 require('hardhat-contract-sizer');
 
 import './scripts';
-
-const config = {
-  solidity: {
-    version: '0.8.19',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 100,
-      },
-    },
-  },
-  networks: {
-    zkSyncGoerli: {
-      url: 'https://testnet.era.zksync.dev',
-      verifyURL: 'https://zksync2-testnet-explorer.zksync.dev/contract_verification',
-      ethNetwork: 'goerli',
-      zksync: true,
-    },
-    zkSyncMainnet: {
-      url: 'https://mainnet.era.zksync.io',
-      verifyURL: 'https://zksync2-mainnet-explorer.zksync.io/contract_verification',
-      ethNetwork: 'mainnet',
-      zksync: true,
-    },
-    arbitrumGoerli: {
-      url: 'https://goerli-rollup.arbitrum.io/rpc',
-      zksync: false,
-    },
-    arbitrumMainnet: {
-      url: 'https://arb1.arbitrum.io/rpc',
-      zksync: false,
-    },
-  },
-  etherscan: {
-    apiKey: {
-      arbitrumGoerli: process.env.API_KEY,
-      arbitrumMainnet: process.env.API_KEY,
-    },
-  },
-  contractSizer: {
-    alphaSort: true,
-    disambiguatePaths: false,
-    runOnCompile: true,
-    strict: false,
-    only: ['SBT'],
-  },
-  typechain: {
-    outDir: 'typechain-types',
-    target: 'ethers-v6',
-  },
-};
+import { config } from './hardhat.common';
 
 export default config;

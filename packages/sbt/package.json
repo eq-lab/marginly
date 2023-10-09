@@ -10,8 +10,9 @@
   "scripts": {
     "build": "tsc --build",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
+    "compile": "hardhat compile --config hardhat.common.ts --network arbitrumGoerli && hardhat compile --config hardhat.common.ts --network zkSyncGoerli",
     "lint:write": "prettier --write ./contracts",
-    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
+    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain --config hardhat.common.ts"
   },
   "author": "EqLab",
   "devDependencies": {
@@ -39,6 +40,7 @@
     "solhint": "3.3.7",
     "solhint-plugin-prettier": "0.0.5",
     "solidity-coverage": "^0.8.5",
+    "ts-node": "^10.9.1",
     "typechain": "^8.3.1",
     "typescript": "^4.9.4"
   }

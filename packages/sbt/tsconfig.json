@@ -7,7 +7,8 @@
     "resolveJsonModule": true
   },
   "files": [
-    "./hardhat.config.ts"
+    "./hardhat.config.ts",
+    "./hardhat.common.ts"
   ],
   "exclude": [
     "node_modules"

@@ -1,7 +1,7 @@
 import '@nomicfoundation/hardhat-toolbox';
 import { task } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment, Network, TaskArguments } from 'hardhat/types';
-import { BigNumberish, ContractTransactionResponse, resolveAddress } from 'ethers';
+import { BigNumberish, ContractTransactionResponse } from 'ethers';
 import * as fs from 'fs';
 
 import { SBT, SBT__factory } from '../typechain-types';
@@ -35,7 +35,7 @@ task('sbt:renounce-ownership')
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
-task('sbt:mint')
+task('sbt:createOrUpdate')
   .addParam('contract', 'The signer private key.')
   .addParam('signer', 'The signer private key.')
   .addParam('metadataFile', 'The file containing the following JSON structure [{id:number,metadata:string}].')
@@ -47,29 +47,51 @@ task('sbt:mint')
     const tokens = tokensMetadata.map((tm) => tm.id);
     const metadata = tokensMetadata.map((tm) => tm.metadata);
 
-    const tx = await contract.mint(tokens, metadata);
+    const tx = await contract.createOrUpdate(tokens, metadata);
     await waitTransaction(hre.network, tx);
 
-    console.log('Tokens has been successfully minted.', tokensMetadata);
+    console.log('Tokens has been successfully created/updated.', tokensMetadata);
   });
 
-task('sbt:award')
+task('sbt:mint')
   .addParam('contract', 'The signer private key.')
   .addParam('signer', 'The signer private key.')
-  .addParam('winnersFile', 'The file containing the following JSON structure [{to:string,id:number,amount:number}].')
+  .addParam('recipientsFile', 'The file containing the following JSON structure [{to:string,id:number,amount:number}].')
   .setAction(async function (args: TaskArguments, hre) {
     const contract = initSbtContract(hre, args.signer, args.contract);
 
-    const winners: TokenWinner[] = JSON.parse(fs.readFileSync(args.winnersFile, 'utf-8'));
+    const recipients: TokenRecipient[] = JSON.parse(fs.readFileSync(args.recipientsFile, 'utf-8'));
 
-    const to = winners.map((w) => w.to);
-    const ids = winners.map((tm) => tm.id);
-    const amounts = winners.map((w) => w.amount);
+    const to = recipients.map((w) => w.to);
+    const ids = recipients.map((tm) => tm.id);
+    const amounts = recipients.map((w) => w.amount);
 
-    const tx = await contract.award(to, ids, amounts);
+    const tx = await contract.mint(to, ids, amounts);
     await waitTransaction(hre.network, tx);
 
-    console.log(`The tokens has been successfully awarded to the winners.`, winners);
+    console.log(`The tokens has been successfully minted to the recipients.`, recipients);
+  });
+
+task('sbt:burnMinted')
+  .addParam('contract', 'The signer private key.')
+  .addParam('signer', 'The signer private key.')
+  .addParam(
+    'burnMintedFile',
+    'The file containing the following JSON structure [{owner:string,id:number,amount:number}].'
+  )
+  .setAction(async function (args: TaskArguments, hre) {
+    const contract = initSbtContract(hre, args.signer, args.contract);
+
+    const burnData: TokenOwner[] = JSON.parse(fs.readFileSync(args.burnMintedFile, 'utf-8'));
+
+    const owners = burnData.map((bd) => bd.owner);
+    const ids = burnData.map((bd) => bd.id);
+    const amounts = burnData.map((bd) => bd.amount);
+
+    const tx = await contract.burnMinted(owners, ids, amounts);
+    await waitTransaction(hre.network, tx);
+
+    console.log(`The tokens has been successfully burned.`, burnData);
   });
 
 task('sbt:burn')
@@ -105,8 +127,14 @@ interface TokenMetadata {
   metadata: string;
 }
 
-interface TokenWinner {
+interface TokenRecipient {
   to: string;
+  id: BigNumberish;
+  amount: BigNumberish;
+}
+
+interface TokenOwner {
+  owner: string;
   id: BigNumberish;
   amount: BigNumberish;
 }

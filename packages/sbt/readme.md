@@ -44,3 +44,19 @@ npx hardhat --help
 # displays help for a given command
 npx hardhat $COMMAND --help
 ```
+
+### Data
+
+```bash
+# NFTs for Marginly contest #1 winners conducted in Arbitrum network
+data/marginly-contests/#1
+
+# NFTs for Marginly contest #2 winners conducted in zkSync network
+data/marginly-contests/#2
+
+# JSON containing the winners of the contests
+data/marginly-contests/token-winners.json
+
+# JSON containing the NFTs metadata
+data/marginly-contests/tokens-metadata.json
+```

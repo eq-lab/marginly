@@ -31,29 +31,25 @@ describe('balanceOfBatch()', function () {
     expect(balances[1]).to.equal(0);
   });
 
-  it("should throw error when arguments mismatch length", async function () {
+  it('should throw error when arguments mismatch length', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await expect(admin.balanceOfBatch([this.signers.users[0].address], [])).to.be.rejectedWith(
-      "args invalid length",
-    );
-    await expect(admin.balanceOfBatch([], [1])).to.be.rejectedWith(
-      "args invalid length",
-    );
+    await expect(admin.balanceOfBatch([this.signers.users[0].address], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.balanceOfBatch([], [1])).to.be.rejectedWith('args invalid length');
     await expect(admin.balanceOfBatch([this.signers.users[0].address], [1, 2])).to.be.rejectedWith(
-      "args invalid length",
+      'args invalid length'
     );
-    await expect(admin.balanceOfBatch([this.signers.users[0].address, this.signers.users[1].address], [1])).to.be.rejectedWith(
-      "args invalid length",
-    );
+    await expect(
+      admin.balanceOfBatch([this.signers.users[0].address, this.signers.users[1].address], [1])
+    ).to.be.rejectedWith('args invalid length');
   });
 
   it('should be increased after award', async function () {
     const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
     const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
 
-    await admin.award([this.signers.users[0].address], [1], [123]);
-    await admin.award([this.signers.users[1].address], [2], [456]);
+    await admin.mint([this.signers.users[0].address], [1], [123]);
+    await admin.mint([this.signers.users[1].address], [2], [456]);
 
     const balances = await user.balanceOfBatch([this.signers.users[0].address, this.signers.users[1].address], [1, 2]);
 
@@ -66,8 +62,8 @@ describe('balanceOfBatch()', function () {
     const user1 = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
     const user2 = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[1]);
 
-    await admin.award([this.signers.users[0].address], [1], [123]);
-    await admin.award([this.signers.users[1].address], [2], [456]);
+    await admin.mint([this.signers.users[0].address], [1], [123]);
+    await admin.mint([this.signers.users[1].address], [2], [456]);
     await user1.burn(1, 23);
     await user2.burn(2, 56);
 
