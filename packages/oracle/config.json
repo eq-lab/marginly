@@ -102,7 +102,20 @@
         "label": "link/usdc",
         "type": "http-get",
         "direction": "forward",
-        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=LINKUSDC).price"
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "link/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=LINKUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+          }
+        ]
       },
       {
         "id": "gns-matic",
