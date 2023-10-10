@@ -100,7 +100,7 @@
       {
         "id": "link-usdc",
         "label": "link/usdc",
-        "direction": "composite",
+        "type": "composite",
         "sources": [
           {
             "type": "http-get",
