@@ -4,6 +4,7 @@ import { createMarginlyRouter } from './shared/fixtures';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
 import { constructSwap, Dex, SWAP_ONE } from './shared/utils';
+import { AdapterStorage__factory } from '../typechain-types';
 
 describe('MarginlyRouter UniswapV3', () => {
   it('swapExactInput 0 to 1, success', async () => {
@@ -656,5 +657,18 @@ describe('Callbacks', () => {
       // @ts-ignore
       uniswapV3.adapter.connect(fraud).uniswapV3SwapCallback(amountToSwap, 0, encodedData)
     ).to.be.revertedWithoutReason();
+  });
+
+  it('should raise error when trying to renounce ownership from router', async () => {
+    const { marginlyRouter } = await loadFixture(createMarginlyRouter);
+    await expect(marginlyRouter.renounceOwnership()).to.be.revertedWithCustomError(marginlyRouter, 'Forbidden');
+  });
+
+  it('should raise error when trying to renounce ownership from adapter', async () => {
+    const { marginlyRouter } = await loadFixture(createMarginlyRouter);
+    const [owner] = await ethers.getSigners();
+    const adapterAddress = await marginlyRouter.adapters(0);
+    const adapterStorage = AdapterStorage__factory.connect(adapterAddress, owner);
+    await expect(adapterStorage.renounceOwnership()).to.be.revertedWithCustomError(adapterStorage, 'Forbidden');
   });
 });
