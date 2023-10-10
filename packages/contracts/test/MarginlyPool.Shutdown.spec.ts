@@ -2,7 +2,7 @@ import { createMarginlyPool, TechnicalPositionOwner } from './shared/fixtures';
 import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { CallType, FP96, MarginlyPoolMode, ZERO_ADDRESS, uniswapV3Swapdata, calcLeverageLong, toHumanString } from './shared/utils';
+import { CallType, FP96, MarginlyPoolMode, ZERO_ADDRESS, uniswapV3Swapdata } from './shared/utils';
 
 describe('MarginlyPool.Shutdown', () => {
   it('should revert when collateral enough', async () => {
@@ -217,7 +217,7 @@ describe('MarginlyPool.Shutdown', () => {
       .connect(shorter1)
       .execute(CallType.Short, shortAmount, 0, price.div(2), false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    let currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, false))[1].account; 
+    let currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, false))[1].account;
     expect(prevWorstLongPosOwner).to.be.not.eq(currWorstLongPosOwner);
     prevWorstLongPosOwner = currWorstLongPosOwner;
 
@@ -225,7 +225,7 @@ describe('MarginlyPool.Shutdown', () => {
       .connect(shorter2)
       .execute(CallType.Short, shortAmount, 0, price.div(2), false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, false))[1].account; 
+    currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, false))[1].account;
     expect(prevWorstLongPosOwner).to.be.not.eq(currWorstLongPosOwner);
 
     await pool.setDefaultQuoteBasePrice();
@@ -296,11 +296,13 @@ describe('MarginlyPool.Shutdown', () => {
 
     let prevWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, true))[1].account;
 
-    await(await marginlyPool
-      .connect(longer1)
-      .execute(CallType.Long, longAmount, 0, price.mul(2), false, ZERO_ADDRESS, uniswapV3Swapdata())).wait();
+    await (
+      await marginlyPool
+        .connect(longer1)
+        .execute(CallType.Long, longAmount, 0, price.mul(2), false, ZERO_ADDRESS, uniswapV3Swapdata())
+    ).wait();
 
-    let currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, true))[1].account; 
+    let currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, true))[1].account;
     expect(prevWorstLongPosOwner).to.be.not.eq(currWorstLongPosOwner);
     prevWorstLongPosOwner = currWorstLongPosOwner;
 
@@ -308,7 +310,7 @@ describe('MarginlyPool.Shutdown', () => {
       .connect(longer2)
       .execute(CallType.Long, longAmount, 0, price.mul(2), false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, true))[1].account; 
+    currWorstLongPosOwner = (await marginlyPool.getHeapPosition(0, true))[1].account;
     expect(prevWorstLongPosOwner).to.be.not.eq(currWorstLongPosOwner);
 
     await pool.setDefaultQuoteBasePrice();
@@ -334,7 +336,7 @@ describe('MarginlyPool.Shutdown', () => {
     // can't switch second time to emergency mode
     await expect(marginlyPool.shutDown(uniswapV3Swapdata())).to.be.rejectedWith('EmergencyMode()');
   });
-  
+
   it('withdraw tokens for Long/Lend position in ShortEmergency mode', async () => {
     const {
       marginlyPool,
