@@ -80,4 +80,8 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
     swapRouter = newSwapRouter;
     emit SwapRouterChanged(newSwapRouter);
   }
+
+  function renounceOwnership() public override onlyOwner {
+    revert Errors.Forbidden();
+  }
 }
