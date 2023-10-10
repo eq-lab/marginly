@@ -9,6 +9,8 @@ interface IMarginlyRouter {
   error ZeroAmount();
   /// @notice Emitted if balance difference doesn't equal amountOut
   error WrongAmountOut();
+  /// @notice Emitted when trying to renounce ownership
+  error Forbidden();
 
   /// @notice Emitted when swap happened
   /// @param isExactInput true if swapExactInput, false if swapExactOutput

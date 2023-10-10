@@ -92,4 +92,10 @@ describe('MarginlyFactory', () => {
       'Forbidden'
     );
   });
+
+  it('should raise error when trying to renounce ownership', async () => {
+    const { factory } = await loadFixture(createMarginlyFactory);
+
+    await expect(factory.renounceOwnership()).to.be.revertedWithCustomError(factory, 'Forbidden');
+  });
 });
