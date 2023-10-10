@@ -1188,6 +1188,14 @@ contract MarginlyPool is IMarginlyPool {
     uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
 
     if (basePrice.mul(baseDebt) > quoteCollateral) {
+      // removing all non-emergency position with bad leverages (negative net positions included)
+      (bool success, MaxBinaryHeapLib.Node memory root) = longHeap.getNodeByIndex(0);
+      if (success) {
+        if (reinitAccount(root.account, basePrice)) {
+          return;
+        }
+      }
+
       setEmergencyMode(
         Mode.ShortEmergency,
         basePrice,
@@ -1201,6 +1209,14 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     if (quoteDebt > basePrice.mul(baseCollateral)) {
+      // removing all non-emergency position with bad leverages (negative net positions included)
+      (bool success, MaxBinaryHeapLib.Node memory root) = shortHeap.getNodeByIndex(0);
+      if (success) {
+        if (reinitAccount(root.account, basePrice)) {
+          return;
+        }
+      }
+
       setEmergencyMode(
         Mode.LongEmergency,
         basePrice,
