@@ -4,7 +4,6 @@ import bn from 'bignumber.js';
 import { MarginlyPool } from '../../typechain-types';
 import { expect } from 'chai';
 import { TechnicalPositionOwner } from './fixtures';
-import { defaultAbiCoder } from 'ethers/lib/utils';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -194,25 +193,22 @@ function fp96FromRatio(nom: BigNumber, denom: BigNumber): BigNumber {
   return nom.mul(FP96.one).div(denom);
 }
 
-export async function calcAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBlockNumber: number) {
-  const callOpt = { blockTag: prevBlockNumber };
+export async function calcAccruedRateCoeffs(marginlyPool: MarginlyPool, prevState: MarginlyPoolState) {
+  const params = prevState.params;
+  const leverageShortX96 = prevState.systemLevarage.shortX96;
+  const leverageLongX96 = prevState.systemLevarage.longX96;
 
-  const params = await marginlyPool.params(callOpt);
-  const systemLeverage = await marginlyPool.systemLeverage(callOpt);
-  const leverageShortX96 = systemLeverage.shortX96;
-  const leverageLongX96 = systemLeverage.longX96;
-
-  const lastReinitOnPrevBlock = await marginlyPool.lastReinitTimestampSeconds(callOpt);
+  const lastReinitOnPrevBlock = prevState.lastReinitTimestampSeconds;
   const lastReinitTimestamp = await marginlyPool.lastReinitTimestampSeconds();
   const secondsPassed = lastReinitTimestamp.sub(lastReinitOnPrevBlock);
   if (+secondsPassed === 0) {
     throw new Error(`Wrong argument`);
   }
 
-  const baseDebtCoeffPrev = await marginlyPool.baseDebtCoeff(callOpt);
-  const quoteDebtCoeffPrev = await marginlyPool.quoteDebtCoeff(callOpt);
-  const baseCollateralCoeffPrev = await marginlyPool.baseCollateralCoeff(callOpt);
-  const quoteCollateralCoeffPrev = await marginlyPool.quoteCollateralCoeff(callOpt);
+  const baseDebtCoeffPrev = prevState.baseDebtCoeff;
+  const quoteDebtCoeffPrev = prevState.quoteDebtCoeff;
+  const baseCollateralCoeffPrev = prevState.baseCollateralCoeff;
+  const quoteCollateralCoeffPrev = prevState.quoteCollateralCoeff;
   const result = {
     baseDebtCoeff: baseDebtCoeffPrev,
     quoteDebtCoeff: quoteDebtCoeffPrev,
@@ -222,10 +218,10 @@ export async function calcAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBloc
     discountedQuoteDebtFee: BigNumber.from(0),
   };
 
-  const discountedBaseDebtPrev = await marginlyPool.discountedBaseDebt(callOpt);
-  const discountedQuoteDebtPrev = await marginlyPool.discountedQuoteDebt(callOpt);
-  const discountedBaseCollateralPrev = await marginlyPool.discountedBaseCollateral(callOpt);
-  const discountedQuoteCollateralPrev = await marginlyPool.discountedQuoteCollateral(callOpt);
+  const discountedBaseDebtPrev = prevState.discountedBaseDebt;
+  const discountedQuoteDebtPrev = prevState.discountedQuoteDebt;
+  const discountedBaseCollateralPrev = prevState.discountedBaseCollateral;
+  const discountedQuoteCollateralPrev = prevState.discountedQuoteCollateral;
 
   const interestRateX96 = BigNumber.from(params.interestRate).mul(FP96.one).div(WHOLE_ONE);
   const feeX96 = BigNumber.from(params.fee).mul(FP96.one).div(WHOLE_ONE);
@@ -274,16 +270,15 @@ export async function calcAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBloc
   return result;
 }
 
-export async function assertAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBlockNumber: number) {
+export async function assertAccruedRateCoeffs(marginlyPool: MarginlyPool, prevState: MarginlyPoolState) {
   const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
   const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
   const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
   const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
   const techPosition = await marginlyPool.positions(TechnicalPositionOwner);
 
-  const overrides = { blockTag: prevBlockNumber };
-  const techPositionPrev = await marginlyPool.positions(TechnicalPositionOwner, overrides);
-  const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+  const techPositionPrev = prevState.techPosition;
+  const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevState);
 
   expect(expectedCoeffs.baseDebtCoeff).to.be.eq(baseDebtCoeff);
   expect(expectedCoeffs.quoteDebtCoeff).to.be.eq(quoteDebtCoeff);
@@ -299,4 +294,64 @@ export async function assertAccruedRateCoeffs(marginlyPool: MarginlyPool, prevBl
 
 export function uniswapV3Swapdata() {
   return 0;
+}
+
+type MarginlyPoolState = {
+  baseDebtCoeff: BigNumber;
+  quoteDebtCoeff: BigNumber;
+  quoteCollateralCoeff: BigNumber;
+  baseCollateralCoeff: BigNumber;
+  techPosition: [number, number, BigNumber, BigNumber] & {
+    _type: number;
+    heapPosition: number;
+    discountedBaseAmount: BigNumber;
+    discountedQuoteAmount: BigNumber;
+  };
+  params: {
+    maxLeverage: number;
+    priceSecondsAgo: number;
+    priceSecondsAgoMC: number;
+    interestRate: number;
+    fee: number;
+    swapFee: number;
+    mcSlippage: number;
+    positionMinAmount: BigNumber;
+    quoteLimit: BigNumber;
+  };
+  systemLevarage: [BigNumber, BigNumber] & { shortX96: BigNumber; longX96: BigNumber };
+  lastReinitTimestampSeconds: BigNumber;
+  discountedBaseDebt: BigNumber;
+  discountedQuoteDebt: BigNumber;
+  discountedBaseCollateral: BigNumber;
+  discountedQuoteCollateral: BigNumber;
+};
+
+export async function getMarginlyPoolState(marginlyPool: MarginlyPool): Promise<MarginlyPoolState> {
+  const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
+  const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
+  const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
+  const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
+  const techPosition = await marginlyPool.positions(TechnicalPositionOwner);
+  const lastReinitTimestampSeconds = await marginlyPool.lastReinitTimestampSeconds();
+  const systemLevarage = await marginlyPool.systemLeverage();
+  const params = await marginlyPool.params();
+  const discountedBaseDebt = await marginlyPool.discountedBaseDebt();
+  const discountedQuoteDebt = await marginlyPool.discountedQuoteDebt();
+  const discountedBaseCollateral = await marginlyPool.discountedBaseCollateral();
+  const discountedQuoteCollateral = await marginlyPool.discountedQuoteCollateral();
+
+  return {
+    baseDebtCoeff,
+    quoteDebtCoeff,
+    quoteCollateralCoeff,
+    baseCollateralCoeff,
+    techPosition,
+    params,
+    systemLevarage,
+    lastReinitTimestampSeconds,
+    discountedBaseDebt,
+    discountedQuoteDebt,
+    discountedBaseCollateral,
+    discountedQuoteCollateral,
+  };
 }

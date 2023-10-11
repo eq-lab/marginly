@@ -12,13 +12,13 @@ import {
   convertFP96ToNumber,
   FP48,
   FP96,
+  getMarginlyPoolState,
   PositionType,
-  powTaylor,
   uniswapV3Swapdata,
   ZERO_ADDRESS,
 } from './shared/utils';
 import { BigNumber } from 'ethers';
-import { parseUnits, zeroPad } from 'ethers/lib/utils';
+import { parseUnits } from 'ethers/lib/utils';
 
 describe('MarginlyPool.Base', () => {
   it('should revert when second try of initialization', async () => {
@@ -987,12 +987,12 @@ describe('MarginlyPool.Base', () => {
         .connect(user2)
         .execute(CallType.Short, user2ShortAmount, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-      const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
+      const prevMarginlyPoolState = await getMarginlyPoolState(marginlyPool);
 
       await time.increase(timeShift);
       await marginlyPool.execute(CallType.Reinit, 0, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-      await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+      await assertAccruedRateCoeffs(marginlyPool, prevMarginlyPoolState);
     });
 
     it('withdraw with position removing', async () => {
