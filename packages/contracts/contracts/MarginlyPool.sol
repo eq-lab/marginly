@@ -475,7 +475,9 @@ contract MarginlyPool is IMarginlyPool {
 
       if (amount >= realBaseDebt) {
         uint256 newRealBaseCollateral = amount.sub(realBaseDebt);
-        if (basePrice.mul(newPoolBaseBalance(newRealBaseCollateral)) > params.quoteLimit) revert Errors.ExceedsLimit();
+        if (amount != realBaseDebt)
+          if (basePrice.mul(newPoolBaseBalance(newRealBaseCollateral)) > params.quoteLimit)
+            revert Errors.ExceedsLimit();
 
         shortHeap.remove(positions, position.heapPosition - 1);
         // Short position debt <= depositAmount, increase collateral on delta, change position to Lend
@@ -545,7 +547,8 @@ contract MarginlyPool is IMarginlyPool {
 
       if (amount >= realQuoteDebt) {
         uint256 newRealQuoteCollateral = amount.sub(realQuoteDebt);
-        if (newPoolQuoteBalance(newRealQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
+        if (amount != realQuoteDebt)
+          if (newPoolQuoteBalance(newRealQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
 
         longHeap.remove(positions, position.heapPosition - 1);
         // Long position, debt <= depositAmount, increase collateral on delta, move position to Lend
