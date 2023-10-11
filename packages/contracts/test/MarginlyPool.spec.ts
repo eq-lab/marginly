@@ -921,7 +921,7 @@ describe('MarginlyPool.Base', () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, user1, user2] = await ethers.getSigners();
       const price = (await marginlyPool.getBasePrice()).inner;
-      const timeShift = 10 * 24 * 60 * 60;
+      const timeShift = 300 * 24 * 60 * 60;
 
       const user1BaseDeposit = 1000;
       const user1LongAmount = 1500;
