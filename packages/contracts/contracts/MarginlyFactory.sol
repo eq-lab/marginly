@@ -37,6 +37,15 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
     address _WETH9,
     address _techPositionOwner
   ) {
+    if (
+      _marginlyPoolImplementation == address(0) ||
+      _uniswapFactory == address(0) ||
+      _swapRouter == address(0) ||
+      _feeHolder == address(0) ||
+      _WETH9 == address(0) ||
+      _techPositionOwner == address(0)
+    ) revert Errors.WrongValue();
+
     marginlyPoolImplementation = _marginlyPoolImplementation;
     uniswapFactory = _uniswapFactory;
     swapRouter = _swapRouter;

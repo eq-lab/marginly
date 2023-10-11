@@ -179,12 +179,17 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function _setParameters(MarginlyParams memory _params) private {
-    if (_params.interestRate > 1_000_000) revert Errors.WrongValue();
-    if (_params.fee > 1_000_000) revert Errors.WrongValue();
-    if (_params.swapFee > 1_000_000) revert Errors.WrongValue();
-    if (_params.mcSlippage > 1_000_000) revert Errors.WrongValue();
-    if (_params.priceSecondsAgo == 0) revert Errors.WrongValue();
-    if (_params.priceSecondsAgoMC == 0) revert Errors.WrongValue();
+    if (
+      _params.interestRate > 1_000_000 ||
+      _params.fee > 1_000_000 ||
+      _params.swapFee > 1_000_000 ||
+      _params.mcSlippage > 1_000_000 ||
+      _params.priceSecondsAgo == 0 ||
+      _params.priceSecondsAgoMC == 0 ||
+      _params.maxLeverage < 2 ||
+      _params.quoteLimit == 0 ||
+      _params.positionMinAmount == 0
+    ) revert Errors.WrongValue();
 
     params = _params;
     emit ParametersChanged();
