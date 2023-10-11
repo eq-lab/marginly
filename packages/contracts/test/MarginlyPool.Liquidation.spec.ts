@@ -10,7 +10,7 @@ import {
   FP96,
   ZERO_ADDRESS,
   uniswapV3Swapdata,
-  toHumanString,
+  getMarginlyPoolState,
 } from './shared/utils';
 import { BigNumber } from 'ethers';
 
@@ -179,7 +179,7 @@ describe('MarginlyPool.Liquidation', () => {
     const basePrice = await marginlyPool.getBasePrice();
     const token0BalanceBefore = await token0.balanceOf(marginlyPool.address);
     const token1BalanceBefore = await token1.balanceOf(marginlyPool.address);
-    const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
+    const prevState = await getMarginlyPoolState(marginlyPool);
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -191,7 +191,7 @@ describe('MarginlyPool.Liquidation', () => {
       .connect(receiver)
       .execute(CallType.ReceivePosition, quoteAmount, baseAmount, price, false, shorter.address, uniswapV3Swapdata());
 
-    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevState);
 
     const liquidatedPosition = await marginlyPool.positions(shorter.address);
     expect(liquidatedPosition._type).to.be.equal(0);
@@ -369,7 +369,7 @@ describe('MarginlyPool.Liquidation', () => {
     const basePrice = await marginlyPool.getBasePrice();
     const token0BalanceBefore = await token0.balanceOf(marginlyPool.address);
     const token1BalanceBefore = await token1.balanceOf(marginlyPool.address);
-    const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
+    const prevState = await getMarginlyPoolState(marginlyPool);
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -381,7 +381,7 @@ describe('MarginlyPool.Liquidation', () => {
       .connect(receiver)
       .execute(CallType.ReceivePosition, quoteAmount, baseAmount, price, false, shorter.address, uniswapV3Swapdata());
 
-    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevState);
 
     const liquidatedPosition = await marginlyPool.positions(shorter.address);
     expect(liquidatedPosition._type).to.be.equal(0);
@@ -462,7 +462,7 @@ describe('MarginlyPool.Liquidation', () => {
     const basePrice = await marginlyPool.getBasePrice();
     const token0BalanceBefore = await token0.balanceOf(marginlyPool.address);
     const token1BalanceBefore = await token1.balanceOf(marginlyPool.address);
-    const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
+    const prevState = await getMarginlyPoolState(marginlyPool);
 
     //wait for accrue interest
     const timeShift = 160 * 24 * 60 * 60;
@@ -474,7 +474,7 @@ describe('MarginlyPool.Liquidation', () => {
       .connect(receiver)
       .execute(CallType.ReceivePosition, quoteAmount, baseAmount, price, false, longer.address, uniswapV3Swapdata());
 
-    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+    const expectedCoeffs = await calcAccruedRateCoeffs(marginlyPool, prevState);
 
     const liquidatedPosition = await marginlyPool.positions(longer.address);
     expect(liquidatedPosition._type).to.be.equal(0);
