@@ -152,6 +152,50 @@ describe('MarginlyPool.Base', () => {
     ).to.be.revertedWithCustomError(pool, 'AccessDenied');
   });
 
+  it('should raise error when trying to set invalid parameters', async () => {
+    const { marginlyPool: pool } = await loadFixture(createMarginlyPool);
+    const params = {
+      interestRate: 54,
+      maxLeverage: 15,
+      fee: 1,
+      swapFee: 1000,
+      priceSecondsAgo: 1000,
+      priceSecondsAgoMC: 100,
+      positionMinAmount: 100,
+      mcSlippage: 400000,
+      quoteLimit: 1_000_000_000,
+    };
+
+    await expect(pool.setParameters({ ...params, interestRate: 1_000_001 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, maxLeverage: 1 })).to.be.revertedWithCustomError(pool, 'WrongValue');
+    await expect(pool.setParameters({ ...params, fee: 1_000_001 })).to.be.revertedWithCustomError(pool, 'WrongValue');
+    await expect(pool.setParameters({ ...params, swapFee: 1_000_001 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, mcSlippage: 1_000_001 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, priceSecondsAgo: 0 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, priceSecondsAgoMC: 0 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, positionMinAmount: 0 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+
+    await expect(pool.setParameters({ ...params, quoteLimit: 0 })).to.be.revertedWithCustomError(pool, 'WrongValue');
+  });
+
   describe('Deposit base', async () => {
     it('zero amount', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
