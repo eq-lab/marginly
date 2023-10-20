@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import '../abstract/AdapterStorage.sol';
-import '../interfaces/IMarginlyRouter.sol';
-import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
-contract PancakeSwapAdapter is AdapterStorage {
+import '../abstract/AdapterStorage.sol';
+import '../abstract/UniswapV2LikeSwap.sol';
+import '../interfaces/IMarginlyRouter.sol';
+
+contract PancakeSwapAdapter is AdapterStorage, UniswapV2LikeSwap {
   using LowGasSafeMath for uint256;
 
   uint256 private constant PANCAKE_SWAP_FEE = 9975;
+
   constructor(PoolInput[] memory pools) AdapterStorage(pools) {}
 
   function swapExactInput(
@@ -24,7 +26,7 @@ contract PancakeSwapAdapter is AdapterStorage {
     amountOut = getAmountOut(pool, amountIn, tokenIn, tokenOut, PANCAKE_SWAP_FEE);
     if (amountOut < minAmountOut) revert InsufficientAmount();
     IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
-    swap(recipient, pool, tokenIn, tokenOut, amountOut);
+    uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);
   }
 
   function swapExactOutput(
@@ -39,18 +41,7 @@ contract PancakeSwapAdapter is AdapterStorage {
     amountIn = getAmountIn(pool, amountOut, tokenIn, tokenOut, PANCAKE_SWAP_FEE);
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     IMarginlyRouter(msg.sender).adapterCallback(pool, amountIn, data);
-    swap(recipient, pool, tokenIn, tokenOut, amountOut);
-  }
-
-  function swap(
-    address recipient,
-    address pool,
-    address tokenIn,
-    address tokenOut,
-    uint256 amountOut
-  ) internal {
-    (uint256 amount0Out, uint256 amount1Out) = tokenIn < tokenOut ? (uint256(0), amountOut) : (amountOut, uint256(0));
-    IUniswapV2Pair(pool).swap(amount0Out, amount1Out, recipient, new bytes(0));
+    uniswapV2LikeSwap(recipient, pool, tokenIn, tokenOut, amountOut);
   }
 
   function getAmountOut(
@@ -60,7 +51,7 @@ contract PancakeSwapAdapter is AdapterStorage {
     address tokenOut,
     uint256 fee
   ) internal view returns (uint256 amountOut) {
-    (uint256 reserveIn, uint256 reserveOut) = getReserves(pool, tokenIn, tokenOut);
+    (uint256 reserveIn, uint256 reserveOut) = getPancaleSwapReserves(pool, tokenIn, tokenOut);
     uint256 amountInWithFee = amountIn.mul(fee);
     uint256 numerator = amountInWithFee.mul(reserveOut);
     uint256 denominator = reserveIn.mul(10000).add(amountInWithFee);
@@ -74,13 +65,13 @@ contract PancakeSwapAdapter is AdapterStorage {
     address tokenOut,
     uint256 fee
   ) internal view returns (uint256 amountIn) {
-    (uint256 reserveIn, uint256 reserveOut) = getReserves(pool, tokenIn, tokenOut);
+    (uint256 reserveIn, uint256 reserveOut) = getPancaleSwapReserves(pool, tokenIn, tokenOut);
     uint256 numerator = reserveIn.mul(amountOut).mul(10000);
     uint256 denominator = reserveOut.sub(amountOut).mul(fee);
     amountIn = (numerator / denominator).add(1);
   }
 
-  function getReserves(
+  function getPancaleSwapReserves(
     address pool,
     address tokenA,
     address tokenB
