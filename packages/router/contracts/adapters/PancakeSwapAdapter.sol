@@ -51,7 +51,7 @@ contract PancakeSwapAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 fee
   ) internal view returns (uint256 amountOut) {
-    (uint256 reserveIn, uint256 reserveOut) = getPancaleSwapReserves(pool, tokenIn, tokenOut);
+    (uint256 reserveIn, uint256 reserveOut) = getPancakeSwapReserves(pool, tokenIn, tokenOut);
     uint256 amountInWithFee = amountIn.mul(fee);
     uint256 numerator = amountInWithFee.mul(reserveOut);
     uint256 denominator = reserveIn.mul(10000).add(amountInWithFee);
@@ -65,13 +65,13 @@ contract PancakeSwapAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenOut,
     uint256 fee
   ) internal view returns (uint256 amountIn) {
-    (uint256 reserveIn, uint256 reserveOut) = getPancaleSwapReserves(pool, tokenIn, tokenOut);
+    (uint256 reserveIn, uint256 reserveOut) = getPancakeSwapReserves(pool, tokenIn, tokenOut);
     uint256 numerator = reserveIn.mul(amountOut).mul(10000);
     uint256 denominator = reserveOut.sub(amountOut).mul(fee);
     amountIn = (numerator / denominator).add(1);
   }
 
-  function getPancaleSwapReserves(
+  function getPancakeSwapReserves(
     address pool,
     address tokenA,
     address tokenB
