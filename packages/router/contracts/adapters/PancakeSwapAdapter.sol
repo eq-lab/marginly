@@ -50,7 +50,7 @@ contract PancakeSwapAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenIn,
     address tokenOut,
     uint256 fee
-  ) internal view returns (uint256 amountOut) {
+  ) private view returns (uint256 amountOut) {
     (uint256 reserveIn, uint256 reserveOut) = getPancakeSwapReserves(pool, tokenIn, tokenOut);
     uint256 amountInWithFee = amountIn.mul(fee);
     uint256 numerator = amountInWithFee.mul(reserveOut);
@@ -64,7 +64,7 @@ contract PancakeSwapAdapter is AdapterStorage, UniswapV2LikeSwap {
     address tokenIn,
     address tokenOut,
     uint256 fee
-  ) internal view returns (uint256 amountIn) {
+  ) private view returns (uint256 amountIn) {
     (uint256 reserveIn, uint256 reserveOut) = getPancakeSwapReserves(pool, tokenIn, tokenOut);
     uint256 numerator = reserveIn.mul(amountOut).mul(10000);
     uint256 denominator = reserveOut.sub(amountOut).mul(fee);
