@@ -621,6 +621,136 @@ describe('MarginlyRouter WooFi', () => {
   });
 });
 
+describe('MarginlyRouter DodoV2', () => {
+  it('swapExactInput 0 to 1, success', async () => {
+    const { marginlyRouter, token0, token1, dodoV2 } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token0.mint(user.address, amountToSwap);
+    await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
+    expect(await token0.balanceOf(user.address)).to.be.equal(amountToSwap);
+    expect(await token1.balanceOf(user.address)).to.be.equal(0);
+
+    const swapCalldata = constructSwap([Dex.DodoV2], [SWAP_ONE]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, 0);
+
+    const price = await dodoV2.pool._BASE_TO_QUOTE_PRICE_();
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(0);
+    const expectedAmount = price.mul(amountToSwap);
+    expect(await token1.balanceOf(user.address)).to.be.equal(expectedAmount);
+  });
+
+  it('swapExactInput 0 to 1, less than minimal amount', async () => {
+    const { marginlyRouter, token0, token1, dodoV2 } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token0.mint(user.address, amountToSwap);
+    await token0.connect(user).approve(marginlyRouter.address, amountToSwap);
+
+    const price = await dodoV2.pool._BASE_TO_QUOTE_PRICE_();
+    const amountToGetPlusOne = price.mul(amountToSwap).add(1);
+
+    const swapCalldata = constructSwap([Dex.DodoV2], [SWAP_ONE]);
+    await expect(
+      marginlyRouter
+        .connect(user)
+        .swapExactInput(swapCalldata, token0.address, token1.address, amountToSwap, amountToGetPlusOne)
+    ).to.be.revertedWithCustomError(dodoV2.adapter, 'InsufficientAmount');
+  });
+
+  it('swapExactInput 1 to 0, success', async () => {
+    const { marginlyRouter, token0, token1, dodoV2 } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token1.mint(user.address, amountToSwap);
+    await token1.connect(user).approve(marginlyRouter.address, amountToSwap);
+    expect(await token0.balanceOf(user.address)).to.be.equal(0);
+    expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
+
+    const swapCalldata = constructSwap([Dex.DodoV2], [SWAP_ONE]);
+    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, 0);
+
+    const price = await dodoV2.pool._BASE_TO_QUOTE_PRICE_();
+
+    expect(await token1.balanceOf(user.address)).to.be.equal(0);
+    const expectedAmount = BigNumber.from(amountToSwap).div(price);
+    expect(await token0.balanceOf(user.address)).to.be.equal(expectedAmount);
+  });
+
+  it('swapExactInput 1 to 0, less than minimal amount', async () => {
+    const { marginlyRouter, token0, token1, dodoV2 } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const amountToSwap = 1000;
+    await token1.mint(user.address, amountToSwap);
+    await token1.connect(user).approve(marginlyRouter.address, amountToSwap);
+
+    const price = await dodoV2.pool._BASE_TO_QUOTE_PRICE_();
+    const amountToGetPlusOne = BigNumber.from(amountToSwap).div(price).add(1);
+
+    const swapCalldata = constructSwap([Dex.DodoV2], [SWAP_ONE]);
+    await expect(
+      marginlyRouter
+        .connect(user)
+        .swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, amountToGetPlusOne)
+    ).to.be.revertedWithCustomError(dodoV2.adapter, 'InsufficientAmount');
+  });
+
+  it('swapExactOutput 0 to 1', async () => {
+    const { marginlyRouter, token0, token1, dodoV2 } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price = await dodoV2.pool._BASE_TO_QUOTE_PRICE_();
+
+    const amountToGet = 1000;
+    const amountTransferred = BigNumber.from(amountToGet).div(price).mul(105).div(100);
+    const initialAmount0 = amountTransferred.mul(100);
+    await token0.mint(user.address, initialAmount0);
+    await token0.connect(user).approve(marginlyRouter.address, initialAmount0);
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(initialAmount0);
+    expect(await token1.balanceOf(user.address)).to.be.equal(0);
+
+    const swapCalldata = constructSwap([Dex.DodoV2], [SWAP_ONE]);
+    await marginlyRouter
+      .connect(user)
+      .swapExactOutput(swapCalldata, token0.address, token1.address, amountTransferred, amountToGet);
+
+    expect(await token0.balanceOf(user.address)).to.be.lt(initialAmount0);
+    expect(await token0.balanceOf(user.address)).to.be.gt(initialAmount0.sub(amountTransferred));
+    expect(await token1.balanceOf(user.address)).to.be.equal(amountToGet);
+  });
+
+  it('swapExactOutput 1 to 0', async () => {
+    const { marginlyRouter, token0, token1, dodoV2 } = await loadFixture(createMarginlyRouter);
+    const [_, user] = await ethers.getSigners();
+
+    const price = await dodoV2.pool._BASE_TO_QUOTE_PRICE_();
+
+    const amountToGet = 1000;
+    const amountTransferred = price.mul(amountToGet).mul(105).div(100);
+    const initialAmount1 = amountTransferred.mul(100);
+    await token1.mint(user.address, initialAmount1);
+    await token1.connect(user).approve(marginlyRouter.address, amountTransferred);
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(0);
+    expect(await token1.balanceOf(user.address)).to.be.equal(initialAmount1);
+
+    const swapCalldata = constructSwap([Dex.DodoV2], [SWAP_ONE]);
+    await marginlyRouter
+      .connect(user)
+      .swapExactOutput(swapCalldata, token1.address, token0.address, amountTransferred, amountToGet);
+
+    expect(await token0.balanceOf(user.address)).to.be.equal(amountToGet);
+    expect(await token1.balanceOf(user.address)).to.be.lt(initialAmount1);
+    expect(await token1.balanceOf(user.address)).to.be.gt(initialAmount1.sub(amountTransferred));
+  });
+});
+
 describe('Callbacks', () => {
   it('adapter callback fails if sender is unknown', async () => {
     const { marginlyRouter, token0 } = await loadFixture(createMarginlyRouter);
