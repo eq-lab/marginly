@@ -108,8 +108,8 @@
     ]
   },
   "marginlyFactory": {
-    "feeHolder": "",
-    "techPositionOwner": "",
+    "feeHolder": "0x21D4693e811ed5E63BCF3A3EC93D85271A8d4f64",
+    "techPositionOwner": "0x21D4693e811ed5E63BCF3A3EC93D85271A8d4f64",
     "wethTokenId": "weth"
   },
   "marginlyPools": [
@@ -118,12 +118,12 @@
       "uniswapPoolId": "weth-usdc",
       "baseTokenId": "weth",
       "params": {
-        "maxLeverage": "20",
+        "maxLeverage": "10",
         "interestRate": "5.4%",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "15 min",
+        "priceAgo": "10 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "0.001",
         "quoteLimit": "100_000_000"
@@ -134,12 +134,12 @@
       "uniswapPoolId": "wbtc-weth",
       "baseTokenId": "wbtc",
       "params": {
-        "maxLeverage": "20",
+        "maxLeverage": "10",
         "interestRate": "5.4%",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "15 min",
+        "priceAgo": "10 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "0.0001",
         "quoteLimit": "100_000_000"
@@ -150,12 +150,12 @@
       "uniswapPoolId": "arb-usdc",
       "baseTokenId": "arb",
       "params": {
-        "maxLeverage": "20",
+        "maxLeverage": "10",
         "interestRate": "5.4%",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "15 min",
+        "priceAgo": "10 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "1",
         "quoteLimit": "100_000_000"
@@ -166,12 +166,12 @@
       "uniswapPoolId": "weth-gmx",
       "baseTokenId": "gmx",
       "params": {
-        "maxLeverage": "10",
-        "interestRate": "9.6%",
+        "maxLeverage": "5",
+        "interestRate": "15%",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "15 min",
+        "priceAgo": "20 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "0.1",
         "quoteLimit": "100_000_000"
@@ -182,12 +182,12 @@
       "uniswapPoolId": "pendle-weth",
       "baseTokenId": "pendle",
       "params": {
-        "maxLeverage": "5",
-        "interestRate": "9.6%",
+        "maxLeverage": "4",
+        "interestRate": "15%",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "15 min",
+        "priceAgo": "20 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "1",
         "quoteLimit": "100_000_000"
@@ -198,12 +198,12 @@
       "uniswapPoolId": "rdnt-weth",
       "baseTokenId": "rdnt",
       "params": {
-        "maxLeverage": "5",
-        "interestRate": "9.6%",
+        "maxLeverage": "3",
+        "interestRate": "21.6%",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "15 min",
+        "priceAgo": "20 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "10",
         "quoteLimit": "100_000_000"
