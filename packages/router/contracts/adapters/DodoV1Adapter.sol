@@ -45,14 +45,13 @@ contract DodoV1Adapter is AdapterStorage, UniswapV3LikeSwap, IDODOCallee {
       require(dodoV1AmountIn < amountIn);
       transferOut(tokenOut, recipient, minAmountOut);
 
-      (uint256 uniswapAmountOut, ) = uniswapV3LikeSwap(
+      (, uint256 uniswapAmountOut) = uniswapV3LikeSwap(
         recipient,
         getUniswapV3Pool(tokenIn, tokenOut),
         tokenIn < tokenOut,
         int256(amountIn - dodoV1AmountIn),
         swapCallbackData
       );
-
       amountOut = minAmountOut + uniswapAmountOut;
     } else {
       amountOut = dodoV1Pool.sellBaseToken(amountIn, minAmountOut, abi.encode(swapCallbackData));
@@ -84,7 +83,7 @@ contract DodoV1Adapter is AdapterStorage, UniswapV3LikeSwap, IDODOCallee {
       transferOut(tokenOut, recipient, amountOut);
     } else {
       amountIn += getDodoV1AmountIn(maxAmountIn);
-      uint256 dodoV1AmountOut = dodoV1Pool.sellBaseToken(amountIn, amountOut, abi.encode(swapCallbackData));
+      uint256 dodoV1AmountOut = dodoV1Pool.sellBaseToken(amountIn, 0, abi.encode(swapCallbackData));
       require(dodoV1AmountOut < amountOut);
       transferOut(tokenOut, recipient, dodoV1AmountOut);
 
@@ -143,9 +142,9 @@ contract DodoV1Adapter is AdapterStorage, UniswapV3LikeSwap, IDODOCallee {
     return AdapterStorage(RouterStorage(msg.sender).adapters(UNISWAP_V3_ADAPTER_INDEX)).getPool(tokenA, tokenB);
   }
 
-  function transferOut (address token, address recipient, uint256 amount) private {
-     SafeERC20.forceApprove(IERC20(token), msg.sender, amount);
-    TransferHelper.safeTransfer(token, msg.sender, amount);
+  function transferOut(address token, address recipient, uint256 amount) private {
+    SafeERC20.forceApprove(IERC20(token), recipient, amount);
+    TransferHelper.safeTransfer(token, recipient, amount);
   }
 
   function isBuyBase(IDodoV1Pool dodoV1Pool, address tokenIn, address tokenOut) private view returns (bool) {
