@@ -40,36 +40,23 @@ contract DodoV1Adapter is AdapterStorage, UniswapV3LikeSwap, IDODOCallee {
       data: data
     });
 
-    (address baseToken, address quoteToken) = getDodoV1PoolTokens(dodoV1Pool);
-
-    if (tokenIn == baseToken && tokenOut == quoteToken) {
-      amountOut = dodoV1Pool.sellBaseToken(amountIn, minAmountOut, abi.encode(swapCallbackData));
-      SafeERC20.forceApprove(IERC20(tokenOut), recipient, amountOut);
-      TransferHelper.safeTransfer(tokenOut, recipient, amountOut);
-    } else if (tokenIn == quoteToken && tokenOut == baseToken) {
+    if (isBuyBase(dodoV1Pool, tokenIn, tokenOut)) {
       uint256 dodoV1AmountIn = dodoV1Pool.buyBaseToken(minAmountOut, amountIn, abi.encode(swapCallbackData));
       require(dodoV1AmountIn < amountIn);
-
-      SafeERC20.forceApprove(IERC20(tokenOut), msg.sender, minAmountOut);
-      TransferHelper.safeTransfer(tokenOut, msg.sender, minAmountOut);
-
-      address uniswapV3 = AdapterStorage(RouterStorage(msg.sender).adapters(UNISWAP_V3_ADAPTER_INDEX)).getPool(
-        tokenIn,
-        tokenOut
-      );
-      bool zeroForOne = tokenIn < tokenOut;
+      transferOut(tokenOut, recipient, minAmountOut);
 
       (uint256 uniswapAmountOut, ) = uniswapV3LikeSwap(
         recipient,
-        uniswapV3,
-        zeroForOne,
+        getUniswapV3Pool(tokenIn, tokenOut),
+        tokenIn < tokenOut,
         int256(amountIn - dodoV1AmountIn),
         swapCallbackData
       );
 
       amountOut = minAmountOut + uniswapAmountOut;
     } else {
-      revert WrongPool(tokenIn, tokenOut, address(dodoV1Pool));
+      amountOut = dodoV1Pool.sellBaseToken(amountIn, minAmountOut, abi.encode(swapCallbackData));
+      transferOut(tokenOut, recipient, amountOut);
     }
 
     if (amountOut < minAmountOut) revert InsufficientAmount();
@@ -92,44 +79,26 @@ contract DodoV1Adapter is AdapterStorage, UniswapV3LikeSwap, IDODOCallee {
       data: data
     });
 
-    (address baseToken, address quoteToken) = getDodoV1PoolTokens(dodoV1Pool);
+    if (isBuyBase(dodoV1Pool, tokenIn, tokenOut)) {
+      amountIn = dodoV1Pool.buyBaseToken(amountOut, maxAmountIn, abi.encode(swapCallbackData));
+      transferOut(tokenOut, recipient, amountOut);
+    } else {
+      amountIn += getDodoV1AmountIn(maxAmountIn);
+      uint256 dodoV1AmountOut = dodoV1Pool.sellBaseToken(amountIn, amountOut, abi.encode(swapCallbackData));
+      require(dodoV1AmountOut < amountOut);
+      transferOut(tokenOut, recipient, dodoV1AmountOut);
 
-    if (tokenIn == baseToken && tokenOut == quoteToken) {
-      amountIn += (EXACT_OUTPUT_SWAP_RATIO * maxAmountIn) / SwapsDecoder.ONE;
-      uint256 dodoV1AmountOut = dodoV1Pool.sellBaseToken(amountIn, amountOut, data);
-      require (dodoV1AmountOut < amountOut);
-
-      SafeERC20.forceApprove(IERC20(tokenOut), msg.sender, dodoV1AmountOut);
-      TransferHelper.safeTransfer(tokenOut, msg.sender, dodoV1AmountOut);
-
-      address uniswapV3 = AdapterStorage(RouterStorage(msg.sender).adapters(UNISWAP_V3_ADAPTER_INDEX)).getPool(
-        tokenIn,
-        tokenOut
-      );
-      bool zeroForOne = tokenIn < tokenOut;
       (uint256 uniswapAmountIn, ) = uniswapV3LikeSwap(
         recipient,
-        uniswapV3,
-        zeroForOne,
+        getUniswapV3Pool(tokenIn, tokenOut),
+        tokenIn < tokenOut,
         -int256(amountOut - dodoV1AmountOut),
         swapCallbackData
       );
 
       amountIn += uniswapAmountIn;
-      if (amountIn > maxAmountIn) revert TooMuchRequested();
-
-    } else if (tokenIn == quoteToken && tokenOut == baseToken) {
-      amountIn = dodoV1Pool.buyBaseToken(amountOut, maxAmountIn, abi.encode(swapCallbackData));
-    } else {
-      revert WrongPool(tokenIn, tokenOut, address(dodoV1Pool));
     }
-
-    IMarginlyRouter(msg.sender).adapterCallback(address(dodoV1Pool), amountIn, data);
-
     if (amountIn > maxAmountIn) revert TooMuchRequested();
-
-    SafeERC20.forceApprove(IERC20(tokenOut), recipient, amountOut);
-    TransferHelper.safeTransferFrom(tokenOut, address(this), recipient, amountOut);
   }
 
   function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {
@@ -164,6 +133,31 @@ contract DodoV1Adapter is AdapterStorage, UniswapV3LikeSwap, IDODOCallee {
   function getDodoV1PoolTokens(IDodoV1Pool dodoPool) private view returns (address baseToken, address quoteToken) {
     baseToken = dodoPool._BASE_TOKEN_();
     quoteToken = dodoPool._QUOTE_TOKEN_();
+  }
+
+  function getDodoV1AmountIn(uint256 maxAmountIn) private pure returns (uint256) {
+    return (EXACT_OUTPUT_SWAP_RATIO * maxAmountIn) / SwapsDecoder.ONE;
+  }
+
+  function getUniswapV3Pool(address tokenA, address tokenB) private view returns (address) {
+    return AdapterStorage(RouterStorage(msg.sender).adapters(UNISWAP_V3_ADAPTER_INDEX)).getPool(tokenA, tokenB);
+  }
+
+  function transferOut (address token, address recipient, uint256 amount) private {
+     SafeERC20.forceApprove(IERC20(token), msg.sender, amount);
+    TransferHelper.safeTransfer(token, msg.sender, amount);
+  }
+
+  function isBuyBase(IDodoV1Pool dodoV1Pool, address tokenIn, address tokenOut) private view returns (bool) {
+    (address baseToken, address quoteToken) = getDodoV1PoolTokens(dodoV1Pool);
+
+    if (tokenIn == quoteToken && tokenOut == baseToken) {
+      return true;
+    } else if (tokenIn == baseToken && tokenOut == quoteToken) {
+      return false;
+    } else {
+      revert WrongPool(tokenIn, tokenOut, address(dodoV1Pool));
+    }
   }
 }
 
