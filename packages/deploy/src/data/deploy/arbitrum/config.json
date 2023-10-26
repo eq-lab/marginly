@@ -123,10 +123,10 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "10 min",
+        "priceAgo": "30 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "0.001",
-        "quoteLimit": "100_000_000"
+        "quoteLimit": "10_000_000"
       }
     },
     {
@@ -139,10 +139,10 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "10 min",
+        "priceAgo": "30 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "0.0001",
-        "quoteLimit": "100_000_000"
+        "quoteLimit": "2_000"
       }
     },
     {
@@ -155,10 +155,10 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "10 min",
+        "priceAgo": "30 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "1",
-        "quoteLimit": "100_000_000"
+        "quoteLimit": "1_000_000"
       }
     },
     {
@@ -171,10 +171,10 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "20 min",
+        "priceAgo": "30 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "0.1",
-        "quoteLimit": "100_000_000"
+        "quoteLimit": "500"
       }
     },
     {
@@ -187,10 +187,10 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "20 min",
+        "priceAgo": "60 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "1",
-        "quoteLimit": "100_000_000"
+        "quoteLimit": "100"
       }
     },
     {
@@ -203,10 +203,10 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
-        "priceAgo": "20 min",
+        "priceAgo": "60 min",
         "priceAgoMC": "5 sec",
         "positionMinAmount": "10",
-        "quoteLimit": "100_000_000"
+        "quoteLimit": "100"
       }
     }
   ],
