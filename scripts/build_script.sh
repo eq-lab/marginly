@@ -48,6 +48,10 @@ yarn workspace @marginly/sbt typechain
 yarn workspace @marginly/sbt compile
 yarn workspace @marginly/sbt build
 
+echo "build uniswap-overrides"
+yarn workspace @marginly/uniswap-overrides install
+yarn workspace @marginly/uniswap-overrides compile
+
 echo "build cli"
 yarn workspace @marginly/cli install
 yarn workspace @marginly/cli build
