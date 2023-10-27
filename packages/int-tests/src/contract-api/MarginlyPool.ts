@@ -34,6 +34,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'getHeapPosition(uint32,bool)': utils.FunctionFragment;
     'getLiquidationPrice()': utils.FunctionFragment;
     'initialize(address,address,bool,address,tuple)': utils.FunctionFragment;
+    'initialPrice()': utils.FunctionFragment;
     'lastReinitTimestampSeconds()': utils.FunctionFragment;
     'mode()': utils.FunctionFragment;
     'params()': utils.FunctionFragment;
@@ -66,6 +67,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'getHeapPosition'
       | 'getLiquidationPrice'
       | 'initialize'
+      | 'initialPrice'
       | 'lastReinitTimestampSeconds'
       | 'mode'
       | 'params'
@@ -102,7 +104,7 @@ export interface MarginlyPoolContract extends BaseContract {
     call: BigNumberish,
     amount1: BigNumberish,
     amount2: BigNumberish,
-    limitPrice: BigNumberish,
+    limitPriceX96: BigNumberish,
     flag: boolean,
     receivePositionAddress: string,
     swapCalldata: BigNumberish,
@@ -134,6 +136,7 @@ export interface MarginlyPoolContract extends BaseContract {
     }>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+  initialPrice(override?: CallOverrides): Promise<BigNumber>;
   lastReinitTimestampSeconds(override?: CallOverrides): Promise<BigNumber>;
   mode(override?: CallOverrides): Promise<number>;
   params(
@@ -202,6 +205,7 @@ export interface MarginlyPoolContract extends BaseContract {
       override?: CallOverrides
     ): Promise<[boolean, { key: BigNumber; account: string }]>;
     getLiquidationPrice(override?: CallOverrides): Promise<[{ inner: BigNumber }]>;
+    initialPrice(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     lastReinitTimestampSeconds(override?: CallOverrides): Promise<[BigNumber]>;
     mode(override?: CallOverrides): Promise<[number]>;
     params(
@@ -238,7 +242,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      limitPrice: BigNumberish,
+      limitPriceX96: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -287,7 +291,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      limitPrice: BigNumberish,
+      limitPriceX96: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
@@ -336,7 +340,7 @@ export interface MarginlyPoolContract extends BaseContract {
       call: BigNumberish,
       amount1: BigNumberish,
       amount2: BigNumberish,
-      limitPrice: BigNumberish,
+      limitPriceX96: BigNumberish,
       flag: boolean,
       receivePositionAddress: string,
       swapCalldata: BigNumberish,
