@@ -15,7 +15,7 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
   /// @param pool The address of the created pool
   event PoolOverrided(address indexed token0, address indexed token1, uint24 indexed fee, address pool);
 
-  ///@dev Address of a canonical UniswaaapV3Factory
+  ///@dev Address of a canonical UniswapV3Factory
   address public immutable uniswapFactory;
 
   /// @inheritdoc IUniswapV3Factory
