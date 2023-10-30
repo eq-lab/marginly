@@ -16,7 +16,6 @@ import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult 
 import {
   MarginlyAdapterParam,
   MarginlyConfigMarginlyPool,
-  MarginlyConfigSwapPool,
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
 } from './configs';
@@ -425,6 +424,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);
   }
 
+  public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
+    const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
   public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
     const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
     return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
