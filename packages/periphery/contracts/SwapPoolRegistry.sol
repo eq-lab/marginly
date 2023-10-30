@@ -3,17 +3,17 @@ pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 
-///@dev The contract acts like UniswapV3Factory but has overrides for some pools
-contract UniswapV3FactoryOverride is IUniswapV3Factory {
+///@dev The contract acts like UniswapV3Factory but has self storage of swap pools that overrides uniswapV3Factorys pool mapping
+contract SwapPoolRegistry is IUniswapV3Factory {
   error Forbidden();
   error WrongParameters();
 
-  /// @notice Emitted when a pool is overridden
+  /// @notice Emitted when a swap pool is added into registry
   /// @param token0 The first token of the pool by address sort order
   /// @param token1 The second token of the pool by address sort order
   /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
   /// @param pool The address of the created pool
-  event PoolOverrided(address indexed token0, address indexed token1, uint24 fee, address indexed pool);
+  event SwapPoolAdded(address indexed token0, address indexed token1, uint24 fee, address indexed pool);
 
   ///@dev Address of a canonical UniswapV3Factory
   address public immutable uniswapFactory;
@@ -21,17 +21,17 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
   /// @inheritdoc IUniswapV3Factory
   address public override owner;
 
-  struct PoolOverride {
+  struct SwapPool {
     address pool;
     address tokenA;
     address tokenB;
     uint24 fee;
   }
 
-  ///@dev Overrides of an original pool
-  mapping(address => mapping(address => mapping(uint24 => address))) public overrides;
+  ///@dev Custom non-uniswap swap pools
+  mapping(address => mapping(address => mapping(uint24 => address))) public swapPools;
 
-  constructor(address _uniswapV3Factory, PoolOverride[] memory pools) {
+  constructor(address _uniswapV3Factory, SwapPool[] memory pools) {
     if (_uniswapV3Factory == address(0)) revert WrongParameters();
 
     owner = msg.sender;
@@ -39,7 +39,7 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
 
     uint256 length = pools.length;
     for (uint256 i; i < length; ) {
-      _addPoolOverride(pools[i]);
+      _addSwapPool(pools[i]);
       unchecked {
         ++i;
       }
@@ -48,7 +48,7 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
 
   /// @inheritdoc IUniswapV3Factory
   function getPool(address tokenA, address tokenB, uint24 fee) external view override returns (address pool) {
-    pool = overrides[tokenA][tokenB][fee];
+    pool = swapPools[tokenA][tokenB][fee];
     if (pool != address(0)) return pool;
 
     pool = IUniswapV3Factory(uniswapFactory).getPool(tokenA, tokenB, fee);
@@ -76,21 +76,20 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
     return IUniswapV3Factory(uniswapFactory).feeAmountTickSpacing(fee);
   }
 
-  ///@dev Overrides an array of pools
-  function addPoolOverrides(PoolOverride[] calldata _pools) external {
+  ///@dev Adds swap pool
+  function addSwapPool(SwapPool[] calldata _pools) external {
     if (msg.sender != owner) revert Forbidden();
 
     uint256 length = _pools.length;
     for (uint256 i; i < length; ) {
-      _addPoolOverride(_pools[i]);
+      _addSwapPool(_pools[i]);
       unchecked {
         ++i;
       }
     }
   }
 
-  /// @dev Overrides a pool
-  function _addPoolOverride(PoolOverride memory pool) private {
+  function _addSwapPool(SwapPool memory pool) private {
     if (pool.tokenA == pool.tokenB) revert WrongParameters();
     if (pool.tokenA == address(0)) revert WrongParameters();
     if (pool.tokenB == address(0)) revert WrongParameters();
@@ -99,9 +98,9 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
       ? (pool.tokenA, pool.tokenB)
       : (pool.tokenB, pool.tokenA);
 
-    overrides[token0][token1][pool.fee] = pool.pool;
-    overrides[token1][token0][pool.fee] = pool.pool;
+    swapPools[token0][token1][pool.fee] = pool.pool;
+    swapPools[token1][token0][pool.fee] = pool.pool;
 
-    emit PoolOverrided(token0, token1, pool.fee, pool.pool);
+    emit SwapPoolAdded(token0, token1, pool.fee, pool.pool);
   }
 }

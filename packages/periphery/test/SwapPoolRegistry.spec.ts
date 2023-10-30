@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { ethers } from 'hardhat';
-import { Pool, Tokens, ZERO_ADDRESS, createUniswapV3FactoryOverrides } from './fixtures';
+import { Pool, Tokens, ZERO_ADDRESS, createUniswapV3FactoryOverrides } from './shared/fixtures';
 
-describe('UniswapV3FactoryOverride', () => {
+describe('SwapPoolRegistry', () => {
   it('should be reverted when wrong constructor parameters', async () => {
-    const contractFactory = await ethers.getContractFactory('UniswapV3FactoryOverride');
+    const contractFactory = await ethers.getContractFactory('SwapPoolRegistry');
     const uniswapV3FactoryAddress = ZERO_ADDRESS;
 
     await expect(contractFactory.deploy(uniswapV3FactoryAddress, [])).to.be.revertedWithCustomError(
@@ -15,7 +15,7 @@ describe('UniswapV3FactoryOverride', () => {
   });
 
   it('should create factory', async () => {
-    const contractFactory = await ethers.getContractFactory('UniswapV3FactoryOverride');
+    const contractFactory = await ethers.getContractFactory('SwapPoolRegistry');
     const uniswapV3FactoryAddress = '0x0000000000000000000000000000000000000001';
     const [_, owner] = await ethers.getSigners();
 

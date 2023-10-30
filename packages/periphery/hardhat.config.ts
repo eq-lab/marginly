@@ -1,6 +1,6 @@
-import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
+import 'solidity-docgen';
 
 const config = {
   solidity: {
@@ -8,7 +8,7 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 100_000,
+        runs: 100,
       },
     },
   },
@@ -29,15 +29,20 @@ const config = {
   mocha: {
     timeout: 200_000,
   },
-  gasReporter: {
-    excludeContracts: [],
-  },
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['UniswapV3FactoryOverride'],
+    only: ['Marginly','SwapPoolRegistry'],
+    except: ['Mock', 'Test'],
+  },
+  docgen: {
+    outputDir: './docs',
+    templates: '../contracts/docgen-templates',
+    clear: true,
+    pages: 'files',
+    exclude: ['test'],
   },
 };
 

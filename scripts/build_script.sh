@@ -14,6 +14,10 @@ echo "build router"
 yarn workspace @marginly/router install
 yarn workspace @marginly/router compile
 
+echo "build periphery"
+yarn workspace @marginly/periphery install
+yarn workspace @marginly/periphery compile
+
 echo "build common"
 yarn workspace @marginly/common install
 yarn workspace @marginly/common build
@@ -47,10 +51,6 @@ yarn workspace @marginly/sbt install
 yarn workspace @marginly/sbt typechain
 yarn workspace @marginly/sbt compile
 yarn workspace @marginly/sbt build
-
-echo "build uniswap-overrides"
-yarn workspace @marginly/uniswap-overrides install
-yarn workspace @marginly/uniswap-overrides compile
 
 echo "build cli"
 yarn workspace @marginly/cli install

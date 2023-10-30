@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { TestUniswapV3Factory, UniswapV3FactoryOverride } from '../typechain-types';
+import { TestUniswapV3Factory, UniswapV3FactoryOverride } from '../../../uniswap-overrides/typechain-types';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -78,7 +78,7 @@ export async function createUniswapV3FactoryOverrides(): Promise<{
   factoryOverride: UniswapV3FactoryOverride;
 }> {
   const canonicalFactory = await createUniswapV3Factory();
-  const contractFactory = await ethers.getContractFactory('UniswapV3FactoryOverride');
+  const contractFactory = await ethers.getContractFactory('SwapPoolRegistry');
   const factoryOverride = await contractFactory.deploy(canonicalFactory.address, []);
 
   return {

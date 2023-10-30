@@ -31,9 +31,9 @@ jobs:
             cd ../contracts-uniswap-mock
             yarn
             yarn test
-        - name: Build for testing uniswap-overrides
+        - name: Build for testing periphery
           run: |
-            cd packages/uniswap-overrides
+            cd packages/periphery
             yarn
             yarn test
 
