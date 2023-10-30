@@ -16,10 +16,9 @@ import { TokenRepository } from './token-repository';
 import {
   isMarginlyConfigUniswapGenuine,
   isMarginlyConfigUniswapMock,
-  MarginlyConfigMarginlyRouter,
   StrictMarginlyDeployConfig,
 } from './deployer/configs';
-import { DeployResult } from './common/interfaces';
+import { Contract } from 'ethers';
 
 export { DeployConfig } from './config';
 export { DeployState, StateStore, BaseState, MarginlyDeployment, mergeMarginlyDeployments } from './common';
@@ -215,8 +214,8 @@ export async function deployMarginly(
       }
     });
 
+    const adapterDeployResults: { dexId: ethers.BigNumber; adapter: EthAddress; contract: Contract }[] = [];
     const marginlyRouterDeployResult = await using(logger.beginScope('Deploy marginly router'), async () => {
-      const adapterDeployResults: { dexId: ethers.BigNumber; adapter: EthAddress }[] = [];
       for (const adapter of config.marginlyRouter.adapters) {
         await using(logger.beginScope('Deploy marginly adapter'), async () => {
           const marginlyAdapterDeployResult = await marginlyDeployer.deployMarginlyAdapter(
@@ -230,6 +229,7 @@ export async function deployMarginly(
           adapterDeployResults.push({
             dexId: adapter.dexId,
             adapter: EthAddress.parse(marginlyAdapterDeployResult.address),
+            contract: marginlyAdapterDeployResult.contract,
           });
         });
       }
@@ -265,11 +265,52 @@ export async function deployMarginly(
       return marginlyFactoryDeployResult;
     });
 
+    const marginlyPoolAdminDeployResult = await using(logger.beginScope('Deploy marginly pool admin'), async () => {
+      const marginlyPoolAdminDeployResult = await marginlyDeployer.deployMarginlyPoolAdmin(
+        EthAddress.parse(marginlyFactoryDeployResult.address)
+      );
+      printDeployState('Marginly pool admin', marginlyPoolAdminDeployResult, logger);
+
+      const marginlyFactoryOwner = ((await marginlyFactoryDeployResult.contract.owner()) as string).toLowerCase();
+      if (marginlyFactoryOwner === (await signer.getAddress()).toLowerCase()) {
+        logger.log('Transfer MarginlyFactory ownership to MarginlyPoolAdmin contract');
+        await marginlyFactoryDeployResult.contract.setOwner(marginlyPoolAdminDeployResult.address);
+      } else if (marginlyFactoryOwner === marginlyPoolAdminDeployResult.address.toLowerCase()) {
+        logger.log('MarginlyFactory ownership already set');
+      } else {
+        throw new Error('MarginlyFactory has unknown owner');
+      }
+
+      const marginlyRouterOwner = ((await marginlyRouterDeployResult.contract.owner()) as string).toLowerCase();
+      if (marginlyRouterOwner === (await signer.getAddress()).toLowerCase()) {
+        logger.log('Transfer MarginlyRouter ownership to MarginlyPoolAdmin contract');
+        await marginlyRouterDeployResult.contract.transferOwnership(marginlyPoolAdminDeployResult.address);
+      } else if (marginlyRouterOwner === marginlyPoolAdminDeployResult.address.toLowerCase()) {
+        logger.log('MarginlyRouter ownership already set');
+      } else {
+        throw new Error('MarginlyRouter has unknown owner');
+      }
+
+      for (const adapter of adapterDeployResults) {
+        const adapterOwner = ((await adapter.contract.owner()) as string).toLowerCase();
+        if (adapterOwner === (await signer.getAddress()).toLowerCase()) {
+          logger.log(`Transfer router adapter with DexId ${adapter.dexId} ownership to MarginlyPoolAdmin contract`);
+          await adapter.contract.transferOwnership(marginlyPoolAdminDeployResult.address);
+        } else if (adapterOwner === marginlyPoolAdminDeployResult.address.toLowerCase()) {
+          logger.log(`Ownership for router adapter with DexId ${adapter.dexId} already set`);
+        } else {
+          throw new Error('Router adapter has unknown owner');
+        }
+      }
+      return marginlyPoolAdminDeployResult;
+    });
+
     const deployedMarginlyPools = await using(logger.beginScope('Create marginly pools'), async () => {
       const deployedMarginlyPools: MarginlyDeploymentMarginlyPool[] = [];
       for (const pool of config.marginlyPools) {
         const marginlyPoolDeploymentResult = await marginlyDeployer.getOrCreateMarginlyPool(
           marginlyFactoryDeployResult.contract,
+          marginlyPoolAdminDeployResult.contract,
           pool,
           tokenRepository
         );

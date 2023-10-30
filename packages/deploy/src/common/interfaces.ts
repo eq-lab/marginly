@@ -32,6 +32,7 @@ export interface IMarginlyDeployer {
     tokenRepository: ITokenRepository,
     techPositionOwner: EthAddress
   ): Promise<DeployResult>;
+  deployMarginlyPoolAdmin(marginlyFactoryAddress: EthAddress): Promise<DeployResult>;
   deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult>;
   toUniswapFee(fee: RationalNumber): BigNumber;
   getOrCreateUniswapPoolGenuine(
@@ -41,6 +42,7 @@ export interface IMarginlyDeployer {
   ): Promise<LimitedDeployResult>;
   getOrCreateMarginlyPool(
     marginlyPoolFactoryContract: Contract,
+    marginlyPoolAdminContract: Contract,
     config: MarginlyConfigMarginlyPool,
     tokenRepository: ITokenRepository
   ): Promise<LimitedDeployResult>;
@@ -53,11 +55,9 @@ export interface IMarginlyDeployer {
     dexId: BigNumber,
     name: string,
     pools: MarginlyAdapterParam[],
-    balancerVault?: EthAddress,
+    balancerVault?: EthAddress
   ): Promise<DeployResult>;
-  deployMarginlyRouter(
-    adapters: { dexId: BigNumber; adapter: EthAddress }[],
-  ): Promise<DeployResult>;
+  deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult>;
   deployUniswapRouterMock(weth9: MarginlyConfigToken, tokenRepository: ITokenRepository): Promise<DeployResult>;
   deployUniswapPoolMock(
     oracle: EthAddress,
