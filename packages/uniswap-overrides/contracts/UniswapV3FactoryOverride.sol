@@ -8,12 +8,12 @@ contract UniswapV3FactoryOverride is IUniswapV3Factory {
   error Forbidden();
   error WrongParameters();
 
-  /// @notice Emitted when a pool is overrided
+  /// @notice Emitted when a pool is overridden
   /// @param token0 The first token of the pool by address sort order
   /// @param token1 The second token of the pool by address sort order
   /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
   /// @param pool The address of the created pool
-  event PoolOverrided(address indexed token0, address indexed token1, uint24 indexed fee, address pool);
+  event PoolOverrided(address indexed token0, address indexed token1, uint24 fee, address indexed pool);
 
   ///@dev Address of a canonical UniswapV3Factory
   address public immutable uniswapFactory;
