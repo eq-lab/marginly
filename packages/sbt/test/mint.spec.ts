@@ -1,151 +1,82 @@
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import { deploySBT, MintBurnParam, SBTContractParams } from './shared';
 import { ethers } from 'hardhat';
-import { SBT } from '../typechain-types';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { BigNumber } from 'ethers';
 
-describe('mint', () => {
-  let params: SBTContractParams;
-  let contract: SBT;
-  let owner: SignerWithAddress;
-  let signers: SignerWithAddress[];
+import { Signers, deploySbt } from './shared';
+import { SBT__factory } from '../typechain-types';
 
-  beforeEach(async () => {
-    owner = (await ethers.getSigners())[0];
-    signers = (await ethers.getSigners()).slice(1);
-    params = {
-      owner,
-      tokens: [
-        { id: 0, uri: 'Token0', maxAmount: 2 },
-        { id: 1, uri: 'Token1', maxAmount: 2 },
-        { id: 2, uri: 'Token2', maxAmount: 2 },
-      ],
-    };
-    contract = await deploySBT(params);
+describe('mint()', function () {
+  before(async function () {
+    const signers = await ethers.getSigners();
+
+    this.signers = {
+      admin: signers[0],
+      users: signers.splice(1),
+    } as Signers;
+
+    this.loadFixture = loadFixture;
   });
 
-  it('successful mint', async () => {
-    const mintParams: MintBurnParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 2 },
-      { acc: signers[0].address, tokenId: 2, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 2 },
-    ];
+  beforeEach(async function () {
+    const { contract } = await this.loadFixture(deploySbt);
+    this.sbt = contract;
+  });
 
-    await contract.mint(
-      mintParams.map((x) => x.acc),
-      mintParams.map((x) => x.tokenId),
-      mintParams.map((x) => x.amount)
+  it('should require admin', async function () {
+    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+
+    await expect(user.mint([], [], [])).to.be.rejectedWith('Ownable: caller is not the owner');
+    await expect(admin.mint([], [], [])).not.to.be.rejected;
+  });
+
+  it('should throw error when arguments mismatch length', async function () {
+    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+
+    await expect(admin.mint([this.signers.users[0].address], [], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([], [1], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([], [], [1])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([this.signers.users[0].address], [1], [])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([], [1], [1])).to.be.rejectedWith('args invalid length');
+    await expect(admin.mint([this.signers.users[0].address], [1, 2], [1])).to.be.rejectedWith('args invalid length');
+  });
+
+  it('should throw error when awarding zero address', async function () {
+    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+
+    await expect(admin.mint(['0x0000000000000000000000000000000000000000'], [1], [1])).to.be.rejectedWith(
+      'address zero is not a valid owner'
     );
-
-    for (const { acc, tokenId, amount } of mintParams) {
-      const balance = await contract.balanceOf(acc, BigNumber.from(tokenId));
-      expect(balance.toNumber()).to.be.equal(amount);
-    }
   });
 
-  it('balanceOfBatch', async () => {
-    const mintParams: MintBurnParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 2 },
-      { acc: signers[0].address, tokenId: 2, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 2 },
-    ];
+  it('should throw error when amount is zero', async function () {
+    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await contract.mint(
-      mintParams.map((x) => x.acc),
-      mintParams.map((x) => x.tokenId),
-      mintParams.map((x) => x.amount)
-    );
-    const balances = await contract.balanceOfBatch(
-      mintParams.map((x) => x.acc),
-      mintParams.map((x) => x.tokenId)
-    );
-
-    for (let i = 0; i < mintParams.length; i++) {
-      const { amount } = mintParams[i];
-      const balanceFromChain = balances[i].toNumber();
-      expect(balanceFromChain).to.be.equal(amount);
-    }
+    await expect(admin.mint([this.signers.users[0].address], [1], [0])).to.be.rejectedWith('invalid amount');
   });
 
-  it('invalid array len 1', async () => {
-    const mintParams: MintBurnParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 2 },
-      { acc: signers[0].address, tokenId: 2, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 2 },
-    ];
+  it('should award users and emit TransferSingle event', async function () {
+    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
 
-    await expect(
-      contract.mint(
-        mintParams.map((x) => x.acc),
-        mintParams.map((x) => x.tokenId).slice(1),
-        mintParams.map((x) => x.amount)
+    await expect(admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [1, 2]))
+      .to.emit(admin, 'TransferSingle')
+      .withArgs(
+        this.signers.admin.address,
+        '0x0000000000000000000000000000000000000000',
+        this.signers.users[0].address,
+        1,
+        1
       )
-    ).to.be.revertedWith('invalid array len');
-  });
+      .to.emit(admin, 'TransferSingle')
+      .withArgs(
+        this.signers.admin.address,
+        '0x0000000000000000000000000000000000000000',
+        this.signers.users[1].address,
+        2,
+        2
+      );
 
-  it('invalid array len 2', async () => {
-    const mintParams: MintBurnParam[] = [
-      { acc: signers[0].address, tokenId: 1, amount: 2 },
-      { acc: signers[0].address, tokenId: 2, amount: 1 },
-      { acc: signers[1].address, tokenId: 0, amount: 1 },
-      { acc: signers[1].address, tokenId: 2, amount: 2 },
-    ];
-
-    await expect(
-      contract.mint(
-        mintParams.map((x) => x.acc),
-        mintParams.map((x) => x.tokenId),
-        mintParams.map((x) => x.amount).slice(1)
-      )
-    ).to.be.revertedWith('invalid array len');
-  });
-
-  it('user balance max cap', async () => {
-    const mintParams: MintBurnParam[] = [{ acc: signers[0].address, tokenId: 0, amount: 3 }];
-
-    await expect(
-      contract.mint(
-        mintParams.map((x) => x.acc),
-        mintParams.map((x) => x.tokenId),
-        mintParams.map((x) => x.amount)
-      )
-    ).to.be.revertedWith('user balance max cap');
-  });
-
-  it('zero amount', async () => {
-    const mintParams: MintBurnParam[] = [{ acc: signers[0].address, tokenId: 1, amount: 0 }];
-    await expect(
-      contract.mint(
-        mintParams.map((x) => x.acc),
-        mintParams.map((x) => x.tokenId),
-        mintParams.map((x) => x.amount)
-      )
-    ).to.be.revertedWith('zero amount');
-  });
-
-  it('not owner', async () => {
-    const mintParams: MintBurnParam[] = [{ acc: signers[1].address, tokenId: 1, amount: 1 }];
-
-    await expect(
-      contract.connect(signers[2]).mint(
-        mintParams.map((x) => x.acc),
-        mintParams.map((x) => x.tokenId),
-        mintParams.map((x) => x.amount)
-      )
-    ).to.be.revertedWith('not owner');
-  });
-
-  it('id too high', async () => {
-    const tokenId = params.tokens.length;
-    const mintParams: MintBurnParam[] = [{ acc: signers[1].address, tokenId, amount: 1 }];
-
-    await expect(
-      contract.mint(
-        mintParams.map((x) => x.acc),
-        mintParams.map((x) => x.tokenId),
-        mintParams.map((x) => x.amount)
-      )
-    ).to.be.revertedWith('id too high');
+    expect(await admin.balanceOf(this.signers.users[0].address, 1)).be.equal(1);
+    expect(await admin.balanceOf(this.signers.users[1].address, 2)).be.equal(2);
   });
 });

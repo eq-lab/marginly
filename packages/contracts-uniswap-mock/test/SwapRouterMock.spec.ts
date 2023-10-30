@@ -5,9 +5,9 @@ import {SwapRouterMock, MintableToken, UniswapV3PoolMock, WETH9} from "../typech
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {
     numberToFp,
-    priceToPriceFp18,
+    priceToPriceFp27,
     priceToSqrtPriceX96,
-    sortUniswapPoolTokens
+    sortUniswapPoolTokens,
 } from '@marginly/common/math';
 
 async function createToken(name: string, symbol: string, decimals: number = 18): Promise<MintableToken> {
@@ -106,10 +106,10 @@ async function setPrice(pool: UniswapV3PoolMock, oracle: SignerWithAddress, toke
         ]
     );
 
-    const priceFp18 = priceToPriceFp18(token0.price, token0.decimals, token1.decimals);
+    const priceFp27 = priceToPriceFp27(token0.price, token0.decimals, token1.decimals);
     const sqrtPriceX96 = priceToSqrtPriceX96(token0.price, token0.decimals, token1.decimals);
 
-    await pool.connect(oracle).setPrice(priceFp18, sqrtPriceX96);
+    await pool.connect(oracle).setPrice(priceFp27, sqrtPriceX96);
 }
 
 describe('SwapRouterMock', () => {
@@ -121,101 +121,123 @@ describe('SwapRouterMock', () => {
     const outTokenKey: keyof CreateContractResultTokens = 'arb';
 
     interface SwapCase {
+        exactSide: ExactSide;
         inAmount: number,
-        inTokenKey: keyof CreateContractResultTokens,
-        outAmount: number
-        outTokenKey: keyof CreateContractResultTokens,
+        inTokenKey: keyof CreateContractResultTokens;
+        outAmount: number;
+        outTokenKey: keyof CreateContractResultTokens;
     }
 
     const swapCases: SwapCase[] = [
         {
+            exactSide: 'input',
             inAmount: 1,
+            inTokenKey: 'weth',
+            outAmount: 1999,
+            outTokenKey: 'arb'
+        },
+        {
+            exactSide: 'input',
+            inAmount: 1,
+            inTokenKey: 'arb',
+            outAmount: 0.00049975,
+            outTokenKey: 'weth'
+        },
+        {
+            exactSide: 'output',
+            inAmount: 1.00050025,
             inTokenKey: 'weth',
             outAmount: 2000,
             outTokenKey: 'arb'
         },
         {
-            inAmount: 1,
+            exactSide: 'output',
+            inAmount: 2001.0005,
             inTokenKey: 'arb',
-            outAmount: 0.0005,
+            outAmount: 1,
             outTokenKey: 'weth'
         }
     ];
 
     type ExactSide = 'input' | 'output';
 
-    const exactSides: ExactSide[] = ['input', 'output'];
+    swapCases.forEach(({exactSide, inAmount, inTokenKey, outAmount, outTokenKey}) =>
+        it(`should swap exact ${exactSide} of ${inTokenKey} correctly`, async () => {
+            const {
+                router,
+                pool,
+                tokens,
+                owner,
+                oracle,
+                user,
+                fee
+            } = await loadFixture(createContracts);
 
-    exactSides.forEach(exactSide =>
-        swapCases.forEach(({inAmount, inTokenKey, outAmount, outTokenKey}) =>
-            it(`should swap exact ${exactSide} of ${inTokenKey} correctly`, async () => {
-                const {
-                    router,
-                    pool,
-                    tokens,
-                    owner,
-                    oracle,
-                    user,
-                    fee
-                } = await loadFixture(createContracts);
+            const {arb, weth} = tokens;
+            await setPrice(pool, oracle, [arb, weth], arbEthPrice);
 
-                const {arb, weth} = tokens;
-                await setPrice(pool, oracle, [arb, weth], arbEthPrice);
+            const inToken = tokens[inTokenKey];
+            const outToken = tokens[outTokenKey];
 
-                const inToken = tokens[inTokenKey];
-                const outToken = tokens[outTokenKey];
+            const inDecimals = await inToken.decimals();
+            const outDecimals = await outToken.decimals();
 
-                const inDecimals = await inToken.decimals();
-                const outDecimals = await outToken.decimals();
+            const numToInTokenFp = (x: number) => numberToFp(inDecimals, x);
+            const numToOutTokenFp = (x: number) => numberToFp(outDecimals, x);
 
-                const numToInTokenFp = (x: number) => numberToFp(inDecimals, x);
-                const numToOutTokenFp = (x: number) => numberToFp(outDecimals, x);
+            const generateTokens = createTokensGenerator(tokens, owner);
 
-                const generateTokens = createTokensGenerator(tokens, owner);
+            await generateTokens(inTokenKey, user.address, 100 * inAmount);
+            await generateTokens(outTokenKey, pool.address, 100 * outAmount);
 
-                await generateTokens(inTokenKey, user.address, inAmount);
-                await generateTokens(outTokenKey, pool.address, outAmount);
+            await inToken.connect(user).approve(router.address, numToInTokenFp(100 * inAmount));
 
-                await inToken.connect(user).approve(router.address, numToInTokenFp(inAmount));
+            const amountInBefore = (await inToken.balanceOf(user.address)).toBigInt();
+            const amountOutBefore = (await outToken.balanceOf(user.address)).toBigInt();
 
-                const amountInBefore = (await inToken.balanceOf(user.address)).toBigInt();
-                const amountOutBefore = (await outToken.balanceOf(user.address)).toBigInt();
+            const inAmountFp = numToInTokenFp(inAmount);
+            const outAmountFp = numToOutTokenFp(outAmount);
 
-                const inAmountFp = numToInTokenFp(inAmount);
-                const outAmountFp = numToOutTokenFp(outAmount);
+            if (exactSide === 'input') {
+                await router.connect(user).exactInputSingle({
+                    tokenIn: inToken.address,
+                    tokenOut: outToken.address,
+                    fee,
+                    recipient: user.address,
+                    deadline: blockNumberInADistantFuture,
+                    amountIn: inAmountFp,
+                    amountOutMinimum: 0n,
+                    sqrtPriceLimitX96: 0n
+                });
+            } else if (exactSide == 'output') {
+                await router.connect(user).exactOutputSingle({
+                    tokenIn: inToken.address,
+                    tokenOut: outToken.address,
+                    fee,
+                    recipient: user.address,
+                    deadline: blockNumberInADistantFuture,
+                    amountOut: outAmountFp,
+                    amountInMaximum: 100n * inAmountFp,
+                    sqrtPriceLimitX96: 0n
+                });
+            } else {
+                throw new Error('Unknown exact side');
+            }
 
-                if (exactSide === 'input') {
-                    await router.connect(user).exactInputSingle({
-                        tokenIn: inToken.address,
-                        tokenOut: outToken.address,
-                        fee,
-                        recipient: user.address,
-                        deadline: blockNumberInADistantFuture,
-                        amountIn: inAmountFp,
-                        amountOutMinimum: 0n,
-                        sqrtPriceLimitX96: 0n
-                    });
-                } else if (exactSide == 'output') {
-                    await router.connect(user).exactOutputSingle({
-                        tokenIn: inToken.address,
-                        tokenOut: outToken.address,
-                        fee,
-                        recipient: user.address,
-                        deadline: blockNumberInADistantFuture,
-                        amountOut: outAmountFp,
-                        amountInMaximum: inAmountFp,
-                        sqrtPriceLimitX96: 0n
-                    });
-                } else {
-                    throw new Error('Unknown exact side');
-                }
+            const amountInAfter = (await inToken.balanceOf(user.address)).toBigInt();
+            const amountOutAfter = (await outToken.balanceOf(user.address)).toBigInt();
 
-                const amountInAfter = (await inToken.balanceOf(user.address)).toBigInt();
-                const amountOutAfter = (await outToken.balanceOf(user.address)).toBigInt();
+            const actualInAmountFp = amountInBefore - amountInAfter;
+            const actualOutAmountFp = amountOutAfter - amountOutBefore;
 
-                expect(inAmountFp).to.be.equal(amountInBefore - amountInAfter);
-                expect(outAmountFp).to.be.equal(amountOutAfter - amountOutBefore);
-            })
-        )
+            const actualInAmountRelErr = Math.abs(Number(inAmountFp - actualInAmountFp)) / Number(inAmountFp);
+            const actualOutAmountRelErr = Math.abs(Number(outAmountFp - actualOutAmountFp)) / Number(outAmountFp);
+
+            console.log(`expected in amount: ${inAmountFp}, actual in amount: ${actualInAmountFp}, relative error: ${actualInAmountRelErr}`);
+            console.log(`expected out amount: ${outAmountFp}, actual out amount: ${actualOutAmountFp}, relative error: ${actualOutAmountRelErr}`);
+
+            expect(1e-9).to.be.greaterThanOrEqual(actualInAmountRelErr);
+            expect(1e-9).to.be.greaterThanOrEqual(actualOutAmountRelErr);
+        })
     );
 });

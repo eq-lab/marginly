@@ -52,4 +52,8 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
     if (adapterAddress == address(0)) revert UnknownDex();
     return IMarginlyAdapter(adapterAddress);
   }
+
+  function renounceOwnership() public override onlyOwner {
+    revert Forbidden();
+  }
 }

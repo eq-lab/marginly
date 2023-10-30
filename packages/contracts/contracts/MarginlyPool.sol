@@ -179,12 +179,17 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function _setParameters(MarginlyParams memory _params) private {
-    if (_params.interestRate > 1_000_000) revert Errors.WrongValue();
-    if (_params.fee > 1_000_000) revert Errors.WrongValue();
-    if (_params.swapFee > 1_000_000) revert Errors.WrongValue();
-    if (_params.mcSlippage > 1_000_000) revert Errors.WrongValue();
-    if (_params.priceSecondsAgo == 0) revert Errors.WrongValue();
-    if (_params.priceSecondsAgoMC == 0) revert Errors.WrongValue();
+    if (
+      _params.interestRate > 1_000_000 ||
+      _params.fee > 1_000_000 ||
+      _params.swapFee > 1_000_000 ||
+      _params.mcSlippage > 1_000_000 ||
+      _params.priceSecondsAgo == 0 ||
+      _params.priceSecondsAgoMC == 0 ||
+      _params.maxLeverage < 2 ||
+      _params.quoteLimit == 0 ||
+      _params.positionMinAmount == 0
+    ) revert Errors.WrongValue();
 
     params = _params;
     emit ParametersChanged();
@@ -475,7 +480,9 @@ contract MarginlyPool is IMarginlyPool {
 
       if (amount >= realBaseDebt) {
         uint256 newRealBaseCollateral = amount.sub(realBaseDebt);
-        if (basePrice.mul(newPoolBaseBalance(newRealBaseCollateral)) > params.quoteLimit) revert Errors.ExceedsLimit();
+        if (amount != realBaseDebt)
+          if (basePrice.mul(newPoolBaseBalance(newRealBaseCollateral)) > params.quoteLimit)
+            revert Errors.ExceedsLimit();
 
         shortHeap.remove(positions, position.heapPosition - 1);
         // Short position debt <= depositAmount, increase collateral on delta, change position to Lend
@@ -545,7 +552,8 @@ contract MarginlyPool is IMarginlyPool {
 
       if (amount >= realQuoteDebt) {
         uint256 newRealQuoteCollateral = amount.sub(realQuoteDebt);
-        if (newPoolQuoteBalance(newRealQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
+        if (amount != realQuoteDebt)
+          if (newPoolQuoteBalance(newRealQuoteCollateral) > params.quoteLimit) revert Errors.ExceedsLimit();
 
         longHeap.remove(positions, position.heapPosition - 1);
         // Long position, debt <= depositAmount, increase collateral on delta, move position to Lend
@@ -1188,6 +1196,14 @@ contract MarginlyPool is IMarginlyPool {
     uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
 
     if (basePrice.mul(baseDebt) > quoteCollateral) {
+      // removing all non-emergency position with bad leverages (negative net positions included)
+      (bool success, MaxBinaryHeapLib.Node memory root) = longHeap.getNodeByIndex(0);
+      if (success) {
+        if (reinitAccount(root.account, basePrice)) {
+          return;
+        }
+      }
+
       setEmergencyMode(
         Mode.ShortEmergency,
         basePrice,
@@ -1201,6 +1217,14 @@ contract MarginlyPool is IMarginlyPool {
     }
 
     if (quoteDebt > basePrice.mul(baseCollateral)) {
+      // removing all non-emergency position with bad leverages (negative net positions included)
+      (bool success, MaxBinaryHeapLib.Node memory root) = shortHeap.getNodeByIndex(0);
+      if (success) {
+        if (reinitAccount(root.account, basePrice)) {
+          return;
+        }
+      }
+
       setEmergencyMode(
         Mode.LongEmergency,
         basePrice,

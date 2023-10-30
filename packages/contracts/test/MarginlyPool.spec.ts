@@ -12,13 +12,13 @@ import {
   convertFP96ToNumber,
   FP48,
   FP96,
+  getMarginlyPoolState,
   PositionType,
-  powTaylor,
   uniswapV3Swapdata,
   ZERO_ADDRESS,
 } from './shared/utils';
 import { BigNumber } from 'ethers';
-import { parseUnits, zeroPad } from 'ethers/lib/utils';
+import { parseUnits } from 'ethers/lib/utils';
 
 describe('MarginlyPool.Base', () => {
   it('should revert when second try of initialization', async () => {
@@ -150,6 +150,50 @@ describe('MarginlyPool.Base', () => {
         quoteLimit: 1_000_000_000,
       })
     ).to.be.revertedWithCustomError(pool, 'AccessDenied');
+  });
+
+  it('should raise error when trying to set invalid parameters', async () => {
+    const { marginlyPool: pool } = await loadFixture(createMarginlyPool);
+    const params = {
+      interestRate: 54,
+      maxLeverage: 15,
+      fee: 1,
+      swapFee: 1000,
+      priceSecondsAgo: 1000,
+      priceSecondsAgoMC: 100,
+      positionMinAmount: 100,
+      mcSlippage: 400000,
+      quoteLimit: 1_000_000_000,
+    };
+
+    await expect(pool.setParameters({ ...params, interestRate: 1_000_001 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, maxLeverage: 1 })).to.be.revertedWithCustomError(pool, 'WrongValue');
+    await expect(pool.setParameters({ ...params, fee: 1_000_001 })).to.be.revertedWithCustomError(pool, 'WrongValue');
+    await expect(pool.setParameters({ ...params, swapFee: 1_000_001 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, mcSlippage: 1_000_001 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, priceSecondsAgo: 0 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, priceSecondsAgoMC: 0 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+    await expect(pool.setParameters({ ...params, positionMinAmount: 0 })).to.be.revertedWithCustomError(
+      pool,
+      'WrongValue'
+    );
+
+    await expect(pool.setParameters({ ...params, quoteLimit: 0 })).to.be.revertedWithCustomError(pool, 'WrongValue');
   });
 
   describe('Deposit base', async () => {
@@ -943,12 +987,12 @@ describe('MarginlyPool.Base', () => {
         .connect(user2)
         .execute(CallType.Short, user2ShortAmount, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-      const prevBlockNumber = await marginlyPool.provider.getBlockNumber();
+      const prevMarginlyPoolState = await getMarginlyPoolState(marginlyPool);
 
       await time.increase(timeShift);
       await marginlyPool.execute(CallType.Reinit, 0, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-      await assertAccruedRateCoeffs(marginlyPool, prevBlockNumber);
+      await assertAccruedRateCoeffs(marginlyPool, prevMarginlyPoolState);
     });
 
     it('withdraw with position removing', async () => {

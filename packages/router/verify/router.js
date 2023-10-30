@@ -2,7 +2,7 @@ module.exports = [
   [
     {
       dexIndex: 0,
-      adapter: '0x420c187B1960c99e0A6bEd7641BeA9BA9Eb6E53b',
+      adapter: '0x170eBc619CdB767Fd987D54a08D77c0B4b93209e',
     },
   ],
 ];
