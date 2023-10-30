@@ -16,6 +16,7 @@ import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult 
 import {
   MarginlyAdapterParam,
   MarginlyConfigMarginlyPool,
+  MarginlyConfigSwapPool,
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
 } from './configs';
