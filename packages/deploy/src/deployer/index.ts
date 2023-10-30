@@ -426,8 +426,6 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
   public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
     const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
-  public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
-    const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
     return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
   }
 
