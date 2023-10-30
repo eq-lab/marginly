@@ -14,6 +14,7 @@ import {
 import { MarginlyDeployer } from './deployer';
 import { TokenRepository } from './token-repository';
 import {
+  isMarginlyConfigSwapPoolRegistry,
   isMarginlyConfigUniswapGenuine,
   isMarginlyConfigUniswapMock,
   StrictMarginlyDeployConfig,
@@ -209,6 +210,21 @@ export async function deployMarginly(
         }
 
         return EthAddress.parse(uniswapRouterDeploymentResult.address);
+      } else if (isMarginlyConfigSwapPoolRegistry(config.uniswap)) {
+        // TODO: deploy swap pools (special pools implementing uniswap V3 interface acts like uniswap v3 like TWAP)
+
+        const swapPoolRegistryConfig = config.uniswap;
+        const swapPoolDeploymentResult = await using(logger.beginScope('Deploy SwapPoolRegistry'), async () => {
+          const deployResult = await marginlyDeployer.deploySwapPoolRegistry(
+            tokenRepository,
+            swapPoolRegistryConfig.factory,
+            swapPoolRegistryConfig.pools
+          );
+          printDeployState(`SwapPoolRegistry`, deployResult, logger);
+          return deployResult;
+        });
+
+        return EthAddress.parse(swapPoolDeploymentResult.address);
       } else {
         throw new Error('Unknown Uniswap type');
       }

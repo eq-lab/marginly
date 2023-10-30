@@ -5,6 +5,7 @@ import {
   EthConnectionConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
+  isMarginlyDeployConfigSwapPoolRegistry,
   isMarginlyDeployConfigUniswapGenuine,
   isMarginlyDeployConfigUniswapMock,
   MarginlyDeployConfig,
@@ -53,7 +54,25 @@ export interface MarginlyConfigUniswapMock {
   pools: MarginlyConfigUniswapPoolMock[];
 }
 
-export type MarginlyConfigUniswap = MarginlyConfigUniswapGenuine | MarginlyConfigUniswapMock;
+export interface MarginlyConfigSwapPool {
+  type: 'swapPool';
+  id: string;
+  address: EthAddress;
+  tokenA: MarginlyConfigToken;
+  tokenB: MarginlyConfigToken;
+  fee: RationalNumber;
+}
+
+export interface MarginlyConfigSwapPoolRegistry {
+  type: 'swapPoolRegistry';
+  factory: EthAddress;
+  pools: MarginlyConfigSwapPool[];
+}
+
+export type MarginlyConfigUniswap =
+  | MarginlyConfigUniswapGenuine
+  | MarginlyConfigUniswapMock
+  | MarginlyConfigSwapPoolRegistry;
 
 export function isMarginlyConfigUniswapGenuine(
   uniswap: MarginlyConfigUniswap
@@ -65,7 +84,16 @@ export function isMarginlyConfigUniswapMock(uniswap: MarginlyConfigUniswap): uni
   return uniswap.type === 'mock';
 }
 
-export type MarginlyConfigUniswapPool = MarginlyConfigUniswapPoolGenuine | MarginlyConfigUniswapPoolMock;
+export function isMarginlyConfigSwapPoolRegistry(
+  uniswap: MarginlyConfigUniswap
+): uniswap is MarginlyConfigSwapPoolRegistry {
+  return uniswap.type === 'swapPoolRegistry';
+}
+
+export type MarginlyConfigUniswapPool =
+  | MarginlyConfigUniswapPoolGenuine
+  | MarginlyConfigUniswapPoolMock
+  | MarginlyConfigSwapPool;
 
 export function isMarginlyConfigUniswapPoolGenuine(
   uniswapPool: MarginlyConfigUniswapPool
@@ -77,6 +105,10 @@ export function isMarginlyConfigUniswapPoolMock(
   uniswapPool: MarginlyConfigUniswapPool
 ): uniswapPool is MarginlyConfigUniswapPoolMock {
   return uniswapPool.type === 'mock';
+}
+
+export function isMarginlyConfigSwapPool(uniswapPool: MarginlyConfigSwapPool): uniswapPool is MarginlyConfigSwapPool {
+  return uniswapPool.type === 'swapPool';
 }
 
 export interface MarginlyFactoryConfig {
@@ -317,6 +349,42 @@ export class StrictMarginlyDeployConfig {
         weth9Token,
         priceLogSize: config.uniswap.priceLogSize,
         pools: mockPools,
+      };
+    } else if (isMarginlyDeployConfigSwapPoolRegistry(config.uniswap)) {
+      // пройтись по пулам и вытащить по id конфиги токенов и сформировать конфиг SwapRegistry
+      const swapPools: MarginlyConfigSwapPool[] = [];
+      for (let i = 0; i < config.uniswap.pools.length; i++) {
+        const rawPool = config.uniswap.pools[i];
+
+        if (uniswapPools.has(rawPool.id)) {
+          throw new Error(`Duplicate uniswap pool id '${rawPool.id} at index ${i}`);
+        }
+
+        const tokenA = tokens.get(rawPool.tokenAId);
+        if (tokenA === undefined) {
+          throw new Error(`TokenA with id '${rawPool.tokenAId}' is not found for uniswap pool '${rawPool.id}'`);
+        }
+        const tokenB = tokens.get(rawPool.tokenBId);
+        if (tokenB === undefined) {
+          throw new Error(`TokenB with id '${rawPool.tokenBId}' is not found for uniswap pool '${rawPool.id}'`);
+        }
+        const fee = RationalNumber.parsePercent(rawPool.fee);
+
+        const pool: MarginlyConfigSwapPool = {
+          type: 'swapPool',
+          id: rawPool.id,
+          tokenA,
+          tokenB,
+          fee,
+          address: EthAddress.parse(rawPool.address),
+        };
+        uniswapPools.set(rawPool.id, pool);
+        swapPools.push(pool);
+      }
+      uniswap = {
+        type: 'swapPoolRegistry',
+        factory: EthAddress.parse(config.uniswap.factory),
+        pools: swapPools,
       };
     } else {
       throw new Error('Unknown uniswap type');
