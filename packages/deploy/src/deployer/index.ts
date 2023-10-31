@@ -16,6 +16,7 @@ import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult 
 import {
   MarginlyAdapterParam,
   MarginlyConfigMarginlyPool,
+  MarginlyConfigSwapPool,
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
 } from './configs';
@@ -436,6 +437,53 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       'marginlyPoolAdmin',
       this.readMarginlyPeripheryContract
     );
+  }
+
+  public async deploySwapPoolRegistry(
+    tokenRepository: ITokenRepository,
+    uniswapFactory: EthAddress,
+    pools: MarginlyConfigSwapPool[]
+  ): Promise<DeployResult> {
+    type SwapPool = {
+      pool: `0x${string}`;
+      tokenA: `0x${string}`;
+      tokenB: `0x${string}`;
+      fee: BigNumber;
+    };
+
+    const swapPools: SwapPool[] = pools.map((p) => ({
+      tokenA: tokenRepository.getTokenInfo(p.tokenA.id).address.toString(),
+      tokenB: tokenRepository.getTokenInfo(p.tokenB.id).address.toString(),
+      fee: this.toUniswapFee(p.fee),
+      pool: p.address.toString(),
+    }));
+
+    var deployResult = await this.deploy(
+      'SwapPoolRegistry',
+      [uniswapFactory.toString(), swapPools],
+      'swapPoolRegistry',
+      this.readMarginlyPeripheryContract
+    );
+
+    var poolsToAdd: SwapPool[] = [];
+    var swapPoolRegistry = deployResult.contract;
+    for (let i = 0; i < swapPools.length; i++) {
+      const swapPoolAddress = await swapPoolRegistry.swapPools(
+        swapPools[i].tokenA,
+        swapPools[i].tokenB,
+        swapPools[i].fee
+      );
+      if (EthAddress.parse(swapPoolAddress).isZero()) {
+        poolsToAdd.push(swapPools[i]);
+      }
+    }
+
+    if (poolsToAdd.length > 0) {
+      const tx = await swapPoolRegistry.addSwapPool(poolsToAdd);
+      await tx.wait();
+    }
+
+    return deployResult;
   }
 
   public async deployUniswapRouterMock(
