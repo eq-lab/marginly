@@ -19,12 +19,12 @@ const config = {
     arbitrumGoerli: {
       url: 'https://goerli-rollup.arbitrum.io/rpc',
     },
+    arbitrumOne: {
+      url: 'https://arb1.arbitrum.io/rpc',
+    },
   },
   etherscan: {
-    apiKey: {
-      polygonMumbai: '',
-      arbitrumGoerli: '',
-    },
+    apiKey: process.env.API_KEY,
   },
   mocha: {
     timeout: 200_000,
@@ -34,7 +34,7 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly'],
+    only: ['Marginly','SwapPoolRegistry'],
     except: ['Mock', 'Test'],
   },
   docgen: {
