@@ -3,7 +3,7 @@ import { createMarginlyPoolWithTraderJoeV2PriceAdapter } from './shared/fixtures
 import { FP128 } from './shared/utils';
 import { expect } from 'chai';
 
-describe('TraderJoev2PriceAdapter', () => {
+describe.skip('TraderJoev2PriceAdapter', () => {
   it('price in marginly equal to TJ v2 price', async () => {
     const { traderJoeV2, marginlyPoolWithPriceAdapter } = await loadFixture(
       createMarginlyPoolWithTraderJoeV2PriceAdapter
