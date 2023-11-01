@@ -22,7 +22,7 @@ export const ethKeyTypeParameter = {
 };
 export const ethKeyParameter = {
   name: ['eth', 'key'],
-  description: 'Relay private key',
+  description: 'Signer private key',
 };
 export const ethKeyFileParameter = {
   name: ['eth', 'key', 'file'],
