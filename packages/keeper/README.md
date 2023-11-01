@@ -73,5 +73,5 @@ docker build -t marginly-keeper -f packages/keeper/Dockerfile .
 run
 
 ```shell
-docker run -e KEEPER_CONFIG=config.arbitrum-one.json -e KEEPER_LOG_LEVEL=1 -e KEEPER_LOG_FORMAT=text -e ETH_KEY=<private_key> marginly-keeper
+docker run -e MARGINLY_KEEPER_CONFIG=config.arbitrum-one.json -e MARGINLY_KEEPER_LOG_LEVEL=1 -e MARGINLY_KEEPER_LOG_FORMAT=text -e MARGINLY_KEEPER_ETH_KEY=<private_key> marginly-keeper
 ```
