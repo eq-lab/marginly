@@ -57,6 +57,9 @@ export class MarginlyKeeperWorker implements Worker {
         logger.debug(`Found ${liquidationParams.length} bad positions`);
 
         for (const liquidationParam of liquidationParams) {
+          if (this.stopRequested) {
+            return;
+          }
           const refferalCode = 0;
 
           const debtTokenContract = new ethers.Contract(
