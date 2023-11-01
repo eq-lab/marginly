@@ -66,10 +66,10 @@ export class MarginlyKeeperWorker implements Worker {
           );
 
           try {
-            logger.info(`Send tx to liquidate position with params`, liquidationParam);
+            logger.info(`Sending tx to liquidate position with params`, liquidationParam);
 
             await this.logBalanceChange(logger, debtTokenContract, async () => {
-              await this.keeperContract
+              const tx = await this.keeperContract
                 .connect(this.signer)
                 .flashLoan(
                   liquidationParam.asset,
@@ -80,9 +80,11 @@ export class MarginlyKeeperWorker implements Worker {
                   liquidationParam.minProfit,
                   this.ethOptions
                 );
+              const txReceipt = await tx.wait();
+              logger.info(`Tx receipt is ${txReceipt}`);
             });
           } catch (error) {
-            logger.augmentError(error);
+            logger.error(`Error while sending tx: ${error}`);
           }
         }
       });
