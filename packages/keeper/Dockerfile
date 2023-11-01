@@ -19,7 +19,11 @@ USER node
 COPY --chown=node:node ["package.json", "yarn.lock", "./"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/keeper/dist", "packages/keeper/dist/"]
-COPY --chown=node:node --from=build ["/usr/src/app/packages/keeper/package.json", "/usr/src/app/packages/keeper/config.arbitrum-one.json", "./packages/keeper/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/keeper/package.json", "./packages/keeper/"]
+
+# Networ configs
+COPY --chown=node:node --from=build ["/usr/src/app/packages/keeper/config.arbitrum-one.json", "./packages/keeper/"]
+COPY --chown=node:node --from=build ["/usr/src/app/packages/keeper/config.arbitrum-goerli.json", "./packages/keeper/"]
 
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/dist", "packages/logger/dist/"]
 COPY --chown=node:node --from=build ["/usr/src/app/packages/logger/package.json", "./packages/logger/"]
