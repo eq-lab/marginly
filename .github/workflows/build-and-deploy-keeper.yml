@@ -12,7 +12,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/keeper
-  SERVICE_NAME: ${{ secrets.SERVICE_NAME_KEEPER }}
   NAMESPACE: ${{ secrets.NAMESPACE }}
   GH_SECR: ${{ secrets.GH_SECR }}
   CLUSTER: ${{ secrets.CLUSTER }}
@@ -58,9 +57,11 @@ jobs:
           no-cache: true
   
 
-  deployment:
+  deployment-arbitrum-one:
     needs: build-image
     runs-on: 'ubuntu-latest'
+    env:
+      SERVICE_NAME: "keeper-arbitrum-one"
     steps:
     - uses: azure/setup-kubectl@v3
       with:
