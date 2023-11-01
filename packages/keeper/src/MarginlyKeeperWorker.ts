@@ -49,8 +49,7 @@ export class MarginlyKeeperWorker implements Worker {
         return;
       }
 
-      const scopeName = `PoolWatcher ${poolWatcher.pool.address}`;
-      await using(this.logger.scope(scopeName), async (logger) => {
+      await using(this.logger.scope(`PoolWatcher ${poolWatcher.pool.address}`), async (logger) => {
         logger.debug(`Check pool ${poolWatcher.pool.address}`);
 
         const liquidationParams = await poolWatcher.findBadPositions();
