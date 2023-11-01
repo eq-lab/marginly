@@ -53,6 +53,10 @@ export const FP48 = {
   Q48: BigInt(2 ** 48),
 };
 
+export const FP128 = {
+  one: BigInt(2 ** 128),
+};
+
 export function convertNumberToFP96(num: number): { inner: bigint } {
   return { inner: BigInt(num * FP96.Q96) };
 }

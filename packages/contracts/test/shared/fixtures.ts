@@ -14,6 +14,9 @@ import {
   MockMarginlyFactory,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
+import { TraderJoeV2PriceAdapter } from '../../typechain-types/contracts/priceAdapters/traderJoeV2/TraderJoeV2PriceAdapter.sol';
+import { MockMarginlyPoolWithPriceAdapter } from '../../typechain-types/contracts/test/MockMarginlyPoolWithPriceAdapter.sol';
+import { LBPair } from '../../typechain-types/contracts/test/TestTraderJoeV2.sol';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   generateWallets,
@@ -439,4 +442,34 @@ export async function createMarginlyKeeperContract(): Promise<{
     quoteToken,
     marginlyPool,
   };
+}
+
+export async function createTraderJoeV2Pool(): Promise<LBPair> {
+  const factory = await ethers.getContractFactory('LBPair');
+  return factory.deploy();
+}
+
+export async function createTraderJoeV2PriceAdapter(
+  traderJoeV2: string,
+  oneX: bigint,
+  oneY: bigint
+): Promise<TraderJoeV2PriceAdapter> {
+  const factory = await ethers.getContractFactory('TraderJoeV2PriceAdapter');
+  return factory.deploy(traderJoeV2, oneX, oneY);
+}
+
+export async function createMarginlyPoolWithTraderJoeV2PriceAdapter(): Promise<{
+  traderJoeV2: LBPair;
+  traderJoev2PriceAdapter: TraderJoeV2PriceAdapter;
+  marginlyPoolWithPriceAdapter: MockMarginlyPoolWithPriceAdapter;
+}> {
+  const traderJoeV2 = await createTraderJoeV2Pool();
+  const traderJoev2PriceAdapter = await createTraderJoeV2PriceAdapter(
+    traderJoeV2.address,
+    BigInt(10 ^ 18),
+    BigInt(10 ^ 6)
+  );
+  const factory = await ethers.getContractFactory('MockMarginlyPoolWithPriceAdapter');
+  const marginlyPoolWithPriceAdapter = await factory.deploy(traderJoev2PriceAdapter.address);
+  return { traderJoeV2, traderJoev2PriceAdapter, marginlyPoolWithPriceAdapter };
 }
