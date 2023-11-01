@@ -230,4 +230,12 @@ library OracleLib {
           tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
       }
   }
+
+  function getCumulativeTickAtSqrtRatio(
+    uint160 sqrtPriceX96,
+    uint32[] calldata secondsAgos) internal pure returns (int56[] memory tickCumulatives) {
+    int56 tick1 = getTickAtSqrtRatio(sqrtPriceX96);
+    tickCumulatives[0] = 0;
+    tickCumulatives[1] = tick1 * int56(uint56(secondsAgos[0] - secondsAgos[1]));
+  }
 }

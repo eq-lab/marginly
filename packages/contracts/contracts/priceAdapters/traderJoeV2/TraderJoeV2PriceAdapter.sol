@@ -5,16 +5,25 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import {ILBLegacyPair} from './ILBLegacyPair.sol';
 import {Constants} from './Constants.sol';
 import {Math128x128} from './Math128x128.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '../../libraries/OracleLib.sol';
 import '../Math.sol';
 
-contract TraderJoeV2PiceAdapter is IUniswapV3Pool {
+contract TraderJoeV2PriceAdapter is IUniswapV3Pool {
   using Math128x128 for uint256;
 
   error BinHelper__BinStepOverflows(uint256 bp);
   error BinHelper__IdOverflows();
 
   address public pool;
+  uint8 public oneX;
+  uint8 public oneY;
+
+  constructor(address _pool, uint8 _oneX, uint8 _oneY) {
+    pool = _pool;
+    oneX = _oneX;
+    oneY = _oneY;
+  }
 
   function factory() external view override returns (address) {}
 
@@ -108,17 +117,19 @@ contract TraderJoeV2PiceAdapter is IUniswapV3Pool {
 
       ILBLegacyPair legacyPair = ILBLegacyPair(pool);
       uint256 binStep = uint256((legacyPair.feeParameters()).binStep);
-      (uint256 cumulativeId0,,) = legacyPair.getOracleSampleFrom(block.timestamp - uint256(secondsAgos[0]));
-      (uint256 cumulativeId1,,) = legacyPair.getOracleSampleFrom(block.timestamp - uint256(secondsAgos[1]));
+      (uint256 cumulativeId0,,) = legacyPair.getOracleSampleFrom(block.timestamp - uint256(secondsAgos[1]));
+      (uint256 cumulativeId1,,) = legacyPair.getOracleSampleFrom(block.timestamp - uint256(secondsAgos[0]));
       // 128.128-binary fixed-point number
-      uint256 price0 = getPriceFromId(cumulativeId0, binStep);
-      uint256 price1 = getPriceFromId(cumulativeId1, binStep);
-      uint160 sqrtPrice0X96 = uint160(Math.sqrt(price0) << 32);
-      uint160 sqrtPrice1X96 = uint160(Math.sqrt(price1) << 32);
-      int56 tick0 = OracleLib.getTickAtSqrtRatio(sqrtPrice0X96);
-      int56 tick1 = OracleLib.getTickAtSqrtRatio(sqrtPrice1X96);
-      tickCumulatives[0] = tick0;
-      tickCumulatives[1] = tick1;
+      uint256 averageId = (cumulativeId1 - cumulativeId0) / (secondsAgos[0] - secondsAgos[1]);
+      uint256 averagePrice = getPriceFromId(averageId, binStep);
+      if(oneX >= oneY) {
+        averagePrice = averagePrice * (oneX / oneY);
+      } else {
+        averagePrice = averagePrice / (oneY / oneX);
+      }
+
+      uint160 sqrtPriceX96 = uint160(Math.sqrt(averagePrice) << 32);
+      tickCumulatives = OracleLib.getCumulativeTickAtSqrtRatio(sqrtPriceX96, secondsAgos);
   }
 
   function snapshotCumulativesInside(
@@ -185,7 +196,7 @@ contract TraderJoeV2PiceAdapter is IUniswapV3Pool {
       unchecked {
           int256 _realId = int256(_id) - Constants.REAL_ID_SHIFT;
 
-          return _getBPValue(_binStep).power(_realId);
+          return _getBPValue(_binStep).power((_realId));
       }
   }
 
