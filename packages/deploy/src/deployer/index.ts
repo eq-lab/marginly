@@ -256,7 +256,6 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
   public async getOrCreateMarginlyPool(
     marginlyPoolFactoryContract: Contract,
-    marginlyPoolAdminContract: Contract,
     config: MarginlyConfigMarginlyPool,
     tokenRepository: ITokenRepository
   ): Promise<LimitedDeployResult> {
@@ -305,7 +304,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
         quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
       };
-      const tx = await marginlyPoolAdminContract.createPool(
+
+      const tx = await marginlyPoolFactoryContract.createPool(
         quoteTokenInfo.address.toString(),
         baseTokenInfo.address.toString(),
         this.toUniswapFee(config.uniswapPool.fee),
