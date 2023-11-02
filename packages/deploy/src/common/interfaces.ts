@@ -42,9 +42,8 @@ export interface IMarginlyDeployer {
   ): Promise<LimitedDeployResult>;
   getOrCreateMarginlyPool(
     marginlyPoolFactoryContract: Contract,
-    marginlyPoolAdminContract: Contract,
     config: MarginlyConfigMarginlyPool,
-    tokenRepository: ITokenRepository
+    tokenRepository: ITokenRepository,
   ): Promise<LimitedDeployResult>;
   getOrCreateMockAavePool(): Promise<LimitedDeployResult>;
   getOrCreateMockAavePoolAddressesProvider(aavePoolAddress: EthAddress): Promise<LimitedDeployResult>;
