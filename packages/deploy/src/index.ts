@@ -281,6 +281,7 @@ export async function deployMarginly(
       return marginlyFactoryDeployResult;
     });
 
+    /*TODO: think of deploy order 
     const marginlyPoolAdminDeployResult = await using(logger.beginScope('Deploy marginly pool admin'), async () => {
       const marginlyPoolAdminDeployResult = await marginlyDeployer.deployMarginlyPoolAdmin(
         EthAddress.parse(marginlyFactoryDeployResult.address)
@@ -320,13 +321,13 @@ export async function deployMarginly(
       }
       return marginlyPoolAdminDeployResult;
     });
+    */
 
     const deployedMarginlyPools = await using(logger.beginScope('Create marginly pools'), async () => {
       const deployedMarginlyPools: MarginlyDeploymentMarginlyPool[] = [];
       for (const pool of config.marginlyPools) {
         const marginlyPoolDeploymentResult = await marginlyDeployer.getOrCreateMarginlyPool(
           marginlyFactoryDeployResult.contract,
-          marginlyPoolAdminDeployResult.contract,
           pool,
           tokenRepository
         );
