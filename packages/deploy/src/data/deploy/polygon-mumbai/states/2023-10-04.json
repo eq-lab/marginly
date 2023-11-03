@@ -60,10 +60,6 @@
       "address": "0xCcCEd6231EDc0932bEef8539D7Fa826359F44581",
       "txHash": "0xb605ae3bfb74f4594fc2a003cdb6ddae13c72477fec5b052dc68fb0e1b79d097"
     },
-    "marginlyKeeper": {
-      "address": "0x8b4983fE4f4D5486B4E76E9218042f030b22B94a",
-      "txHash": "0xbf9a94e4f6f4bbcffaee72039642c1f71ec3e694df5835f060b0fc67c2cb1bdf"
-    },
     "UniswapV3Adapter_0": {
       "address": "0xFb01Aa5d880B7e0231085f458e8a6Be9c0538518",
       "txHash": "0xf74d0d1f908da48d57bb8c13c8bc4070807c6483f55d0573a898dd00525baa35"
@@ -99,6 +95,18 @@
     "marginlyPool_voxel-fmatic": {
       "address": "0xC405A6b8C9C62Fc9BbF85CBFb0ACd54AaEeb1827",
       "txHash": "0x1194e9ea550de02cc4259735ac882ed94bdfc32c6622a3d76583b8df792ee1be"
+    },
+    "mockAavePool": {
+      "address": "0xE4c18Ae69EB977dE2543EBC2F399bf364B47abbf",
+      "txHash": "0x255a58651b04e7bb2ee2a7089b54717008b6d915078400ae229f2383ba937730"
+    },
+    "mockAavePoolAddressesProvider": {
+      "address": "0x2aA72D18DDdCEdaeC97BB637f6C499978C8D0849",
+      "txHash": "0x2877e0fb0a3faa0e8f31b28e58d6bae2633543aad7594dc588093454eb4924ab"
+    },
+    "marginlyKeeper": {
+      "address": "0x03bDDd499ecb0E5AF7373ed774b2AC75CF5880aD",
+      "txHash": "0xd2b0ca47231957ce548a0d1a640a773fbd9f97823b7ad2223ae2456a14f63618"
     }
   }
 }

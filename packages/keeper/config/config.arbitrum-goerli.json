@@ -3,9 +3,11 @@
     "ethNodeUri": "https://goerli-rollup.arbitrum.io/rpc"
   },
   "connection": {
-    "ethOptions": {}
+    "ethOptions": {
+      "gasLimit": 900000
+    }
   },
-  "marginlyKeeperAddress": "0xFa29DBc4D4Ee1d160C3fa5917FE74Bd653C36e99",
+  "marginlyKeeperAddress": "0x258Dad63c47efeDc807158dF9f59CfB1eaf606Aa",
   "marginlyPools": [
     {
       "address": "0xea85A6a9A6e73Aa1203B3ee365D8e82B10feD7F8",

@@ -124,7 +124,7 @@ export class PoolWatcher {
         liquidationParams = {
           position: positionAddress,
           asset: await this.pool.baseToken(),
-          amount: debt,
+          amount: debt.mul(1010).div(1000), //  get 1% more
           minProfit: this.minProfitBase,
           pool: this.pool.address,
         };
@@ -152,12 +152,13 @@ export class PoolWatcher {
       const collateralInQuote = collateral.mul(basePriceX96).div(Fp96One);
 
       const leverageX96 = collateralInQuote.mul(Fp96One).div(collateralInQuote.sub(debt));
+
       let liquidationParams: LiquidationParams | null = null;
       if (leverageX96.gt(maxLeverageX96)) {
         liquidationParams = {
           position: positionAddress,
           asset: await this.pool.quoteToken(),
-          amount: debt,
+          amount: debt.mul(1010).div(1000), //  get 1% more
           minProfit: this.minProfitQuote,
           pool: this.pool.address,
         };
