@@ -12,10 +12,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/keeper
-  NAMESPACE: ${{ secrets.NAMESPACE }}
   GH_SECR: ${{ secrets.GH_SECR }}
   CLUSTER: ${{ secrets.CLUSTER }}
-  PK: ${{ secrets.MARGINLY_KEEPER_ETHEREUM_KEEPER_PRIVATE_KEY }}
   IMAGE_TAG: latest
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
@@ -56,12 +54,75 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: true
   
+  deployment-arbitrum-goerli:
+    needs: build-image
+    runs-on: 'ubuntu-latest'
+    environment: testing
+    env:
+      SERVICE_NAME: "keeper-arbitrum-goerli"
+      PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
+      NAMESPACE: ${{ secrets.NAMESPACE }}
+    steps:
+    - uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.27.1'
+      id: install
+    - uses: azure/setup-helm@v3
+      with:
+        version: 'v3.12.0'
+    - name: 'Clone Helm repository'
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ env.HELM_REPOSITORY }}
+        ref: 'main'
+        token: ${{ secrets.PAT }}
+    - name: 'Prep extraEnv'
+      run: |
+          cat <<EOF >extraEnv.yml
+          imagePullSecrets: [name: $GH_SECR ]
+          MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
+          MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
+          MARGINLY_KEEPER_LOG_FORMAT: "json"
+          EOF
+    - name: Set Kubernetes Context
+      uses: azure/k8s-set-context@v3
+      with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          context: ${{ env.CLUSTER }}
+    - name: Set imagePullSecret
+      uses: azure/k8s-create-secret@v4
+      with:
+        namespace: ${{ env.NAMESPACE }}
+        secret-name: ${{ env.GH_SECR }}
+        container-registry-url: ${{ env.REGISTRY }}
+        container-registry-username: ${{ github.actor }}
+        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+      id: create-secret
+    - name: 'deploy'
+      run: |
+        ls -la
+        helm upgrade -i $SERVICE_NAME \
+          -n $NAMESPACE \
+          --set fullnameOverride=$SERVICE_NAME \
+          --set image.repository=$REGISTRY \
+          --set image.name=$REGISTRY/$IMAGE_NAME \
+          --set image.tag=$IMAGE_TAG \
+          --set imagePullSecrets[0].name=$GH_SECR \
+          --set resources.limits.cpu=$LIMIT_CPU \
+          --set resources.limits.memory=$LIMIT_MEMORY \
+          --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
+          -f extraEnv.yml \
+          ./
 
   deployment-arbitrum-one:
     needs: build-image
     runs-on: 'ubuntu-latest'
+    environment: production
     env:
       SERVICE_NAME: "keeper-arbitrum-one"
+      PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
+      NAMESPACE: ${{ secrets.NAMESPACE }}
     steps:
     - uses: azure/setup-kubectl@v3
       with:
