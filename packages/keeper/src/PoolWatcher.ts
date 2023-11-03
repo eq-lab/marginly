@@ -9,6 +9,7 @@ import {
   ContractDescription,
   RationalNumber,
 } from '@marginly/common';
+import { calcAccruedRateContext, calcBaseCoeffs, calcQuoteCoeffs } from '@marginly/common/marginly-accrued-rate';
 import { Logger } from '@marginly/common/logger';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
@@ -29,21 +30,25 @@ export class PoolWatcher {
   }
 
   public async findBadPositions(): Promise<LiquidationParams[]> {
+    const mode: number = await this.pool.mode();
+    if (mode != MarginlyMode.Regular) {
+      this.logger.info(`Pool ${this.pool.address} in emergency mode. Liquidation not available`);
+      return [];
+    }
+
     const [
       basePrice,
       params,
-      mode,
       baseCollateralCoeff,
       baseDebtCoeff,
       quoteCollateralCoeff,
       quoteDebtCoeff,
       baseDelevCoeff,
       quoteDelevCoeff,
-    ]: [Fp96, MarginlyPoolParameters, number, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] =
+    ]: [Fp96, MarginlyPoolParameters, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] =
       await Promise.all([
         this.pool.getBasePrice(),
         this.pool.params(),
-        this.pool.mode(),
         this.pool.baseCollateralCoeff(),
         this.pool.baseDebtCoeff(),
         this.pool.quoteCollateralCoeff(),
@@ -53,29 +58,30 @@ export class PoolWatcher {
       ]);
 
     const basePriceX96 = BigNumber.from(basePrice.inner);
+    const currentCoeffs = await this.calcCoefficients(
+      {
+        baseCollateralCoeffX96: baseCollateralCoeff,
+        baseDebtCoeffX96: baseDebtCoeff,
+        quoteCollateralCoeffX96: quoteCollateralCoeff,
+        quoteDebtCoeffX96: quoteDebtCoeff,
+        quoteDelevCoeffX96: baseDelevCoeff,
+        baseDelevCoeffX96: quoteDelevCoeff,
+      },
+      params
+    );
 
-    const poolCoeffs: PoolCoeffs = {
-      baseCollateralCoeffX96: baseCollateralCoeff,
-      baseDebtCoeffX96: baseDebtCoeff,
-      quoteCollateralCoeffX96: quoteCollateralCoeff,
-      quoteDebtCoeffX96: quoteDebtCoeff,
-      quoteDelevCoeffX96: baseDelevCoeff,
-      baseDelevCoeffX96: quoteDelevCoeff,
-    };
-
-    if (mode != MarginlyMode.Regular) {
-      this.logger.info(`Pool ${this.pool.address} in emergency mode. Liquidation not available`);
-      return [];
-    }
-
-    const maxLeverage = params.maxLeverage;
+    const maxLeverageX96 = BigNumber.from(params.maxLeverage).mul(Fp96One);
     const riskiestPositions = await Promise.all([this.getRiskiestShortPosition(), this.getRiskiestLongPosition()]);
-
     const result: LiquidationParams[] = [];
 
     for (const positionAddress of riskiestPositions) {
       if (positionAddress) {
-        const liquidationParams = await this.checkPosition(positionAddress, basePriceX96, maxLeverage, poolCoeffs);
+        const liquidationParams = await this.checkPosition(
+          positionAddress,
+          basePriceX96,
+          maxLeverageX96,
+          currentCoeffs
+        );
         if (liquidationParams) {
           result.push(liquidationParams);
         }
@@ -98,7 +104,7 @@ export class PoolWatcher {
   private async checkPosition(
     positionAddress: string,
     basePriceX96: BigNumber,
-    maxLeverage: BigNumber,
+    maxLeverageX96: BigNumber,
     poolCoeffs: PoolCoeffs
   ): Promise<LiquidationParams | null> {
     const position: Position = await this.pool.positions(positionAddress);
@@ -111,16 +117,32 @@ export class PoolWatcher {
         .div(Fp96One)
         .sub(poolCoeffs.quoteDelevCoeffX96.mul(position.discountedBaseAmount).div(Fp96One));
 
-      const leverage = collateral.div(collateral.sub(debtInQuote));
-      return leverage > maxLeverage
-        ? {
-            position: positionAddress,
-            asset: await this.pool.baseToken(),
-            amount: debt,
-            minProfit: this.minProfitBase,
-            pool: this.pool.address,
-          }
-        : null;
+      const leverageX96 = collateral.mul(Fp96One).div(collateral.sub(debtInQuote));
+
+      let liquidationParams: LiquidationParams | null = null;
+      if (leverageX96.gt(maxLeverageX96)) {
+        liquidationParams = {
+          position: positionAddress,
+          asset: await this.pool.baseToken(),
+          amount: debt.mul(1010).div(1000), //  get 1% more
+          minProfit: this.minProfitBase,
+          pool: this.pool.address,
+        };
+
+        this.logger.debug(
+          `Bad short position ${positionAddress} found: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
+            Fp96One
+          )}) amount:${debt}`
+        );
+      } else {
+        this.logger.debug(
+          `Short position ${positionAddress} checked: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
+            Fp96One
+          )})`
+        );
+      }
+
+      return liquidationParams;
     } else if (position._type == PositionType.Long) {
       const debt = BigNumber.from(position.discountedQuoteAmount).mul(poolCoeffs.quoteDebtCoeffX96).div(Fp96One);
       const collateral = BigNumber.from(position.discountedBaseAmount)
@@ -129,19 +151,121 @@ export class PoolWatcher {
         .sub(poolCoeffs.baseDelevCoeffX96.mul(position.discountedQuoteAmount).div(Fp96One));
       const collateralInQuote = collateral.mul(basePriceX96).div(Fp96One);
 
-      const leverage = collateralInQuote.div(collateralInQuote.sub(debt));
-      return leverage > maxLeverage
-        ? {
-            position: positionAddress,
-            asset: await this.pool.quoteToken(),
-            amount: debt,
-            minProfit: this.minProfitQuote,
-            pool: this.pool.address,
-          }
-        : null;
+      const leverageX96 = collateralInQuote.mul(Fp96One).div(collateralInQuote.sub(debt));
+
+      let liquidationParams: LiquidationParams | null = null;
+      if (leverageX96.gt(maxLeverageX96)) {
+        liquidationParams = {
+          position: positionAddress,
+          asset: await this.pool.quoteToken(),
+          amount: debt.mul(1010).div(1000), //  get 1% more
+          minProfit: this.minProfitQuote,
+          pool: this.pool.address,
+        };
+        this.logger.debug(
+          `Bad long position ${positionAddress} found: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
+            Fp96One
+          )}) amount:${debt}`
+        );
+      } else {
+        this.logger.debug(
+          `Long position ${positionAddress} checked: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
+            Fp96One
+          )})`
+        );
+      }
+
+      return liquidationParams;
     } else {
       return null;
     }
+  }
+
+  private async calcCoefficients(coeffs: PoolCoeffs, params: MarginlyPoolParameters): Promise<PoolCoeffs> {
+    const lastReinitTimestamp: number = await this.pool.lastReinitTimestampSeconds();
+    const blockNumber = await this.pool.provider.getBlockNumber();
+    const block = await this.pool.provider.getBlock(blockNumber);
+    const currentTimestamp = block.timestamp;
+    const secondsPassed = currentTimestamp - lastReinitTimestamp;
+    this.logger.debug(
+      `Current block: ${blockNumber}, timestamp: ${currentTimestamp}, seconds passed: ${secondsPassed}`
+    );
+
+    const result = {
+      ...coeffs,
+    };
+
+    if (secondsPassed === 0) {
+      return result;
+    }
+
+    const [
+      discountedBaseDebt,
+      discountedQuoteDebt,
+      discountedBaseCollateral,
+      discountedQuoteCollateral,
+      systemLeverage,
+    ]: [BigNumber, BigNumber, BigNumber, BigNumber, { shortX96: BigNumber; longX96: BigNumber }] = await Promise.all([
+      this.pool.discountedBaseDebt(),
+      this.pool.discountedQuoteDebt(),
+      this.pool.discountedBaseCollateral(),
+      this.pool.discountedQuoteCollateral(),
+      this.pool.systemLeverage(),
+    ]);
+
+    const accruedRateContext = calcAccruedRateContext({
+      interestRate: params.interestRate,
+      fee: params.fee,
+      secondsPassed,
+    });
+
+    if (!discountedBaseCollateral.isZero()) {
+      const currentCoeffs = calcBaseCoeffs({
+        ...coeffs,
+        ...accruedRateContext,
+        discountedBaseDebt,
+        discountedBaseCollateral,
+        discountedQuoteDebt,
+        systemLeverageShortX96: systemLeverage.shortX96,
+        secondsPassed,
+      });
+
+      result.baseCollateralCoeffX96 = currentCoeffs.baseCollateralCoeffX96;
+      result.baseDelevCoeffX96 = currentCoeffs.baseDelevCoeffX96;
+      result.baseDebtCoeffX96 = currentCoeffs.baseDebtCoeffX96;
+
+      this.logger.debug(
+        `Base coeffs:\n` +
+          ` baseCollateralCoeffX96: ${currentCoeffs.baseCollateralCoeffX96}, old: ${coeffs.baseCollateralCoeffX96}\n` +
+          ` baseDebtCoeffX96: ${currentCoeffs.baseDebtCoeffX96}, old: ${coeffs.baseDebtCoeffX96}\n` +
+          ` baseDelevCoeffX96: ${currentCoeffs.baseDelevCoeffX96}, old: ${coeffs.baseDelevCoeffX96}\n`
+      );
+    }
+
+    if (!discountedQuoteCollateral.isZero()) {
+      const currentCoeffs = calcQuoteCoeffs({
+        ...coeffs,
+        ...accruedRateContext,
+        discountedQuoteCollateral,
+        discountedQuoteDebt,
+        discountedBaseDebt,
+        systemLevarageLongX96: systemLeverage.longX96,
+        secondsPassed,
+      });
+
+      result.quoteCollateralCoeffX96 = currentCoeffs.quoteCollateralCoeffX96;
+      result.quoteDelevCoeffX96 = currentCoeffs.quoteDelevCoeffX96;
+      result.quoteDebtCoeffX96 = currentCoeffs.quoteDebtCoeffX96;
+
+      this.logger.debug(
+        `Quote coeffs:\n` +
+          ` quoteCollateralCoeffX96: ${currentCoeffs.quoteCollateralCoeffX96}, old: ${coeffs.quoteCollateralCoeffX96}\n` +
+          ` quoteDebtCoeffX96: ${currentCoeffs.quoteDebtCoeffX96}, old: ${coeffs.quoteDebtCoeffX96}\n` +
+          ` quoteDelevCoeffX96: ${currentCoeffs.quoteDelevCoeffX96}, old: ${coeffs.quoteDelevCoeffX96}\n`
+      );
+    }
+
+    return result;
   }
 }
 

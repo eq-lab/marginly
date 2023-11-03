@@ -1,11 +1,12 @@
 import { BigNumber } from 'ethers';
 
 export type MarginlyPoolParameters = {
-  interestRate: BigNumber;
   maxLeverage: BigNumber;
-  swapFee: BigNumber;
   priceSecondsAgo: BigNumber;
   priceSecondsAgoMC: BigNumber;
+  interestRate: BigNumber;
+  fee: BigNumber;
+  swapFee: BigNumber;
   mcSlippage: BigNumber;
   positionMinAmount: BigNumber;
   quoteLimit: BigNumber;

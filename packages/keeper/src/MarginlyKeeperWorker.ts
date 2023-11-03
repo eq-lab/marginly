@@ -49,14 +49,16 @@ export class MarginlyKeeperWorker implements Worker {
         return;
       }
 
-      const scopeName = `PoolWatcher ${poolWatcher.pool.address}`;
-      await using(this.logger.scope(scopeName), async (logger) => {
+      await using(this.logger.scope(`PoolWatcher ${poolWatcher.pool.address}`), async (logger) => {
         logger.debug(`Check pool ${poolWatcher.pool.address}`);
 
         const liquidationParams = await poolWatcher.findBadPositions();
         logger.debug(`Found ${liquidationParams.length} bad positions`);
 
         for (const liquidationParam of liquidationParams) {
+          if (this.stopRequested) {
+            return;
+          }
           const refferalCode = 0;
 
           const debtTokenContract = new ethers.Contract(
@@ -66,10 +68,13 @@ export class MarginlyKeeperWorker implements Worker {
           );
 
           try {
-            logger.info(`Send tx to liquidate position with params`, liquidationParam);
+            logger.info(
+              `Sending tx to liquidate position with params` +
+                ` asset:${liquidationParam.asset}, amount:${liquidationParam.amount}, pool:${liquidationParam.pool}, position:${liquidationParam.position}, minProfit:${liquidationParam.minProfit}`
+            );
 
             await this.logBalanceChange(logger, debtTokenContract, async () => {
-              await this.keeperContract
+              const tx = await this.keeperContract
                 .connect(this.signer)
                 .flashLoan(
                   liquidationParam.asset,
@@ -80,9 +85,11 @@ export class MarginlyKeeperWorker implements Worker {
                   liquidationParam.minProfit,
                   this.ethOptions
                 );
+              const txReceipt = await tx.wait();
+              logger.info(`Position ${liquidationParam.position} liquidated`);
             });
           } catch (error) {
-            logger.augmentError(error);
+            logger.error(`Error while sending tx: ${error}`);
           }
         }
       });

@@ -96,9 +96,17 @@
       "address": "0xC0b3acac242f476415F043F1B0432F3197983f92",
       "txHash": "0x28ddf8f1616433dd9f44200eb99b7e58fd98003b1d016f5cf2408636506ce37c"
     },
+    "mockAavePool": {
+      "address": "0xD508939787f847e7787fc1B805514BD0228AcAEA",
+      "txHash": "0xabf109ebbc3cfa63e1c6424602909a16ada24f9b7708b02e5bb7330c077e801d"
+    },
+    "mockAavePoolAddressesProvider": {
+      "address": "0x28b99f15E7382D6203E3911777f4950cB141c998",
+      "txHash": "0xc9468a086373e07ae9e7bb517840de0b524fe0bb302b250729810c589af21e82"
+    },
     "marginlyKeeper": {
-      "address": "0xFa29DBc4D4Ee1d160C3fa5917FE74Bd653C36e99",
-      "txHash": "0x561ca9ac9ac827e6240b68ceba064736ae22412a653edbf1b4e67494dc55ccd6"
+      "address": "0x258Dad63c47efeDc807158dF9f59CfB1eaf606Aa",
+      "txHash": "0xe1ecad1cffd0a7738420253a90e021304d2f2a27629ed54dd4724385f270c836"
     }
   }
 }

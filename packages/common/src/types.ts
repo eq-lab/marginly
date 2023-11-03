@@ -51,6 +51,8 @@ export interface Fp96 {
 }
 
 export const Fp96One = BigNumber.from(2).pow(96);
+export const WHOLE_ONE = 1e6;
+export const SECONDS_IN_YEAR_X96 = BigNumber.from(365.25 * 24 * 60 * 60).mul(Fp96One);
 
 export class RationalNumber {
   private static readonly regex: RegExp = /^(-)?(\d[0-9_]*)(\.\d+)?$/;
