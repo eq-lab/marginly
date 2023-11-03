@@ -5,9 +5,6 @@ on:
       - 'keeper-releases'
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - 'keeper-releases'
 
 env:
   REGISTRY: ghcr.io
@@ -80,9 +77,10 @@ jobs:
       run: |
           cat <<EOF >extraEnv.yml
           imagePullSecrets: [name: $GH_SECR ]
-          MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
-          MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
-          MARGINLY_KEEPER_LOG_FORMAT: "json"
+          extraEnv:
+            MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
+            MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
+            MARGINLY_KEEPER_LOG_FORMAT: "json"
           EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
@@ -141,9 +139,10 @@ jobs:
       run: |
           cat <<EOF >extraEnv.yml
           imagePullSecrets: [name: $GH_SECR ]
-          MARGINLY_KEEPER_CONFIG: "config.arbitrum-one.json"
-          MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
-          MARGINLY_KEEPER_LOG_FORMAT: "json"
+          extraEnv:
+            MARGINLY_KEEPER_CONFIG: "config.arbitrum-one.json"
+            MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
+            MARGINLY_KEEPER_LOG_FORMAT: "json"
           EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
