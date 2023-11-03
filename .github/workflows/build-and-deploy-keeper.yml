@@ -79,7 +79,7 @@ jobs:
           imagePullSecrets: [name: $GH_SECR ]
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
-            MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
+            MARGINLY_KEEPER_LOG_LEVEL: "3"
             MARGINLY_KEEPER_LOG_FORMAT: "json"
           EOF
     - name: Set Kubernetes Context
@@ -141,7 +141,7 @@ jobs:
           imagePullSecrets: [name: $GH_SECR ]
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-one.json"
-            MARGINLY_KEEPER_LOG_LEVEL: "3 -e"
+            MARGINLY_KEEPER_LOG_LEVEL: "3"
             MARGINLY_KEEPER_LOG_FORMAT: "json"
           EOF
     - name: Set Kubernetes Context
