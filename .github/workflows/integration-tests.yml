@@ -9,7 +9,10 @@ on:
     branches:
         - main
   workflow_dispatch:
-
+  paths:
+    - packages/contracts
+    - packages/router
+    - packages/ periphery 
 
 jobs:
     integration_tests:
