@@ -15,6 +15,13 @@
         "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
       },
       {
+        "id": "btc-usdc",
+        "label": "btc/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
+      },
+      {
         "id": "arb-usdc",
         "label": "arb/usdc",
         "type": "composite",
@@ -24,51 +31,6 @@
             "label": "arb/usdt",
             "direction": "forward",
             "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBUSDT).price"
-          },
-          {
-            "type": "http-get",
-            "label": "usdt/usdc",
-            "direction": "backward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
-          }
-        ]
-      },
-      {
-        "id": "arb-eth",
-        "label": "arb/eth",
-        "type": "http-get",
-        "direction": "forward",
-        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBETH).price"
-      },
-      {
-        "id": "gmx-eth",
-        "label": "gmx/eth",
-        "type": "composite",
-        "sources": [
-          {
-            "type": "http-get",
-            "label": "gmx/usdt",
-            "direction": "forward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GMXUSDT).price"
-          },
-          {
-            "type": "http-get",
-            "label": "usdt/eth",
-            "direction": "backward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT).price"
-          }
-        ]
-      },
-      {
-        "id": "matic-usdc",
-        "label": "matic/usdc",
-        "type": "composite",
-        "sources": [
-          {
-            "type": "http-get",
-            "label": "matic/usdt",
-            "direction": "forward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
           },
           {
             "type": "http-get",
@@ -98,43 +60,85 @@
         ]
       },
       {
-        "id": "btc-usdc",
-        "label": "btc/usdc",
-        "type": "http-get",
-        "direction": "forward",
-        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
-      },
-      {
-        "id": "bitcoin-usdc",
-        "label": "bitcoin/usdc",
-        "type": "lbkex",
-        "priceChain": [
-          {
-            "direction": "forward",
-            "pair": "bitcoin_usdt"
-          },
-          {
-            "direction": "backward",
-            "pair": "usdc_usdt"
-          }
-        ]
-      },
-      {
-        "id": "pepe-usdc",
-        "label": "pepe/usdc",
+        "id": "pendle-eth",
+        "label": "pendle/eth",
         "type": "composite",
         "sources": [
           {
             "type": "http-get",
-            "label": "pepe/usdt",
+            "label": "pendle/usdt",
             "direction": "forward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PENDLEUSDT).price"
           },
           {
             "type": "http-get",
-            "label": "usdt/usdc",
+            "label": "usdt/eth",
             "direction": "backward",
-            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT).price"
+          }
+        ]
+      },
+      {
+        "id": "rdnt-eth",
+        "label": "rdnt/eth",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "rdnt/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=RDNTUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/eth",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT).price"
+          }
+        ]
+      },
+      {
+        "id": "link-usdc",
+        "label": "link/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=LINKUSDC).price"
+      },
+      {
+        "id": "gns-matic",
+        "label": "gns/matic",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "gns/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GNSUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "matic/usdt",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
+          }
+        ]
+      },
+      {
+        "id": "voxel-matic",
+        "label": "voxel/matic",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "voxel/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=VOXELUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "matic/usdt",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
           }
         ]
       }
@@ -154,64 +158,92 @@
       "tokens": [
         {
           "id": "fweth",
-          "address": "0xc121dD3D76b3605618BD0241A49BEb07C421D2F2",
+          "address": "0x96eA82aE1EC503f0D4060D591aF432A4C3A12543",
           "assertSymbol": "FWETH",
           "assertDecimals": 18
         },
         {
+          "id": "wbtc",
+          "address": "0x966DF0Bf32A359d56f32F262C07e1BD70924F09B",
+          "assertSymbol": "WBTC",
+          "assertDecimals": 8
+        },
+        {
           "id": "usdc",
-          "address": "0xd87f0fb191580e3bB59e3ab612DeeB28e74d7812",
+          "address": "0xa587570CB27754cC8aaCd671Ab1326F6E4f63bF2",
           "assertSymbol": "USDC",
           "assertDecimals": 6
         },
         {
           "id": "arb",
-          "address": "0x4223950D11c535cE136299cd6a9Ddf88ace69F1b",
+          "address": "0x9155822Aa3507153BBe797753C3A31E214B67596",
           "assertSymbol": "ARB",
           "assertDecimals": 18
         },
         {
           "id": "gmx",
-          "address": "0x7E39Cc5c98ee1e3e6759115f12A50Fb97c5EB8bD",
+          "address": "0x538Ee77e594f53A77A5cc22D945b5A1217Db2fe2",
           "assertSymbol": "GMX",
           "assertDecimals": 18
         },
         {
-          "id": "pepe",
-          "address": "0x856C8Bbd425A33e8a716A873848Be25e5520AA07",
-          "assertSymbol": "PEPE",
+          "id": "pendle",
+          "address": "0x57F49ac726B99D8A8Fe9056b5CC2B20fDE411991",
+          "assertSymbol": "PENDLE",
+          "assertDecimals": 18
+        },
+        {
+          "id": "rdnt",
+          "address": "0x6FD96B32E85B160BB98b2Bc203B988f44DfC5Db8",
+          "assertSymbol": "RDNT",
           "assertDecimals": 18
         }
       ],
       "uniswapV3PoolMocks": [
         {
           "id": "fweth-usdc",
-          "address": "0x035b26AF837e78798AD7c89050939B9AB2E192A0",
+          "address": "0xCc7Cb93A84137307f4783543a14325733Fb17579",
           "priceId": "eth-usdc",
           "priceBaseTokenId": "fweth"
         },
         {
+          "id": "btc-usdc",
+          "address": "0x27410978DC2E0271B618e8131E512B826bFe4753",
+          "priceId": "arb-usdc",
+          "priceBaseTokenId": "btc"
+        },
+        {
           "id": "arb-usdc",
-          "address": "0x9C653a10e4C51e9A784FeE3D5495de91cf3e1c51",
+          "address": "0xf43A8EF1c62D4884F32A3c9225f44AC267c456B9",
           "priceId": "arb-usdc",
           "priceBaseTokenId": "arb"
         },
         {
           "id": "gmx-usdc",
-          "address": "0x32859f88bB45fa5e25453Ba044D8fF5Fc243a8D9",
+          "address": "0x39191e03394A43D6117E676DE6082B4Fee8DF44C",
           "priceId": "gmx-usdc",
           "priceBaseTokenId": "gmx"
         },
         {
-          "id": "pepe-usdc",
-          "address": "0xc7172FCB28Ee2c1EB29bFbf186EBDf3827cc2ce1",
-          "priceId": "pepe-usdc",
-          "priceBaseTokenId": "pepe"
+          "id": "pendle-eth",
+          "address": "0x6612B8D59816a02c5038C6645EEA3fc588225241",
+          "priceId": "pendle-eth",
+          "priceBaseTokenId": "pendle"
+        },
+        {
+          "id": "rdnt-eth",
+          "address": "0x9740179d43A4D9404D209bE42a4f18eb5a00cBD5",
+          "priceId": "rdnt-eth",
+          "priceBaseTokenId": "rdnt"
         }
       ],
       "updatePriceJobs": [
         {
           "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "btc-usdc",
           "periodMs": 60000
         },
         {
@@ -223,7 +255,11 @@
           "periodMs": 60000
         },
         {
-          "poolMockId": "pepe-usdc",
+          "poolMockId": "pendle-eth",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "rdnt-eth",
           "periodMs": 60000
         }
       ]
@@ -237,35 +273,83 @@
       "tokens": [
         {
           "id": "fweth",
-          "address": "0x230f4447F79DC52a5Bc8031Dfdd49da6929Ca290",
+          "address": "0x965D0A2460417C6f16777D268c6597e401084bed",
           "assertSymbol": "FWETH",
           "assertDecimals": 18
         },
         {
           "id": "usdc",
-          "address": "0x33544752A157AeE7e78AD83DC61E95EF7aAe52a1",
+          "address": "0x14d3Bf23863532B39BD28844B478cAd01d480202",
           "assertSymbol": "USDC",
           "assertDecimals": 6
         },
         {
           "id": "fmatic",
-          "address": "0x6ea7a8FecbFf190D6B504263BDD81b7F2B07700A",
+          "address": "0x0d2b51ef0B6130892200F9a4771Af6D44Ea81fc2",
           "assertSymbol": "FMATIC",
+          "assertDecimals": 18
+        },
+        {
+          "id": "wbtc",
+          "address": "0xf7c77Fa2f4A1882f24941B82559e92c06Bb086C7",
+          "assertSymbol": "WBTC",
+          "assertDecimals": 8
+        },
+        {
+          "id": "link",
+          "address": "0x6c34183A2CaE7c262aA0d0d8a391Fd705cB4AfAc",
+          "symbol": "LINK",
+          "assertDecimals": 18
+        },
+        {
+          "id": "gns",
+          "address": "0x82AA9e3C45b22106Dde6F5D93CF62220248c0bEC",
+          "assertSymbol": "GNS",
+          "assertDecimals": 18
+        },
+        {
+          "id": "voxel",
+          "address": "0x95Ce1213835EcBb105D8C1797801777a16425338",
+          "assertSymbol": "VOXEL",
           "assertDecimals": 18
         }
       ],
       "uniswapV3PoolMocks": [
         {
           "id": "fweth-usdc",
-          "address": "0x64BF3213666bC357155DDb21aD2404d3Df04e0A1",
+          "address": "0xcAB923F8F3D71c9C092582927a18DCe42027737f",
           "priceId": "eth-usdc",
           "priceBaseTokenId": "fweth"
         },
         {
           "id": "fmatic-usdc",
-          "address": "0xC931D0D6BDCc8b264983533a58ED80F1a3b99ef7",
+          "address": "0x9B791D05a4900bC70789d7A24a9EEe9D2182fBed",
           "priceId": "matic-usdc",
           "priceBaseTokenId": "fmatic"
+        },
+        {
+          "id": "wbtc-usdc",
+          "address": "0xD3a094794936C8c0669f80ad957b76F677b1181f",
+          "priceId": "btc-usdc",
+          "priceBaseTokenId": "wbtc"
+        },
+        {
+          "id": "link-usdc",
+          "address": "0x9623b597c87ac280285e8c29B9Ce7e58B3513328",
+          "priceId": "link-usdc",
+          "priceBaseTokenId": "link"
+        },
+        {
+          "id": "gns-fmatic",
+          "address": "0xBB8AEec4998e461AB6c67Dc19eF8b8be4f723D8f",
+          "priceId": "gns-matic",
+          "priceBaseTokenId": "gns"
+        },
+        {
+          "id": "voxel-fmatic",
+          "address": "0xf6E095dCeA3d1483105F37c5611FDcC838Fe448C",
+          "priceId": "voxel-matic",
+          "priceBaseTokenId": "voxel"
         }
       ],
       "updatePriceJobs": [
@@ -275,6 +359,22 @@
         },
         {
           "poolMockId": "fmatic-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "wbtc-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "link-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "gns-fmatic",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "voxel-fmatic",
           "periodMs": 60000
         }
       ]

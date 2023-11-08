@@ -10,7 +10,12 @@
       },
       {
         "path": "../cli-common"
+      },
+      {
+        "path": "../logger"
+      },
+      {
+        "path": "../logger-node"
       }
     ]
   }
-  

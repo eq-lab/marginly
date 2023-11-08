@@ -22,17 +22,45 @@
     },
     {
       "type": "mintable",
+      "id": "wbtc",
+      "name": "Wrapped BTC",
+      "symbol": "WBTC",
+      "decimals": 8
+    },
+    {
+      "type": "mintable",
+      "id": "arb",
+      "name": "Arbitrum",
+      "symbol": "ARB",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "gmx",
+      "name": "GMX",
+      "symbol": "GMX",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "pendle",
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "rdnt",
+      "name": "Radiant",
+      "symbol": "RDNT",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
       "id": "usdc",
       "name": "USD Coin",
       "symbol": "USDC",
       "decimals": 6
-    },
-    {
-      "type": "mintable",
-      "id": "pepe",
-      "name": "Pepe",
-      "symbol": "PEPE",
-      "decimals": 18
     }
   ],
   "prices": [
@@ -44,21 +72,85 @@
       "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
     },
     {
-      "id": "pepe-usdc",
-      "label": "pepe/usdc",
+      "id": "btc-usdc",
+      "label": "btc/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
+    },
+    {
+      "id": "arb-usdc",
+      "label": "arb/usdc",
       "type": "composite",
       "sources": [
         {
           "type": "http-get",
-          "label": "pepe/usdt",
+          "label": "arb/usdt",
           "direction": "forward",
-          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBUSDT).price"
         },
         {
           "type": "http-get",
           "label": "usdt/usdc",
           "direction": "backward",
           "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+        }
+      ]
+    },
+    {
+      "id": "gmx-usdc",
+      "label": "gmx/usdc",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "gmx/usdt",
+          "direction": "forward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=GMXUSDT).price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+        }
+      ]
+    },
+    {
+      "id": "pendle-eth",
+      "label": "pendle/eth",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "pendle/usdt",
+          "direction": "forward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PENDLEUSDT).price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/eth",
+          "direction": "backward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT).price"
+        }
+      ]
+    },
+    {
+      "id": "rdnt-eth",
+      "label": "rdnt/eth",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "rdnt/usdt",
+          "direction": "forward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=RDNTUSDT).price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/eth",
+          "direction": "backward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT).price"
         }
       ]
     }
@@ -70,24 +162,64 @@
     "priceLogSize": 60,
     "pools": [
       {
-        "id": "pepe-usdc",
-        "tokenAId": "pepe",
-        "tokenBId": "usdc",
-        "fee": "0.3%",
-        "tokenABalance": "100_000_000",
-        "tokenBBalance": "5_200_000_000",
-        "priceId": "pepe-usdc",
-        "priceBaseTokenId": "pepe"
-      },
-      {
         "id": "fweth-usdc",
         "tokenAId": "fweth",
         "tokenBId": "usdc",
-        "fee": "0.05%",
-        "tokenABalance": "1_000_000",
-        "tokenBBalance": "2_000_000_000",
+        "fee": "0.1%",
+        "tokenABalance": "1_000_000_000",
+        "tokenBBalance": "2_000_000_000_000",
         "priceId": "eth-usdc",
         "priceBaseTokenId": "fweth"
+      },
+      {
+        "id": "wbtc-usdc",
+        "tokenAId": "wbtc",
+        "tokenBId": "usdc",
+        "fee": "0.1%",
+        "tokenABalance": "8_000_000",
+        "tokenBBalance": "2_000_000_000_000",
+        "priceId": "btc-usdc",
+        "priceBaseTokenId": "wbtc"
+      },
+      {
+        "id": "arb-usdc",
+        "tokenAId": "arb",
+        "tokenBId": "usdc",
+        "fee": "0.1%",
+        "tokenABalance": "2_200_000_000_000",
+        "tokenBBalance": "2_000_000_000_000",
+        "priceId": "arb-usdc",
+        "priceBaseTokenId": "arb"
+      },
+      {
+        "id": "gmx-usdc",
+        "tokenAId": "gmx",
+        "tokenBId": "usdc",
+        "fee": "0.3%",
+        "tokenABalance": "50_000_000_000",
+        "tokenBBalance": "2_000_000_000_000",
+        "priceId": "gmx-usdc",
+        "priceBaseTokenId": "gmx"
+      },
+      {
+        "id": "pendle-eth",
+        "tokenAId": "pendle",
+        "tokenBId": "fweth",
+        "fee": "0.3%",
+        "tokenABalance": "3_000_000_000_000",
+        "tokenBBalance": "1_000_000_000",
+        "priceId": "pendle-eth",
+        "priceBaseTokenId": "pendle"
+      },
+      {
+        "id": "rdnt-eth",
+        "tokenAId": "rdnt",
+        "tokenBId": "fweth",
+        "fee": "0.3%",
+        "tokenABalance": "8_000_000_000_000",
+        "tokenBBalance": "1_000_000_000",
+        "priceId": "rdnt-eth",
+        "priceBaseTokenId": "rdnt"
       }
     ]
   },
@@ -97,22 +229,6 @@
     "wethTokenId": "weth"
   },
   "marginlyPools": [
-    {
-      "id": "pepe-usdc",
-      "uniswapPoolId": "pepe-usdc",
-      "baseTokenId": "pepe",
-      "params": {
-        "interestRate": "5.4%",
-        "maxLeverage": "20",
-        "swapFee": "0.1%",
-        "fee": "2%",
-        "mcSlippage": "5.0%",
-        "priceAgo": "15 min",
-        "priceAgoMC": "1 min",
-        "positionMinAmount": "0.001",
-        "quoteLimit": "100_000_000"
-      }
-    },
     {
       "id": "fweth-usdc",
       "uniswapPoolId": "fweth-usdc",
@@ -128,29 +244,98 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "100_000_000"
       }
+    },
+    {
+      "id": "wbtc-usdc",
+      "uniswapPoolId": "wbtc-usdc",
+      "baseTokenId": "wbtc",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
+        "positionMinAmount": "0.0001",
+        "quoteLimit": "100_000_000"
+      }
+    },
+    {
+      "id": "arb-usdc",
+      "uniswapPoolId": "arb-usdc",
+      "baseTokenId": "arb",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
+        "positionMinAmount": "1",
+        "quoteLimit": "100_000_000"
+      }
+    },
+    {
+      "id": "gmx-usdc",
+      "uniswapPoolId": "gmx-usdc",
+      "baseTokenId": "gmx",
+      "params": {
+        "interestRate": "9.6%",
+        "maxLeverage": "10",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
+        "positionMinAmount": "0.1",
+        "quoteLimit": "100_000_000"
+      }
+    },
+    {
+      "id": "pendle-eth",
+      "uniswapPoolId": "pendle-eth",
+      "baseTokenId": "pendle",
+      "params": {
+        "interestRate": "9.6%",
+        "maxLeverage": "5",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
+        "positionMinAmount": "1",
+        "quoteLimit": "60_000"
+      }
+    },
+    {
+      "id": "rdnt-eth",
+      "uniswapPoolId": "rdnt-eth",
+      "baseTokenId": "rdnt",
+      "params": {
+        "interestRate": "9.6%",
+        "maxLeverage": "5",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "priceAgo": "15 min",
+        "priceAgoMC": "1 min",
+        "positionMinAmount": "10",
+        "quoteLimit": "60_000"
+      }
     }
   ],
   "adapters": [
     {
       "dexId": 0,
       "adapterName": "UniswapV3Adapter",
-      "pools": [
-        {
-          "tokenAId": "pepe",
-          "tokenBId": "usdc",
-          "poolAddress": "0xc7172FCB28Ee2c1EB29bFbf186EBDf3827cc2ce1"
-        },
-        {
-          "tokenAId": "fweth",
-          "tokenBId": "usdc",
-          "poolAddress": "0x035b26AF837e78798AD7c89050939B9AB2E192A0"
-        }
-      ]
+      "pools": []
     }
   ],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
-      "address": "0x4EEE0BB72C2717310318f27628B3c8a708E4951C"
+      "allowCreateMock": "true"
     }
   }
 }

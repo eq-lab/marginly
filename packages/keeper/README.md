@@ -61,3 +61,17 @@ or provide private key interactively in terminal
 ```shell
 node dist/index.js --config <path to config.json>
 ```
+
+## Docker
+
+Build
+
+```shell
+docker build -t marginly-keeper -f packages/keeper/Dockerfile .
+```
+
+run
+
+```shell
+docker run -e MARGINLY_KEEPER_CONFIG=config.arbitrum-one.json -e MARGINLY_KEEPER_LOG_LEVEL=1 -e MARGINLY_KEEPER_LOG_FORMAT=text -e MARGINLY_KEEPER_ETH_KEY=<private_key> marginly-keeper
+```

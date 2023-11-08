@@ -11,13 +11,14 @@ export interface SystemContext {
 export interface Parameter {
   name: string[];
   description: string;
+  env?: string;
 }
 
 const toUpperFirst = (str: string) => str[0].toUpperCase() + str.slice(1);
 
 export const parameterOperations = {
   getArgForm: (p: Parameter): string => '--' + p.name.join('-'),
-  getEnvForm: (p: Parameter): string => p.name.map((x) => x.toUpperCase()).join('_'),
+  getEnvForm: (p: Parameter): string => p.env ?? p.name.map((x) => x.toUpperCase()).join('_'),
   getJsForm: (p: Parameter): string =>
     p.name[0] +
     p.name

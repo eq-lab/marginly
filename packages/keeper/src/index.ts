@@ -1,57 +1,32 @@
-import { Command } from 'commander';
-import {
-  RationalNumber,
-  MarginlyPoolParameters,
-  PositionType,
-  Fp96One,
-  Fp96,
-  MarginlyMode,
-  Position,
-  sleep,
-  ContractDescription,
-  HeapNode,
-} from '@marginly/common';
+import { Command, Option } from 'commander';
+import { sleep, ContractDescription } from '@marginly/common';
 import {
   createSystemContext,
   getCommanderForm,
-  registerEthSignerParameters,
   Parameter,
   readEthSignerFromContext,
   readParameter,
   SystemContext,
+  ethKeyTypeParameter,
+  ethKeyFileParameter,
+  ethKeyPasswordParameter,
 } from '@marginly/cli-common';
+import { createRootLogger, jsonFormatter, LogFormatter, textFormatter } from '@marginly/logger';
+import { stdOutWriter } from '@marginly/logger-node';
 import * as fs from 'fs';
 import { ethers } from 'ethers';
-import { BigNumber } from '@ethersproject/bignumber';
-import { formatEther, formatUnits } from 'ethers/lib/utils';
+import { MarginlyKeeperWorker } from './MarginlyKeeperWorker';
+import { createPoolWatchers } from './PoolWatcher';
+import { ContractDescriptions, KeeperArgs, KeeperConfig, KeeperParamter } from './types';
 
-interface EthOptions {
-  gasLimit?: number;
-  gasPrice?: number;
-}
-
-interface EthConnectionConfig {
-  ethOptions: EthOptions;
-}
-
-interface KeeperConfig {
-  systemContextDefaults?: Record<string, string>;
-  connection: EthConnectionConfig;
-  marginlyKeeperAddress: string;
-  marginlyPools: {
-    address: string;
-    minProfitQuote: string;
-    minProfitBase: string;
-  }[];
-}
-
-const nodeUriParameter = {
-  name: ['eth', 'node', 'uri'],
-  description: 'Eth Node URI',
-};
-
-interface KeeperArgs {
-  config: string;
+function createLogFormatter(format: string): LogFormatter {
+  if (format == 'text') {
+    return textFormatter;
+  } else if (format == 'json') {
+    return jsonFormatter;
+  } else {
+    throw new Error(`Configuration error, log format "${format}" not supported`);
+  }
 }
 
 async function readReadOnlyEthFromContext(
@@ -88,7 +63,7 @@ function createOpenZeppelinContractDescription(name: string): ContractDescriptio
   return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
 }
 
-function prepareContractDescriptions() {
+function prepareContractDescriptions(): ContractDescriptions {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
     keeper: createMarginlyContractDescription('MarginlyKeeper'),
@@ -96,175 +71,82 @@ function prepareContractDescriptions() {
   };
 }
 
-type LiquidationParams = {
-  position: string;
-  pool: string;
-  asset: string;
-  amount: BigNumber;
-  minProfit: BigNumber;
+const ENV_PREFIX: string = 'MARGINLY_KEEPER';
+
+const configParameter: KeeperParamter = {
+  name: ['config'],
+  description: 'Path to config file',
+  default: 'raw',
+  env: `${ENV_PREFIX}_CONFIG`,
 };
 
-type PoolCoeffs = {
-  baseCollateralCoeffX96: BigNumber;
-  baseDebtCoeffX96: BigNumber;
-  quoteCollateralCoeffX96: BigNumber;
-  quoteDebtCoeffX96: BigNumber;
+const logFormatParamter: KeeperParamter = {
+  name: ['log', 'format'],
+  description: "Log format 'text' or 'json'",
+  default: 'json',
+  env: `${ENV_PREFIX}_LOG_FORMAT`,
 };
 
-class PoolWatcher {
-  public readonly pool: ethers.Contract;
-  public readonly minProfitQuote: BigNumber;
-  public readonly minProfitBase: BigNumber;
+const logLevelParamter: KeeperParamter = {
+  name: ['log', 'level'],
+  description: 'Log level: 1-Verbose,2-Debug,3-Information,4-Warning,5-Error,6-Fatal',
+  default: 'json',
+  env: `${ENV_PREFIX}_LOG_LEVEL`,
+};
 
-  public constructor(pool: ethers.Contract, minProfitQuote: BigNumber, minProfitBase: BigNumber) {
-    this.pool = pool;
-    this.minProfitQuote = minProfitQuote;
-    this.minProfitBase = minProfitBase;
+const nodeUriParameter: KeeperParamter = {
+  name: ['eth', 'node', 'uri'],
+  description: 'Eth Node URI',
+  env: `${ENV_PREFIX}_ETH_NODE_URI`,
+};
+
+const ethKeyParameter: KeeperParamter = {
+  name: ['eth', 'key'],
+  description: 'Signer private key',
+  env: `${ENV_PREFIX}_ETH_KEY`,
+};
+
+const createCommanderOption = (parameter: KeeperParamter): Option => {
+  let option = new Option(getCommanderForm(parameter), parameter.description).env(parameter.env!);
+  if (parameter.default) {
+    option = option.default(parameter.default);
   }
 
-  public async findBadPositions(): Promise<LiquidationParams[]> {
-    const [basePrice, params, mode, baseCollateralCoeff, baseDebtCoeff, quoteCollateralCoeff, quoteDebtCoeff]: [
-      Fp96,
-      MarginlyPoolParameters,
-      number,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber
-    ] = await Promise.all([
-      this.pool.getBasePrice(),
-      this.pool.params(),
-      this.pool.mode(),
-      this.pool.baseCollateralCoeff(),
-      this.pool.baseDebtCoeff(),
-      this.pool.quoteCollateralCoeff(),
-      this.pool.quoteDebtCoeff(),
-    ]);
-
-    const basePriceX96 = BigNumber.from(basePrice.inner);
-
-    const poolCoeffs: PoolCoeffs = {
-      baseCollateralCoeffX96: baseCollateralCoeff,
-      baseDebtCoeffX96: baseDebtCoeff,
-      quoteCollateralCoeffX96: quoteCollateralCoeff,
-      quoteDebtCoeffX96: quoteDebtCoeff,
-    };
-
-    if (mode != MarginlyMode.Regular) {
-      console.log('System in emergency mode. Liquidation not available');
-      return [];
-    }
-
-    const maxLeverage = params.maxLeverage;
-    const riskiestPositions = await Promise.all([this.getRiskiestShortPosition(), this.getRiskiestLongPosition()]);
-
-    const result: LiquidationParams[] = [];
-
-    for (const positionAddress of riskiestPositions) {
-      if (positionAddress) {
-        const liquidationParams = await this.checkPosition(positionAddress, basePriceX96, maxLeverage, poolCoeffs);
-        if (liquidationParams) {
-          result.push(liquidationParams);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  private async getRiskiestShortPosition(): Promise<string | null> {
-    const [success, node]: [boolean, HeapNode] = await this.pool.getHeapPosition(0, true);
-    return success ? node.account : null;
-  }
-
-  private async getRiskiestLongPosition(): Promise<string | null> {
-    const [success, node]: [boolean, HeapNode] = await this.pool.getHeapPosition(0, false);
-    return success ? node.account : null;
-  }
-
-  private async checkPosition(
-    positionAddress: string,
-    basePriceX96: BigNumber,
-    maxLeverage: BigNumber,
-    poolCoeffs: PoolCoeffs
-  ): Promise<LiquidationParams | null> {
-    const position: Position = await this.pool.positions(positionAddress);
-
-    if (position._type == PositionType.Short) {
-      const debt = BigNumber.from(position.discountedBaseAmount).mul(poolCoeffs.baseDebtCoeffX96).div(Fp96One);
-      const debtInQuote = debt.mul(basePriceX96).div(Fp96One);
-      const collateral = BigNumber.from(position.discountedQuoteAmount)
-        .mul(poolCoeffs.quoteCollateralCoeffX96)
-        .div(Fp96One);
-
-      const leverage = collateral.div(collateral.sub(debtInQuote));
-      return leverage > maxLeverage
-        ? {
-            position: positionAddress,
-            asset: await this.pool.baseToken(),
-            amount: debt,
-            minProfit: this.minProfitBase,
-            pool: this.pool.address,
-          }
-        : null;
-    } else if (position._type == PositionType.Long) {
-      const debt = BigNumber.from(position.discountedQuoteAmount).mul(poolCoeffs.quoteDebtCoeffX96).div(Fp96One);
-      const collateral = BigNumber.from(position.discountedBaseAmount)
-        .mul(poolCoeffs.baseCollateralCoeffX96)
-        .div(Fp96One);
-      const collateralInQuote = collateral.mul(basePriceX96).div(Fp96One);
-
-      const leverage = collateralInQuote.div(collateralInQuote.sub(debt));
-      return leverage > maxLeverage
-        ? {
-            position: positionAddress,
-            asset: await this.pool.quoteToken(),
-            amount: debt,
-            minProfit: this.minProfitQuote,
-            pool: this.pool.address,
-          }
-        : null;
-    } else {
-      return null;
-    }
-  }
-}
-
-async function createPoolWatchers(
-  config: KeeperConfig,
-  tokenContractDescription: ContractDescription,
-  marginlyPoolContractDescription: ContractDescription,
-  provider?: ethers.providers.Provider
-): Promise<PoolWatcher[]> {
-  const getERC20Decimals = async (tokenAddress: string): Promise<number> => {
-    const tokenContract = new ethers.Contract(tokenAddress, tokenContractDescription.abi, provider);
-    return await tokenContract.decimals();
-  };
-
-  return Promise.all(
-    config.marginlyPools.map(async (c) => {
-      const marginlyPoolContract = new ethers.Contract(c.address, marginlyPoolContractDescription.abi, provider);
-      const quoteDecimals: number = await getERC20Decimals(await marginlyPoolContract.quoteToken());
-      const quoteOne = BigNumber.from(10).pow(quoteDecimals);
-      const minProfitQuote = RationalNumber.parse(c.minProfitQuote).mul(quoteOne).toInteger();
-
-      const baseDecimals: number = await getERC20Decimals(await marginlyPoolContract.baseToken());
-      const baseOne = BigNumber.from(10).pow(baseDecimals);
-      const minProfitBase = RationalNumber.parse(c.minProfitBase).mul(baseOne).toInteger();
-
-      return new PoolWatcher(marginlyPoolContract, minProfitQuote, minProfitBase);
-    })
-  );
-}
+  return option;
+};
 
 const watchMarginlyPoolsCommand = new Command()
-  .requiredOption('-c, --config <path to config>', 'Path to config file')
+  .addOption(createCommanderOption(configParameter))
+  .addOption(createCommanderOption(logFormatParamter))
+  .addOption(createCommanderOption(logLevelParamter))
+  .addOption(createCommanderOption(nodeUriParameter))
+  .option(getCommanderForm(ethKeyTypeParameter), ethKeyTypeParameter.description)
+  .addOption(createCommanderOption(ethKeyParameter))
+  .option(getCommanderForm(ethKeyFileParameter), ethKeyFileParameter.description)
+  .option(getCommanderForm(ethKeyPasswordParameter), ethKeyPasswordParameter.description)
   .action(async (commandArgs: KeeperArgs, command: Command) => {
     const config: KeeperConfig = JSON.parse(fs.readFileSync(commandArgs.config, 'utf-8'));
     const systemContext = createSystemContext(command, config.systemContextDefaults);
 
-    const signer = await createSignerFromContext(systemContext);
+    const logger = createRootLogger(
+      'marginlyKeeper',
+      stdOutWriter(createLogFormatter(commandArgs.logFormat)),
+      commandArgs.logLevel
+    );
 
+    let keeperWorker: MarginlyKeeperWorker | undefined;
+    process.on('SIGTERM', () => {
+      logger.info('On sigterm');
+      keeperWorker?.requestStop();
+    });
+
+    process.on('SIGINT', () => {
+      logger.info('On sigint');
+      keeperWorker?.requestStop();
+    });
+    logger.info(`Service started with config:"${commandArgs.config}", log-level: ${commandArgs.logLevel}`);
+
+    const signer = await createSignerFromContext(systemContext);
     const contractDescriptions = prepareContractDescriptions();
     const keeperContract = new ethers.Contract(
       config.marginlyKeeperAddress,
@@ -273,87 +155,35 @@ const watchMarginlyPoolsCommand = new Command()
     );
 
     const poolWatchers = await createPoolWatchers(
+      logger,
       config,
       contractDescriptions.token,
       contractDescriptions.marginlyPool,
       signer.provider
     );
 
+    keeperWorker = new MarginlyKeeperWorker(
+      signer,
+      contractDescriptions,
+      poolWatchers,
+      keeperContract,
+      config.connection.ethOptions,
+      logger
+    );
+
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      for (const poolWatcher of poolWatchers) {
-        const liquidateioParams = await poolWatcher.findBadPositions();
-        for (const liquidationParam of liquidateioParams) {
-          const refferalCode = 0;
-
-          const debtTokenContract = new ethers.Contract(
-            liquidationParam.asset,
-            contractDescriptions.token.abi,
-            signer.provider
-          );
-
-          try {
-            console.log(`Send tx to liquidate position with params`);
-            console.log(liquidationParam);
-
-            await logBalanceChange(signer, debtTokenContract, async () => {
-              await keeperContract
-                .connect(signer)
-                .flashLoan(
-                  liquidationParam.asset,
-                  liquidationParam.amount,
-                  refferalCode,
-                  liquidationParam.pool,
-                  liquidationParam.position,
-                  liquidationParam.minProfit,
-                  config.connection.ethOptions
-                );
-            });
-          } catch (error) {
-            console.error(`Liquidation failed with error: ${error}}`);
-          }
-        }
-
-        await sleep(3000);
+      await keeperWorker.run();
+      if (keeperWorker.isStopRequested()) {
+        break;
       }
+
+      await sleep(3000);
     }
   });
 
-async function logBalanceChange(signer: ethers.Signer, token: ethers.Contract, action: () => Promise<void>) {
-  const signerAddress = await signer.getAddress();
-  const [, balanceBefore, ethBalanceBefore] = await Promise.all([
-    ,
-    token.balanceOf(signerAddress),
-    signer.getBalance(),
-  ]);
-
-  await action();
-
-  const [balanceAfter, symbol, decimals, ethBalanceAfter]: [BigNumber, string, number, BigNumber] = await Promise.all([
-    token.balanceOf(signerAddress),
-    token.symbol(),
-    token.decimals(),
-    signer.getBalance(),
-  ]);
-
-  console.log(
-    `Liquidation profit = ${balanceAfter} - ${balanceBefore} = ${formatUnits(
-      balanceAfter.sub(balanceBefore),
-      decimals
-    )} ${symbol}`
-  );
-  console.log(
-    `Tx fee = ${ethBalanceBefore} - ${ethBalanceAfter} = ${formatEther(ethBalanceBefore.sub(ethBalanceAfter))} ETH`
-  );
-}
-
-function registerReadOnlyEthParameters(command: Command): Command {
-  return registerEthSignerParameters(command.option(getCommanderForm(nodeUriParameter), nodeUriParameter.description));
-}
-
 const main = async () => {
-  const program = registerReadOnlyEthParameters(watchMarginlyPoolsCommand);
-  await program.parseAsync(process.argv);
+  await watchMarginlyPoolsCommand.parseAsync(process.argv);
 };
 
 (async () => {

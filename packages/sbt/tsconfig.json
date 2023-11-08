@@ -4,8 +4,17 @@
     "outDir": "dist",
     "declaration": true,
     "composite": true,
-    "rootDir": "deploy",
     "resolveJsonModule": true
   },
-  "include": ["deploy/*", "deploy/*.json"],
+  "files": [
+    "./hardhat.config.ts",
+    "./hardhat.common.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "scripts/**/*",
+    "typechain-types/**/*"
+  ],
 }

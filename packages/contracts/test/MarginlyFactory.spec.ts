@@ -5,7 +5,7 @@ import { createMarginlyFactory } from './shared/fixtures';
 import snapshotGasCost from '@uniswap/snapshot-gas-cost';
 import { MarginlyPool } from '../typechain-types';
 import { ethers } from 'hardhat';
-import { PositionType } from './shared/utils';
+import { PositionType, ZERO_ADDRESS } from './shared/utils';
 
 describe('MarginlyFactory', () => {
   function getPoolParams() {
@@ -91,5 +91,35 @@ describe('MarginlyFactory', () => {
       factory,
       'Forbidden'
     );
+  });
+
+  it('should raise error when trying to renounce ownership', async () => {
+    const { factory } = await loadFixture(createMarginlyFactory);
+
+    await expect(factory.renounceOwnership()).to.be.revertedWithCustomError(factory, 'Forbidden');
+  });
+
+  it('should raise error when trying to deploy factory with wrong arguments', async () => {
+    const factoryFactory = await ethers.getContractFactory('MarginlyFactory');
+    const nonZeroAddress = '0x0000000000000000000000000000000000000001';
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const constructorArgs: [any, any, any, any, any, any] = [
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+    ];
+
+    for (let i = 0; i < 6; i++) {
+      constructorArgs[i] = ZERO_ADDRESS;
+      await expect(factoryFactory.deploy.call(factoryFactory, ...constructorArgs)).to.be.revertedWithCustomError(
+        factoryFactory,
+        'WrongValue'
+      );
+      constructorArgs[i] = nonZeroAddress;
+    }
   });
 });

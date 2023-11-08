@@ -40,18 +40,38 @@
     "./lifecycle": "./dist/lifecycle.js",
     "./math": "./dist/math.js",
     "./price": "./dist/price.js",
-    "./utils": "./dist/utils.js"
+    "./utils": "./dist/utils.js",
+    "./marginly-accrued-rate": "./dist/marginly-accrued-rate.js"
   },
   "typesVersions": {
     "*": {
-      "resource": ["dist/resource.d.ts"],
-      "error": ["dist/error.d.ts"],
-      "logger": ["dist/logger.d.ts"],
-      "execution": ["dist/execution.d.ts"],
-      "lifecycle": ["dist/lifecycle.d.ts"],
-      "math": ["dist/math.d.ts"],
-      "price": ["dist/price.d.ts"],
-      "utils": ["dist/utils.d.ts"]
+      "resource": [
+        "dist/resource.d.ts"
+      ],
+      "error": [
+        "dist/error.d.ts"
+      ],
+      "logger": [
+        "dist/logger.d.ts"
+      ],
+      "execution": [
+        "dist/execution.d.ts"
+      ],
+      "lifecycle": [
+        "dist/lifecycle.d.ts"
+      ],
+      "math": [
+        "dist/math.d.ts"
+      ],
+      "price": [
+        "dist/price.d.ts"
+      ],
+      "utils": [
+        "dist/utils.d.ts"
+      ],
+      "marginly-accrued-rate": [
+        "dist/marginly-accrued-rate.d.ts"
+      ]
     }
   }
 }

@@ -17,6 +17,8 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
 
   error UnknownPool();
 
+  error Forbidden();
+
   mapping(address => mapping(address => address)) public getPool;
 
   constructor(PoolInput[] memory pools) {
@@ -52,5 +54,9 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
   function getPoolSafe(address tokenA, address tokenB) internal view returns (address pool) {
     pool = getPool[tokenA][tokenB];
     if (pool == address(0)) revert UnknownPool();
+  }
+
+  function renounceOwnership() public override onlyOwner {
+    revert Forbidden();
   }
 }

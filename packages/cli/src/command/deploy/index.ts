@@ -28,7 +28,6 @@ import {
   DeployState,
   DeployConfig,
 } from '@marginly/deploy';
-import { deploySbt } from '@marginly/sbt';
 
 const nodeUriParameter = {
   name: ['eth', 'node', 'uri'],
@@ -352,24 +351,6 @@ const deployMarginlyCommand = new Command('marginly')
     );
   });
 
-const deploySbtCommand = new Command('sbt')
-  .requiredOption('--state-mode <stateMode>', 'Mode to process state: new, latest, existing')
-  .option('--state-file <stateFile>', 'State file name for new and existing state modes')
-  .action(async (deployCommandArgs: DeployCommandArgs, command: Command) => {
-    await deployCommandTemplate(
-      command,
-      deployCommandArgs,
-      async (signer, actualConfigFile, actualStateFile, actualDeploymentFile) => {
-        const logger = new SimpleLogger((x) => console.error(x));
-        const stateStore = new StateFile('SBT', createDefaultBaseState, actualStateFile, logger).createStateStore();
-        const rawConfig = JSON.parse(fs.readFileSync(actualConfigFile, 'utf-8'));
-        const sbtDeployment = await deploySbt(signer, rawConfig, stateStore, logger);
-
-        fs.writeFileSync(actualDeploymentFile, JSON.stringify(sbtDeployment, null, 2), { encoding: 'utf-8' });
-      }
-    );
-  });
-
 function updateDeploymentFile(deploymentFile: string, currentDeployment: MarginlyDeployment, logger: Logger) {
   let existingDeployment: MarginlyDeployment;
 
@@ -470,6 +451,4 @@ export const registerReadWriteEthParameters = (command: Command): Command => {
     .option(getCommanderForm(dryRunOptsParameter), dryRunOptsParameter.description);
 };
 
-export const deployCommand = registerReadWriteEthParameters(new Command('deploy'))
-  .addCommand(deployMarginlyCommand)
-  .addCommand(deploySbtCommand);
+export const deployCommand = registerReadWriteEthParameters(new Command('deploy')).addCommand(deployMarginlyCommand);

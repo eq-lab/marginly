@@ -173,7 +173,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
   // mint for the first five signers and approve spend for marginlyPool
   const amountToDeposit = 5000n * 10n ** BigInt(await uniswapPoolInfo.token0.decimals());
 
-  const signers = (await ethers.getSigners()).slice(0, 5);
+  const signers = (await ethers.getSigners()).slice(0, 10);
   for (let i = 0; i < signers.length; i++) {
     await uniswapPoolInfo.token0.mint(signers[i].address, amountToDeposit);
     await uniswapPoolInfo.token1.mint(signers[i].address, amountToDeposit);
