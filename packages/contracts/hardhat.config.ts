@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
+import 'solidity-docgen';
 
 const config = {
   solidity: {
@@ -57,6 +58,13 @@ const config = {
     strict: false,
     only: ['Marginly'],
     except: ['Mock', 'Test'],
+  },
+  docgen: {
+    outputDir: './docs',
+    templates: './docgen-templates',
+    clear: true,
+    pages: 'files',
+    exclude: ['test'],
   },
 };
 

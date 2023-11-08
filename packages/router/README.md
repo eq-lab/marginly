@@ -20,3 +20,9 @@ In order to run unit tests you should run
 ```bash
 yarn test
 ```
+
+## Generate Markdown docs
+
+```bash
+yarn docgen
+```
