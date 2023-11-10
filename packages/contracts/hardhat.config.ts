@@ -44,7 +44,6 @@ const config = {
       'MockAavePoolAddressesProvider',
       'MockMarginlyPool',
       'MockSwapRouter',
-      'TestTraderJoeV2.sol',
       'MockMarginlyPoolWithPriceAdapter.sol'
     ],
   },
