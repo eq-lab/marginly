@@ -12,11 +12,11 @@ import {
   MarginlyKeeper,
   MockSwapRouter,
   MockMarginlyFactory,
+  PriceAdapter,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
-import { TraderJoeV2PriceAdapter } from '../../typechain-types/contracts/priceAdapters/traderJoeV2/TraderJoeV2PriceAdapter.sol';
-import { MockMarginlyPoolWithPriceAdapter } from '../../typechain-types/contracts/test/MockMarginlyPoolWithPriceAdapter.sol';
-import { LBPair } from '../../typechain-types/contracts/test/TestTraderJoeV2.sol';
+import { MockMarginlyPoolWithPriceAdapter } from '../../typechain-types/contracts/test';
+import { Aggregator } from '../../typechain-types/contracts/test/TestChainlinkAggregatorV3.sol';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   generateWallets,
@@ -444,32 +444,40 @@ export async function createMarginlyKeeperContract(): Promise<{
   };
 }
 
-export async function createTraderJoeV2Pool(): Promise<LBPair> {
-  const factory = await ethers.getContractFactory('LBPair');
-  return factory.deploy();
+export async function createChainlinkAggregator(price: bigint, decimals: bigint): Promise<Aggregator> {
+  const factory = await ethers.getContractFactory('Aggregator');
+  return factory.deploy(price, decimals);
 }
 
-export async function createTraderJoeV2PriceAdapter(
-  traderJoeV2: string,
-  oneX: bigint,
-  oneY: bigint
-): Promise<TraderJoeV2PriceAdapter> {
-  const factory = await ethers.getContractFactory('TraderJoeV2PriceAdapter');
-  return factory.deploy(traderJoeV2, oneX, oneY);
+export async function createPriceAdapter(
+  chainlinkAggregatorBase: string,
+  chainlinkAggregatorQuote: string
+): Promise<PriceAdapter> {
+  const factory = await ethers.getContractFactory('PriceAdapter');
+  return factory.deploy(chainlinkAggregatorBase, chainlinkAggregatorQuote);
 }
 
-export async function createMarginlyPoolWithTraderJoeV2PriceAdapter(): Promise<{
-  traderJoeV2: LBPair;
-  traderJoev2PriceAdapter: TraderJoeV2PriceAdapter;
-  marginlyPoolWithPriceAdapter: MockMarginlyPoolWithPriceAdapter;
-}> {
-  const traderJoeV2 = await createTraderJoeV2Pool();
-  const traderJoev2PriceAdapter = await createTraderJoeV2PriceAdapter(
-    traderJoeV2.address,
-    BigInt(10 ^ 18),
-    BigInt(10 ^ 6)
-  );
-  const factory = await ethers.getContractFactory('MockMarginlyPoolWithPriceAdapter');
-  const marginlyPoolWithPriceAdapter = await factory.deploy(traderJoev2PriceAdapter.address);
-  return { traderJoeV2, traderJoev2PriceAdapter, marginlyPoolWithPriceAdapter };
+export function createMarginlyPoolWithPriceAdapter(
+  basePrice: { price: bigint; decimals: bigint },
+  quotePrice: { price: bigint; decimals: bigint } | null
+) {
+  async function inner(): Promise<{
+    chainlinkAggregatorBase: Aggregator;
+    chainlinkAggregatorQuote: Aggregator | null;
+    priceAdapter: PriceAdapter;
+    marginlyPoolWithPriceAdapter: MockMarginlyPoolWithPriceAdapter;
+  }> {
+    const chainlinkAggregatorBase = await createChainlinkAggregator(basePrice.price, basePrice.decimals); // btc
+    const chainlinkAggregatorQuote =
+      quotePrice && (await createChainlinkAggregator(quotePrice.price, quotePrice.decimals)); // eth
+    const priceAdapter = await createPriceAdapter(
+      chainlinkAggregatorBase.address,
+      chainlinkAggregatorQuote !== null ? chainlinkAggregatorQuote.address : ethers.constants.AddressZero
+    );
+    const factory = await ethers.getContractFactory('MockMarginlyPoolWithPriceAdapter');
+    const marginlyPoolWithPriceAdapter = await factory.deploy(priceAdapter.address);
+    return { chainlinkAggregatorBase, chainlinkAggregatorQuote, priceAdapter, marginlyPoolWithPriceAdapter };
+  }
+
+  return inner;
 }

@@ -2,27 +2,16 @@
 pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import {ILBLegacyPair} from './ILBLegacyPair.sol';
-import {Constants} from './Constants.sol';
-import {Math128x128} from './Math128x128.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '../../libraries/OracleLib.sol';
-import '../Math.sol';
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import './libraries/OracleLib.sol';
 
-contract TraderJoeV2PriceAdapter is IUniswapV3Pool {
-  using Math128x128 for uint256;
+contract PriceAdapter is IUniswapV3Pool {
+  AggregatorV3Interface public baseDataFeed;
+  AggregatorV3Interface public quoteDataFeed;
 
-  error BinHelper__BinStepOverflows(uint256 bp);
-  error BinHelper__IdOverflows();
-
-  address public pool;
-  uint8 public oneX;
-  uint8 public oneY;
-
-  constructor(address _pool, uint8 _oneX, uint8 _oneY) {
-    pool = _pool;
-    oneX = _oneX;
-    oneY = _oneY;
+  constructor(address _baseDataFeed, address _quoteDataFeed) {
+    baseDataFeed = AggregatorV3Interface(_baseDataFeed);
+    quoteDataFeed = AggregatorV3Interface(_quoteDataFeed);
   }
 
   function factory() external view override returns (address) {}
@@ -112,25 +101,55 @@ contract TraderJoeV2PriceAdapter is IUniswapV3Pool {
     override
     returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s)
   {
-      secondsPerLiquidityCumulativeX128s[0] = secondsAgos[0];
-      secondsPerLiquidityCumulativeX128s[1] = secondsAgos[1];
+    secondsPerLiquidityCumulativeX128s = new uint160[](secondsAgos.length);
+    secondsPerLiquidityCumulativeX128s[0] = secondsAgos[0];
+    secondsPerLiquidityCumulativeX128s[1] = secondsAgos[1];
 
-      ILBLegacyPair legacyPair = ILBLegacyPair(pool);
-      uint256 binStep = uint256((legacyPair.feeParameters()).binStep);
-      (uint256 cumulativeId0,,) = legacyPair.getOracleSampleFrom(block.timestamp - uint256(secondsAgos[1]));
-      (uint256 cumulativeId1,,) = legacyPair.getOracleSampleFrom(block.timestamp - uint256(secondsAgos[0]));
-      // 128.128-binary fixed-point number
-      uint256 averageId = (cumulativeId1 - cumulativeId0) / (secondsAgos[0] - secondsAgos[1]);
-      uint256 averagePrice = getPriceFromId(averageId, binStep);
-      if(oneX >= oneY) {
-        averagePrice = averagePrice * (oneX / oneY);
-      } else {
-        averagePrice = averagePrice / (oneY / oneX);
-      }
-
-      uint160 sqrtPriceX96 = uint160(Math.sqrt(averagePrice) << 32);
-      tickCumulatives = OracleLib.getCumulativeTickAtSqrtRatio(sqrtPriceX96, secondsAgos);
+    uint160 sqrtPriceX96 = getSqrtPriceX96();
+    tickCumulatives = OracleLib.getCumulativeTickAtSqrtRatio(sqrtPriceX96, secondsAgos);
   }
+
+  function getSqrtPriceX96() public view returns (uint160) {
+    (int256 price, int256 decimals) = getPrice();
+
+    uint160 sqrtPriceX96 = uint160((OracleLib.sqrt(((uint256(price) << 96) / uint256(decimals))) << 48));
+
+    return sqrtPriceX96;
+  }
+
+  function getPrice() public
+    view returns (int256, int256) {
+      (, int256 basePrice, , , ) = baseDataFeed
+            .latestRoundData();
+      uint8 baseDecimals = baseDataFeed.decimals();
+      if (address(quoteDataFeed) == address(0)) {
+        return (basePrice, int256(10 ** uint256(baseDecimals)));
+      }
+      uint8 quoteDecimals = quoteDataFeed.decimals();
+      uint8 _decimals = baseDecimals > quoteDecimals ? baseDecimals : quoteDecimals;
+      int256 decimals = int256(10 ** uint256(_decimals));
+
+      basePrice = scalePrice(basePrice, baseDecimals, _decimals);
+
+      (, int256 quotePrice, , , ) = quoteDataFeed
+          .latestRoundData();
+      quotePrice = scalePrice(quotePrice, quoteDecimals, _decimals);
+
+      return ((basePrice * decimals) / quotePrice, decimals);
+  }
+
+  function scalePrice(
+        int256 _price,
+        uint8 _priceDecimals,
+        uint8 _decimals
+    ) internal pure returns (int256) {
+        if (_priceDecimals < _decimals) {
+            return _price * int256(10 ** uint256(_decimals - _priceDecimals));
+        } else if (_priceDecimals > _decimals) {
+            return _price / int256(10 ** uint256(_priceDecimals - _decimals));
+        }
+        return _price;
+    }
 
   function snapshotCumulativesInside(
     int24 tickLower,
@@ -185,30 +204,4 @@ contract TraderJoeV2PriceAdapter is IUniswapV3Pool {
     uint128 amount0Requested,
     uint128 amount1Requested
   ) external override returns (uint128 amount0, uint128 amount1) {}
-
-  /// @notice Returns the price corresponding to the given ID, as a 128.128-binary fixed-point number
-  /// @dev This is the trusted function to link id to price, the other way may be inaccurate
-  /// @param _id The id
-  /// @param _binStep The bin step
-  /// @return The price corresponding to this id, as a 128.128-binary fixed-point number
-  function getPriceFromId(uint256 _id, uint256 _binStep) internal pure returns (uint256) {
-      if (_id > uint256(type(uint24).max)) revert BinHelper__IdOverflows();
-      unchecked {
-          int256 _realId = int256(_id) - Constants.REAL_ID_SHIFT;
-
-          return _getBPValue(_binStep).power((_realId));
-      }
-  }
-
-  /// @notice Returns the (1 + bp) value as a 128.128-decimal fixed-point number
-  /// @param _binStep The bp value in [1; 100] (referring to 0.01% to 1%)
-  /// @return The (1+bp) value as a 128.128-decimal fixed-point number
-  function _getBPValue(uint256 _binStep) internal pure returns (uint256) {
-      if (_binStep == 0 || _binStep > Constants.BASIS_POINT_MAX) revert BinHelper__BinStepOverflows(_binStep);
-
-      unchecked {
-          // can't overflow as `max(result) = 2**128 + 10_000 << 128 / 10_000 < max(uint256)`
-          return Constants.SCALE + (_binStep << Constants.SCALE_OFFSET) / Constants.BASIS_POINT_MAX;
-      }
-  }
 }
