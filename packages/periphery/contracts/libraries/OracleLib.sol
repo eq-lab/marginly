@@ -207,6 +207,7 @@ library OracleLib {
       }
   }
 
+  // Converts sqrtPriceX96 into IUniswapV3-compatible tickCumulative array
   function getCumulativeTickAtSqrtRatio(
     uint160 sqrtPriceX96,
     uint32[] calldata secondsAgos) internal pure returns (int56[] memory tickCumulatives) {

@@ -15,6 +15,12 @@ contract PriceAdapter {
     quoteDataFeed = AggregatorV3Interface(_quoteDataFeed);
   }
 
+  
+  /// @dev Returns IUniswapV3-compatible tick cumulatives produced from chainlink price.
+  /// @param secondsAgos From how long ago each cumulative tick and liquidity value should be returned
+  /// @return tickCumulatives Cumulative tick values as of each `secondsAgos` from the current block timestamp
+  /// @return secondsPerLiquidityCumulativeX128s Cumulative seconds per liquidity-in-range value as of each `secondsAgos` from the current block
+  /// timestamp
   function observe(
     uint32[] calldata secondsAgos
   )
@@ -30,6 +36,7 @@ contract PriceAdapter {
     tickCumulatives = OracleLib.getCumulativeTickAtSqrtRatio(sqrtPriceX96, secondsAgos);
   }
 
+  /// @dev Returns sqrt price as Q96
   function getSqrtPriceX96() public view returns (uint160) {
     (int256 basePrice, int256 quotePrice) = getScaledPrices();
 
@@ -42,6 +49,7 @@ contract PriceAdapter {
     return sqrtPriceX96;
   }
 
+  /// @dev Returns base and quote prices scaled to max decimals of both
   function getScaledPrices() public
     view returns (int256, int256) {
       (, int256 basePrice, , , ) = baseDataFeed
