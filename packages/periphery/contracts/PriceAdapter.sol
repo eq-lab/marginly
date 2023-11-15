@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
 import './libraries/OracleLib.sol';
 
 contract PriceAdapter {
@@ -34,10 +35,8 @@ contract PriceAdapter {
 
     uint160 sqrtPriceX96 = uint160(
       OracleLib.sqrt(
-        (
-          (uint256(basePrice) << 96) / uint256(quotePrice)
-        )
-      ) << 48
+          Math.mulDiv(uint256(basePrice), 1 << 192, uint256(quotePrice))
+      )
     );
 
     return sqrtPriceX96;
