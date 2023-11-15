@@ -30,12 +30,12 @@ contract PriceAdapter {
   }
 
   function getSqrtPriceX96() public view returns (uint160) {
-    (int256 basePrice, int256 qoutePrice) = getScaledPrices();
+    (int256 basePrice, int256 quotePrice) = getScaledPrices();
 
     uint160 sqrtPriceX96 = uint160(
       OracleLib.sqrt(
         (
-          (uint256(basePrice) << 96) / uint256(qoutePrice)
+          (uint256(basePrice) << 96) / uint256(quotePrice)
         )
       ) << 48
     );
