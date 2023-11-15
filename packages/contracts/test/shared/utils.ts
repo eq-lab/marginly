@@ -181,7 +181,7 @@ export const paramsLowLeverageWithIr = {
 export const WHOLE_ONE = 1e6;
 export const SECONDS_IN_YEAR_X96 = BigNumber.from(365.25 * 24 * 60 * 60).mul(FP96.one);
 
-function mulFp96(firstX96: BigNumber, secondX96: BigNumber): BigNumber {
+export function mulFp96(firstX96: BigNumber, secondX96: BigNumber): BigNumber {
   return firstX96.mul(secondX96).div(FP96.one);
 }
 
