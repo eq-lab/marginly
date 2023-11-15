@@ -1,6 +1,7 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://rpc-mumbai.maticvigil.com/"
+    "ethNodeUri": "https://rpc-mumbai.maticvigil.com/",
+    "ethNodeUri1": "https://rpc.ankr.com/polygon_mumbai"
   },
   "connection": {
     "assertChainId": 80001,
@@ -354,7 +355,7 @@
   ],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
-      "address": "0xeb7A892BB04A8f836bDEeBbf60897A7Af1Bf5d7F"
+      "allowCreateMock": "true"
     }
   }
 }

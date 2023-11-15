@@ -13,7 +13,13 @@ import {
   StateStore,
 } from '../common';
 import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult } from '../common/interfaces';
-import { MarginlyAdapterParam, MarginlyConfigMarginlyPool, MarginlyConfigUniswapPoolGenuine, MarginlyConfigUniswapPoolMock } from './configs';
+import {
+  MarginlyAdapterParam,
+  MarginlyConfigMarginlyPool,
+  MarginlyConfigSwapPool,
+  MarginlyConfigUniswapPoolGenuine,
+  MarginlyConfigUniswapPoolMock,
+} from './configs';
 import { sortUniswapPoolTokens } from '@marginly/common/math';
 
 export class MarginlyDeployer implements IMarginlyDeployer {
@@ -22,6 +28,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   private readonly readOpenzeppelin;
   private readonly readAaveContract;
   private readonly readMarginlyMockContract;
+  private readonly readMarginlyPeripheryContract;
   private readonly deploy;
   private readonly signer;
   private readonly ethArgs;
@@ -35,6 +42,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     this.readOpenzeppelin = createOpenzeppelinContractReader();
     this.readAaveContract = createAaveContractReader();
     this.readMarginlyMockContract = createMarginlyMockContractReader();
+    this.readMarginlyPeripheryContract = createMarginlyPeripheryContractReader();
     this.deploy = deployTemplate(signer, ethArgs, this.readMarginlyContract, stateStore, logger);
     this.ethArgs = ethArgs;
     this.signer = signer;
@@ -296,6 +304,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
         quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
       };
+
       const tx = await marginlyPoolFactoryContract.createPool(
         quoteTokenInfo.address.toString(),
         baseTokenInfo.address.toString(),
@@ -400,14 +409,14 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     dexId: BigNumber,
     adapterName: string,
     pools: MarginlyAdapterParam[],
-    balancerVault?: EthAddress,
+    balancerVault?: EthAddress
   ): Promise<DeployResult> {
     const args: any[] = [
-      pools.map((x) => [ 
-        tokenRepository.getTokenInfo(x.token0.id).address.toString(), 
-        tokenRepository.getTokenInfo(x.token1.id).address.toString(), 
+      pools.map((x) => [
+        tokenRepository.getTokenInfo(x.token0.id).address.toString(),
+        tokenRepository.getTokenInfo(x.token1.id).address.toString(),
         x.pool.toString(),
-      ])
+      ]),
     ];
     if (balancerVault !== undefined) {
       args.push(balancerVault.toString());
@@ -416,13 +425,65 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);
   }
 
-  public async deployMarginlyRouter(
-    adapters: { dexId: BigNumber; adapter: EthAddress; }[],
-  ): Promise<DeployResult> {
-    const args = [
-      adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()]), 
-    ];
+  public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
+    const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
     return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
+  }
+
+  public deployMarginlyPoolAdmin(marginlyFactoryAddress: EthAddress): Promise<DeployResult> {
+    return this.deploy(
+      'MarginlyPoolAdmin',
+      [marginlyFactoryAddress.toString()],
+      'marginlyPoolAdmin',
+      this.readMarginlyPeripheryContract
+    );
+  }
+
+  public async deploySwapPoolRegistry(
+    tokenRepository: ITokenRepository,
+    uniswapFactory: EthAddress,
+    pools: MarginlyConfigSwapPool[]
+  ): Promise<DeployResult> {
+    type SwapPool = {
+      pool: `0x${string}`;
+      tokenA: `0x${string}`;
+      tokenB: `0x${string}`;
+      fee: BigNumber;
+    };
+
+    const swapPools: SwapPool[] = pools.map((p) => ({
+      tokenA: tokenRepository.getTokenInfo(p.tokenA.id).address.toString(),
+      tokenB: tokenRepository.getTokenInfo(p.tokenB.id).address.toString(),
+      fee: this.toUniswapFee(p.fee),
+      pool: p.address.toString(),
+    }));
+
+    var deployResult = await this.deploy(
+      'SwapPoolRegistry',
+      [uniswapFactory.toString(), swapPools],
+      'swapPoolRegistry',
+      this.readMarginlyPeripheryContract
+    );
+
+    var poolsToAdd: SwapPool[] = [];
+    var swapPoolRegistry = deployResult.contract;
+    for (let i = 0; i < swapPools.length; i++) {
+      const swapPoolAddress = await swapPoolRegistry.swapPools(
+        swapPools[i].tokenA,
+        swapPools[i].tokenB,
+        swapPools[i].fee
+      );
+      if (EthAddress.parse(swapPoolAddress).isZero()) {
+        poolsToAdd.push(swapPools[i]);
+      }
+    }
+
+    if (poolsToAdd.length > 0) {
+      const tx = await swapPoolRegistry.addSwapPool(poolsToAdd);
+      await tx.wait();
+    }
+
+    return deployResult;
   }
 
   public async deployUniswapRouterMock(
@@ -485,6 +546,12 @@ function createMarginlyContractReader(): ContractReader {
 function createMarginlyMockContractReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@marginly/contracts/artifacts/contracts/test/${name}.sol/${name}.json`);
+  };
+}
+
+function createMarginlyPeripheryContractReader(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/periphery/artifacts/contracts/${name}.sol/${name}.json`);
   };
 }
 
