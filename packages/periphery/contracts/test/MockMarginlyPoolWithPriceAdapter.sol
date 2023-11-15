@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import '@marginly/contracts/libraries/OracleLib.sol';
+import './OracleLib.sol';
 
 contract MockMarginlyPoolWithPriceAdapter {
   address public uniswapPool;

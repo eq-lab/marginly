@@ -1,8 +1,8 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { createMarginlyPoolWithPriceAdapter } from '@marginly/contracts/test/shared/fixtures';
 import { FP96, mulFp96 } from '@marginly/contracts/test/shared/utils';
 import bn from 'bignumber.js';
 import { expect } from 'chai';
+import { createMarginlyPoolWithPriceAdapter } from './shared/fixtures';
 
 const btc = { price: 3567890123456n, decimals: 8n };
 const eth = { price: 1987654321090123456789n, decimals: 18n };
