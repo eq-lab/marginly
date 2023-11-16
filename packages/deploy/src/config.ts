@@ -79,10 +79,14 @@ interface MarginlyDeployConfigSwapPoolRegistry {
   factory: string;
   pools: {
     id: string;
-    address: string;
+    // address: string;
     tokenAId: string;
     tokenBId: string;
     fee: string;
+    priceProvider: {
+      basePriceProvider: string,
+      quotePriceProvider?: string
+    }
   }[];
 }
 

@@ -54,10 +54,17 @@ export interface MarginlyConfigUniswapMock {
   pools: MarginlyConfigUniswapPoolMock[];
 }
 
+export interface PriceProviderConfig {
+  // todo: parse from rawConfig
+  basePriceProvider: EthAddress;
+  quotePriceProvider: EthAddress;
+}
+
 export interface MarginlyConfigSwapPool {
   type: 'swapPool';
   id: string;
-  address: EthAddress;
+  // address: EthAddress;
+  priceProvider: PriceProviderConfig;
   tokenA: MarginlyConfigToken;
   tokenB: MarginlyConfigToken;
   fee: RationalNumber;
@@ -351,7 +358,6 @@ export class StrictMarginlyDeployConfig {
         pools: mockPools,
       };
     } else if (isMarginlyDeployConfigSwapPoolRegistry(config.uniswap)) {
-      // пройтись по пулам и вытащить по id конфиги токенов и сформировать конфиг SwapRegistry
       const swapPools: MarginlyConfigSwapPool[] = [];
       for (let i = 0; i < config.uniswap.pools.length; i++) {
         const rawPool = config.uniswap.pools[i];
@@ -370,13 +376,20 @@ export class StrictMarginlyDeployConfig {
         }
         const fee = RationalNumber.parsePercent(rawPool.fee);
 
+        const priceProvider: PriceProviderConfig = {
+          basePriceProvider: EthAddress.parse(rawPool.priceProvider.basePriceProvider),
+          quotePriceProvider: EthAddress.parse(
+            rawPool.priceProvider.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
+            ),
+        };
+
         const pool: MarginlyConfigSwapPool = {
           type: 'swapPool',
           id: rawPool.id,
           tokenA,
           tokenB,
           fee,
-          address: EthAddress.parse(rawPool.address),
+          priceProvider,
         };
         uniswapPools.set(rawPool.id, pool);
         swapPools.push(pool);

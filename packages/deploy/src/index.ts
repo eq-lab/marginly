@@ -211,14 +211,25 @@ export async function deployMarginly(
 
         return EthAddress.parse(uniswapRouterDeploymentResult.address);
       } else if (isMarginlyConfigSwapPoolRegistry(config.uniswap)) {
-        // TODO: deploy swap pools (special pools implementing uniswap V3 interface acts like uniswap v3 like TWAP)
-
         const swapPoolRegistryConfig = config.uniswap;
+
+        // TODO: deploy price adapters
+        const priceAdapters: EthAddress[] = [];
+        for (const pool of swapPoolRegistryConfig.pools) {
+          const priceAdapterDeployResult = await using(logger.beginScope('Deploy PriceAdapter'), async () => {
+            const deployResult = await marginlyDeployer.deployMarginlyPriceAdapter(pool);
+            printDeployState(`PriceAdapter`, deployResult, logger);
+            return deployResult;
+          });
+          priceAdapters.push(EthAddress.parse(priceAdapterDeployResult.address));
+        }
+
         const swapPoolDeploymentResult = await using(logger.beginScope('Deploy SwapPoolRegistry'), async () => {
           const deployResult = await marginlyDeployer.deploySwapPoolRegistry(
             tokenRepository,
             swapPoolRegistryConfig.factory,
-            swapPoolRegistryConfig.pools
+            swapPoolRegistryConfig.pools,
+            priceAdapters
           );
           printDeployState(`SwapPoolRegistry`, deployResult, logger);
           return deployResult;

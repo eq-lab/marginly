@@ -442,7 +442,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   public async deploySwapPoolRegistry(
     tokenRepository: ITokenRepository,
     uniswapFactory: EthAddress,
-    pools: MarginlyConfigSwapPool[]
+    pools: MarginlyConfigSwapPool[],
+    priceAdapters: EthAddress[]
   ): Promise<DeployResult> {
     type SwapPool = {
       pool: `0x${string}`;
@@ -451,11 +452,11 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       fee: BigNumber;
     };
 
-    const swapPools: SwapPool[] = pools.map((p) => ({
+    const swapPools: SwapPool[] = pools.map((p, i) => ({
       tokenA: tokenRepository.getTokenInfo(p.tokenA.id).address.toString(),
       tokenB: tokenRepository.getTokenInfo(p.tokenB.id).address.toString(),
       fee: this.toUniswapFee(p.fee),
-      pool: p.address.toString(),
+      pool: priceAdapters[i].toString(),
     }));
 
     var deployResult = await this.deploy(
@@ -506,6 +507,19 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       [oracle.toString(), tokenAAddress.toString(), tokenBAddress.toString(), this.toUniswapFee(poolConfig.fee)],
       `uniswapV3PoolMock_${poolConfig.id}`,
       readUniswapMockContract
+    );
+  }
+
+  public async deployMarginlyPriceAdapter(pool: MarginlyConfigSwapPool): Promise<DeployResult> {
+    const {
+      priceProvider: { basePriceProvider, quotePriceProvider },
+      id,
+    } = pool;
+    return this.deploy(
+      'PriceAdapter',
+      [basePriceProvider.toString(), quotePriceProvider.toString()],
+      `priceAdapter_${id}`,
+      this.readMarginlyPeripheryContract
     );
   }
 
