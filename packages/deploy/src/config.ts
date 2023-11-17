@@ -79,14 +79,23 @@ interface MarginlyDeployConfigSwapPoolRegistry {
   factory: string;
   pools: {
     id: string;
-    // address: string;
     tokenAId: string;
     tokenBId: string;
     fee: string;
-    priceProvider: {
-      basePriceProvider: string,
-      quotePriceProvider?: string
-    }
+    priceProvidersMock?: {
+      basePriceProviderMock?: {
+        answer: string;
+        decimals: string;
+      };
+      quotePriceProviderMock?: {
+        answer: string;
+        decimals: string;
+      };
+    };
+    priceAdapter: {
+      basePriceProvider?: string;
+      quotePriceProvider?: string;
+    };
   }[];
 }
 

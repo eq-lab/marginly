@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
-contract Aggregator is AggregatorV3Interface {
+contract ChainlinkAggregatorV3Mock is AggregatorV3Interface {
   uint8 public override decimals;
   uint256 constant public override version = 4;
   int256 _answer;

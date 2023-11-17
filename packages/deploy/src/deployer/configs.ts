@@ -16,6 +16,7 @@ import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
 import { BigNumber } from 'ethers';
+import { deployMarginly } from '..';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -54,17 +55,26 @@ export interface MarginlyConfigUniswapMock {
   pools: MarginlyConfigUniswapPoolMock[];
 }
 
-export interface PriceProviderConfig {
-  // todo: parse from rawConfig
-  basePriceProvider: EthAddress;
-  quotePriceProvider: EthAddress;
+export interface PriceProviderMock {
+  answer: RationalNumber;
+  decimals: number;
+}
+
+export interface PriceProvidersMockConfig {
+  basePriceProviderMock?: PriceProviderMock;
+  quotePriceProviderMock?: PriceProviderMock;
+}
+
+export interface PriceAdapterConfig {
+  priceProvidersMock?: PriceProvidersMockConfig;
+  basePriceProvider?: EthAddress;
+  quotePriceProvider?: EthAddress;
 }
 
 export interface MarginlyConfigSwapPool {
   type: 'swapPool';
   id: string;
-  // address: EthAddress;
-  priceProvider: PriceProviderConfig;
+  priceAdapter: PriceAdapterConfig;
   tokenA: MarginlyConfigToken;
   tokenB: MarginlyConfigToken;
   fee: RationalNumber;
@@ -376,11 +386,54 @@ export class StrictMarginlyDeployConfig {
         }
         const fee = RationalNumber.parsePercent(rawPool.fee);
 
-        const priceProvider: PriceProviderConfig = {
-          basePriceProvider: EthAddress.parse(rawPool.priceProvider.basePriceProvider),
-          quotePriceProvider: EthAddress.parse(
-            rawPool.priceProvider.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
-            ),
+        let basePriceProviderMock, quotePriceProviderMock, priceProvidersMock;
+        if (rawPool.priceProvidersMock !== undefined) {
+          if (rawPool.priceProvidersMock.basePriceProviderMock !== undefined) {
+            basePriceProviderMock = {
+              answer: RationalNumber.parse(rawPool.priceProvidersMock.basePriceProviderMock.answer),
+              decimals: Number(rawPool.priceProvidersMock.basePriceProviderMock.decimals),
+            };
+          }
+          if (rawPool.priceProvidersMock.quotePriceProviderMock !== undefined) {
+            quotePriceProviderMock = {
+              answer: RationalNumber.parse(rawPool.priceProvidersMock.quotePriceProviderMock.answer),
+              decimals: Number(rawPool.priceProvidersMock.quotePriceProviderMock.decimals),
+            };
+          }
+          priceProvidersMock = { basePriceProviderMock, quotePriceProviderMock };
+        }
+
+        let basePriceProvider, quotePriceProvider;
+        if (rawPool.priceAdapter.basePriceProvider !== undefined) {
+          basePriceProvider = EthAddress.parse(rawPool.priceAdapter.basePriceProvider);
+        }
+
+        if (quotePriceProviderMock === undefined) {
+          quotePriceProvider = EthAddress.parse(
+            rawPool.priceAdapter.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
+          );
+        } else if (quotePriceProviderMock !== undefined && rawPool.priceAdapter.quotePriceProvider !== undefined) {
+          throw new Error(
+            `Both quote PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
+          );
+        }
+
+        if (basePriceProviderMock === undefined && basePriceProvider === undefined) {
+          throw new Error(
+            `Not base PriceProvider nor PriceProviderMock for uniswap pool with id ${rawPool.id} is not found`
+          );
+        }
+
+        if (basePriceProviderMock !== undefined && basePriceProvider !== undefined) {
+          throw new Error(
+            `Both base PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
+          );
+        }
+
+        const priceProvider: PriceAdapterConfig = {
+          priceProvidersMock,
+          basePriceProvider,
+          quotePriceProvider,
         };
 
         const pool: MarginlyConfigSwapPool = {
@@ -389,7 +442,7 @@ export class StrictMarginlyDeployConfig {
           tokenA,
           tokenB,
           fee,
-          priceProvider,
+          priceAdapter: priceProvider,
         };
         uniswapPools.set(rawPool.id, pool);
         swapPools.push(pool);

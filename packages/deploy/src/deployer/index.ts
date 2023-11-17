@@ -19,6 +19,7 @@ import {
   MarginlyConfigSwapPool,
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
+  PriceProviderMock,
 } from './configs';
 import { sortUniswapPoolTokens } from '@marginly/common/math';
 
@@ -510,15 +511,27 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     );
   }
 
-  public async deployMarginlyPriceAdapter(pool: MarginlyConfigSwapPool): Promise<DeployResult> {
-    const {
-      priceProvider: { basePriceProvider, quotePriceProvider },
-      id,
-    } = pool;
+  public async deployMarginlyPriceAdapter(
+    basePriceProvider: EthAddress,
+    quotePriceProvider: EthAddress,
+    poolId: string
+  ): Promise<DeployResult> {
     return this.deploy(
       'PriceAdapter',
       [basePriceProvider.toString(), quotePriceProvider.toString()],
-      `priceAdapter_${id}`,
+      `priceAdapter_${poolId}`,
+      this.readMarginlyPeripheryContract
+    );
+  }
+
+  public async deployPriceProviderMock(priceProviderMock: PriceProviderMock, id: string): Promise<DeployResult> {
+    return this.deploy(
+      'ChainlinkAggregatorV3Mock',
+      [
+        priceProviderMock.answer.mul(BigNumber.from(10).pow(priceProviderMock.decimals)).toInteger(),
+        priceProviderMock.decimals,
+      ],
+      `priceProviderMock_${id}`,
       this.readMarginlyPeripheryContract
     );
   }
