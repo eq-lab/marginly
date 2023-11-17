@@ -30,6 +30,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   private readonly readAaveContract;
   private readonly readMarginlyMockContract;
   private readonly readMarginlyPeripheryContract;
+  private readonly readMarginlyPeripheryMockContract;
   private readonly deploy;
   private readonly signer;
   private readonly ethArgs;
@@ -44,6 +45,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     this.readAaveContract = createAaveContractReader();
     this.readMarginlyMockContract = createMarginlyMockContractReader();
     this.readMarginlyPeripheryContract = createMarginlyPeripheryContractReader();
+    this.readMarginlyPeripheryMockContract = createMarginlyPeripheryMockContract();
     this.deploy = deployTemplate(signer, ethArgs, this.readMarginlyContract, stateStore, logger);
     this.ethArgs = ethArgs;
     this.signer = signer;
@@ -532,7 +534,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         priceProviderMock.decimals,
       ],
       `priceProviderMock_${id}`,
-      this.readMarginlyPeripheryContract
+      this.readMarginlyPeripheryMockContract
     );
   }
 
@@ -579,6 +581,12 @@ function createMarginlyMockContractReader(): ContractReader {
 function createMarginlyPeripheryContractReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@marginly/periphery/artifacts/contracts/${name}.sol/${name}.json`);
+  };
+}
+
+function createMarginlyPeripheryMockContract(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/periphery/artifacts/contracts/test/${name}.sol/${name}.json`);
   };
 }
 
