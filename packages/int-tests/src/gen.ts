@@ -105,6 +105,21 @@ const defsUniswapV2MarginlyAdapter = genDefinitions(
 );
 writeFileSync(`./src/contract-api/UniswapV2MarginlyAdapter.ts`, defsUniswapV2MarginlyAdapter);
 
+const defsDodoV1MarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/DodoV1Adapter.sol/DodoV1Adapter.json`),
+  `@marginly/router/artifacts/contracts/adapters/DodoV1Adapter.sol/DodoV1Adapter.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/DodoV1MarginlyAdapter.ts`, defsDodoV1MarginlyAdapter);
+
+const defsDodoV2MarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/DodoV2Adapter.sol/DodoV2Adapter.json`),
+  `@marginly/router/artifacts/contracts/adapters/DodoV2Adapter.sol/DodoV2Adapter.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/DodoV2MarginlyAdapter.ts`, defsDodoV2MarginlyAdapter);
+
+
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),
 //   `@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`,

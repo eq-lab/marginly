@@ -25,6 +25,9 @@ export const Dex = {
   SushiSwap: 7,
   TraderJoe: 8,
   Woofi: 9,
+  Ramses: 10,
+  DodoV1: 11,
+  DodoV2: 12,
 };
 
 export const SWAP_ONE = 1 << 15;
