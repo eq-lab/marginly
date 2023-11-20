@@ -1,5 +1,11 @@
 import { ethers } from 'hardhat';
-import { Aggregator, MockMarginlyPoolWithPriceAdapter, PriceAdapter, SwapPoolRegistry, TestUniswapV3Factory } from '../../typechain-types';
+import {
+  ChainlinkAggregatorV3Mock,
+  MockMarginlyPoolWithPriceAdapter,
+  PriceAdapter,
+  SwapPoolRegistry,
+  TestUniswapV3Factory,
+} from '../../typechain-types';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 

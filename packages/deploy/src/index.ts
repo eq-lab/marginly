@@ -20,6 +20,7 @@ import {
   StrictMarginlyDeployConfig,
 } from './deployer/configs';
 import { Contract } from 'ethers';
+import { DeployResult } from './common/interfaces';
 
 export { DeployConfig } from './config';
 export { DeployState, StateStore, BaseState, MarginlyDeployment, mergeMarginlyDeployments } from './common';
@@ -211,14 +212,59 @@ export async function deployMarginly(
 
         return EthAddress.parse(uniswapRouterDeploymentResult.address);
       } else if (isMarginlyConfigSwapPoolRegistry(config.uniswap)) {
-        // TODO: deploy swap pools (special pools implementing uniswap V3 interface acts like uniswap v3 like TWAP)
-
         const swapPoolRegistryConfig = config.uniswap;
+        const priceAdapters: EthAddress[] = [];
+        const priceProvidersMockDeployAddresses = new Map<string, string>();
+        for (const pool of swapPoolRegistryConfig.pools) {
+          if (pool.priceAdapter.priceProvidersMock !== undefined) {
+            const { basePriceProviderMock, quotePriceProviderMock } = pool.priceAdapter.priceProvidersMock;
+            for (const { priceProviderMock, tag } of [
+              { priceProviderMock: basePriceProviderMock, tag: 'base' },
+              { priceProviderMock: quotePriceProviderMock, tag: 'quote' },
+            ]) {
+              if (priceProviderMock !== undefined) {
+                await using(logger.beginScope('Deploy PriceProviderMock'), async () => {
+                  const deployResult = await marginlyDeployer.deployPriceProviderMock(
+                    priceProviderMock,
+                    `${tag}_${pool.id}`
+                  );
+                  printDeployState(`PriceProviderMock`, deployResult, logger);
+                  priceProvidersMockDeployAddresses.set(tag, deployResult.address);
+                });
+              }
+            }
+          }
+
+          const basePriceProviderMockAddress = priceProvidersMockDeployAddresses.get('base');
+          const basePriceProvider =
+            basePriceProviderMockAddress === undefined
+              ? pool.priceAdapter.basePriceProvider!
+              : EthAddress.parse(basePriceProviderMockAddress);
+
+          const quotePriceProviderMockAddress = priceProvidersMockDeployAddresses.get('quote');
+          const quotePriceProvider =
+            quotePriceProviderMockAddress === undefined
+              ? pool.priceAdapter.quotePriceProvider || EthAddress.parse('0x0000000000000000000000000000000000000000')
+              : EthAddress.parse(quotePriceProviderMockAddress);
+
+          const priceAdapterDeployResult = await using(logger.beginScope('Deploy PriceAdapter'), async () => {
+            const deployResult = await marginlyDeployer.deployMarginlyPriceAdapter(
+              basePriceProvider,
+              quotePriceProvider,
+              pool.id
+            );
+            printDeployState(`PriceAdapter`, deployResult, logger);
+            return deployResult;
+          });
+          priceAdapters.push(EthAddress.parse(priceAdapterDeployResult.address));
+        }
+
         const swapPoolDeploymentResult = await using(logger.beginScope('Deploy SwapPoolRegistry'), async () => {
           const deployResult = await marginlyDeployer.deploySwapPoolRegistry(
             tokenRepository,
             swapPoolRegistryConfig.factory,
-            swapPoolRegistryConfig.pools
+            swapPoolRegistryConfig.pools,
+            priceAdapters
           );
           printDeployState(`SwapPoolRegistry`, deployResult, logger);
           return deployResult;
