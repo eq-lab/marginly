@@ -19,10 +19,12 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface BalancerAdapterInterface extends utils.Interface {
   functions: {
+    'acceptOwnership()': utils.FunctionFragment;
     'addPools(tuple[])': utils.FunctionFragment;
     'balancerVault()': utils.FunctionFragment;
     'getPool(address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
+    'pendingOwner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
     'swapExactInput(address,address,address,uint256,uint256,bytes)': utils.FunctionFragment;
     'swapExactOutput(address,address,address,uint256,uint256,bytes)': utils.FunctionFragment;
@@ -31,10 +33,12 @@ export interface BalancerAdapterInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | 'acceptOwnership'
       | 'addPools'
       | 'balancerVault'
       | 'getPool'
       | 'owner'
+      | 'pendingOwner'
       | 'renounceOwnership'
       | 'swapExactInput'
       | 'swapExactOutput'
@@ -49,6 +53,7 @@ export interface BalancerAdapterContract extends BaseContract {
 
   interface: BalancerAdapterInterface;
 
+  acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   addPools(
     pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
     override?: Overrides & { from?: PromiseOrValue<string> }
@@ -56,6 +61,7 @@ export interface BalancerAdapterContract extends BaseContract {
   balancerVault(override?: CallOverrides): Promise<string>;
   getPool(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, override?: CallOverrides): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
+  pendingOwner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapExactInput(
     recipient: PromiseOrValue<string>,
@@ -84,8 +90,10 @@ export interface BalancerAdapterContract extends BaseContract {
     balancerVault(override?: CallOverrides): Promise<[string]>;
     getPool(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
+    pendingOwner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     addPools(
       pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -115,6 +123,7 @@ export interface BalancerAdapterContract extends BaseContract {
     ): Promise<BigNumber>;
   };
   populateTransaction: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     addPools(
       pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -144,6 +153,7 @@ export interface BalancerAdapterContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     addPools(
       pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }

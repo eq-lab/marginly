@@ -5,7 +5,7 @@ import { createMarginlyFactory } from './shared/fixtures';
 import snapshotGasCost from '@uniswap/snapshot-gas-cost';
 import { MarginlyPool } from '../typechain-types';
 import { ethers } from 'hardhat';
-import { PositionType } from './shared/utils';
+import { PositionType, ZERO_ADDRESS } from './shared/utils';
 
 describe('MarginlyFactory', () => {
   function getPoolParams() {
@@ -14,9 +14,9 @@ describe('MarginlyFactory', () => {
       fee: 10000, //1%
       maxLeverage: 20,
       swapFee: 1000, // 0.1%
-      positionSlippage: 20000, // 2%
       mcSlippage: 50000, //5%
       priceSecondsAgo: 900, // 15 min
+      priceSecondsAgoMC: 60, // 1 min
       positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000_000,
     };
@@ -50,7 +50,7 @@ describe('MarginlyFactory', () => {
     const newAddress = factory.address;
 
     await factory.changeSwapRouter(newAddress);
-    
+
     const currentRouterAddress = await factory.swapRouter();
     expect(currentRouterAddress).to.be.not.eq(routerAddress);
     expect(currentRouterAddress).to.be.eq(newAddress);
@@ -63,17 +63,23 @@ describe('MarginlyFactory', () => {
     const { fee, params } = getPoolParams();
 
     await factory.createPool(quoteToken, baseToken, fee, params);
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWith('Pool already created');
+    await expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'PoolAlreadyCreated'
+    );
   });
 
   it('should raise error when Uniswap pool not found for pair', async () => {
     const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
 
     const quoteToken = uniswapPoolInfo.token1.address;
-    const baseToken = uniswapPoolInfo.token1.address;
+    const randomAddress = factory.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWith('Uniswap pool not found');
+    await expect(factory.createPool(quoteToken, randomAddress, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'UniswapPoolNotFound'
+    );
   });
 
   it('should raise error when trying to create pool with the same tokens', async () => {
@@ -81,6 +87,39 @@ describe('MarginlyFactory', () => {
     const quoteToken = uniswapPoolInfo.token0.address;
     const { fee, params } = getPoolParams();
 
-    expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithoutReason();
+    await expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithCustomError(
+      factory,
+      'Forbidden'
+    );
+  });
+
+  it('should raise error when trying to renounce ownership', async () => {
+    const { factory } = await loadFixture(createMarginlyFactory);
+
+    await expect(factory.renounceOwnership()).to.be.revertedWithCustomError(factory, 'Forbidden');
+  });
+
+  it('should raise error when trying to deploy factory with wrong arguments', async () => {
+    const factoryFactory = await ethers.getContractFactory('MarginlyFactory');
+    const nonZeroAddress = '0x0000000000000000000000000000000000000001';
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const constructorArgs: [any, any, any, any, any, any] = [
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+      nonZeroAddress,
+    ];
+
+    for (let i = 0; i < 6; i++) {
+      constructorArgs[i] = ZERO_ADDRESS;
+      await expect(factoryFactory.deploy.call(factoryFactory, ...constructorArgs)).to.be.revertedWithCustomError(
+        factoryFactory,
+        'WrongValue'
+      );
+      constructorArgs[i] = nonZeroAddress;
+    }
   });
 });

@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
+import 'solidity-docgen';
 
 const config = {
   solidity: {
@@ -13,17 +14,26 @@ const config = {
     },
   },
   networks: {
+    hardhat: {
+      accounts: {
+        count: 30,
+      },
+    },
     polygonMumbai: {
       url: 'https://rpc.ankr.com/polygon_mumbai',
     },
     arbitrumGoerli: {
       url: 'https://goerli-rollup.arbitrum.io/rpc',
     },
+    arbitrumOne: {
+      url: 'https://arb1.arbitrum.io/rpc',
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.API_KEY,
       arbitrumGoerli: process.env.API_KEY,
+      arbitrumOne: process.env.API_KEY,
     },
   },
   mocha: {
@@ -48,6 +58,13 @@ const config = {
     strict: false,
     only: ['Marginly'],
     except: ['Mock', 'Test'],
+  },
+  docgen: {
+    outputDir: './docs',
+    templates: './docgen-templates',
+    clear: true,
+    pages: 'files',
+    exclude: ['test'],
   },
 };
 

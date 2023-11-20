@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@openzeppelin/contracts/proxy/Clones.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import './interfaces/IMarginlyFactory.sol';
 import './dataTypes/MarginlyParams.sol';
@@ -13,10 +13,8 @@ import './MarginlyPool.sol';
 
 /// @title Marginly contract factory
 /// @notice Deploys Marginly and manages ownership and control over pool
-contract MarginlyFactory is IMarginlyFactory {
+contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
   address public immutable marginlyPoolImplementation;
-  /// @inheritdoc IOwnable
-  address public override owner;
   /// @notice Address of uniswap factory
   address public immutable uniswapFactory;
   /// @notice Address of uniswap swap router
@@ -39,8 +37,14 @@ contract MarginlyFactory is IMarginlyFactory {
     address _WETH9,
     address _techPositionOwner
   ) {
-    owner = msg.sender;
-    emit OwnerChanged(address(0), msg.sender);
+    if (
+      _marginlyPoolImplementation == address(0) ||
+      _uniswapFactory == address(0) ||
+      _swapRouter == address(0) ||
+      _feeHolder == address(0) ||
+      _WETH9 == address(0) ||
+      _techPositionOwner == address(0)
+    ) revert Errors.WrongValue();
 
     marginlyPoolImplementation = _marginlyPoolImplementation;
     uniswapFactory = _uniswapFactory;
@@ -50,22 +54,14 @@ contract MarginlyFactory is IMarginlyFactory {
     techPositionOwner = _techPositionOwner;
   }
 
-  /// @inheritdoc IOwnable
-  function setOwner(address _owner) external override {
-    if (msg.sender != owner) revert Errors.NotOwner();
-    owner = _owner;
-    emit OwnerChanged(msg.sender, _owner);
-  }
-
   /// @inheritdoc IMarginlyFactory
   function createPool(
     address quoteToken,
     address baseToken,
     uint24 uniswapFee,
     MarginlyParams calldata params
-  ) external override returns (address pool) {
-    if (msg.sender != owner) revert Errors.NotOwner();
-    require(quoteToken != baseToken);
+  ) external override onlyOwner returns (address pool) {
+    if (quoteToken == baseToken) revert Errors.Forbidden();
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
     if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
@@ -85,10 +81,13 @@ contract MarginlyFactory is IMarginlyFactory {
   }
 
   /// @inheritdoc IMarginlyFactory
-  function changeSwapRouter(address newSwapRouter) external {
-    require(msg.sender == owner, 'NO'); // Not an owner
-    require(newSwapRouter != address(0));
-
+  function changeSwapRouter(address newSwapRouter) external onlyOwner {
+    if (newSwapRouter == address(0)) revert Errors.WrongValue();
     swapRouter = newSwapRouter;
+    emit SwapRouterChanged(newSwapRouter);
+  }
+
+  function renounceOwnership() public override onlyOwner {
+    revert Errors.Forbidden();
   }
 }

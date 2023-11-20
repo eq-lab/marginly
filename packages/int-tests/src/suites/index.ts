@@ -1,4 +1,4 @@
-import { Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 import { logger } from '../utils/logger';
 import { Web3Provider } from '@ethersproject/providers';
 import { initUsdc, initWeth } from '../utils/erc20-init';
@@ -39,6 +39,9 @@ import {
 } from './deleveragePrecision';
 import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
 import { routerSwaps, routerMultipleSwaps } from './router';
+import DodoV1MarginlyAdapter from '../contract-api/DodoV1MarginlyAdapter';
+import DodoV2MarginlyAdapter from '../contract-api/DodoV2MarginlyAdapter';
+import { parseUnits } from 'ethers/lib/utils';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -93,25 +96,43 @@ async function initializeTestSystem(
   logger.info(`uniswap pool for WETH/USDC ${uniswap.address}`);
 
   const uniswapAdapter = await UniswapV3MarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: uniswap.address}],
-    treasury,
+    [{ token0: weth.address, token1: usdc.address, pool: uniswap.address }],
+    treasury
   );
 
   const kyberClassicAdapter = await KyberClassicMarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76'}],
-    treasury,
+    [{ token0: weth.address, token1: usdc.address, pool: '0xD6f8E8068012622d995744cc135A7e8e680E2E76' }],
+    treasury
   );
 
   const sushiSwapAdapter = await UniswapV2MarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0'}],
-    treasury,
+    [{ token0: weth.address, token1: usdc.address, pool: '0x397FF1542f962076d0BFE58eA045FfA2d347ACa0' }],
+    treasury
   );
 
   const balancerVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
   const balancerAdapter = await BalancerMarginlyAdapter.deploy(
-    [{token0: weth.address, token1: usdc.address, pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8'}],
+    [{ token0: weth.address, token1: usdc.address, pool: '0x96646936b91d6b9d7d0c47c496afbf3d6ec7b6f8' }],
     balancerVault,
-    treasury,
+    treasury
+  );
+
+  const dodoV1Adapter = await DodoV1MarginlyAdapter.deploy(
+    [{ token0: weth.address, token1: usdc.address, pool: '0x75c23271661d9d143DCb617222BC4BEc783eff34' }],
+    treasury
+  );
+
+  const dodoV2Pool = '0xCFA990E9c104F6DB3fbECEe04ad211c39ED3830F';
+  await weth.connect(treasury).transfer(dodoV2Pool, parseUnits('110', 18));
+  await usdc.connect(treasury).transfer(dodoV2Pool, parseUnits('100000', 6));
+  const dodoV2SyncAbi = 
+    '[{"inputs": [], "name": "sync", "outputs": [], "stateMutability": "nonpayable", "type": "function"}]';
+  const dodoV2 = new ethers.Contract(dodoV2Pool, dodoV2SyncAbi);
+  await dodoV2.connect(treasury).sync();
+
+  const dodoV2Adapter = await DodoV2MarginlyAdapter.deploy(
+    [{ token0: weth.address, token1: usdc.address, pool: dodoV2Pool }],
+    treasury
   );
 
   const routerConstructorInput = [];
@@ -130,6 +151,14 @@ async function initializeTestSystem(
   routerConstructorInput.push({
     dexIndex: Dex.SushiSwap,
     adapter: sushiSwapAdapter.address,
+  });
+  routerConstructorInput.push({
+    dexIndex: Dex.DodoV1,
+    adapter: dodoV1Adapter.address,
+  });
+  routerConstructorInput.push({
+    dexIndex: Dex.DodoV2,
+    adapter: dodoV2Adapter.address,
   });
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
@@ -155,6 +184,7 @@ async function initializeTestSystem(
     maxLeverage: 20n,
     swapFee: 1000, // 0.1%
     priceSecondsAgo: 900n, // 15 min
+    priceSecondsAgoMC: 60n, // 1 min
     positionSlippage: 20000, // 2%
     mcSlippage: 50000, //5%
     positionMinAmount: 10000000000000000n, // 0,01 ETH

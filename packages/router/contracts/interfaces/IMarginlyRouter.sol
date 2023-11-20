@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '../abstract/AdapterCallback.sol';
 import '../abstract/RouterStorage.sol';
@@ -9,6 +9,8 @@ interface IMarginlyRouter {
   error ZeroAmount();
   /// @notice Emitted if balance difference doesn't equal amountOut
   error WrongAmountOut();
+  /// @notice Emitted when trying to renounce ownership
+  error Forbidden();
 
   /// @notice Emitted when swap happened
   /// @param isExactInput true if swapExactInput, false if swapExactOutput

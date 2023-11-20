@@ -13,8 +13,9 @@ import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.so
 import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
 import './NoDelegateCall.sol';
+import './AllowListSupport.sol';
 
-contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents {
+contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents, AllowListSupport {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
     using SafeCast for uint256;
@@ -25,7 +26,8 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
     event SetPrice(uint256 price, uint160 sqrtPriceX96);
 
     bytes32 public constant ORACLE_ROLE = keccak256('ORACLE_ROLE');
-    uint256 public constant PRICE_DENOMINATOR = 10 ** 18;
+    uint256 public constant PRICE_DENOMINATOR = 10 ** 27;
+    uint256 public constant FEE_DENOMINATOR = 1000000;
 
     address public immutable token0;
     address public immutable token1;
@@ -185,6 +187,8 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         uint160 sqrtPriceLimitX96,
         bytes calldata data
     ) external lock noDelegateCall returns (int256 amount0, int256 amount1) {
+        require(isAccountAllowed(msg.sender), 'NA');
+
         require(amountSpecified != 0, 'AS');
 
         require(
@@ -198,19 +202,21 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         uint256 amountSpecifiedAbs = uint256(amountSpecified >= 0 ? amountSpecified : - amountSpecified);
 
         if (exactInput) {
+            uint256 amountAfterFee = FullMath.mulDiv(amountSpecifiedAbs, FEE_DENOMINATOR - uint256(fee), FEE_DENOMINATOR);
             if (zeroForOne) {
                 amount0 = amountSpecified;
-                amount1 = - FullMath.mulDiv(amountSpecifiedAbs, latestPrice, PRICE_DENOMINATOR).toInt256();
+                amount1 = - FullMath.mulDiv(amountAfterFee, latestPrice, PRICE_DENOMINATOR).toInt256();
             } else {
                 amount1 = amountSpecified;
-                amount0 = - FullMath.mulDiv(amountSpecifiedAbs, PRICE_DENOMINATOR, latestPrice).toInt256();
+                amount0 = - FullMath.mulDiv(amountAfterFee, PRICE_DENOMINATOR, latestPrice).toInt256();
             }
         } else {
+            uint256 amountBeforeFee = FullMath.mulDiv(amountSpecifiedAbs, FEE_DENOMINATOR, FEE_DENOMINATOR - uint256(fee));
             if (zeroForOne) {
-                amount0 = FullMath.mulDiv(amountSpecifiedAbs, PRICE_DENOMINATOR, latestPrice).toInt256();
+                amount0 = FullMath.mulDiv(amountBeforeFee, PRICE_DENOMINATOR, latestPrice).toInt256();
                 amount1 = amountSpecified;
             } else {
-                amount1 = FullMath.mulDiv(amountSpecifiedAbs, latestPrice, PRICE_DENOMINATOR).toInt256();
+                amount1 = FullMath.mulDiv(amountBeforeFee, latestPrice, PRICE_DENOMINATOR).toInt256();
                 amount0 = amountSpecified;
             }
         }

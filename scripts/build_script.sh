@@ -14,6 +14,10 @@ echo "build router"
 yarn workspace @marginly/router install
 yarn workspace @marginly/router compile
 
+echo "build periphery"
+yarn workspace @marginly/periphery install
+yarn workspace @marginly/periphery compile
+
 echo "build common"
 yarn workspace @marginly/common install
 yarn workspace @marginly/common build
@@ -34,7 +38,6 @@ echo "build deploy"
 yarn workspace @marginly/deploy install
 yarn workspace @marginly/deploy build
 
-
 echo "build keeper"
 yarn workspace @marginly/keeper install
 yarn workspace @marginly/keeper build
@@ -45,6 +48,7 @@ yarn workspace @marginly/oracle build
 
 echo "build sbt"
 yarn workspace @marginly/sbt install
+yarn workspace @marginly/sbt typechain
 yarn workspace @marginly/sbt compile
 yarn workspace @marginly/sbt build
 

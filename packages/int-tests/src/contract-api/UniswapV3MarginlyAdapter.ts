@@ -22,9 +22,11 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface UniswapV3AdapterInterface extends utils.Interface {
   functions: {
+    'acceptOwnership()': utils.FunctionFragment;
     'addPools(tuple[])': utils.FunctionFragment;
     'getPool(address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
+    'pendingOwner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
     'swapExactInput(address,address,address,uint256,uint256,bytes)': utils.FunctionFragment;
     'swapExactOutput(address,address,address,uint256,uint256,bytes)': utils.FunctionFragment;
@@ -34,9 +36,11 @@ export interface UniswapV3AdapterInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | 'acceptOwnership'
       | 'addPools'
       | 'getPool'
       | 'owner'
+      | 'pendingOwner'
       | 'renounceOwnership'
       | 'swapExactInput'
       | 'swapExactOutput'
@@ -52,12 +56,14 @@ export interface UniswapV3AdapterContract extends BaseContract {
 
   interface: UniswapV3AdapterInterface;
 
+  acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   addPools(
     pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   getPool(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, override?: CallOverrides): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
+  pendingOwner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapExactInput(
     recipient: PromiseOrValue<string>,
@@ -91,8 +97,10 @@ export interface UniswapV3AdapterContract extends BaseContract {
   functions: {
     getPool(arg0: PromiseOrValue<string>, arg1: PromiseOrValue<string>, override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
+    pendingOwner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     addPools(
       pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -128,6 +136,7 @@ export interface UniswapV3AdapterContract extends BaseContract {
     ): Promise<BigNumber>;
   };
   populateTransaction: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     addPools(
       pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -163,6 +172,7 @@ export interface UniswapV3AdapterContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     addPools(
       pools: PromiseOrValue<{ token0: string; token1: string; pool: string }[]>,
       override?: Overrides & { from?: PromiseOrValue<string> }
