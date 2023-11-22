@@ -1499,6 +1499,8 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function getTimestamp() internal view virtual returns (uint256) {
+    // test change
+    1 + 1;
     return block.timestamp;
   }
 }
