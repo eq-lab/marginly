@@ -6,11 +6,11 @@ on:
       - 'packages/contracts-uniswap-mock'
   pull_request:
     paths:
-     - 'packages/common/**'
+      - 'packages/common/**'
       - 'packages/contracts-uniswap-mock'
   workflow_dispatch:
     paths:
-     - 'packages/common/**'
+      - 'packages/common/**'
       - 'packages/contracts-uniswap-mock'
 jobs:
     unit_tests:
