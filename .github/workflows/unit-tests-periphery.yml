@@ -1,10 +1,14 @@
 name: Unit tests periphery
 on:
   push:
+    paths:
+      - 'packages/periphery/**'
   pull_request:
+    paths:
+      - 'packages/periphery/**'
   workflow_dispatch:
-  paths:
-    - packages/periphery
+    paths:
+      - 'packages/periphery/**'
 jobs:
     unit_tests:
         runs-on: ubuntu-latest

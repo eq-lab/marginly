@@ -1,11 +1,17 @@
 name: Unit tests uniswap mock
 on:
   push:
+    paths:
+      - 'packages/common/**'
+      - 'packages/contracts-uniswap-mock'
   pull_request:
+    paths:
+     - 'packages/common/**'
+      - 'packages/contracts-uniswap-mock'
   workflow_dispatch:
-  paths:
-    - packages/common
-    - packages/contracts-uniswap-mock
+    paths:
+     - 'packages/common/**'
+      - 'packages/contracts-uniswap-mock'
 jobs:
     unit_tests:
         runs-on: ubuntu-latest
