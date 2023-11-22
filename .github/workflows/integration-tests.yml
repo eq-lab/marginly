@@ -6,13 +6,19 @@ on:
       - main
     tags:
       - 'v*'
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/router/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/router/**'
   workflow_dispatch:
     paths:
-      - packages/contracts
-      - packages/router
+      - 'packages/contracts/**'
+      - 'packages/router/**'
 
 jobs:
   integration_tests:
