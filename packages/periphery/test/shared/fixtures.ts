@@ -93,8 +93,8 @@ export async function createSwapPoolRegistry(): Promise<{
   };
 }
 
-export async function createChainlinkAggregator(price: bigint, decimals: bigint): Promise<Aggregator> {
-  const factory = await ethers.getContractFactory('Aggregator');
+export async function createChainlinkAggregator(price: bigint, decimals: bigint): Promise<ChainlinkAggregatorV3Mock> {
+  const factory = await ethers.getContractFactory('ChainlinkAggregatorV3Mock');
   return factory.deploy(price, decimals);
 }
 
@@ -111,8 +111,8 @@ export function createMarginlyPoolWithPriceAdapter(
   quotePrice: { price: bigint; decimals: bigint } | null
 ) {
   async function inner(): Promise<{
-    chainlinkAggregatorBase: Aggregator;
-    chainlinkAggregatorQuote: Aggregator | null;
+    chainlinkAggregatorBase: ChainlinkAggregatorV3Mock;
+    chainlinkAggregatorQuote: ChainlinkAggregatorV3Mock | null;
     priceAdapter: PriceAdapter;
     marginlyPoolWithPriceAdapter: MockMarginlyPoolWithPriceAdapter;
   }> {
