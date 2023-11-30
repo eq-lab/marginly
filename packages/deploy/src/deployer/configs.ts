@@ -185,7 +185,7 @@ export class StrictMarginlyDeployConfig {
   public readonly marginlyFactory: MarginlyFactoryConfig;
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
   public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
-  public readonly marginlyRouter: MarginlyConfigMarginlyRouter;
+  public readonly marginlyAdapters: MarginlyConfigAdapter[];
 
   private constructor(
     connection: EthConnectionConfig,
@@ -194,7 +194,7 @@ export class StrictMarginlyDeployConfig {
     tokens: MarginlyConfigToken[],
     marginlyPools: MarginlyConfigMarginlyPool[],
     marginlyKeeper: MarginlyConfigMarginlyKeeper,
-    marginlyRouter: MarginlyConfigMarginlyRouter
+    marginlyAdapters: MarginlyConfigAdapter[]
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
@@ -202,7 +202,7 @@ export class StrictMarginlyDeployConfig {
     this.tokens = tokens;
     this.marginlyPools = marginlyPools;
     this.marginlyKeeper = marginlyKeeper;
-    this.marginlyRouter = marginlyRouter;
+    this.marginlyAdapters = marginlyAdapters;
   }
 
   public static async fromConfig(logger: Logger, config: MarginlyDeployConfig): Promise<StrictMarginlyDeployConfig> {
@@ -541,8 +541,6 @@ export class StrictMarginlyDeployConfig {
       });
     }
 
-    const marginlyRouter: MarginlyConfigMarginlyRouter = { adapters };
-
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
       aavePoolAddressesProvider: {
         address: config.marginlyKeeper.aavePoolAddressesProvider.address
@@ -568,7 +566,7 @@ export class StrictMarginlyDeployConfig {
       Array.from(tokens.values()),
       marginlyPools,
       marginlyKeeper,
-      marginlyRouter
+      adapters
     );
   }
 }

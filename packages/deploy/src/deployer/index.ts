@@ -12,7 +12,13 @@ import {
   readUniswapMockContract,
   StateStore,
 } from '../common';
-import { DeployResult, IMarginlyDeployer, ITokenRepository, LimitedDeployResult } from '../common/interfaces';
+import {
+  AdapterDeployResult,
+  DeployResult,
+  IMarginlyDeployer,
+  ITokenRepository,
+  LimitedDeployResult,
+} from '../common/interfaces';
 import {
   MarginlyAdapterParam,
   MarginlyConfigMarginlyPool,
@@ -32,11 +38,11 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   private readonly readMarginlyPeripheryContract;
   private readonly readMarginlyPeripheryMockContract;
   private readonly deploy;
-  private readonly signer;
   private readonly ethArgs;
   private readonly provider;
   private readonly stateStore;
-  private readonly logger;
+  public readonly signer;
+  public readonly logger;
 
   public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
     this.readMarginlyContract = createMarginlyContractReader();
@@ -428,8 +434,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);
   }
 
-  public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
-    const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
+  public async deployMarginlyRouter(adapters: AdapterDeployResult[]): Promise<DeployResult> {
+    const args = [adapters.map((x) => [x.dexId.toNumber(), x.address])];
     return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
   }
 
