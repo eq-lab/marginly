@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
 import '@marginly/contracts/contracts/libraries/Errors.sol';
 import '@marginly/router/contracts/MarginlyRouter.sol';
@@ -9,7 +8,7 @@ import '@marginly/router/contracts/abstract/AdapterStorage.sol';
 
 import './MarginlyAdminStorage.sol';
 
-abstract contract AdapterActions is MarginlyAdminStorage, Ownable2Step {
+abstract contract AdapterActions is MarginlyAdminStorage {
   /// @dev Add pools to router adapter storage. Allowed only for MarginlyPoolAdmin owner
   /// @param pools New pool parameters
   function addPools(PoolInput[] calldata pools) external onlyOwner {

@@ -1,33 +1,19 @@
 import { expect } from 'chai';
 import { loadFixture, setBalance } from '@nomicfoundation/hardhat-network-helpers';
-import { MarginlyParamsStruct } from '@marginly/contracts/typechain-types/contracts/MarginlyFactory';
 import {
   attachAdapterStorage,
   attachMarginlyPool,
   createMarginlyPoolAdmin,
+  createMarginlyPoolAdminSetOwner,
   createUniswapPool,
+  getPoolParams,
   UniswapV3DexIndex,
 } from './shared/utils';
 import { ethers } from 'hardhat';
 import { PoolInputStruct, AdapterInputStruct } from '../typechain-types/contracts/MarginlyAdmin';
+import { ZERO_ADDRESS } from './shared/fixtures';
 
 describe('MarginlyPoolAdmin', () => {
-  function getPoolParams() {
-    const params: MarginlyParamsStruct = {
-      interestRate: 54000, //5,4 %
-      fee: 10000, //1%
-      maxLeverage: 20,
-      swapFee: 1000, // 0.1%
-      mcSlippage: 50000, //5%
-      priceSecondsAgo: 900, // 15 min
-      priceSecondsAgoMC: 900, // 15 min
-      positionMinAmount: 1, // 1 WEI
-      quoteLimit: 1_000_000_000_000,
-    };
-
-    return { fee: 3000n, params };
-  }
-
   it('createPool', async () => {
     const { marginlyPoolAdmin, marginlyFactory, uniswapFactory } = await loadFixture(createMarginlyPoolAdmin);
 
@@ -150,7 +136,7 @@ describe('MarginlyPoolAdmin', () => {
     await uniswapFactory.addPool(uniswapPool.address);
 
     const [rootSigner, signer1] = await ethers.getSigners();
-    
+
     const oldSwapRouter = await marginlyFactory.swapRouter();
 
     await expect(marginlyPoolAdmin.connect(signer1).changeSwapRouter(uniswapPool.address)).to.be.revertedWith(
@@ -327,5 +313,68 @@ describe('MarginlyPoolAdmin', () => {
     await marginlyPoolAdmin.connect(rootSigner).transferRouterAdapterOwnership(0, newOwner.address);
     await routerAdapter.connect(newOwner).acceptOwnership();
     expect(await routerAdapter.owner()).to.be.equal(newOwner.address);
+  });
+
+  it('setPoolOwnership success', async () => {
+    const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
+
+    const oldPoolOwner = await marginlyPoolAdmin.poolsOwners(existingMarginlyPool.address);
+    expect(oldPoolOwner).to.be.eq(ZERO_ADDRESS);
+
+    await marginlyPoolAdmin
+      .connect(owner)
+      .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee);
+
+    const newPoolOwner = await marginlyPoolAdmin.poolsOwners(existingMarginlyPool.address);
+    expect(newPoolOwner).to.be.eq(owner.address);
+  });
+
+  it('setPoolOwnership not admin contract owner', async () => {
+    const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
+    const wrongSigner = (await ethers.getSigners())[1];
+
+    await expect(
+      marginlyPoolAdmin
+        .connect(wrongSigner)
+        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee)
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+  });
+
+  it('setPoolOwnership not admin contract owner', async () => {
+    const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
+    const wrongSigner = (await ethers.getSigners())[1];
+
+    await expect(
+      marginlyPoolAdmin
+        .connect(wrongSigner)
+        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee)
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+  });
+
+  it('setPoolOwnership unknown pool', async () => {
+    const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
+
+    const wrongFee = 1n;
+    expect(wrongFee).to.be.not.eq(existingMarginlyPool.fee);
+
+    await expect(
+      marginlyPoolAdmin
+        .connect(owner)
+        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, wrongFee)
+    ).to.be.revertedWithCustomError(marginlyPoolAdmin, 'NonExistentPool');
+  });
+
+  it('setPoolOwnership pool already has owner', async () => {
+    const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
+
+    await marginlyPoolAdmin
+      .connect(owner)
+      .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee);
+
+    await expect(
+      marginlyPoolAdmin
+        .connect(owner)
+        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee)
+    ).to.be.revertedWithCustomError(marginlyPoolAdmin, 'Forbidden');
   });
 });

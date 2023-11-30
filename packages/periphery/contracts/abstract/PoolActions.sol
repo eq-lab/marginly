@@ -44,6 +44,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
     }
 
     poolsOwners[marginlyPoolAddress] = msg.sender;
+    emit NewPoolOwner(marginlyPoolAddress, msg.sender);
   }
 
   /// @dev Set new params for a Marginly pool. Allowed only for pool owner
@@ -80,6 +81,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
   function transferMarginlyPoolOwnership(address marginlyPool, address to) external {
     if (msg.sender != poolsOwners[marginlyPool]) revert Errors.NotOwner();
     poolsOwners[marginlyPool] = to;
+    emit NewPoolOwner(marginlyPool, to);
   }
 
   /// @dev This function is required for the sweepETH successful execution
