@@ -22,7 +22,8 @@ async function createWeth9(): Promise<WETH9> {
 
 async function createUniswapV3PoolMock(oracle: string, tokenA: string, tokenB: string, fee: number): Promise<UniswapV3PoolMock> {
     const factory = await ethers.getContractFactory('UniswapV3PoolMock');
-    return await factory.deploy(oracle, tokenA, tokenB, fee);
+    const [signer] = await ethers.getSigners();
+    return await factory.connect(signer).deploy(signer.address, oracle, tokenA, tokenB, fee);
 }
 
 async function createSwapRouterMock(weth: string): Promise<SwapRouterMock> {
