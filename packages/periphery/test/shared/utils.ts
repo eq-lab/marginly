@@ -6,6 +6,7 @@ import {
   TestUniswapPool,
   TestERC20,
 } from '@marginly/contracts/typechain-types';
+import { MarginlyParamsStruct } from '@marginly/contracts/typechain-types/contracts/MarginlyFactory';
 import {
   MarginlyFactoryCompiled,
   MarginlyPoolCompiled,
@@ -29,6 +30,22 @@ export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
 export const TechnicalPositionOwner = '0xDda7021A2F58a2C6E0C800692Cde7893b4462FB3';
 
 export const UniswapV3DexIndex = 0;
+
+export function getPoolParams() {
+  const params: MarginlyParamsStruct = {
+    interestRate: 54000, //5,4 %
+    fee: 10000, //1%
+    maxLeverage: 20,
+    swapFee: 1000, // 0.1%
+    mcSlippage: 50000, //5%
+    priceSecondsAgo: 900, // 15 min
+    priceSecondsAgoMC: 900, // 15 min
+    positionMinAmount: 1, // 1 WEI
+    quoteLimit: 1_000_000_000_000,
+  };
+
+  return { fee: 3000n, params };
+}
 
 export async function createToken(name: string, symbol: string): Promise<TestERC20> {
   const [, signer] = await ethers.getSigners();
@@ -146,6 +163,50 @@ export async function createMarginlyPoolAdmin(): Promise<{
   await marginlyPoolAdmin.acceptRouterAdapterOwnership(0);
 
   return { marginlyPoolAdmin, marginlyFactory, uniswapFactory, marginlyRouter };
+}
+
+export async function createMarginlyPoolAdminSetOwner(): Promise<{
+  marginlyPoolAdmin: MarginlyAdmin;
+  existingMarginlyPool: {
+    address: string;
+    baseToken: string;
+    quoteToken: string;
+    fee: bigint;
+  };
+  owner: SignerWithAddress;
+}> {
+  const { marginlyFactory, uniswapFactory, marginlyRouter, uniswapV3Adapter, owner } = await createMarginlyFactory();
+
+  const marginlyPoolAdminFactory = await ethers.getContractFactory(
+    MarginlyPoolAdminCompiled.abi,
+    MarginlyPoolAdminCompiled.bytecode
+  );
+  const marginlyPoolAdmin = (await marginlyPoolAdminFactory.deploy(marginlyFactory.address)) as MarginlyPoolAdmin;
+
+  const { uniswapPool, token0, token1 } = await createUniswapPool();
+  await uniswapFactory.addPool(uniswapPool.address);
+  const { fee, params } = getPoolParams();
+  const tx = await (await marginlyFactory.createPool(token0.address, token1.address, fee, params)).wait();
+  const marginlyPoolCreationEvent = tx.events?.find((x) => x.event === 'PoolCreated')!;
+  const existingMarginlyPoolAddress = marginlyPoolCreationEvent.args![4];
+
+  await marginlyFactory.transferOwnership(marginlyPoolAdmin.address);
+  await marginlyPoolAdmin.acceptMarginlyFactoryOwnership();
+  await marginlyRouter.transferOwnership(marginlyPoolAdmin.address);
+  await marginlyPoolAdmin.acceptMarginlyRouterOwnership();
+  await uniswapV3Adapter.transferOwnership(marginlyPoolAdmin.address);
+  await marginlyPoolAdmin.acceptRouterAdapterOwnership(0);
+
+  return {
+    marginlyPoolAdmin,
+    existingMarginlyPool: {
+      address: existingMarginlyPoolAddress,
+      quoteToken: token0.address,
+      baseToken: token1.address,
+      fee,
+    },
+    owner,
+  };
 }
 
 export async function attachMarginlyPool(address: string): Promise<MarginlyPool> {
