@@ -315,7 +315,7 @@ describe('MarginlyPoolAdmin', () => {
     expect(await routerAdapter.owner()).to.be.equal(newOwner.address);
   });
 
-  it('setPoolOwnership success', async () => {
+  it('setPoolOwnership success msg.sender', async () => {
     const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
 
     const oldPoolOwner = await marginlyPoolAdmin.poolsOwners(existingMarginlyPool.address);
@@ -323,10 +323,37 @@ describe('MarginlyPoolAdmin', () => {
 
     await marginlyPoolAdmin
       .connect(owner)
-      .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee);
+      .setPoolOwnership(
+        existingMarginlyPool.baseToken,
+        existingMarginlyPool.quoteToken,
+        existingMarginlyPool.fee,
+        ZERO_ADDRESS
+      );
 
     const newPoolOwner = await marginlyPoolAdmin.poolsOwners(existingMarginlyPool.address);
     expect(newPoolOwner).to.be.eq(owner.address);
+  });
+
+  it('setPoolOwnership success other address', async () => {
+    const { marginlyPoolAdmin, existingMarginlyPool, owner } = await loadFixture(createMarginlyPoolAdminSetOwner);
+
+    const oldPoolOwner = await marginlyPoolAdmin.poolsOwners(existingMarginlyPool.address);
+    expect(oldPoolOwner).to.be.eq(ZERO_ADDRESS);
+
+    const poolOwner = (await ethers.getSigners())[10].address;
+    expect(poolOwner).to.be.not.eq(owner.address);
+
+    await marginlyPoolAdmin
+      .connect(owner)
+      .setPoolOwnership(
+        existingMarginlyPool.baseToken,
+        existingMarginlyPool.quoteToken,
+        existingMarginlyPool.fee,
+        poolOwner
+      );
+
+    const newPoolOwner = await marginlyPoolAdmin.poolsOwners(existingMarginlyPool.address);
+    expect(newPoolOwner).to.be.eq(poolOwner);
   });
 
   it('setPoolOwnership not admin contract owner', async () => {
@@ -336,7 +363,12 @@ describe('MarginlyPoolAdmin', () => {
     await expect(
       marginlyPoolAdmin
         .connect(wrongSigner)
-        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee)
+        .setPoolOwnership(
+          existingMarginlyPool.baseToken,
+          existingMarginlyPool.quoteToken,
+          existingMarginlyPool.fee,
+          ZERO_ADDRESS
+        )
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 
@@ -347,7 +379,12 @@ describe('MarginlyPoolAdmin', () => {
     await expect(
       marginlyPoolAdmin
         .connect(wrongSigner)
-        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee)
+        .setPoolOwnership(
+          existingMarginlyPool.baseToken,
+          existingMarginlyPool.quoteToken,
+          existingMarginlyPool.fee,
+          ZERO_ADDRESS
+        )
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 
@@ -360,7 +397,7 @@ describe('MarginlyPoolAdmin', () => {
     await expect(
       marginlyPoolAdmin
         .connect(owner)
-        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, wrongFee)
+        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, wrongFee, ZERO_ADDRESS)
     ).to.be.revertedWithCustomError(marginlyPoolAdmin, 'NonExistentPool');
   });
 
@@ -369,12 +406,22 @@ describe('MarginlyPoolAdmin', () => {
 
     await marginlyPoolAdmin
       .connect(owner)
-      .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee);
+      .setPoolOwnership(
+        existingMarginlyPool.baseToken,
+        existingMarginlyPool.quoteToken,
+        existingMarginlyPool.fee,
+        ZERO_ADDRESS
+      );
 
     await expect(
       marginlyPoolAdmin
         .connect(owner)
-        .setPoolOwnership(existingMarginlyPool.baseToken, existingMarginlyPool.quoteToken, existingMarginlyPool.fee)
+        .setPoolOwnership(
+          existingMarginlyPool.baseToken,
+          existingMarginlyPool.quoteToken,
+          existingMarginlyPool.fee,
+          ZERO_ADDRESS
+        )
     ).to.be.revertedWithCustomError(marginlyPoolAdmin, 'Forbidden');
   });
 });

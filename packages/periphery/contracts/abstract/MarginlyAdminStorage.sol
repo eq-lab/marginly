@@ -25,12 +25,21 @@ abstract contract MarginlyAdminStorage is Ownable2Step {
   }
 
   /// @dev adds previously deployed missing pool to storage
-  function setPoolOwnership(address poolBaseToken, address poolQuoteToken, uint24 fee) external onlyOwner {
+  function setPoolOwnership(
+    address poolBaseToken,
+    address poolQuoteToken,
+    uint24 fee,
+    address poolOwner
+  ) external onlyOwner {
     address poolAddress = IMarginlyFactory(marginlyFactoryAddress).getPool(poolBaseToken, poolQuoteToken, fee);
+
     if (poolAddress == address(0)) revert NonExistentPool();
     if (poolsOwners[poolAddress] != address(0)) revert Errors.Forbidden();
-    poolsOwners[poolAddress] = msg.sender;
-    emit NewPoolOwner(poolAddress, msg.sender);
+
+    if (poolOwner == address(0)) poolOwner = msg.sender;
+    poolsOwners[poolAddress] = poolOwner;
+
+    emit NewPoolOwner(poolAddress, poolOwner);
   }
 
   function renounceOwnership() public view override onlyOwner {
