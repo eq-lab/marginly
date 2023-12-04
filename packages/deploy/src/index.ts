@@ -15,6 +15,7 @@ import {
   deployRouter,
 } from './deploys/core-deploy';
 import { deployAdminContract, deployKeeper } from './deploys/periphery-deploy';
+import { DeployResult } from './common/interfaces';
 
 export { DeployConfig } from './config';
 export { DeployState, StateStore, BaseState, MarginlyDeployment, mergeMarginlyDeployments } from './common';
@@ -122,12 +123,26 @@ export async function deployMarginly(
       );
     });
 
+    let deployedAdmin: DeployResult | undefined;
+
+    if (config.deployAdmin) {
+      deployedAdmin = await using(logger.beginScope('Deploy admin contract'), async () => {
+        return deployAdminContract(
+          marginlyDeployer,
+          marginlyFactoryDeployResult,
+          marginlyRouterDeployResult,
+          adapterDeployResults
+        );
+      });   
+    }
+
     const deployedMarginlyPools = await using(logger.beginScope('Create marginly pools'), async () => {
       return deployMarginlyPools(
         config.marginlyPools,
         tokenRepository,
         marginlyDeployer,
-        marginlyFactoryDeployResult.contract
+        marginlyFactoryDeployResult.contract,
+        deployedAdmin ? deployedAdmin.contract : undefined
       );
     });
 
@@ -136,19 +151,10 @@ export async function deployMarginly(
       marginlyKeeperAddress = await deployKeeper(config.marginlyKeeper, marginlyDeployer);
     }
 
-    const deployedAdminContract = await using(logger.beginScope('Deploy admin contract'), async () => {
-      return deployAdminContract(
-        marginlyDeployer,
-        marginlyFactoryDeployResult,
-        marginlyRouterDeployResult,
-        adapterDeployResults
-      );
-    });
-
     return {
       marginlyPools: deployedMarginlyPools,
       marginlyKeeper: { address: marginlyKeeperAddress.toString() },
-      adminContract: { address: deployedAdminContract.address },
+      adminContract: deployedAdmin ? { address: deployedAdmin.address.toString() } : undefined,
     };
   } finally {
     const balanceAfter = await signer.getBalance();

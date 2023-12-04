@@ -266,7 +266,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   public async getOrCreateMarginlyPool(
     marginlyPoolFactoryContract: Contract,
     config: MarginlyConfigMarginlyPool,
-    tokenRepository: ITokenRepository
+    tokenRepository: ITokenRepository,
+    adminContract?: Contract,
   ): Promise<LimitedDeployResult> {
     const stateFileId = `marginlyPool_${config.id}`;
     const marginlyPoolContractDescription = this.readMarginlyContract('MarginlyPool');
@@ -288,11 +289,12 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
     const quoteTokenInfo = tokenRepository.getTokenInfo(config.quoteToken.id);
     const baseTokenInfo = tokenRepository.getTokenInfo(config.baseToken.id);
+    const uniswapFee = this.toUniswapFee(config.uniswapPool.fee);
     let marginlyPoolAddress = EthAddress.parse(
       await marginlyPoolFactoryContract.getPool(
         quoteTokenInfo.address.toString(),
         baseTokenInfo.address.toString(),
-        this.toUniswapFee(config.uniswapPool.fee)
+        uniswapFee
       )
     );
     let creationTxHash: string | undefined = undefined;
@@ -314,7 +316,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
       };
 
-      const tx = await marginlyPoolFactoryContract.createPool(
+      const creatorContract = adminContract === undefined ? marginlyPoolFactoryContract : adminContract;
+      const tx = await creatorContract.createPool(
         quoteTokenInfo.address.toString(),
         baseTokenInfo.address.toString(),
         this.toUniswapFee(config.uniswapPool.fee),
@@ -329,6 +332,22 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         baseTokenInfo.address
       );
       creationTxHash = tx.hash;
+    } else if (adminContract !== undefined) {
+      const poolOwner = EthAddress.parse(
+        await adminContract.poolsOwners(marginlyPoolAddress.toString())
+      );
+
+      if (poolOwner.isZero()) {
+        const tx = await adminContract.setPoolOwnership(
+          baseTokenInfo.address.toString(),
+          quoteTokenInfo.address.toString(),
+          uniswapFee,
+          await this.signer.getAddress(),
+          this.ethArgs
+        );
+
+        await tx.wait();
+      }
     }
 
     this.stateStore.setById(stateFileId, {

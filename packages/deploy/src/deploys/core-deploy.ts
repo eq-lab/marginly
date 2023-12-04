@@ -48,7 +48,8 @@ export async function deployMarginlyPools(
   marginlyPools: MarginlyConfigMarginlyPool[],
   tokenRepository: TokenRepository,
   marginlyDeployer: MarginlyDeployer,
-  marginlyFactory: Contract
+  marginlyFactory: Contract,
+  adminContract?: Contract
 ): Promise<MarginlyDeploymentMarginlyPool[]> {
   return using(marginlyDeployer.logger.beginScope('Create marginly pools'), async () => {
     const deployedMarginlyPools: MarginlyDeploymentMarginlyPool[] = [];
@@ -56,7 +57,8 @@ export async function deployMarginlyPools(
       const marginlyPoolDeploymentResult = await marginlyDeployer.getOrCreateMarginlyPool(
         marginlyFactory,
         pool,
-        tokenRepository
+        tokenRepository,
+        adminContract
       );
       deployedMarginlyPools.push({
         id: pool.id,

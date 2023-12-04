@@ -16,7 +16,6 @@ import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
 import { BigNumber } from 'ethers';
-import { deployMarginly } from '..';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -186,6 +185,7 @@ export class StrictMarginlyDeployConfig {
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
   public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
   public readonly marginlyAdapters: MarginlyConfigAdapter[];
+  public readonly deployAdmin: boolean;
 
   private constructor(
     connection: EthConnectionConfig,
@@ -194,7 +194,8 @@ export class StrictMarginlyDeployConfig {
     tokens: MarginlyConfigToken[],
     marginlyPools: MarginlyConfigMarginlyPool[],
     marginlyKeeper: MarginlyConfigMarginlyKeeper,
-    marginlyAdapters: MarginlyConfigAdapter[]
+    marginlyAdapters: MarginlyConfigAdapter[],
+    deployAdmin: boolean,
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
@@ -203,6 +204,7 @@ export class StrictMarginlyDeployConfig {
     this.marginlyPools = marginlyPools;
     this.marginlyKeeper = marginlyKeeper;
     this.marginlyAdapters = marginlyAdapters;
+    this.deployAdmin = deployAdmin;
   }
 
   public static async fromConfig(logger: Logger, config: MarginlyDeployConfig): Promise<StrictMarginlyDeployConfig> {
@@ -566,7 +568,8 @@ export class StrictMarginlyDeployConfig {
       Array.from(tokens.values()),
       marginlyPools,
       marginlyKeeper,
-      adapters
+      adapters,
+      !!config.adminContract,
     );
   }
 }

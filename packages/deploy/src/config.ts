@@ -154,6 +154,7 @@ export interface MarginlyDeployConfig {
     techPositionOwner: string;
     wethTokenId: string;
   };
+  adminContract?: boolean;
   marginlyPools: {
     id: string;
     uniswapPoolId: string;
