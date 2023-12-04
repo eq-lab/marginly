@@ -515,12 +515,17 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return deployResult;
   }
 
+  // not used anymore, left just in case it's needed one day
   public async deployUniswapRouterMock(
     weth9: MarginlyConfigToken,
     tokenRepository: ITokenRepository
   ): Promise<DeployResult> {
     const { address } = tokenRepository.getTokenInfo(weth9.id);
     return this.deploy('SwapRouterMock', [address.toString()], 'swapRouterMock', readUniswapMockContract);
+  }
+
+  public async deployUniswapFactoryMock(): Promise<DeployResult> {
+    return this.deploy('UniswapV3FactoryMock', [], 'UniswapV3FactoryMock', readUniswapMockContract);
   }
 
   public async deployUniswapPoolMock(
@@ -536,6 +541,28 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       `uniswapV3PoolMock_${poolConfig.id}`,
       readUniswapMockContract
     );
+  }
+
+  public async deployUniswapPoolMockFactory(
+    oracle: EthAddress,
+    poolConfig: MarginlyConfigUniswapPoolMock,
+    tokenRepository: ITokenRepository,
+    uniswapFactory: Contract,
+  ): Promise<LimitedDeployResult> {
+    const { address: tokenAAddress } = tokenRepository.getTokenInfo(poolConfig.tokenA.id);
+    const { address: tokenBAddress } = tokenRepository.getTokenInfo(poolConfig.tokenB.id);
+    const tx = await uniswapFactory.createPool(
+      oracle.toString(),
+      tokenAAddress.toString(),
+      tokenBAddress.toString(),
+      this.toUniswapFee(poolConfig.fee),
+      this.ethArgs
+    );
+    const poolCreatedEvent = (await tx.wait()).events?.find((x: { event: string; }) => x.event === 'PoolCreated')!;
+    const uniswapPoolAddress = poolCreatedEvent.args?.pool;
+    const uniswapPoolAbi = readUniswapMockContract('UniswapV3PoolMock').abi;
+    const uniswapPoolContract = new ethers.Contract(uniswapPoolAddress, uniswapPoolAbi, this.signer);
+    return { contract: uniswapPoolContract, address: uniswapPoolAddress, txHash: tx.hash};
   }
 
   public async deployMarginlyPriceAdapter(

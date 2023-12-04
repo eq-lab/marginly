@@ -52,27 +52,25 @@ export async function deployMockUniswapPool(
   tokenRepository: TokenRepository,
   marginlyDeployer: MarginlyDeployer
 ): Promise<EthAddress> {
-  const uniswapRouterDeploymentResult = await marginlyDeployer.deployUniswapRouterMock(
-    uniswapConfig.weth9Token,
-    tokenRepository
-  );
-  const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
-  await uniswapRouterContract.setRejectArbitraryRecipient(true);
+  const uniswapFactoryDeploymentResult = await marginlyDeployer.deployUniswapFactoryMock();
   for (const pool of uniswapConfig.pools) {
-    const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
-      uniswapConfig.oracle,
-      pool,
-      tokenRepository
-    );
+    let uniswapPoolDeploymentResult;
+    if (pool.fromFactory) {
+      uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
+        uniswapConfig.oracle,
+        pool,
+        tokenRepository
+      );
+    } else {
+      uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMockFactory(
+        uniswapConfig.oracle,
+        pool,
+        tokenRepository,
+        uniswapFactoryDeploymentResult.contract,
+      );
+    }
     const { address: tokenAAddress } = tokenRepository.getTokenInfo(pool.tokenA.id);
     const { address: tokenBAddress } = tokenRepository.getTokenInfo(pool.tokenB.id);
-    const uniswapFee = marginlyDeployer.toUniswapFee(pool.fee);
-    await uniswapRouterContract.setPool(
-      tokenAAddress.toString(),
-      tokenBAddress.toString(),
-      uniswapFee,
-      uniswapPoolDeploymentResult.address
-    );
 
     const [token0, token1] = sortUniswapPoolTokens(
       [tokenAAddress.toString(), tokenBAddress.toString()],
@@ -99,7 +97,6 @@ export async function deployMockUniswapPool(
     await uniswapPoolContract.increaseObservationCardinalityNext(uniswapConfig.priceLogSize);
 
     await uniswapPoolContract.setAllowListEnabled(true);
-    await uniswapPoolContract.addToAllowList(uniswapRouterDeploymentResult.address);
 
     const uniswapPoolAddress = EthAddress.parse(uniswapPoolDeploymentResult.address);
 
@@ -124,7 +121,7 @@ export async function deployMockUniswapPool(
     );
   }
 
-  return EthAddress.parse(uniswapRouterDeploymentResult.address);
+  return EthAddress.parse(uniswapFactoryDeploymentResult.address);
 }
 
 export async function deploySwapPoolRegistry(

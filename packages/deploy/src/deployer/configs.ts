@@ -35,6 +35,7 @@ export interface MarginlyConfigUniswapGenuine {
 
 export interface MarginlyConfigUniswapPoolMock {
   type: 'mock';
+  fromFactory?: boolean;
   id: string;
   tokenA: MarginlyConfigToken;
   tokenB: MarginlyConfigToken;
