@@ -7,13 +7,13 @@ interface IMarginlyFactory {
   /// @notice Emitted when a pool is created
   /// @param quoteToken The stable-coin
   /// @param baseToken The base token
-  /// @param uniswapPool The address of associated Uniswap pool
+  /// @param priceSource The address of price source (e.g. associated Uniswap pool)
   /// @param quoteTokenIsToken0 What token in Uniswap pool is stable-coin
   /// @param pool The address of the created pool
   event PoolCreated(
     address indexed quoteToken,
     address indexed baseToken,
-    address uniswapPool,
+    address priceSource,
     bool quoteTokenIsToken0,
     address pool
   );

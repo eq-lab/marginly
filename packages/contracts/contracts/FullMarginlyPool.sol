@@ -9,17 +9,17 @@ contract FullMarginlyPool is MarginlyPool {
     address _quoteToken,
     address _baseToken,
     bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceSource,
     MarginlyParams memory _params
   ) MarginlyPool() {
-    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _uniswapPool, _params);
+    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _priceSource, _params);
   }
 
   function initialize(
     address _quoteToken,
     address _baseToken,
     bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceSource,
     MarginlyParams calldata _params
   ) external override {
     if (factory != address(0)) revert Errors.Forbidden();

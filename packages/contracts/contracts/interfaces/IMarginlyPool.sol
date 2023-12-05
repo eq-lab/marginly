@@ -136,8 +136,8 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns the address of base token from pool
   function baseToken() external view returns (address token);
 
-  /// @notice Returns the address of associated uniswap pool
-  function uniswapPool() external view returns (address pool);
+  /// @notice Returns the address of price source (e.g associated uniswap pool)
+  function priceSource() external view returns (address pool);
 
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);

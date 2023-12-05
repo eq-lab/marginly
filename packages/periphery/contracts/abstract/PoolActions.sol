@@ -33,7 +33,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
 
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
     address poolAddressFromAdapter = adapterStorage.getPool(baseToken, quoteToken);
-    address underlyingPoolAddress = IMarginlyPool(marginlyPoolAddress).uniswapPool();
+    address underlyingPoolAddress = IMarginlyPool(marginlyPoolAddress).priceSource();
 
     if (poolAddressFromAdapter == address(0)) {
       PoolInput[] memory poolInput = new PoolInput[](1);

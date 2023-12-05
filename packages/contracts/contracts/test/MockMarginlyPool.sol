@@ -52,7 +52,7 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function setRecoveryMode(bool set) external {}
 
-  function uniswapPool() external pure returns (address pool) {}
+  function priceSource() external pure returns (address pool) {}
 
   function quoteTokenIsToken0() external pure returns (bool) {}
 

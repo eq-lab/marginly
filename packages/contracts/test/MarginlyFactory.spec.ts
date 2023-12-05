@@ -78,7 +78,7 @@ describe('MarginlyFactory', () => {
 
     await expect(factory.createPool(quoteToken, randomAddress, fee, params)).to.be.revertedWithCustomError(
       factory,
-      'UniswapPoolNotFound'
+      'PriceSourceNotFound'
     );
   });
 

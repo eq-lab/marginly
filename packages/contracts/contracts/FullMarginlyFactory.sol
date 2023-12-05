@@ -14,8 +14,8 @@ import './FullMarginlyPool.sol';
 /// @title Marginly contract factory
 /// @notice Deploys Marginly and manages ownership and control over pool
 contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
-  /// @notice Address of uniswap factory
-  address public immutable uniswapFactory;
+  /// @notice Address of swap pool registry
+  address public immutable swapPoolRegistry;
   /// @notice Address of uniswap swap router
   address public override swapRouter;
   /// @notice Swap fee holder
@@ -29,21 +29,21 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
   mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
 
   constructor(
-    address _uniswapFactory,
+    address _swapPoolRegistry,
     address _swapRouter,
     address _feeHolder,
     address _WETH9,
     address _techPositionOwner
   ) {
     if (
-      _uniswapFactory == address(0) ||
+      _swapPoolRegistry == address(0) ||
       _swapRouter == address(0) ||
       _feeHolder == address(0) ||
       _WETH9 == address(0) ||
       _techPositionOwner == address(0)
     ) revert Errors.WrongValue();
 
-    uniswapFactory = _uniswapFactory;
+    swapPoolRegistry = _swapPoolRegistry;
     swapRouter = _swapRouter;
     feeHolder = _feeHolder;
     WETH9 = _WETH9;
@@ -61,25 +61,25 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
 
     address existingPool = getPool[quoteToken][baseToken][uniswapFee];
     if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
-    address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
-    if (uniswapPool == address(0)) revert Errors.UniswapPoolNotFound();
+    address priceSource = IUniswapV3Factory(swapPoolRegistry).getPool(quoteToken, baseToken, uniswapFee);
+    if (priceSource == address(0)) revert Errors.PriceSourceNotFound();
 
     // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
     bool quoteTokenIsToken0 = quoteToken < baseToken;
 
     pool = address(
-      new FullMarginlyPool{salt: keccak256(abi.encode(uniswapPool))}(
+      new FullMarginlyPool{salt: keccak256(abi.encode(priceSource))}(
         quoteToken,
         baseToken,
         quoteTokenIsToken0,
-        uniswapPool,
+        priceSource,
         params
       )
     );
 
     getPool[quoteToken][baseToken][uniswapFee] = pool;
     getPool[baseToken][quoteToken][uniswapFee] = pool;
-    emit PoolCreated(quoteToken, baseToken, uniswapPool, quoteTokenIsToken0, pool);
+    emit PoolCreated(quoteToken, baseToken, priceSource, quoteTokenIsToken0, pool);
   }
 
   /// @inheritdoc IMarginlyFactory

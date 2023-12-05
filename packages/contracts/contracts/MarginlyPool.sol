@@ -32,8 +32,8 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev FP96 inner value of count of seconds in year. Equal 365.25 * 24 * 60 * 60
   uint256 private constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
 
-  /// @dev router calldata for swap on UniswapV3;
-  uint256 private constant UNISWAP_V3_ROUTER_SWAP = 0;
+  /// @dev router calldata for swap on default dex;
+  uint256 private constant DEFAULT_SWAP_CALLDATA = 0;
 
   /// @dev Denominator of fee value
   uint24 private constant WHOLE_ONE = 1e6;
@@ -46,7 +46,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPool
   address public override baseToken;
   /// @inheritdoc IMarginlyPool
-  address public override uniswapPool;
+  address public override priceSource;
   /// @dev It's equivalent of `quoteToken < baseToken` value
   /// @dev However it's more gas-optimal since requires 1 storage reading instead of 2
   bool private quoteTokenIsToken0;
@@ -110,18 +110,18 @@ contract MarginlyPool is IMarginlyPool {
     address _quoteToken,
     address _baseToken,
     bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceSource,
     MarginlyParams memory _params
   ) internal {
     if (_quoteToken == address(0)) revert Errors.WrongValue();
     if (_baseToken == address(0)) revert Errors.WrongValue();
-    if (_uniswapPool == address(0)) revert Errors.WrongValue();
+    if (_priceSource == address(0)) revert Errors.WrongValue();
 
     factory = msg.sender;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
     quoteTokenIsToken0 = _quoteTokenIsToken0;
-    uniswapPool = _uniswapPool;
+    priceSource = _priceSource;
     _setParameters(_params);
 
     baseCollateralCoeff = FP96.one();
@@ -140,12 +140,12 @@ contract MarginlyPool is IMarginlyPool {
     address _quoteToken,
     address _baseToken,
     bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceSource,
     MarginlyParams calldata _params
   ) external virtual {
     if (factory != address(0)) revert Errors.Forbidden();
 
-    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _uniswapPool, _params);
+    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _priceSource, _params);
   }
 
   receive() external payable {
@@ -347,7 +347,7 @@ contract MarginlyPool is IMarginlyPool {
         uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
           getLiquidationPrice().recipMul(realQuoteCollateral)
         );
-        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, UNISWAP_V3_ROUTER_SWAP);
+        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, DEFAULT_SWAP_CALLDATA);
         swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       }
 
@@ -390,7 +390,7 @@ contract MarginlyPool is IMarginlyPool {
         uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
           getLiquidationPrice().mul(realBaseCollateral)
         );
-        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, UNISWAP_V3_ROUTER_SWAP);
+        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, DEFAULT_SWAP_CALLDATA);
         swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       }
 
@@ -802,7 +802,7 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice returns uniswapV3 oracle TWAP sqrt price for `priceSecondsAgo` period
   function getTwapPrice(uint16 priceSecondsAgo) private view returns (uint256) {
-    return OracleLib.getSqrtPriceX96(uniswapPool, priceSecondsAgo);
+    return OracleLib.getSqrtPriceX96(priceSource, priceSecondsAgo);
   }
 
   function sqrtPriceX96ToPrice(uint256 sqrtPriceX96) private view returns (FP96.FixedPoint memory price) {

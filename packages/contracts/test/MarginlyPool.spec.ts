@@ -26,7 +26,7 @@ describe('MarginlyPool.Base', () => {
 
     const quoteToken = await pool.quoteToken();
     const baseToken = await pool.baseToken();
-    const uniswapPool = await pool.uniswapPool();
+    const uniswapPool = await pool.priceSource();
 
     const marginlyParams = {
       interestRate: 54,

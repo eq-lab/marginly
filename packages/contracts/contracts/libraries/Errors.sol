@@ -19,7 +19,7 @@ library Errors {
   error SlippageLimit();
   error NotEmergency();
   error UninitializedPosition();
-  error UniswapPoolNotFound();
+  error PriceSourceNotFound();
   error UnknownCall();
   error WrongIndex();
   error WrongPositionType();
