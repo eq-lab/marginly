@@ -7,11 +7,13 @@ import {
   isMarginlyConfigSwapPoolRegistry,
   isMarginlyConfigUniswapGenuine,
   isMarginlyConfigUniswapMock,
+  MarginlyConfigSwapPool,
   MarginlyConfigSwapPoolRegistry,
   MarginlyConfigUniswap,
   MarginlyConfigUniswapGenuine,
   MarginlyConfigUniswapMock,
 } from '../deployer/configs';
+import { DeployResult } from '../common/interfaces';
 
 export async function deploySwapPools(
   uniswapConfig: MarginlyConfigUniswap,
@@ -160,34 +162,65 @@ export async function deploySwapPoolRegistry(
         ? pool.priceAdapter.quotePriceProvider || EthAddress.parse('0x0000000000000000000000000000000000000000')
         : EthAddress.parse(quotePriceProviderMockAddress);
 
-    const priceAdapterDeployResult = await using(
-      marginlyDeployer.logger.beginScope('Deploy PriceAdapter'),
-      async () => {
-        const deployResult = await marginlyDeployer.deployMarginlyPriceAdapter(
-          basePriceProvider,
-          quotePriceProvider,
-          pool.id
-        );
-        printDeployState(`PriceAdapter`, deployResult, marginlyDeployer.logger);
-        return deployResult;
-      }
-    );
+    const priceAdapterDeployResult = await deployPriceAdapter(marginlyDeployer, basePriceProvider, quotePriceProvider, pool.id);
     priceAdapters.push(EthAddress.parse(priceAdapterDeployResult.address));
   }
 
-  const swapPoolDeploymentResult = await using(
+  let uniswapFactory = swapPoolRegistryConfig.factory;
+  if (uniswapFactory === undefined) {
+    const deploymentResult = await marginlyDeployer.deployUniswapFactoryMock();
+    uniswapFactory = EthAddress.parse(deploymentResult.address);
+  }
+
+  const swapPoolRegistryDeploymentResult = await deploySwapPoolRegistryContact(
+    marginlyDeployer, 
+    tokenRepository, 
+    uniswapFactory, 
+    swapPoolRegistryConfig.pools, 
+    priceAdapters
+  );
+
+  return EthAddress.parse(swapPoolRegistryDeploymentResult.address);
+}
+
+export async function deployPriceAdapter(
+  marginlyDeployer: MarginlyDeployer, 
+  basePriceProvider: EthAddress, 
+  quotePriceProvider: EthAddress,
+  poolId: string
+): Promise<DeployResult> {
+  return using(
+    marginlyDeployer.logger.beginScope('Deploy PriceAdapter'),
+    async () => {
+      const deployResult = await marginlyDeployer.deployMarginlyPriceAdapter(
+        basePriceProvider,
+        quotePriceProvider,
+        poolId
+      );
+      printDeployState(`PriceAdapter`, deployResult, marginlyDeployer.logger);
+      return deployResult;
+    }
+  );
+}
+
+export async function deploySwapPoolRegistryContact(
+  marginlyDeployer: MarginlyDeployer, 
+  tokenRepository: TokenRepository, 
+  factory: EthAddress,
+  pools: MarginlyConfigSwapPool[],
+  priceAdapters: EthAddress[]
+) {
+  return using(
     marginlyDeployer.logger.beginScope('Deploy SwapPoolRegistry'),
     async () => {
       const deployResult = await marginlyDeployer.deploySwapPoolRegistry(
         tokenRepository,
-        swapPoolRegistryConfig.factory,
-        swapPoolRegistryConfig.pools,
+        factory,
+        pools,
         priceAdapters
       );
       printDeployState(`SwapPoolRegistry`, deployResult, marginlyDeployer.logger);
       return deployResult;
     }
   );
-
-  return EthAddress.parse(swapPoolDeploymentResult.address);
 }

@@ -581,10 +581,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   public async deployPriceProviderMock(priceProviderMock: PriceProviderMock, id: string): Promise<DeployResult> {
     return this.deploy(
       'ChainlinkAggregatorV3Mock',
-      [
-        priceProviderMock.answer.mul(BigNumber.from(10).pow(priceProviderMock.decimals)).toInteger(),
-        priceProviderMock.decimals,
-      ],
+      [priceProviderMock.oracle.toString(), priceProviderMock.decimals],
       `priceProviderMock_${id}`,
       this.readMarginlyPeripheryMockContract
     );

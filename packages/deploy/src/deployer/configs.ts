@@ -56,7 +56,7 @@ export interface MarginlyConfigUniswapMock {
 }
 
 export interface PriceProviderMock {
-  answer: RationalNumber;
+  oracle: EthAddress;
   decimals: number;
 }
 
@@ -82,7 +82,7 @@ export interface MarginlyConfigSwapPool {
 
 export interface MarginlyConfigSwapPoolRegistry {
   type: 'swapPoolRegistry';
-  factory: EthAddress;
+  factory?: EthAddress;
   pools: MarginlyConfigSwapPool[];
 }
 
@@ -390,32 +390,33 @@ export class StrictMarginlyDeployConfig {
         const fee = RationalNumber.parsePercent(rawPool.fee);
 
         let basePriceProviderMock, quotePriceProviderMock, priceProvidersMock;
-        if (rawPool.priceProvidersMock !== undefined) {
-          if (rawPool.priceProvidersMock.basePriceProviderMock !== undefined) {
+        const priceAdapterConfig = rawPool.priceAdapter;
+        if (priceAdapterConfig.priceProvidersMock !== undefined) {
+          if (priceAdapterConfig.priceProvidersMock.basePriceProviderMock !== undefined) {
             basePriceProviderMock = {
-              answer: RationalNumber.parse(rawPool.priceProvidersMock.basePriceProviderMock.answer),
-              decimals: Number(rawPool.priceProvidersMock.basePriceProviderMock.decimals),
+              oracle: EthAddress.parse(priceAdapterConfig.priceProvidersMock.basePriceProviderMock.oracle),
+              decimals: Number(priceAdapterConfig.priceProvidersMock.basePriceProviderMock.decimals),
             };
           }
-          if (rawPool.priceProvidersMock.quotePriceProviderMock !== undefined) {
+          if (priceAdapterConfig.priceProvidersMock.quotePriceProviderMock !== undefined) {
             quotePriceProviderMock = {
-              answer: RationalNumber.parse(rawPool.priceProvidersMock.quotePriceProviderMock.answer),
-              decimals: Number(rawPool.priceProvidersMock.quotePriceProviderMock.decimals),
+              oracle: EthAddress.parse(priceAdapterConfig.priceProvidersMock.quotePriceProviderMock.oracle),
+              decimals: Number(priceAdapterConfig.priceProvidersMock.quotePriceProviderMock.decimals),
             };
           }
           priceProvidersMock = { basePriceProviderMock, quotePriceProviderMock };
         }
 
         let basePriceProvider, quotePriceProvider;
-        if (rawPool.priceAdapter.basePriceProvider !== undefined) {
-          basePriceProvider = EthAddress.parse(rawPool.priceAdapter.basePriceProvider);
+        if (priceAdapterConfig.basePriceProvider !== undefined) {
+          basePriceProvider = EthAddress.parse(priceAdapterConfig.basePriceProvider);
         }
 
         if (quotePriceProviderMock === undefined) {
           quotePriceProvider = EthAddress.parse(
-            rawPool.priceAdapter.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
+            priceAdapterConfig.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
           );
-        } else if (quotePriceProviderMock !== undefined && rawPool.priceAdapter.quotePriceProvider !== undefined) {
+        } else if (quotePriceProviderMock !== undefined && priceAdapterConfig.quotePriceProvider !== undefined) {
           throw new Error(
             `Both quote PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
           );
@@ -452,7 +453,7 @@ export class StrictMarginlyDeployConfig {
       }
       uniswap = {
         type: 'swapPoolRegistry',
-        factory: EthAddress.parse(config.uniswap.factory),
+        factory: config.uniswap.factory ? EthAddress.parse(config.uniswap.factory) : undefined,
         pools: swapPools,
       };
     } else {
