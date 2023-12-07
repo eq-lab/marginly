@@ -61,8 +61,8 @@ export interface PriceProviderMock {
 }
 
 export interface PriceProvidersMockConfig {
-  basePriceProviderMock?: PriceProviderMock;
-  quotePriceProviderMock?: PriceProviderMock;
+  priceProviderMock: PriceProviderMock;
+  price: number;
 }
 
 export interface PriceAdapterConfig {
@@ -392,19 +392,17 @@ export class StrictMarginlyDeployConfig {
         let basePriceProviderMock, quotePriceProviderMock, priceProvidersMock;
         const priceAdapterConfig = rawPool.priceAdapter;
         if (priceAdapterConfig.priceProvidersMock !== undefined) {
-          if (priceAdapterConfig.priceProvidersMock.basePriceProviderMock !== undefined) {
-            basePriceProviderMock = {
-              oracle: EthAddress.parse(priceAdapterConfig.priceProvidersMock.basePriceProviderMock.oracle),
-              decimals: Number(priceAdapterConfig.priceProvidersMock.basePriceProviderMock.decimals),
-            };
+          basePriceProviderMock = {
+            oracle: EthAddress.parse(priceAdapterConfig.priceProvidersMock.oracle),
+            decimals: Number(priceAdapterConfig.priceProvidersMock.decimals),
+          };
+          const priceId = priceAdapterConfig.priceProvidersMock.id;
+          const price = prices.get(priceId);
+          if (price === undefined) {
+            throw new Error(`Unknown price-id ${priceId}`);
           }
-          if (priceAdapterConfig.priceProvidersMock.quotePriceProviderMock !== undefined) {
-            quotePriceProviderMock = {
-              oracle: EthAddress.parse(priceAdapterConfig.priceProvidersMock.quotePriceProviderMock.oracle),
-              decimals: Number(priceAdapterConfig.priceProvidersMock.quotePriceProviderMock.decimals),
-            };
-          }
-          priceProvidersMock = { basePriceProviderMock, quotePriceProviderMock };
+          
+          priceProvidersMock = { priceProviderMock: basePriceProviderMock, price };
         }
 
         let basePriceProvider, quotePriceProvider;

@@ -132,35 +132,27 @@ export async function deploySwapPoolRegistry(
   marginlyDeployer: MarginlyDeployer
 ): Promise<EthAddress> {
   const priceAdapters: EthAddress[] = [];
-  const priceProvidersMockDeployAddresses = new Map<string, string>();
   for (const pool of swapPoolRegistryConfig.pools) {
+    let mockDeployResult: DeployResult | undefined;
     if (pool.priceAdapter.priceProvidersMock !== undefined) {
-      const { basePriceProviderMock, quotePriceProviderMock } = pool.priceAdapter.priceProvidersMock;
-      for (const { priceProviderMock, tag } of [
-        { priceProviderMock: basePriceProviderMock, tag: 'base' },
-        { priceProviderMock: quotePriceProviderMock, tag: 'quote' },
-      ]) {
-        if (priceProviderMock !== undefined) {
-          await using(marginlyDeployer.logger.beginScope('Deploy PriceProviderMock'), async () => {
-            const deployResult = await marginlyDeployer.deployPriceProviderMock(priceProviderMock, `${tag}_${pool.id}`);
-            printDeployState(`PriceProviderMock`, deployResult, marginlyDeployer.logger);
-            priceProvidersMockDeployAddresses.set(tag, deployResult.address);
-          });
-        }
+      const { priceProviderMock, price } = pool.priceAdapter.priceProvidersMock;
+      if (priceProviderMock !== undefined) {
+        await using(marginlyDeployer.logger.beginScope('Deploy PriceProviderMock'), async () => {
+          mockDeployResult = await marginlyDeployer.deployPriceProviderMock(priceProviderMock, `${pool.id}`);
+          printDeployState(`PriceProviderMock`, mockDeployResult, marginlyDeployer.logger);
+          const priceToSet = price * 10 ** priceProviderMock.decimals;
+          await(await mockDeployResult.contract.setPrice(priceToSet, 0)).wait();
+        });
       }
     }
 
-    const basePriceProviderMockAddress = priceProvidersMockDeployAddresses.get('base');
     const basePriceProvider =
-      basePriceProviderMockAddress === undefined
+      mockDeployResult === undefined
         ? pool.priceAdapter.basePriceProvider!
-        : EthAddress.parse(basePriceProviderMockAddress);
+        : EthAddress.parse(mockDeployResult.address);
 
-    const quotePriceProviderMockAddress = priceProvidersMockDeployAddresses.get('quote');
-    const quotePriceProvider =
-      quotePriceProviderMockAddress === undefined
-        ? pool.priceAdapter.quotePriceProvider || EthAddress.parse('0x0000000000000000000000000000000000000000')
-        : EthAddress.parse(quotePriceProviderMockAddress);
+    const quotePriceProvider = 
+      pool.priceAdapter.quotePriceProvider || EthAddress.parse('0x0000000000000000000000000000000000000000');
 
     const priceAdapterDeployResult = await deployPriceAdapter(marginlyDeployer, basePriceProvider, quotePriceProvider, pool.id);
     priceAdapters.push(EthAddress.parse(priceAdapterDeployResult.address));

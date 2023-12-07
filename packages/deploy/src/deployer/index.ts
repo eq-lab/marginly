@@ -321,8 +321,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
         quoteTokenInfo.address.toString(),
         baseTokenInfo.address.toString(),
         this.toUniswapFee(config.uniswapPool.fee),
-        params,
-        this.ethArgs
+        params
       );
       await tx.wait();
       marginlyPoolAddress = await this.getCreatedMarginlyPoolAddress(
@@ -460,9 +459,9 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
   public deployMarginlyPoolAdmin(marginlyFactoryAddress: EthAddress): Promise<DeployResult> {
     return this.deploy(
-      'MarginlyPoolAdmin',
+      'MarginlyAdmin',
       [marginlyFactoryAddress.toString()],
-      'marginlyPoolAdmin',
+      'marginlyAdmin',
       this.readMarginlyPeripheryContract
     );
   }

@@ -62,7 +62,8 @@ export async function deployAdminContract(
     const marginlyFactoryOwner = ((await marginlyFactoryDeployResult.contract.owner()) as string).toLowerCase();
     if (marginlyFactoryOwner === (await marginlyDeployer.signer.getAddress()).toLowerCase()) {
       logger.log('Transfer MarginlyFactory ownership to MarginlyPoolAdmin contract');
-      await marginlyFactoryDeployResult.contract.setOwner(marginlyPoolAdminDeployResult.address);
+      await(await marginlyFactoryDeployResult.contract.transferOwnership(marginlyPoolAdminDeployResult.address)).wait();
+      await(await marginlyPoolAdminDeployResult.contract.acceptMarginlyFactoryOwnership()).wait();
     } else if (marginlyFactoryOwner === marginlyPoolAdminDeployResult.address.toLowerCase()) {
       logger.log('MarginlyFactory ownership already set');
     } else {
@@ -72,7 +73,8 @@ export async function deployAdminContract(
     const marginlyRouterOwner = ((await routerDeployResult.contract.owner()) as string).toLowerCase();
     if (marginlyRouterOwner === (await marginlyDeployer.signer.getAddress()).toLowerCase()) {
       logger.log('Transfer MarginlyRouter ownership to MarginlyPoolAdmin contract');
-      await routerDeployResult.contract.transferOwnership(marginlyPoolAdminDeployResult.address);
+      await(await routerDeployResult.contract.transferOwnership(marginlyPoolAdminDeployResult.address)).wait();
+      await(await marginlyPoolAdminDeployResult.contract.acceptMarginlyRouterOwnership()).wait();
     } else if (marginlyRouterOwner === marginlyPoolAdminDeployResult.address.toLowerCase()) {
       logger.log('MarginlyRouter ownership already set');
     } else {
@@ -83,7 +85,8 @@ export async function deployAdminContract(
       const adapterOwner = ((await adapter.contract.owner()) as string).toLowerCase();
       if (adapterOwner === (await marginlyDeployer.signer.getAddress()).toLowerCase()) {
         logger.log(`Transfer router adapter with DexId ${adapter.dexId} ownership to MarginlyPoolAdmin contract`);
-        await adapter.contract.transferOwnership(marginlyPoolAdminDeployResult.address);
+        await(await adapter.contract.transferOwnership(marginlyPoolAdminDeployResult.address)).wait();
+        await(await marginlyPoolAdminDeployResult.contract.acceptRouterAdapterOwnership(0)).wait();
       } else if (adapterOwner === marginlyPoolAdminDeployResult.address.toLowerCase()) {
         logger.log(`Ownership for router adapter with DexId ${adapter.dexId} already set`);
       } else {

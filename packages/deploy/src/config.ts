@@ -84,14 +84,9 @@ interface MarginlyDeployConfigSwapPoolRegistry {
     fee: string;
     priceAdapter: {
       priceProvidersMock?: {
-        basePriceProviderMock?: {
-          oracle: string;
-          decimals: string;
-        };
-        quotePriceProviderMock?: {
-          oracle: string;
-          decimals: string;
-        };
+        oracle: string;
+        decimals: string;
+        id: string;
       };
       basePriceProvider?: string;
       quotePriceProvider?: string;
