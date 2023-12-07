@@ -28,8 +28,10 @@ describe('MarginlyPoolAdmin', () => {
     const [, signer1] = await ethers.getSigners();
     const marginlyPoolAddress = await marginlyPoolAdmin
       .connect(signer1)
-      .callStatic.createPool(token0.address, token1.address, fee, params);
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+      .callStatic.createPool(uniswapPool.address, token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
 
     const poolOwner = await marginlyPoolAdmin.poolsOwners(marginlyPoolAddress);
     expect(poolOwner).to.be.equal(signer1.address);
@@ -49,8 +51,10 @@ describe('MarginlyPoolAdmin', () => {
     const [, signer1, signer2] = await ethers.getSigners();
     const marginlyPoolAddress = await marginlyPoolAdmin
       .connect(signer1)
-      .callStatic.createPool(token0.address, token1.address, fee, params);
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+      .callStatic.createPool(uniswapPool.address, token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
     const marginlyPool = await attachMarginlyPool(marginlyPoolAddress);
 
     expect((await marginlyPool.params()).fee).to.be.equal(params.fee);
@@ -76,8 +80,10 @@ describe('MarginlyPoolAdmin', () => {
     const [, signer1, signer2] = await ethers.getSigners();
     const marginlyPoolAddress = await marginlyPoolAdmin
       .connect(signer1)
-      .callStatic.createPool(token0.address, token1.address, fee, params);
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+      .callStatic.createPool(uniswapPool.address, token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
     const marginlyPool = await attachMarginlyPool(marginlyPoolAddress);
 
     await expect(marginlyPoolAdmin.connect(signer2).shutDown(marginlyPoolAddress, 0)).to.be.revertedWithCustomError(
@@ -104,8 +110,10 @@ describe('MarginlyPoolAdmin', () => {
     const [, signer1, signer2] = await ethers.getSigners();
     const marginlyPoolAddress = await marginlyPoolAdmin
       .connect(signer1)
-      .callStatic.createPool(token0.address, token1.address, fee, params);
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+      .callStatic.createPool(uniswapPool.address, token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
 
     const transferAmount = ethers.utils.parseEther('0.5');
     await setBalance(marginlyPoolAddress, transferAmount);
@@ -248,9 +256,11 @@ describe('MarginlyPoolAdmin', () => {
     const [, signer1, signer2] = await ethers.getSigners();
     const marginlyPoolAddress = await marginlyPoolAdmin
       .connect(signer1)
-      .callStatic.createPool(token0.address, token1.address, fee, params);
+      .callStatic.createPool(uniswapPool.address, token0.address, token1.address, fee, params);
 
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
     expect(await marginlyPoolAdmin.poolsOwners(marginlyPoolAddress)).to.be.equal(signer1.address);
 
     await expect(
@@ -276,7 +286,9 @@ describe('MarginlyPoolAdmin', () => {
 
     const [rootSigner, signer1, newOwner] = await ethers.getSigners();
 
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
     expect(await marginlyRouter.owner()).to.be.equal(marginlyPoolAdmin.address);
 
     await expect(
@@ -303,7 +315,9 @@ describe('MarginlyPoolAdmin', () => {
 
     const [rootSigner, signer1, newOwner] = await ethers.getSigners();
     const routerAdapter = await attachAdapterStorage(await marginlyRouter.adapters(0));
-    await marginlyPoolAdmin.connect(signer1).createPool(token0.address, token1.address, fee, params);
+    await marginlyPoolAdmin
+      .connect(signer1)
+      .createPool(uniswapPool.address, token0.address, token1.address, fee, params);
     expect(await routerAdapter.owner()).to.be.equal(marginlyPoolAdmin.address);
 
     await expect(

@@ -18,6 +18,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
   /// @param poolFee Amount of underlying pool fee
   /// @param params Marginly pool parameters
   function createPool(
+    address underlyingPool,
     address quoteToken,
     address baseToken,
     uint24 poolFee,
@@ -33,13 +34,12 @@ abstract contract PoolActions is MarginlyAdminStorage {
 
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
     address poolAddressFromAdapter = adapterStorage.getPool(baseToken, quoteToken);
-    address underlyingPoolAddress = IMarginlyPool(marginlyPoolAddress).uniswapPool();
 
     if (poolAddressFromAdapter == address(0)) {
       PoolInput[] memory poolInput = new PoolInput[](1);
-      poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPoolAddress);
+      poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPool);
       adapterStorage.addPools(poolInput);
-    } else if (poolAddressFromAdapter != underlyingPoolAddress) {
+    } else if (poolAddressFromAdapter != underlyingPool) {
       revert InvalidUnderlyingPool();
     }
 
