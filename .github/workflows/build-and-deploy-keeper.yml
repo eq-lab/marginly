@@ -9,7 +9,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/keeper
-  GH_SECR: ${{ secrets.GH_SECR }}
   CLUSTER: ${{ secrets.CLUSTER }}
   IMAGE_TAG: latest
   LIMIT_CPU: "500m"
@@ -76,7 +75,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: [name: $GH_SECR ]
+          imagePullSecrets: "${{ secrets.PULL_SECRET }}"
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
@@ -88,15 +87,6 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
           context: ${{ env.CLUSTER }}
-    - name: Set imagePullSecret
-      uses: azure/k8s-create-secret@v4
-      with:
-        namespace: ${{ env.NAMESPACE }}
-        secret-name: ${{ env.GH_SECR }}
-        container-registry-url: ${{ env.REGISTRY }}
-        container-registry-username: ${{ github.actor }}
-        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-      id: create-secret
     - name: 'deploy'
       run: |
         ls -la
@@ -106,7 +96,6 @@ jobs:
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
           --set image.tag=$IMAGE_TAG \
-          --set imagePullSecrets[0].name=$GH_SECR \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
@@ -138,7 +127,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: [name: $GH_SECR ]
+          imagePullSecrets: "${{ secrets.PULL_SECRET }}" 
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-one.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
@@ -150,15 +139,6 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
           context: ${{ env.CLUSTER }}
-    - name: Set imagePullSecret
-      uses: azure/k8s-create-secret@v4
-      with:
-        namespace: ${{ env.NAMESPACE }}
-        secret-name: ${{ env.GH_SECR }}
-        container-registry-url: ${{ env.REGISTRY }}
-        container-registry-username: ${{ github.actor }}
-        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-      id: create-secret
     - name: 'deploy'
       run: |
         ls -la
@@ -168,7 +148,6 @@ jobs:
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
           --set image.tag=$IMAGE_TAG \
-          --set imagePullSecrets[0].name=$GH_SECR \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \

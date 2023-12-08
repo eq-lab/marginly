@@ -317,9 +317,9 @@ contract TestWooPPV2 {
   function getTokenState(address token) public view returns (State memory) {
     uint128 price;
     if (tokenList[0] == token) {
-      price = 10;
-    } else if (tokenList[1] == token) {
       price = 100;
+    } else if (tokenList[1] == token) {
+      price = 10;
     } else revert();
     return State({price: price, spread: 0, coeff: 1, woFeasible: true});
   }

@@ -1,36 +1,44 @@
 name: Integration tests
+
 on:
   push:
     branches:
-        - main
+      - main
     tags:
-        - 'v*'
+      - 'v*'
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/router/**'
   pull_request:
     branches:
-        - main
+      - main
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/router/**'
   workflow_dispatch:
-
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/router/**'
 
 jobs:
-    integration_tests:
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency, keeper, balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote, routerSwaps, routerMultipleSwaps]
-      steps:
-        - uses: actions/checkout@v3
-        - name: Use Node.js 18.14.2
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18.14.2
-        - name: Build for testing
-          run: |
-            cd ./packages/int-tests/
-            yarn
-            yarn compile 
-            yarn gen
-        - name: Test ${{ matrix.tests }}
-          run: |
-            cd ./packages/int-tests/
-            yarn start --suite=${{ matrix.tests }}
-  
+  integration_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tests: [short, long, longAndShort, shortIncome, longIncome, simulation1, simulation2, simulation3, longEmergency, shortEmergency, keeper, balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote, routerSwaps, routerMultipleSwaps]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.14.2
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.2
+      - name: Build for testing
+        run: |
+          cd ./packages/int-tests/
+          yarn
+          yarn compile 
+          yarn gen
+      - name: Test ${{ matrix.tests }}
+        run: |
+          cd ./packages/int-tests/
+          yarn start --suite=${{ matrix.tests }}

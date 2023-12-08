@@ -25,3 +25,9 @@ In order to run benchmark tests you should run
 ```bash
 yarn test:bench
 ```
+
+## Generate Markdown docs
+
+```bash
+yarn docgen
+```

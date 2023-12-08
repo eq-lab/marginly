@@ -14,6 +14,7 @@ import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
 
 import './NoDelegateCall.sol';
 import './AllowListSupport.sol';
+import './UniswapV3FactoryMock.sol';
 
 contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvents, AllowListSupport {
     using LowGasSafeMath for uint256;
@@ -64,11 +65,10 @@ contract UniswapV3PoolMock is AccessControl, NoDelegateCall, IUniswapV3PoolEvent
         slot0.unlocked = true;
     }
 
-    constructor(address oracle, address tokenA, address tokenB, uint24 _fee) {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(ORACLE_ROLE, msg.sender);
+    constructor(address initializer, address oracle, address tokenA, address tokenB, uint24 _fee) {
+        _setupRole(DEFAULT_ADMIN_ROLE, initializer);
+        _setupRole(ORACLE_ROLE, initializer);
         _setupRole(ORACLE_ROLE, oracle);
-
         (token0, token1) = sortTokens(tokenA, tokenB);
         fee = _fee;
     }

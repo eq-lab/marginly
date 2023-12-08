@@ -19,6 +19,7 @@ import {
   MarginlyConfigSwapPool,
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
+  PriceProviderMock,
 } from './configs';
 import { sortUniswapPoolTokens } from '@marginly/common/math';
 
@@ -29,6 +30,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   private readonly readAaveContract;
   private readonly readMarginlyMockContract;
   private readonly readMarginlyPeripheryContract;
+  private readonly readMarginlyPeripheryMockContract;
   private readonly deploy;
   private readonly signer;
   private readonly ethArgs;
@@ -43,6 +45,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     this.readAaveContract = createAaveContractReader();
     this.readMarginlyMockContract = createMarginlyMockContractReader();
     this.readMarginlyPeripheryContract = createMarginlyPeripheryContractReader();
+    this.readMarginlyPeripheryMockContract = createMarginlyPeripheryMockContract();
     this.deploy = deployTemplate(signer, ethArgs, this.readMarginlyContract, stateStore, logger);
     this.ethArgs = ethArgs;
     this.signer = signer;
@@ -442,7 +445,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   public async deploySwapPoolRegistry(
     tokenRepository: ITokenRepository,
     uniswapFactory: EthAddress,
-    pools: MarginlyConfigSwapPool[]
+    pools: MarginlyConfigSwapPool[],
+    priceAdapters: EthAddress[]
   ): Promise<DeployResult> {
     type SwapPool = {
       pool: `0x${string}`;
@@ -451,11 +455,11 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       fee: BigNumber;
     };
 
-    const swapPools: SwapPool[] = pools.map((p) => ({
+    const swapPools: SwapPool[] = pools.map((p, i) => ({
       tokenA: tokenRepository.getTokenInfo(p.tokenA.id).address.toString(),
       tokenB: tokenRepository.getTokenInfo(p.tokenB.id).address.toString(),
       fee: this.toUniswapFee(p.fee),
-      pool: p.address.toString(),
+      pool: priceAdapters[i].toString(),
     }));
 
     var deployResult = await this.deploy(
@@ -509,6 +513,31 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     );
   }
 
+  public async deployMarginlyPriceAdapter(
+    basePriceProvider: EthAddress,
+    quotePriceProvider: EthAddress,
+    poolId: string
+  ): Promise<DeployResult> {
+    return this.deploy(
+      'PriceAdapter',
+      [basePriceProvider.toString(), quotePriceProvider.toString()],
+      `priceAdapter_${poolId}`,
+      this.readMarginlyPeripheryContract
+    );
+  }
+
+  public async deployPriceProviderMock(priceProviderMock: PriceProviderMock, id: string): Promise<DeployResult> {
+    return this.deploy(
+      'ChainlinkAggregatorV3Mock',
+      [
+        priceProviderMock.answer.mul(BigNumber.from(10).pow(priceProviderMock.decimals)).toInteger(),
+        priceProviderMock.decimals,
+      ],
+      `priceProviderMock_${id}`,
+      this.readMarginlyPeripheryMockContract
+    );
+  }
+
   public async ensureTokenAmount(
     token: MarginlyConfigToken,
     ethAddress: EthAddress,
@@ -552,6 +581,12 @@ function createMarginlyMockContractReader(): ContractReader {
 function createMarginlyPeripheryContractReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@marginly/periphery/artifacts/contracts/${name}.sol/${name}.json`);
+  };
+}
+
+function createMarginlyPeripheryMockContract(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/periphery/artifacts/contracts/test/${name}.sol/${name}.json`);
   };
 }
 

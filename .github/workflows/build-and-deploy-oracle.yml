@@ -14,7 +14,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}/oracle
   SERVICE_NAME: ${{ secrets.SERVICE_NAME_ORACLE }}
   NAMESPACE: ${{ secrets.NAMESPACE }}
-  GH_SECR: ${{ secrets.GH_SECR }}
   CLUSTER: ${{ secrets.CLUSTER }}
   PK: ${{ secrets.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY }}
   IMAGE_TAG: latest
@@ -78,7 +77,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: [name: $GH_SECR ]
+          imagePullSecrets: "${{ secrets.PULL_SECRET }}"
           EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
@@ -86,15 +85,6 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
           context: ${{ env.CLUSTER }}
-    - name: Set imagePullSecret
-      uses: azure/k8s-create-secret@v4
-      with:
-        namespace: ${{ env.NAMESPACE }}
-        secret-name: ${{ env.GH_SECR }}
-        container-registry-url: ${{ env.REGISTRY }}
-        container-registry-username: ${{ github.actor }}
-        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-      id: create-secret
     - name: 'deploy'
       run: |
         ls -la
@@ -104,7 +94,6 @@ jobs:
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
           --set image.tag=$IMAGE_TAG \
-          --set imagePullSecrets[0].name=$GH_SECR \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY=$PK \

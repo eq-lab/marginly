@@ -6,6 +6,8 @@ import { RouterTestUniswapV3Pool } from '../../typechain-types/contracts/test/Un
 import { RouterTestUniswapV2Pair } from '../../typechain-types/contracts/test/UniswapV2Test/TestUniswapV2Pair.sol';
 import { TestVault } from '../../typechain-types/contracts/test/BalancerTest/TestVault.sol';
 import { TestWooPPV2 } from '../../typechain-types/contracts/test/WooFi/TestWooPool.sol';
+import { TestDodoV1Pool } from '../../typechain-types/contracts/test/Dodo/V1/TestDodoV1Pool.sol';
+import { TestDodoV2Pool } from '../../typechain-types/contracts/test/Dodo/V2/TestDodoV2Pool.sol';
 import { TestBalancerPool } from '../../typechain-types/contracts/test/BalancerTest/TestBalancerPool';
 import { TestSwapInfo } from '../../typechain-types/contracts/test/TestSwapInfo';
 import { Dex } from './utils';
@@ -124,6 +126,46 @@ export async function createWooPool(
   };
 }
 
+export async function createDodoV1Pool(
+  token0: TestERC20Token,
+  token1: TestERC20Token
+): Promise<{
+  dodoV1Pool: TestDodoV1Pool;
+  dodoV1Adapter: IMarginlyAdapter;
+}> {
+  const dodoV1Pool = await (await ethers.getContractFactory('TestDodoV1Pool')).deploy(token0.address, token1.address);
+  await token0.mint(dodoV1Pool.address, parseUnits('100000', 18));
+  await token1.mint(dodoV1Pool.address, parseUnits('100000', 18));
+  await dodoV1Pool.sync();
+
+  const adapterInput = [{ token0: token0.address, token1: token1.address, pool: dodoV1Pool.address }];
+  const dodoV1Adapter = await (await ethers.getContractFactory('DodoV1Adapter')).deploy(adapterInput);
+  return {
+    dodoV1Pool,
+    dodoV1Adapter,
+  };
+}
+
+export async function createDodoV2Pool(
+  token0: TestERC20Token,
+  token1: TestERC20Token
+): Promise<{
+  dodoV2Pool: TestDodoV2Pool;
+  dodoV2Adapter: IMarginlyAdapter;
+}> {
+  const dodoV2Pool = await (await ethers.getContractFactory('TestDodoV2Pool')).deploy(token0.address, token1.address);
+  await token0.mint(dodoV2Pool.address, parseUnits('100000', 18));
+  await token1.mint(dodoV2Pool.address, parseUnits('100000', 18));
+  await dodoV2Pool.sync();
+
+  const adapterInput = [{ token0: token0.address, token1: token1.address, pool: dodoV2Pool.address }];
+  const dodoV2Adapter = await (await ethers.getContractFactory('DodoV2Adapter')).deploy(adapterInput);
+  return {
+    dodoV2Pool,
+    dodoV2Adapter,
+  };
+}
+
 export async function createMarginlyRouter(): Promise<{
   marginlyRouter: MarginlyRouter;
   token0: TestERC20Token;
@@ -132,6 +174,8 @@ export async function createMarginlyRouter(): Promise<{
   uniswapV2: { pool: RouterTestUniswapV2Pair; adapter: IMarginlyAdapter };
   balancer: { vault: TestVault; adapter: IMarginlyAdapter };
   wooFi: { pool: TestWooPPV2; adapter: IMarginlyAdapter };
+  dodoV1: { pool: TestDodoV1Pool; adapter: IMarginlyAdapter };
+  dodoV2: { pool: TestDodoV2Pool; adapter: IMarginlyAdapter };
 }> {
   const tokenA = await createToken('TokenA', 'TKA');
   const tokenB = await createToken('TokenB', 'TKB');
@@ -150,6 +194,8 @@ export async function createMarginlyRouter(): Promise<{
   const { uniswapV2Pair, uniswapV2Adapter } = await createUniswapV2Pair(token0, token1);
   const { balancerVault, balancerAdapter } = await createBalancer(token0, token1);
   const { wooPool, wooFiAdapter } = await createWooPool(token0, token1);
+  const { dodoV1Pool, dodoV1Adapter } = await createDodoV1Pool(token0, token1);
+  const { dodoV2Pool, dodoV2Adapter } = await createDodoV2Pool(token0, token1);
   const factory = await ethers.getContractFactory('MarginlyRouter');
 
   let constructorInput = [];
@@ -167,6 +213,8 @@ export async function createMarginlyRouter(): Promise<{
     adapter: balancerAdapter.address,
   });
   constructorInput.push({ dexIndex: Dex.Woofi, adapter: wooFiAdapter.address });
+  constructorInput.push({ dexIndex: Dex.DodoV1, adapter: dodoV1Adapter.address });
+  constructorInput.push({ dexIndex: Dex.DodoV2, adapter: dodoV2Adapter.address });
 
   const marginlyRouter = await factory.deploy(constructorInput);
 
@@ -178,6 +226,8 @@ export async function createMarginlyRouter(): Promise<{
     uniswapV2: { pool: uniswapV2Pair, adapter: uniswapV2Adapter },
     balancer: { vault: balancerVault, adapter: balancerAdapter },
     wooFi: { pool: wooPool, adapter: wooFiAdapter },
+    dodoV1: { pool: dodoV1Pool, adapter: dodoV1Adapter },
+    dodoV2: { pool: dodoV2Pool, adapter: dodoV2Adapter },
   };
 }
 

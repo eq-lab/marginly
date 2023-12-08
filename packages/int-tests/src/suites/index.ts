@@ -1,4 +1,4 @@
-import { Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 import { logger } from '../utils/logger';
 import { Web3Provider } from '@ethersproject/providers';
 import { initUsdc, initWeth } from '../utils/erc20-init';
@@ -39,6 +39,9 @@ import {
 } from './deleveragePrecision';
 import { balanceSync, balanceSyncWithdrawBase, balanceSyncWithdrawQuote } from './balanceSync';
 import { routerSwaps, routerMultipleSwaps } from './router';
+import DodoV1MarginlyAdapter from '../contract-api/DodoV1MarginlyAdapter';
+import DodoV2MarginlyAdapter from '../contract-api/DodoV2MarginlyAdapter';
+import { parseUnits } from 'ethers/lib/utils';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -114,6 +117,24 @@ async function initializeTestSystem(
     treasury
   );
 
+  const dodoV1Adapter = await DodoV1MarginlyAdapter.deploy(
+    [{ token0: weth.address, token1: usdc.address, pool: '0x75c23271661d9d143DCb617222BC4BEc783eff34' }],
+    treasury
+  );
+
+  const dodoV2Pool = '0xCFA990E9c104F6DB3fbECEe04ad211c39ED3830F';
+  await weth.connect(treasury).transfer(dodoV2Pool, parseUnits('110', 18));
+  await usdc.connect(treasury).transfer(dodoV2Pool, parseUnits('100000', 6));
+  const dodoV2SyncAbi = 
+    '[{"inputs": [], "name": "sync", "outputs": [], "stateMutability": "nonpayable", "type": "function"}]';
+  const dodoV2 = new ethers.Contract(dodoV2Pool, dodoV2SyncAbi);
+  await dodoV2.connect(treasury).sync();
+
+  const dodoV2Adapter = await DodoV2MarginlyAdapter.deploy(
+    [{ token0: weth.address, token1: usdc.address, pool: dodoV2Pool }],
+    treasury
+  );
+
   const routerConstructorInput = [];
   routerConstructorInput.push({
     dexIndex: Dex.UniswapV3,
@@ -130,6 +151,14 @@ async function initializeTestSystem(
   routerConstructorInput.push({
     dexIndex: Dex.SushiSwap,
     adapter: sushiSwapAdapter.address,
+  });
+  routerConstructorInput.push({
+    dexIndex: Dex.DodoV1,
+    adapter: dodoV1Adapter.address,
+  });
+  routerConstructorInput.push({
+    dexIndex: Dex.DodoV2,
+    adapter: dodoV2Adapter.address,
   });
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);

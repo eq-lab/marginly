@@ -18,6 +18,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
   /// @param poolFee Amount of underlying pool fee
   /// @param params Marginly pool parameters
   function createPool(
+    address underlyingPool,
     address quoteToken,
     address baseToken,
     uint24 poolFee,
@@ -33,17 +34,17 @@ abstract contract PoolActions is MarginlyAdminStorage {
 
     AdapterStorage adapterStorage = AdapterStorage(adapterAddress);
     address poolAddressFromAdapter = adapterStorage.getPool(baseToken, quoteToken);
-    address underlyingPoolAddress = IMarginlyPool(marginlyPoolAddress).uniswapPool();
 
     if (poolAddressFromAdapter == address(0)) {
       PoolInput[] memory poolInput = new PoolInput[](1);
-      poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPoolAddress);
+      poolInput[0] = PoolInput(baseToken, quoteToken, underlyingPool);
       adapterStorage.addPools(poolInput);
-    } else if (poolAddressFromAdapter != underlyingPoolAddress) {
+    } else if (poolAddressFromAdapter != underlyingPool) {
       revert InvalidUnderlyingPool();
     }
 
     poolsOwners[marginlyPoolAddress] = msg.sender;
+    emit NewPoolOwner(marginlyPoolAddress, msg.sender);
   }
 
   /// @dev Set new params for a Marginly pool. Allowed only for pool owner
@@ -80,6 +81,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
   function transferMarginlyPoolOwnership(address marginlyPool, address to) external {
     if (msg.sender != poolsOwners[marginlyPool]) revert Errors.NotOwner();
     poolsOwners[marginlyPool] = to;
+    emit NewPoolOwner(marginlyPool, to);
   }
 
   /// @dev This function is required for the sweepETH successful execution
