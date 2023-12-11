@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import { SBT, SBT__factory } from '../typechain-types';
 
 task('sbt:transfer-ownership')
-  .addParam('contract', 'The signer private key.')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('owner', 'The owner address.')
   .setAction(async function (args: TaskArguments, hre) {
@@ -22,7 +22,7 @@ task('sbt:transfer-ownership')
   });
 
 task('sbt:renounce-ownership')
-  .addParam('contract', 'The signer private key.')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .setAction(async function (args: TaskArguments, hre) {
     const contract = initSbtContract(hre, args.signer, args.contract);
@@ -35,8 +35,8 @@ task('sbt:renounce-ownership')
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
-task('sbt:createOrUpdate')
-  .addParam('contract', 'The signer private key.')
+task('sbt:create-or-update')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('metadataFile', 'The file containing the following JSON structure [{id:number,metadata:string}].')
   .setAction(async function (args: TaskArguments, hre) {
@@ -54,7 +54,7 @@ task('sbt:createOrUpdate')
   });
 
 task('sbt:mint')
-  .addParam('contract', 'The signer private key.')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('recipientsFile', 'The file containing the following JSON structure [{to:string,id:number,amount:number}].')
   .setAction(async function (args: TaskArguments, hre) {
@@ -72,8 +72,8 @@ task('sbt:mint')
     console.log(`The tokens has been successfully minted to the recipients.`, recipients);
   });
 
-task('sbt:burnMinted')
-  .addParam('contract', 'The signer private key.')
+task('sbt:burn-minted')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam(
     'burnMintedFile',
@@ -95,7 +95,7 @@ task('sbt:burnMinted')
   });
 
 task('sbt:burn')
-  .addParam('contract', 'The signer private key.')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('id', 'The token id being burned.')
   .addParam('amount', 'The amount of token being burned.')

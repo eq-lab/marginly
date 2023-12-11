@@ -55,6 +55,11 @@ export const config = {
     outDir: 'typechain-types',
     target: 'ethers-v6',
   },
+  gasReporter: {
+    currency: 'USD',
+    gasPrice: 21,
+    enabled: true,
+  },
 };
 
 export default config;
