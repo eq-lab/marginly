@@ -41,7 +41,7 @@ export const config = {
   etherscan: {
     apiKey: {
       arbitrumGoerli: process.env.API_KEY,
-      arbitrumMainnet: process.env.API_KEY,
+      arbitrumOne: process.env.API_KEY,
     },
   },
   contractSizer: {
