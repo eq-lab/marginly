@@ -67,7 +67,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: "${{ secrets.PULL_SECRET }}"
+          imagePullSecrets: ${{ secrets.PULL_SECRET }}
           EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3

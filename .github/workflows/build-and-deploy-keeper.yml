@@ -75,7 +75,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: "${{ secrets.PULL_SECRET }}"
+          imagePullSecrets: ${{ secrets.PULL_SECRET }}
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
@@ -127,7 +127,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: "${{ secrets.PULL_SECRET }}" 
+          imagePullSecrets: ${{ secrets.PULL_SECRET }}
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-one.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
