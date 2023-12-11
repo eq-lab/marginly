@@ -2,8 +2,8 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { Signers, deploySbt } from './shared';
-import { SBT__factory } from '../typechain-types';
+import { Signers, deployContestWinnerNft } from './shared';
+import { ContestWinnerNFT__factory } from '../typechain-types';
 
 describe('createOrUpdate()', function () {
   before(async function () {
@@ -18,20 +18,20 @@ describe('createOrUpdate()', function () {
   });
 
   beforeEach(async function () {
-    const { contract } = await this.loadFixture(deploySbt);
-    this.sbt = contract;
+    const { contract } = await this.loadFixture(deployContestWinnerNft);
+    this.contestWinnerNft = contract;
   });
 
   it('should require owner', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
-    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
+    const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
     await expect(user.createOrUpdate([], [])).to.be.rejectedWith('Ownable: caller is not the owner');
     await expect(admin.createOrUpdate([], [])).not.to.be.rejected;
   });
 
   it('should throw error when arguments mismatch length', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.createOrUpdate([], [''])).to.be.rejectedWith('args invalid length');
     await expect(admin.createOrUpdate([1], [])).to.be.rejectedWith('args invalid length');
@@ -40,13 +40,13 @@ describe('createOrUpdate()', function () {
   });
 
   it('should throw error when uri is empty', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.createOrUpdate([1], [''])).to.be.rejectedWith('invalid uri');
   });
 
   it('should mint tokens, set uris and emit URI event', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.createOrUpdate([1, 2, 3], ['1', '2', '3']))
       .to.emit(admin, 'URI')

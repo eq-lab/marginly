@@ -4,14 +4,14 @@ import type { HardhatRuntimeEnvironment, Network, TaskArguments } from 'hardhat/
 import { BigNumberish, ContractTransactionResponse } from 'ethers';
 import * as fs from 'fs';
 
-import { SBT, SBT__factory } from '../typechain-types';
+import { ContestWinnerNFT__factory, ContestWinnerNFT } from '../typechain-types';
 
-task('sbt:transfer-ownership')
-  .addParam('contract', 'The signer private key.')
+task('nft:transfer-ownership')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('owner', 'The owner address.')
   .setAction(async function (args: TaskArguments, hre) {
-    const contract = initSbtContract(hre, args.signer, args.contract);
+    const contract = initContestWinnerNftContract(hre, args.signer, args.contract);
 
     const tx = await contract.transferOwnership(args.owner);
     await waitTransaction(hre.network, tx);
@@ -21,11 +21,11 @@ task('sbt:transfer-ownership')
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
-task('sbt:renounce-ownership')
-  .addParam('contract', 'The signer private key.')
+task('nft:renounce-ownership')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .setAction(async function (args: TaskArguments, hre) {
-    const contract = initSbtContract(hre, args.signer, args.contract);
+    const contract = initContestWinnerNftContract(hre, args.signer, args.contract);
 
     const tx = await contract.renounceOwnership();
     await waitTransaction(hre.network, tx);
@@ -35,12 +35,12 @@ task('sbt:renounce-ownership')
     console.log('Ownership has been successfully transferred to: ', owner);
   });
 
-task('sbt:createOrUpdate')
-  .addParam('contract', 'The signer private key.')
+task('nft:create-or-update')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('metadataFile', 'The file containing the following JSON structure [{id:number,metadata:string}].')
   .setAction(async function (args: TaskArguments, hre) {
-    const contract = initSbtContract(hre, args.signer, args.contract);
+    const contract = initContestWinnerNftContract(hre, args.signer, args.contract);
 
     const tokensMetadata: TokenMetadata[] = JSON.parse(fs.readFileSync(args.metadataFile, 'utf-8'));
 
@@ -53,12 +53,12 @@ task('sbt:createOrUpdate')
     console.log('Tokens has been successfully created/updated.', tokensMetadata);
   });
 
-task('sbt:mint')
-  .addParam('contract', 'The signer private key.')
+task('nft:mint')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam('recipientsFile', 'The file containing the following JSON structure [{to:string,id:number,amount:number}].')
   .setAction(async function (args: TaskArguments, hre) {
-    const contract = initSbtContract(hre, args.signer, args.contract);
+    const contract = initContestWinnerNftContract(hre, args.signer, args.contract);
 
     const recipients: TokenRecipient[] = JSON.parse(fs.readFileSync(args.recipientsFile, 'utf-8'));
 
@@ -72,15 +72,15 @@ task('sbt:mint')
     console.log(`The tokens has been successfully minted to the recipients.`, recipients);
   });
 
-task('sbt:burnMinted')
-  .addParam('contract', 'The signer private key.')
+task('nft:burn-minted')
+  .addParam('contract', 'The contract address.')
   .addParam('signer', 'The signer private key.')
   .addParam(
     'burnMintedFile',
     'The file containing the following JSON structure [{owner:string,id:number,amount:number}].'
   )
   .setAction(async function (args: TaskArguments, hre) {
-    const contract = initSbtContract(hre, args.signer, args.contract);
+    const contract = initContestWinnerNftContract(hre, args.signer, args.contract);
 
     const burnData: TokenOwner[] = JSON.parse(fs.readFileSync(args.burnMintedFile, 'utf-8'));
 
@@ -94,26 +94,12 @@ task('sbt:burnMinted')
     console.log(`The tokens has been successfully burned.`, burnData);
   });
 
-task('sbt:burn')
-  .addParam('contract', 'The signer private key.')
-  .addParam('signer', 'The signer private key.')
-  .addParam('id', 'The token id being burned.')
-  .addParam('amount', 'The amount of token being burned.')
-  .setAction(async function (args: TaskArguments, hre) {
-    const contract = initSbtContract(hre, args.signer, args.contract);
-
-    const tx = await contract.burn(args.id, args.amount);
-    await waitTransaction(hre.network, tx);
-
-    console.log(`The amount of token ${args.id} has been successsfully decreased by ${args.amount}.`);
-  });
-
-function initSbtContract(hre: HardhatRuntimeEnvironment, pk: string, contract: string): SBT {
+function initContestWinnerNftContract(hre: HardhatRuntimeEnvironment, pk: string, contract: string): ContestWinnerNFT {
   const provider = new hre.ethers.JsonRpcProvider((hre.network.config as any).url);
   const signer = new hre.ethers.Wallet(pk, provider);
-  const sbt = SBT__factory.connect(contract, signer);
+  const contestWinnerNft = ContestWinnerNFT__factory.connect(contract, signer);
 
-  return sbt;
+  return contestWinnerNft;
 }
 
 async function waitTransaction(network: Network, response: ContractTransactionResponse) {

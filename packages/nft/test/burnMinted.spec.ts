@@ -2,8 +2,8 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { Signers, deploySbt } from './shared';
-import { SBT__factory } from '../typechain-types';
+import { Signers, deployContestWinnerNft } from './shared';
+import { ContestWinnerNFT__factory } from '../typechain-types';
 
 describe('burnMinted()', function () {
   before(async function () {
@@ -18,13 +18,13 @@ describe('burnMinted()', function () {
   });
 
   beforeEach(async function () {
-    const { contract } = await this.loadFixture(deploySbt);
-    this.sbt = contract;
+    const { contract } = await this.loadFixture(deployContestWinnerNft);
+    this.contestWinnerNft = contract;
   });
 
   it('should require owner', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
-    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
+    const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
     admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [1, 2]);
 
@@ -35,7 +35,7 @@ describe('burnMinted()', function () {
   });
 
   it('should throw error when arguments mismatch length', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.burnMinted([this.signers.users[0].address], [], [])).to.be.rejectedWith('args invalid length');
     await expect(admin.burnMinted([], [1], [])).to.be.rejectedWith('args invalid length');
@@ -48,7 +48,7 @@ describe('burnMinted()', function () {
   });
 
   it('should burn the minted tokens and emit TransferSingle event', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [99, 26]);
 

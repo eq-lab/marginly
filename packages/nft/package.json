@@ -1,7 +1,7 @@
 {
-  "name": "@marginly/sbt",
+  "name": "@marginly/contest-winner-nft",
   "version": "0.1.0",
-  "description": "Marginly SBT contract",
+  "description": "Marginly ContestWinnerNFT contract",
   "license": "MIT",
   "main": "dist/index.js",
   "directories": {

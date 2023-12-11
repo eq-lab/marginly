@@ -2,8 +2,8 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { Signers, deploySbt } from './shared';
-import { SBT__factory } from '../typechain-types';
+import { Signers, deployContestWinnerNft } from './shared';
+import { ContestWinnerNFT__factory } from '../typechain-types';
 
 describe('mint()', function () {
   before(async function () {
@@ -18,20 +18,20 @@ describe('mint()', function () {
   });
 
   beforeEach(async function () {
-    const { contract } = await this.loadFixture(deploySbt);
-    this.sbt = contract;
+    const { contract } = await this.loadFixture(deployContestWinnerNft);
+    this.contestWinnerNft = contract;
   });
 
   it('should require admin', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
-    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
+    const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
     await expect(user.mint([], [], [])).to.be.rejectedWith('Ownable: caller is not the owner');
     await expect(admin.mint([], [], [])).not.to.be.rejected;
   });
 
   it('should throw error when arguments mismatch length', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.mint([this.signers.users[0].address], [], [])).to.be.rejectedWith('args invalid length');
     await expect(admin.mint([], [1], [])).to.be.rejectedWith('args invalid length');
@@ -42,7 +42,7 @@ describe('mint()', function () {
   });
 
   it('should throw error when awarding zero address', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.mint(['0x0000000000000000000000000000000000000000'], [1], [1])).to.be.rejectedWith(
       'address zero is not a valid owner'
@@ -50,13 +50,13 @@ describe('mint()', function () {
   });
 
   it('should throw error when amount is zero', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.mint([this.signers.users[0].address], [1], [0])).to.be.rejectedWith('invalid amount');
   });
 
   it('should award users and emit TransferSingle event', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
 
     await expect(admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [1, 2]))
       .to.emit(admin, 'TransferSingle')

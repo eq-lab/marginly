@@ -2,8 +2,8 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { Signers, deploySbt } from './shared';
-import { SBT__factory } from '../typechain-types';
+import { Signers, deployContestWinnerNft } from './shared';
+import { ContestWinnerNFT__factory } from '../typechain-types';
 
 describe('balanceOf()', function () {
   before(async function () {
@@ -18,19 +18,19 @@ describe('balanceOf()', function () {
   });
 
   beforeEach(async function () {
-    const { contract } = await this.loadFixture(deploySbt);
-    this.sbt = contract;
+    const { contract } = await this.loadFixture(deployContestWinnerNft);
+    this.contestWinnerNft = contract;
   });
 
   it('should be zero by default', async function () {
-    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+    const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
     expect(await user.balanceOf(this.signers.users[0].address, 1)).be.equal(0);
   });
 
   it('should be increased after award', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
-    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
+    const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
     await admin.mint([this.signers.users[0].address], [1], [123]);
 
@@ -38,11 +38,11 @@ describe('balanceOf()', function () {
   });
 
   it('should be decreased after award', async function () {
-    const admin = SBT__factory.connect(await this.sbt.getAddress(), this.signers.admin);
-    const user = SBT__factory.connect(await this.sbt.getAddress(), this.signers.users[0]);
+    const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
+    const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
     await admin.mint([this.signers.users[0].address], [1], [123]);
-    await user.burn(1, 23);
+    await user.burn(this.signers.users[0].address, 1, 23);
 
     expect(await user.balanceOf(this.signers.users[0].address, 1)).be.equal(100);
   });

@@ -5,7 +5,7 @@ import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { Wallet as ZkWallet } from 'zksync-web3';
 import * as fs from 'fs';
 
-task('sbt:deploy')
+task('nft:deploy')
   .addParam('signer', 'The deployer private key.')
   .setAction(async function (args: TaskArguments, hre) {
     let txHash: string;
@@ -15,7 +15,7 @@ task('sbt:deploy')
       const signer = new ZkWallet(args.signer);
       const deployer = new Deployer(hre, signer);
 
-      const artifact = await deployer.loadArtifact('SBT');
+      const artifact = await deployer.loadArtifact('ContestWinnerNFT');
       const contract = await deployer.deploy(artifact, []);
       const tx = contract.deployTransaction;
       await contract.deployed();
@@ -26,7 +26,7 @@ task('sbt:deploy')
       const provider = new hre.ethers.JsonRpcProvider((hre.network.config as any).url);
       const signer = new hre.ethers.Wallet(args.signer, provider);
 
-      const factory = await hre.ethers.getContractFactory('SBT', signer);
+      const factory = await hre.ethers.getContractFactory('ContestWinnerNFT', signer);
       const contract = await factory.deploy();
       const tx = contract.deploymentTransaction();
       await contract.waitForDeployment();
@@ -40,13 +40,13 @@ task('sbt:deploy')
     console.log('Contract has been successfully deployed to: ', contractAddress);
   });
 
-task('sbt:verify')
+task('nft:verify')
   .addParam('contract', 'The address of the verifying contract.')
   .setAction(async function (args: TaskArguments, hre) {
     if (hre.network.zksync) {
       await hre.run('verify:verify', {
         address: args.contract,
-        contract: 'contracts/SBT.sol:SBT',
+        contract: 'contracts/ContestWinnerNft.sol:ContestWinnerNFT',
         constructorArguments: [],
       });
     } else {

@@ -40,8 +40,8 @@ export const config = {
   },
   etherscan: {
     apiKey: {
-      arbitrumGoerli: process.env.API_KEY,
-      arbitrumMainnet: process.env.API_KEY,
+      arbitrumGoerli: 'CGWUYWEHU1KUKNHG9HJSEHT94W3F31M834',
+      arbitrumMainnet: 'CGWUYWEHU1KUKNHG9HJSEHT94W3F31M834',
     },
   },
   contractSizer: {
@@ -49,7 +49,7 @@ export const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['SBT'],
+    only: ['ContestWinnerNFT'],
   },
   typechain: {
     outDir: 'typechain-types',

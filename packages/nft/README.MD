@@ -18,27 +18,27 @@ $NETWORK = {
 # installs all the dependencies and builds them
 yarn install && yarn build
 
-# compiles the SBT smart-contract for a given $NETWORK
+# compiles the ContestWinnerNft.sol smart-contract for a given $NETWORK
 npx hardhat compile --network $NETWORK
 ```
 
 ### Deploy
 
 ```bash
-cd packages/sbt
+cd packages/nft
 
-# deploys the compiled SBT smart-contract to a given $NETWORK
-npx hardhat sbt:deploy --signer $WALLET_PK --network $NETWORK
+# deploys the compiled ContestWinnerNft.sol smart-contract to a given $NETWORK
+npx hardhat nft:deploy --signer $WALLET_PK --network $NETWORK
 
 # verifies the deployed contract
-npx hardhat sbt:verify --contract $ADDRESS --network $NETWORK
+npx hardhat nft:verify --contract $ADDRESS --network $NETWORK
 
 ```
 
-### SBT commands
+### ContestWinnerNFT commands
 
 ```bash
-# displays all the SBT commands (note, it must have 'sbt:' prefix)
+# displays all the ContestWinnerNft.sol commands (note, it must have 'nft:' prefix)
 npx hardhat --help
 
 # displays help for a given command
