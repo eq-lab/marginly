@@ -40,8 +40,8 @@ export const config = {
   },
   etherscan: {
     apiKey: {
-      arbitrumGoerli: 'CGWUYWEHU1KUKNHG9HJSEHT94W3F31M834',
-      arbitrumMainnet: 'CGWUYWEHU1KUKNHG9HJSEHT94W3F31M834',
+      arbitrumGoerli: process.env.API_KEY,
+      arbitrumMainnet: process.env.API_KEY,
     },
   },
   contractSizer: {
