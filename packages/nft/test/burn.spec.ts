@@ -27,10 +27,14 @@ describe('burn()', function () {
     const owner = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
     const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[1]);
 
-    admin.mint([this.signers.users[0].address], [1], [100]);
+    await admin.mint([this.signers.users[0].address], [1], [100]);
 
-    await expect(admin.burn(this.signers.users[0].address, 1, 1)).to.be.rejectedWith('ERC1155: caller is not token owner or approved');
-    await expect(user.burn(this.signers.users[0].address, 1, 1)).to.be.rejectedWith('ERC1155: caller is not token owner or approved');
+    await expect(admin.burn(this.signers.users[0].address, 1, 1)).to.be.rejectedWith(
+      'ERC1155: caller is not token owner or approved'
+    );
+    await expect(user.burn(this.signers.users[0].address, 1, 1)).to.be.rejectedWith(
+      'ERC1155: caller is not token owner or approved'
+    );
     await expect(owner.burn(this.signers.users[0].address, 1, 1)).not.to.be.rejected;
   });
 
@@ -38,19 +42,23 @@ describe('burn()', function () {
     const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
     const owner = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
-    admin.mint([this.signers.users[0].address], [1], [100]);
-    admin.mint([this.signers.users[1].address], [1], [100]);
+    await admin.mint([this.signers.users[0].address], [1], [100]);
+    await admin.mint([this.signers.users[1].address], [1], [100]);
 
     await expect(owner.burn(this.signers.users[0].address, 1, 99)).not.to.be.rejected;
-    await expect(owner.burn(this.signers.users[0].address, 1, 2)).to.be.rejectedWith('ERC1155: burn amount exceeds balance');
-    await expect(owner.burn(this.signers.users[0].address, 1, 200)).to.be.rejectedWith('ERC1155: burn amount exceeds totalSupply');
+    await expect(owner.burn(this.signers.users[0].address, 1, 2)).to.be.rejectedWith(
+      'ERC1155: burn amount exceeds balance'
+    );
+    await expect(owner.burn(this.signers.users[0].address, 1, 200)).to.be.rejectedWith(
+      'ERC1155: burn amount exceeds totalSupply'
+    );
   });
 
   it('should burn the specified amount of token and emit TransferSingle event', async function () {
     const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
     const owner = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
-    admin.mint([this.signers.users[0].address], [1], [100]);
+    await admin.mint([this.signers.users[0].address], [1], [100]);
 
     await expect(owner.burn(this.signers.users[0].address, 1, 99))
       .to.emit(admin, 'TransferSingle')

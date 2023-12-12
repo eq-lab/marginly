@@ -26,7 +26,7 @@ describe('burnMinted()', function () {
     const admin = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.admin);
     const user = ContestWinnerNFT__factory.connect(await this.contestWinnerNft.getAddress(), this.signers.users[0]);
 
-    admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [1, 2]);
+    await admin.mint([this.signers.users[0].address, this.signers.users[1].address], [1, 2], [1, 2]);
 
     await expect(user.burnMinted([this.signers.users[0].address], [1], [1])).to.be.rejectedWith(
       'Ownable: caller is not the owner'

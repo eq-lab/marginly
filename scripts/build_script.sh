@@ -60,7 +60,3 @@ echo "build int-tests"
 yarn workspace @marginly/int-tests install
 yarn workspace @marginly/int-tests compile
 yarn workspace @marginly/int-tests build
-
-echo "build frontend"
-yarn workspace @marginly/frontend install
-yarn workspace @marginly/frontend build
