@@ -61,9 +61,10 @@ task('nft:create-or-update')
     const tokens = tokensMetadata.map((tm) => tm.id);
     const metadata = tokensMetadata.map((tm) => tm.metadata);
 
-    if (tokens.filter((x) => x < 0).length !== 0) {
+    if (tokens.some((x) => x < 0)) {
       throw new Error(`Metadata file contains token id < 0`);
     }
+
     const tokenDuplicates = tokens.filter((x, i) => i !== tokens.lastIndexOf(x));
     if (tokenDuplicates.length !== 0) {
       throw new Error(`Metadata file contains token id duplicates: [${tokenDuplicates}]`);
@@ -131,9 +132,11 @@ task('nft:mint')
       balancesBefore.set(r.to, bMap);
     }
 
-    const tx = await contract.mint(to, ids, amounts);
-    console.log(`Tx hash: ${tx.hash}`);
-    await waitTransaction(hre.network, tx);
+    console.log('GO!');
+
+    // const tx = await contract.mint(to, ids, amounts);
+    // console.log(`Tx hash: ${tx.hash}`);
+    // await waitTransaction(hre.network, tx);
 
     let ok = true;
     for (const r of recipients) {
