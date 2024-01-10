@@ -90,7 +90,7 @@ const logFormatParamter: KeeperParamter = {
 const logLevelParamter: KeeperParamter = {
   name: ['log', 'level'],
   description: 'Log level: 1-Verbose,2-Debug,3-Information,4-Warning,5-Error,6-Fatal',
-  default: 'json',
+  default: '3',
   env: `${ENV_PREFIX}_LOG_LEVEL`,
 };
 

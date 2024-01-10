@@ -4,50 +4,50 @@
   },
   "connection": {
     "ethOptions": {
-      "gasLimit": 1800000
+      "gasLimit": 2200000
     }
   },
   "marginlyKeeperAddress": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
   "marginlyPools": [
     {
       "address": "0x53C08A5e2b7bc973d3d5Aee60373969E30e93B93",
-      "minProfitQuote": "5",
-      "minProfitBase": "0.005"
+      "minProfitQuote": "1",
+      "minProfitBase": "0.0005"
     },
     {
       "address": "0x99Cc2A68e121F2434db5C5D63670212F07f89ee8",
-      "minProfitQuote": "0.005",
-      "minProfitBase": "0.00015"
+      "minProfitQuote": "0.0005",
+      "minProfitBase": "0.00005"
     },
     {
       "address": "0x5ceB22fe09C7259b9dceef243615f180664BCE70",
-      "minProfitQuote": "5",
-      "minProfitBase": "5"
+      "minProfitQuote": "1",
+      "minProfitBase": "0.8"
     },
     {
       "address": "0x0637B18b5c5b7fe72F63a5511D2e90BEc7FC828E",
-      "minProfitQuote": "0.005",
+      "minProfitQuote": "0.0005",
       "minProfitBase": "0.1"
     },
     {
       "address": "0x3adc0f25c7A23a626A67811c47d0A0DbE21773a4",
-      "minProfitQuote": "0.005",
-      "minProfitBase": "5"
+      "minProfitQuote": "0.0005",
+      "minProfitBase": "2"
     },
     {
       "address": "0x82bC6A8dA5988E66676014cA99056Bd7A2f44dF2",
-      "minProfitQuote": "0.005",
-      "minProfitBase": "20"
+      "minProfitQuote": "0.0005",
+      "minProfitBase": "10"
     },
     {
       "address": "0x87e711BcB9Ed1f2f6dec8fcC74cD2e0613D43b86",
-      "minProfitQuote": "5",
-      "minProfitBase": "0.005"
+      "minProfitQuote": "1",
+      "minProfitBase": "0.0005"
     },
     {
       "address": "0x0F750fBb044037254b5843C6b4a715AA12876d94",
-      "minProfitQuote": "5",
-      "minProfitBase": "5"
+      "minProfitQuote": "1",
+      "minProfitBase": "0.8"
     }
   ]
 }
