@@ -67,6 +67,20 @@ export class MarginlyKeeperWorker implements Worker {
             this.signer.provider
           );
 
+          //check available for flashloan in aave
+          const aavePoolAddress = await this.keeperContract.POOL();
+          const aavePoolContract = new ethers.Contract(
+            aavePoolAddress,
+            this.contractDescriptions.aavePool.abi,
+            this.signer.provider
+          );
+          const configuration = await aavePoolContract.getConfiguration(liquidationParam.asset);
+          logger.debug(`Aave configuration for asset: ${liquidationParam.asset} is ${configuration}`);
+          if (configuration == '0') {
+            logger.info(`Aave flashLoan not available, asset: ${liquidationParam.asset}, aavePool: ${aavePoolAddress}`);
+            continue;
+          }
+
           try {
             logger.info(
               `Sending tx to liquidate position with params` +

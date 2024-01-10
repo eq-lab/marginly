@@ -30,6 +30,11 @@
       "minProfitBase": "0.1"
     },
     {
+      "address": "0x3adc0f25c7A23a626A67811c47d0A0DbE21773a4",
+      "minProfitQuote": "0.0005",
+      "minProfitBase": "2"
+    },
+    {
       "address": "0x82bC6A8dA5988E66676014cA99056Bd7A2f44dF2",
       "minProfitQuote": "0.0005",
       "minProfitBase": "10"

@@ -1,4 +1,5 @@
 import { Command, Option } from 'commander';
+import 'dotenv/config';
 import { sleep, ContractDescription } from '@marginly/common';
 import {
   createSystemContext,
@@ -63,11 +64,16 @@ function createOpenZeppelinContractDescription(name: string): ContractDescriptio
   return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
 }
 
+function createAaveIPoolContractDescription(): ContractDescription {
+  return require(`@aave/core-v3/artifacts/contracts/interfaces/IPool.sol/IPool.json`);
+}
+
 function prepareContractDescriptions(): ContractDescriptions {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
     keeper: createMarginlyContractDescription('MarginlyKeeper'),
     marginlyPool: createMarginlyContractDescription('MarginlyPool'),
+    aavePool: createAaveIPoolContractDescription(),
   };
 }
 
