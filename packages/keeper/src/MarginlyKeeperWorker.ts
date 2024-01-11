@@ -4,14 +4,14 @@ import { using } from '@marginly/common/resource';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { formatEther, formatUnits } from 'ethers/lib/utils';
-import { EthOptions, ContractDescriptions } from './types';
+import { EthOptions, ContractDescriptions, LiquidationParams } from './types';
 import { PoolWatcher } from './PoolWatcher';
 
 export class MarginlyKeeperWorker implements Worker {
   private readonly logger: Logger;
   private readonly signer: ethers.Signer;
   private readonly keeperContract: ethers.Contract;
-  private readonly contractDescriptions: any;
+  private readonly contractDescriptions: ContractDescriptions;
   private readonly poolWatchers: PoolWatcher[];
   private readonly ethOptions: EthOptions;
 
@@ -59,51 +59,11 @@ export class MarginlyKeeperWorker implements Worker {
           if (this.stopRequested) {
             return;
           }
-          const refferalCode = 0;
 
-          const debtTokenContract = new ethers.Contract(
-            liquidationParam.asset,
-            this.contractDescriptions.token.abi,
-            this.signer.provider
-          );
-
-          //check available for flashloan in aave
-          const aavePoolAddress = await this.keeperContract.POOL();
-          const aavePoolContract = new ethers.Contract(
-            aavePoolAddress,
-            this.contractDescriptions.aavePool.abi,
-            this.signer.provider
-          );
-          const configuration = await aavePoolContract.getConfiguration(liquidationParam.asset);
-          logger.debug(`Aave configuration for asset: ${liquidationParam.asset} is ${configuration}`);
-          if (configuration == '0') {
-            logger.info(`Aave flashLoan not available, asset: ${liquidationParam.asset}, aavePool: ${aavePoolAddress}`);
-            continue;
-          }
-
-          try {
-            logger.info(
-              `Sending tx to liquidate position with params` +
-                ` asset:${liquidationParam.asset}, amount:${liquidationParam.amount}, pool:${liquidationParam.pool}, position:${liquidationParam.position}, minProfit:${liquidationParam.minProfit}`
-            );
-
-            await this.logBalanceChange(logger, debtTokenContract, async () => {
-              const tx = await this.keeperContract
-                .connect(this.signer)
-                .flashLoan(
-                  liquidationParam.asset,
-                  liquidationParam.amount,
-                  refferalCode,
-                  liquidationParam.pool,
-                  liquidationParam.position,
-                  liquidationParam.minProfit,
-                  this.ethOptions
-                );
-              const txReceipt = await tx.wait();
-              logger.info(`Position ${liquidationParam.position} liquidated`);
-            });
-          } catch (error) {
-            logger.error(`Error while sending tx: ${error}`);
+          if (await this.isAvailableForBorrow(logger, liquidationParam.asset)) {
+            await this.tryLiquidateWithFlashloan(logger, liquidationParam);
+          } else {
+            await this.callReinit(logger, liquidationParam);
           }
         }
       });
@@ -132,5 +92,79 @@ export class MarginlyKeeperWorker implements Worker {
         ethBalanceBefore.sub(ethBalanceAfter)
       )} ETH`
     );
+  }
+
+  private async callReinit(logger: Logger, liquidationParam: LiquidationParams): Promise<void> {
+    logger.info(`Aave flashLoan not available, asset: ${liquidationParam.asset}`);
+
+    try {
+      logger.info(`Sending tx to reinit`);
+      const marginlyPoolContract = new ethers.Contract(
+        liquidationParam.pool,
+        this.contractDescriptions.marginlyPool.abi,
+        this.signer.provider
+      );
+
+      const price = (await marginlyPoolContract.getBasePrice()).inner;
+      const reinitCallType = 7;
+      const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+      const uniswapV3Swapdata = 0;
+
+      const tx = await marginlyPoolContract
+        .connect(this.signer)
+        .execute(reinitCallType, 0, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata);
+      const txReceipt = await tx.wait();
+    } catch (error) {
+      logger.error(`Error while sending reinit tx: ${error}`);
+    }
+  }
+
+  private async tryLiquidateWithFlashloan(logger: Logger, liquidationParam: LiquidationParams): Promise<void> {
+    const refferalCode = 0;
+
+    const debtTokenContract = new ethers.Contract(
+      liquidationParam.asset,
+      this.contractDescriptions.token.abi,
+      this.signer.provider
+    );
+
+    try {
+      logger.info(
+        `Sending tx to liquidate position with params` +
+          ` asset:${liquidationParam.asset}, amount:${liquidationParam.amount}, pool:${liquidationParam.pool}, position:${liquidationParam.position}, minProfit:${liquidationParam.minProfit}`
+      );
+
+      await this.logBalanceChange(logger, debtTokenContract, async () => {
+        const tx = await this.keeperContract
+          .connect(this.signer)
+          .flashLoan(
+            liquidationParam.asset,
+            liquidationParam.amount,
+            refferalCode,
+            liquidationParam.pool,
+            liquidationParam.position,
+            liquidationParam.minProfit,
+            this.ethOptions
+          );
+        const txReceipt = await tx.wait();
+        logger.info(`Position ${liquidationParam.position} liquidated`);
+      });
+    } catch (error) {
+      logger.error(`Error while sending flashLoan tx: ${error}`);
+    }
+  }
+
+  private async isAvailableForBorrow(logger: Logger, tokenAddress: string): Promise<boolean> {
+    const aavePoolAddress = await this.keeperContract.POOL();
+    const aavePoolContract = new ethers.Contract(
+      aavePoolAddress,
+      this.contractDescriptions.aavePool.abi,
+      this.signer.provider
+    );
+    const configuration = await aavePoolContract.getConfiguration(tokenAddress);
+    logger.debug(`Aave configuration for asset: ${tokenAddress} is ${configuration}`);
+
+    const isAvailable = configuration != '0';
+    return isAvailable;
   }
 }
