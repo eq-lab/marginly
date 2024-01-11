@@ -10,7 +10,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/keeper
   CLUSTER: ${{ secrets.CLUSTER }}
-  IMAGE_TAG: latest
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
