@@ -50,10 +50,10 @@ export class MarginlyKeeperWorker implements Worker {
       }
 
       await using(this.logger.scope(`PoolWatcher ${poolWatcher.pool.address}`), async (logger) => {
-        logger.debug(`Check pool ${poolWatcher.pool.address}`);
+        logger.info(`Check pool ${poolWatcher.pool.address}`);
 
         const liquidationParams = await poolWatcher.findBadPositions();
-        logger.debug(`Found ${liquidationParams.length} bad positions`);
+        logger.info(`Found ${liquidationParams.length} bad positions`);
 
         for (const liquidationParam of liquidationParams) {
           if (this.stopRequested) {
@@ -162,7 +162,7 @@ export class MarginlyKeeperWorker implements Worker {
       this.signer.provider
     );
     const configuration = await aavePoolContract.getConfiguration(tokenAddress);
-    logger.debug(`Aave configuration for asset: ${tokenAddress} is ${configuration}`);
+    logger.info(`Aave configuration for asset: ${tokenAddress} is ${configuration}`);
 
     const isAvailable = configuration != '0';
     return isAvailable;
