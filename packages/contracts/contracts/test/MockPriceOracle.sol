@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import '../interfaces/IPriceOracle.sol';
 import '../libraries/FP96.sol';
 
-contract MockSwapRouter is IPriceOracle {
+contract MockPriceOracle is IPriceOracle {
   uint256 public balancePrice = FP96.one().inner;
   uint256 public marginCallPrice = FP96.one().inner;
 
