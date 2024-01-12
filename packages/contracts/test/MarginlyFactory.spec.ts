@@ -15,26 +15,36 @@ describe('MarginlyFactory', () => {
       maxLeverage: 20,
       swapFee: 1000, // 0.1%
       mcSlippage: 50000, //5%
-      priceSecondsAgo: 900, // 15 min
-      priceSecondsAgoMC: 60, // 1 min
       positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000_000,
     };
 
-    return { fee: 3000n, params };
+    const priceOracleOptions: number[] = [];
+
+    return {
+      params,
+      defaultSwapCallData: 0,
+      priceOracleOptions,
+    };
   }
 
   it('should create pool', async () => {
-    const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
+    const { factory, uniswapPoolInfo, priceOracle } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;
     const baseToken = uniswapPoolInfo.token1.address;
-    const { fee, params } = getPoolParams();
+    const { params, defaultSwapCallData, priceOracleOptions } = getPoolParams();
 
-    const poolAddress = await factory.callStatic.createPool(quoteToken, baseToken, fee, params);
-    await snapshotGasCost(factory.createPool(quoteToken, baseToken, fee, params));
-
-    expect(await factory.getPool(quoteToken, baseToken, fee)).to.be.equal(poolAddress);
-    expect(await factory.getPool(baseToken, quoteToken, fee)).to.be.equal(poolAddress);
+    const poolAddress = await factory.callStatic.createPool(
+      quoteToken,
+      baseToken,
+      priceOracle.address,
+      defaultSwapCallData,
+      params,
+      priceOracleOptions
+    );
+    await snapshotGasCost(
+      factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params, priceOracleOptions)
+    );
 
     const poolFactory = await ethers.getContractFactory('MarginlyPool');
     const pool = poolFactory.attach(poolAddress) as MarginlyPool;
@@ -56,40 +66,28 @@ describe('MarginlyFactory', () => {
     expect(currentRouterAddress).to.be.eq(newAddress);
   });
 
-  it('should raise error when pool exists', async () => {
-    const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
+  it('should create the same pools', async () => {
+    const { factory, uniswapPoolInfo, priceOracle } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;
     const baseToken = uniswapPoolInfo.token1.address;
-    const { fee, params } = getPoolParams();
+    const { params, defaultSwapCallData, priceOracleOptions } = getPoolParams();
 
-    await factory.createPool(quoteToken, baseToken, fee, params);
-    await expect(factory.createPool(quoteToken, baseToken, fee, params)).to.be.revertedWithCustomError(
-      factory,
-      'PoolAlreadyCreated'
+    await factory.createPool(
+      quoteToken,
+      baseToken,
+      priceOracle.address,
+      defaultSwapCallData,
+      params,
+      priceOracleOptions
     );
-  });
 
-  it('should raise error when Uniswap pool not found for pair', async () => {
-    const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
-
-    const quoteToken = uniswapPoolInfo.token1.address;
-    const randomAddress = factory.address;
-    const { fee, params } = getPoolParams();
-
-    await expect(factory.createPool(quoteToken, randomAddress, fee, params)).to.be.revertedWithCustomError(
-      factory,
-      'UniswapPoolNotFound'
-    );
-  });
-
-  it('should raise error when trying to create pool with the same tokens', async () => {
-    const { factory, uniswapPoolInfo } = await loadFixture(createMarginlyFactory);
-    const quoteToken = uniswapPoolInfo.token0.address;
-    const { fee, params } = getPoolParams();
-
-    await expect(factory.createPool(quoteToken, quoteToken, fee, params)).to.be.revertedWithCustomError(
-      factory,
-      'Forbidden'
+    await factory.createPool(
+      quoteToken,
+      baseToken,
+      priceOracle.address,
+      defaultSwapCallData,
+      params,
+      priceOracleOptions
     );
   });
 
@@ -104,8 +102,7 @@ describe('MarginlyFactory', () => {
     const nonZeroAddress = '0x0000000000000000000000000000000000000001';
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const constructorArgs: [any, any, any, any, any, any] = [
-      nonZeroAddress,
+    const constructorArgs: [any, any, any, any, any] = [
       nonZeroAddress,
       nonZeroAddress,
       nonZeroAddress,
@@ -113,7 +110,7 @@ describe('MarginlyFactory', () => {
       nonZeroAddress,
     ];
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < constructorArgs.length; i++) {
       constructorArgs[i] = ZERO_ADDRESS;
       await expect(factoryFactory.deploy.call(factoryFactory, ...constructorArgs)).to.be.revertedWithCustomError(
         factoryFactory,
