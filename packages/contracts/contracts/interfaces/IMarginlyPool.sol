@@ -125,8 +125,10 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   function initialize(
     address quoteToken,
     address baseToken,
-    address uniswapPool,
-    MarginlyParams memory _params
+    address priceOracle,
+    uint32 defaultSwapCallData,
+    MarginlyParams calldata params,
+    bytes calldata priceOracleOptions
   ) external;
 
   /// @notice Returns the address of quote token from pool
@@ -137,6 +139,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
 
   /// @notice Returns the address of price oracle
   function priceOracle() external view returns (address);
+
+  /// @notice Returns default swap call data
+  function defaultSwapCallData() external view returns (uint32);
 
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);

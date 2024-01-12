@@ -18,6 +18,7 @@ contract MockMarginlyFactory is IMarginlyFactory {
     address quoteToken,
     address baseToken,
     address priceOracle,
+    uint32 defaultSwapCallData,
     MarginlyParams memory params,
     bytes memory priceOracleOptions
   ) external override returns (address pool) {
@@ -25,10 +26,6 @@ contract MockMarginlyFactory is IMarginlyFactory {
   }
 
   function changeSwapRouter(address newSwapRouter) external {}
-
-  function getPool(address quoteToken, address baseToken) external view override returns (address pool) {
-    return address(0);
-  }
 
   /// @notice Swap fee holder address
   function feeHolder() external view override returns (address) {

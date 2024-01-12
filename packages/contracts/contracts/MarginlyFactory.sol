@@ -25,9 +25,6 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
   /// @notice Technical position address
   address public immutable override techPositionOwner;
 
-  /// @inheritdoc IMarginlyFactory
-  mapping(address => mapping(address => address)) public override getPool;
-
   constructor(
     address _marginlyPoolImplementation,
     address _swapRouter,
@@ -55,22 +52,18 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
     address quoteToken,
     address baseToken,
     address priceOracle,
+    uint32 defaultSwapCallData,
     MarginlyParams calldata params,
     bytes calldata priceOracleOptions
   ) external override onlyOwner returns (address pool) {
     if (quoteToken == baseToken) revert Errors.Forbidden();
     if (priceOracle == address(0)) revert Errors.WrongValue();
 
-    address existingPool = getPool[quoteToken][baseToken];
-    if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
+    pool = Clones.clone(marginlyPoolImplementation);
+    IPriceOracle(priceOracle).validateOptions(quoteToken, baseToken, priceOracleOptions);
+    IMarginlyPool(pool).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, params, priceOracleOptions);
 
-    pool = Clones.cloneDeterministic(marginlyPoolImplementation, keccak256(abi.encode(quoteToken, baseToken)));
-    IPriceOracle(priceOracle).initialize(pool, priceOracleOptions);
-    IMarginlyPool(pool).initialize(quoteToken, baseToken, priceOracle, params);
-
-    getPool[quoteToken][baseToken] = pool;
-    getPool[baseToken][quoteToken] = pool;
-    emit PoolCreated(quoteToken, baseToken, priceOracle, pool);
+    emit PoolCreated(quoteToken, baseToken, priceOracle, defaultSwapCallData, pool);
   }
 
   /// @inheritdoc IMarginlyFactory

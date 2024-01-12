@@ -16,14 +16,16 @@ contract MockPriceOracle is IPriceOracle {
     marginCallPrice = price;
   }
 
-  function initialize(address caller, bytes calldata) external pure {}
+  function validateOptions(address, address, bytes calldata) external pure {}
 
-  function getBalancePrice(address) external view returns (uint256) {
+  function ensureCanChangeOptions(bytes calldata, bytes calldata) external pure {}
+
+  function getBalancePrice(address, address, bytes calldata) external view returns (uint256) {
     return balancePrice;
   }
 
   /// @notice Returns marcin call price as FP96 value
-  function getMargincallPrice(address) external view returns (uint256) {
+  function getMargincallPrice(address, address, bytes calldata) external view returns (uint256) {
     return marginCallPrice;
   }
 }

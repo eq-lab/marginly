@@ -33,14 +33,14 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev FP96 inner value of count of seconds in year. Equal 365.25 * 24 * 60 * 60
   uint256 private constant SECONDS_IN_YEAR_X96 = 2500250661360148260042022567123353600;
 
-  /// @dev router calldata for swap on UniswapV3;
-  uint256 private constant UNISWAP_V3_ROUTER_SWAP = 0;
-
   /// @dev Denominator of fee value
   uint24 private constant WHOLE_ONE = 1e6;
 
   /// @inheritdoc IMarginlyPool
   address public override factory;
+
+  /// @inheritdoc IMarginlyPool
+  uint32 public override defaultSwapCallData;
 
   /// @inheritdoc IMarginlyPool
   address public override quoteToken;
@@ -97,6 +97,8 @@ contract MarginlyPool is IMarginlyPool {
   ///@dev Heap of long positions, root - the worst long position. Sort key - leverage calculated with discounted collateral, debt
   MaxBinaryHeapLib.Heap private longHeap;
 
+  bytes public priceOracleOptions;
+
   /// @notice users positions
   mapping(address => Position) public positions;
 
@@ -108,7 +110,9 @@ contract MarginlyPool is IMarginlyPool {
     address _quoteToken,
     address _baseToken,
     address _priceOracle,
-    MarginlyParams memory _params
+    uint32 _defaultSwapCallData,
+    MarginlyParams memory _params,
+    bytes memory _priceOracleOptions
   ) internal {
     if (_quoteToken == address(0)) revert Errors.WrongValue();
     if (_baseToken == address(0)) revert Errors.WrongValue();
@@ -126,6 +130,8 @@ contract MarginlyPool is IMarginlyPool {
     quoteDebtCoeff = FP96.one();
     lastReinitTimestampSeconds = getTimestamp();
     initialPrice = getBasePrice();
+    priceOracleOptions = _priceOracleOptions;
+    defaultSwapCallData = _defaultSwapCallData;
 
     Position storage techPosition = getTechPosition();
     techPosition._type = PositionType.Lend;
@@ -136,11 +142,13 @@ contract MarginlyPool is IMarginlyPool {
     address _quoteToken,
     address _baseToken,
     address _priceOracle,
-    MarginlyParams calldata _params
+    uint32 _defaultSwapCallData,
+    MarginlyParams calldata _params,
+    bytes calldata _priceOracleOptions
   ) external virtual {
     if (factory != address(0)) revert Errors.Forbidden();
 
-    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _params);
+    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _defaultSwapCallData, _params, _priceOracleOptions);
   }
 
   receive() external payable {
@@ -186,6 +194,13 @@ contract MarginlyPool is IMarginlyPool {
 
     params = _params;
     emit ParametersChanged();
+  }
+
+  function setPriceOracleOptions(bytes calldata _priceOracleOptions) external onlyFactoryOwner {
+    IPriceOracle(priceOracle).ensureCanChangeOptions(_priceOracleOptions, priceOracleOptions);
+    IPriceOracle(priceOracle).validateOptions(quoteToken, baseToken, _priceOracleOptions);
+
+    priceOracleOptions = _priceOracleOptions;
   }
 
   /// @dev Swaps tokens to receive exact amountOut and send at most amountInMaximum
@@ -340,7 +355,7 @@ contract MarginlyPool is IMarginlyPool {
         uint baseOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
           getLiquidationPrice().recipMul(realQuoteCollateral)
         );
-        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, UNISWAP_V3_ROUTER_SWAP);
+        swappedBaseDebt = swapExactInput(true, realQuoteCollateral, baseOutMinimum, defaultSwapCallData);
         swapPriceX96 = getSwapPrice(realQuoteCollateral, swappedBaseDebt);
       }
 
@@ -383,7 +398,7 @@ contract MarginlyPool is IMarginlyPool {
         uint256 quoteOutMinimum = FP96.fromRatio(WHOLE_ONE - params.mcSlippage, WHOLE_ONE).mul(
           getLiquidationPrice().mul(realBaseCollateral)
         );
-        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, UNISWAP_V3_ROUTER_SWAP);
+        swappedQuoteDebt = swapExactInput(false, realBaseCollateral, quoteOutMinimum, defaultSwapCallData);
         swapPriceX96 = getSwapPrice(swappedQuoteDebt, realBaseCollateral);
       }
 
@@ -783,13 +798,13 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Get oracle price baseToken / quoteToken
   function getBasePrice() public view returns (FP96.FixedPoint memory) {
-    uint256 price = IPriceOracle(priceOracle).getBalancePrice(address(this));
+    uint256 price = IPriceOracle(priceOracle).getBalancePrice(quoteToken, baseToken, priceOracleOptions);
     return FP96.FixedPoint({inner: price});
   }
 
   /// @notice Get TWAP price used in mc slippage calculations
   function getLiquidationPrice() public view returns (FP96.FixedPoint memory) {
-    uint256 price = IPriceOracle(priceOracle).getMargincallPrice(address(this));
+    uint256 price = IPriceOracle(priceOracle).getMargincallPrice(quoteToken, baseToken, priceOracleOptions);
     return FP96.FixedPoint({inner: price});
   }
 

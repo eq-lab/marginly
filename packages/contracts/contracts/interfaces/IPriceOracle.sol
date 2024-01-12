@@ -2,12 +2,23 @@
 pragma solidity 0.8.19;
 
 interface IPriceOracle {
-  /// @notice Initialize oracle for address
-  function initialize(address caller, bytes calldata options) external;
+  /// @notice Validate price oracle options for pair of tokens
+  function validateOptions(address quoteToken, address baseToken, bytes calldata options) external view;
 
-  /// @notice Returns price as FP96 value
-  function getBalancePrice(address caller) external view returns (uint256);
+  /// @notice Ensure the old options could be replaces with a new one
+  function ensureCanChangeOptions(bytes calldata newOptions, bytes calldata oldOptions) external view;
 
-  /// @notice Returns margin call price as FP96 value
-  function getMargincallPrice(address caller) external view returns (uint256);
+  /// @notice Returns price as X96 value
+  function getBalancePrice(
+    address quoteToken,
+    address baseToken,
+    bytes calldata options
+  ) external view returns (uint256);
+
+  /// @notice Returns margin call price as X96 value
+  function getMargincallPrice(
+    address quoteToken,
+    address baseToken,
+    bytes calldata options
+  ) external view returns (uint256);
 }

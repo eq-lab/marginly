@@ -18,11 +18,13 @@ contract FullMarginlyPool is MarginlyPool {
     address _quoteToken,
     address _baseToken,
     address _priceOracle,
-    MarginlyParams calldata _params
+    uint32 _defaultSwapCallData,
+    MarginlyParams calldata _params,
+    bytes calldata _priceOracleOptions
   ) external override {
     if (initialized) revert Errors.Forbidden();
 
-    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _params);
+    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _defaultSwapCallData, _params, _priceOracleOptions);
     initialized = true;
   }
 
