@@ -5,8 +5,15 @@ import '../interfaces/IPriceOracle.sol';
 import '../libraries/FP96.sol';
 
 contract MockPriceOracle is IPriceOracle {
-  uint256 public balancePrice = FP96.one().inner;
-  uint256 public marginCallPrice = FP96.one().inner;
+  using FP96 for FP96.FixedPoint;
+
+  uint256 public balancePrice;
+  uint256 public marginCallPrice;
+
+  constructor() {
+    balancePrice = FP96.fromRatio(1, 4).inner;
+    marginCallPrice = FP96.fromRatio(1, 4).inner;
+  }
 
   function setBalancePrice(uint256 price) external {
     balancePrice = price;
