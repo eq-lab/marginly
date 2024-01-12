@@ -16,12 +16,14 @@ contract MockSwapRouter is IPriceOracle {
     marginCallPrice = price;
   }
 
-  function getBalancePrice(bytes calldata) external view returns (uint256) {
+  function initialize(address caller, bytes calldata) external pure {}
+
+  function getBalancePrice(address) external view returns (uint256) {
     return balancePrice;
   }
 
   /// @notice Returns marcin call price as FP96 value
-  function getMargincallPrice(bytes calldata) external view returns (uint256) {
+  function getMargincallPrice(address) external view returns (uint256) {
     return marginCallPrice;
   }
 }

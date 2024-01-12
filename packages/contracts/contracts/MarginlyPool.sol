@@ -14,6 +14,7 @@ import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
 import './interfaces/IWETH9.sol';
+import './interfaces/IPriceOracle.sol';
 import './dataTypes/MarginlyParams.sol';
 import './dataTypes/Position.sol';
 import './dataTypes/Mode.sol';
@@ -46,10 +47,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @inheritdoc IMarginlyPool
   address public override baseToken;
   /// @inheritdoc IMarginlyPool
-  address public override uniswapPool;
-  /// @dev It's equivalent of `quoteToken < baseToken` value
-  /// @dev However it's more gas-optimal since requires 1 storage reading instead of 2
-  bool private quoteTokenIsToken0;
+  address public override priceOracle;
   /// @dev reentrancy guard
   bool private locked;
 
@@ -109,19 +107,17 @@ contract MarginlyPool is IMarginlyPool {
   function _initializeMarginlyPool(
     address _quoteToken,
     address _baseToken,
-    bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceOracle,
     MarginlyParams memory _params
   ) internal {
     if (_quoteToken == address(0)) revert Errors.WrongValue();
     if (_baseToken == address(0)) revert Errors.WrongValue();
-    if (_uniswapPool == address(0)) revert Errors.WrongValue();
+    if (_priceOracle == address(0)) revert Errors.WrongValue();
 
     factory = msg.sender;
     quoteToken = _quoteToken;
     baseToken = _baseToken;
-    quoteTokenIsToken0 = _quoteTokenIsToken0;
-    uniswapPool = _uniswapPool;
+    priceOracle = _priceOracle;
     _setParameters(_params);
 
     baseCollateralCoeff = FP96.one();
@@ -139,13 +135,12 @@ contract MarginlyPool is IMarginlyPool {
   function initialize(
     address _quoteToken,
     address _baseToken,
-    bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceOracle,
     MarginlyParams calldata _params
   ) external virtual {
     if (factory != address(0)) revert Errors.Forbidden();
 
-    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _uniswapPool, _params);
+    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _params);
   }
 
   receive() external payable {
@@ -184,8 +179,6 @@ contract MarginlyPool is IMarginlyPool {
       _params.fee > 1_000_000 ||
       _params.swapFee > 1_000_000 ||
       _params.mcSlippage > 1_000_000 ||
-      _params.priceSecondsAgo == 0 ||
-      _params.priceSecondsAgoMC == 0 ||
       _params.maxLeverage < 2 ||
       _params.quoteLimit == 0 ||
       _params.positionMinAmount == 0
@@ -790,28 +783,14 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Get oracle price baseToken / quoteToken
   function getBasePrice() public view returns (FP96.FixedPoint memory) {
-    uint256 sqrtPriceX96 = getTwapPrice(params.priceSecondsAgo);
-    return sqrtPriceX96ToPrice(sqrtPriceX96);
+    uint256 price = IPriceOracle(priceOracle).getBalancePrice(address(this));
+    return FP96.FixedPoint({inner: price});
   }
 
   /// @notice Get TWAP price used in mc slippage calculations
   function getLiquidationPrice() public view returns (FP96.FixedPoint memory) {
-    uint256 sqrtPriceX96 = getTwapPrice(params.priceSecondsAgoMC);
-    return sqrtPriceX96ToPrice(sqrtPriceX96);
-  }
-
-  /// @notice returns uniswapV3 oracle TWAP sqrt price for `priceSecondsAgo` period
-  function getTwapPrice(uint16 priceSecondsAgo) private view returns (uint256) {
-    return OracleLib.getSqrtPriceX96(uniswapPool, priceSecondsAgo);
-  }
-
-  function sqrtPriceX96ToPrice(uint256 sqrtPriceX96) private view returns (FP96.FixedPoint memory price) {
-    price = FP96.FixedPoint({inner: sqrtPriceX96});
-    price = price.mul(price);
-    if (quoteTokenIsToken0) {
-      // Price quote to base = 1 / basePrice
-      price = FP96.fromRatio(FP96.Q96, price.inner);
-    }
+    uint256 price = IPriceOracle(priceOracle).getMargincallPrice(address(this));
+    return FP96.FixedPoint({inner: price});
   }
 
   /// @notice Short with leverage

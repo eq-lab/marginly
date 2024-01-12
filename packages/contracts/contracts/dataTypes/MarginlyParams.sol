@@ -4,10 +4,6 @@ pragma solidity 0.8.19;
 struct MarginlyParams {
   /// @dev Maximum allowable leverage in the Regular mode.
   uint8 maxLeverage;
-  /// @dev Number of seconds in the past from which to calculate the time-weighted-average-price
-  uint16 priceSecondsAgo;
-  /// @dev Number of seconds in the past from which to calculate the time-weighted-average-price for swaps in MC
-  uint16 priceSecondsAgoMC;
   /// @dev Interest rate. Example 1% = 10000
   uint24 interestRate;
   /// @dev Close debt fee. 1% = 10000

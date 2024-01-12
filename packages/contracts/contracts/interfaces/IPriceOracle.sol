@@ -2,9 +2,12 @@
 pragma solidity 0.8.19;
 
 interface IPriceOracle {
-  /// @notice Returns price as FP96 value
-  function getBalancePrice(bytes calldata arg) external view returns (uint256);
+  /// @notice Initialize oracle for address
+  function initialize(address caller, bytes calldata options) external;
 
-  /// @notice Returns marcin call price as FP96 value
-  function getMargincallPrice(bytes calldata arg) external view returns (uint256);
+  /// @notice Returns price as FP96 value
+  function getBalancePrice(address caller) external view returns (uint256);
+
+  /// @notice Returns margin call price as FP96 value
+  function getMargincallPrice(address caller) external view returns (uint256);
 }
