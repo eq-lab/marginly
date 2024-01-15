@@ -17,6 +17,7 @@ describe.only('UniswapV3TickOracle', () => {
   it('', async () => {
     const { oracle, pool } = await loadFixture(createUniswapV3TickOracle);
     const price = await oracle.getBalancePrice(Tokens.USDC, Tokens.WETH, encodeOptions(900, await pool.fee()));
+    console.log(`${price.mul(10 ** 12).div(1n << 96n)}`);
     console.log(formatUnits(price.div(1n << 96n), 12));
 
     console.log(`${await pool.token1ToToken0SqrtPriceX96()}`);
