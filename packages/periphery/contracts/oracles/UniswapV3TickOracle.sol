@@ -9,61 +9,69 @@ import './IPriceOracle.sol';
 import './libraries/OracleLib.sol';
 
 contract UniswapV3TickOracle is IPriceOracle, Ownable2Step {
-  struct OracleCalldata {
+  struct OracleParams {
     uint16 secondsAgo;
+    uint16 secondsAgoLiquidation;
     uint24 fee;
   }
 
+  uint256 private constant X96ONE = 79228162514264337593543950336;
+
+  mapping(address => mapping(address => bytes)) public getParamsEncoded;
   address public immutable factory;
 
   constructor(address _factory) {
     factory = _factory;
   }
 
-  function validateOptions(address quoteToken, address baseToken, bytes calldata options) external view {
-    OracleCalldata memory oracleCalldata = decode(options);
-    if (oracleCalldata.secondsAgo == 0) revert();
-    getPoolAddress(quoteToken, baseToken, oracleCalldata.fee);
-  }
+  function setOptions(address quoteToken, address baseToken, bytes calldata encodedParams) external {
+    OracleParams memory newParams = decode(encodedParams);
+    if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert();
 
-  function canChangeOptions(bytes calldata newOptions, bytes calldata oldOptions) external pure returns (bool) {
-    OracleCalldata memory newOracleCalldata = decode(newOptions);
-    return decode(oldOptions).fee == newOracleCalldata.fee && newOracleCalldata.secondsAgo != 0;
+    bytes memory currentParamsEncoded = getParamsEncoded[quoteToken][baseToken];
+    if (currentParamsEncoded.length == 0) {
+      getPoolAddress(quoteToken, baseToken, newParams.fee);
+    } else {
+      OracleParams memory currentParams = decode(currentParamsEncoded);
+      if (currentParams.fee != newParams.fee) revert();
+    }
+
+    getParamsEncoded[quoteToken][baseToken] = encodedParams;
   }
 
   function getBalancePrice(
     address quoteToken,
-    address baseToken,
-    bytes calldata options
+    address baseToken
   ) external view returns (uint256) {
-    return getPriceX96Inner(quoteToken, baseToken, options);
+    OracleParams memory params = decode(getParamsEncoded[quoteToken][baseToken]);
+    return getPriceX96Inner(quoteToken, baseToken, params.fee, params.secondsAgo);
   }
 
   function getMargincallPrice(
     address quoteToken,
-    address baseToken,
-    bytes calldata options
+    address baseToken
   ) external view returns (uint256) {
-    return getPriceX96Inner(quoteToken, baseToken, options);
+    OracleParams memory params = decode(getParamsEncoded[quoteToken][baseToken]);
+    return getPriceX96Inner(quoteToken, baseToken, params.fee, params.secondsAgoLiquidation);
   }
 
   function getPriceX96Inner(
     address quoteToken,
     address baseToken,
-    bytes calldata options
+    uint24 fee,
+    uint16 secondsAgo
   ) private view returns (uint256) {
-    OracleCalldata memory oracleCalldata = decode(options);
-    address pool = getPoolAddress(baseToken, quoteToken, oracleCalldata.fee);
-    int24 arithmeticMeanTick = OracleLib.getArithmeticMeanTick(pool, oracleCalldata.secondsAgo);
+    address pool = getPoolAddress(baseToken, quoteToken, fee);
+    int24 arithmeticMeanTick = OracleLib.getArithmeticMeanTick(pool, secondsAgo);
     if (quoteToken < baseToken) {
       arithmeticMeanTick = -arithmeticMeanTick;
     }
     uint256 sqrtPrice = OracleLib.getSqrtRatioAtTick(arithmeticMeanTick);
-    return sqrtPrice * sqrtPrice;
+    return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
   }
 
-  function decode(bytes calldata options) private pure returns (OracleCalldata memory) {
-    return abi.decode(options, (OracleCalldata));
+  function decode(bytes memory options) private pure returns (OracleParams memory) {
+    return abi.decode(options, (OracleParams));
   }
 
   // TODO tmp impl, need to rewrite it so basically any UniswapV3-like factory can be supported
