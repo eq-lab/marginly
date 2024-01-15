@@ -44,8 +44,7 @@ contract MockMarginlyPool is IMarginlyPool {
     address _baseToken,
     address _priceOracle,
     uint32 _defaultSwapCallData,
-    MarginlyParams memory _params,
-    bytes memory priceOracleOptions
+    MarginlyParams memory _params
   ) external {}
 
   function setParameters(MarginlyParams calldata _params) external {}

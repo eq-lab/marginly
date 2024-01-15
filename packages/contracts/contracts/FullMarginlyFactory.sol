@@ -53,15 +53,13 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
     address baseToken,
     address priceOracle,
     uint32 defaultSwapCallData,
-    MarginlyParams calldata params,
-    bytes calldata priceOracleOptions
+    MarginlyParams calldata params
   ) external override onlyOwner returns (address pool) {
     if (quoteToken == baseToken) revert Errors.Forbidden();
     if (priceOracle == address(0)) revert Errors.WrongValue();
 
     pool = address(new FullMarginlyPool(quoteToken, baseToken, priceOracle, params));
-    IPriceOracle(priceOracle).validateOptions(quoteToken, baseToken, priceOracleOptions);
-    IMarginlyPool(pool).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, params, priceOracleOptions);
+    IMarginlyPool(pool).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, params);
 
     emit PoolCreated(quoteToken, baseToken, priceOracle, defaultSwapCallData, pool);
   }

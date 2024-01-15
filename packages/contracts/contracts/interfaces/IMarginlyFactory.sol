@@ -28,7 +28,6 @@ interface IMarginlyFactory {
   /// @param params pool parameters
   /// @param priceOracle price oracle to get base token price
   /// @param defaultSwapCallData default swap call data
-  /// @param priceOracleOptions price oracle options
   /// @dev tokenA and tokenB may be passed in either order: token0/token1 or token1/token0. tickSpacing is retrieved
   /// from the fee. The call will revert if the pool already exists, the fee is invalid, or the token arguments
   /// are invalid.
@@ -38,8 +37,7 @@ interface IMarginlyFactory {
     address baseToken,
     address priceOracle,
     uint32 defaultSwapCallData,
-    MarginlyParams calldata params,
-    bytes calldata priceOracleOptions
+    MarginlyParams calldata params
   ) external returns (address pool);
 
   /// @notice Changes swap router address used by Marginly pools

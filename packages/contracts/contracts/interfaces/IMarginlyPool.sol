@@ -127,8 +127,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     address baseToken,
     address priceOracle,
     uint32 defaultSwapCallData,
-    MarginlyParams calldata params,
-    bytes calldata priceOracleOptions
+    MarginlyParams calldata params
   ) external;
 
   /// @notice Returns the address of quote token from pool

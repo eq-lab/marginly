@@ -97,8 +97,6 @@ contract MarginlyPool is IMarginlyPool {
   ///@dev Heap of long positions, root - the worst long position. Sort key - leverage calculated with discounted collateral, debt
   MaxBinaryHeapLib.Heap private longHeap;
 
-  bytes public priceOracleOptions;
-
   /// @notice users positions
   mapping(address => Position) public positions;
 
@@ -111,8 +109,7 @@ contract MarginlyPool is IMarginlyPool {
     address _baseToken,
     address _priceOracle,
     uint32 _defaultSwapCallData,
-    MarginlyParams memory _params,
-    bytes memory _priceOracleOptions
+    MarginlyParams memory _params
   ) internal {
     if (_quoteToken == address(0)) revert Errors.WrongValue();
     if (_baseToken == address(0)) revert Errors.WrongValue();
@@ -130,7 +127,6 @@ contract MarginlyPool is IMarginlyPool {
     quoteDebtCoeff = FP96.one();
     lastReinitTimestampSeconds = getTimestamp();
     initialPrice = getBasePrice();
-    priceOracleOptions = _priceOracleOptions;
     defaultSwapCallData = _defaultSwapCallData;
 
     Position storage techPosition = getTechPosition();
@@ -143,12 +139,11 @@ contract MarginlyPool is IMarginlyPool {
     address _baseToken,
     address _priceOracle,
     uint32 _defaultSwapCallData,
-    MarginlyParams calldata _params,
-    bytes calldata _priceOracleOptions
+    MarginlyParams calldata _params
   ) external virtual {
     if (factory != address(0)) revert Errors.Forbidden();
 
-    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _defaultSwapCallData, _params, _priceOracleOptions);
+    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _defaultSwapCallData, _params);
   }
 
   receive() external payable {
@@ -194,13 +189,6 @@ contract MarginlyPool is IMarginlyPool {
 
     params = _params;
     emit ParametersChanged();
-  }
-
-  function setPriceOracleOptions(bytes calldata _priceOracleOptions) external onlyFactoryOwner {
-    IPriceOracle(priceOracle).ensureCanChangeOptions(_priceOracleOptions, priceOracleOptions);
-    IPriceOracle(priceOracle).validateOptions(quoteToken, baseToken, _priceOracleOptions);
-
-    priceOracleOptions = _priceOracleOptions;
   }
 
   /// @dev Swaps tokens to receive exact amountOut and send at most amountInMaximum
@@ -798,13 +786,13 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Get oracle price baseToken / quoteToken
   function getBasePrice() public view returns (FP96.FixedPoint memory) {
-    uint256 price = IPriceOracle(priceOracle).getBalancePrice(quoteToken, baseToken, priceOracleOptions);
+    uint256 price = IPriceOracle(priceOracle).getBalancePrice(quoteToken, baseToken);
     return FP96.FixedPoint({inner: price});
   }
 
   /// @notice Get TWAP price used in mc slippage calculations
   function getLiquidationPrice() public view returns (FP96.FixedPoint memory) {
-    uint256 price = IPriceOracle(priceOracle).getMargincallPrice(quoteToken, baseToken, priceOracleOptions);
+    uint256 price = IPriceOracle(priceOracle).getMargincallPrice(quoteToken, baseToken);
     return FP96.FixedPoint({inner: price});
   }
 
