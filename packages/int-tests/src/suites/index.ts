@@ -42,6 +42,7 @@ import { routerSwaps, routerMultipleSwaps } from './router';
 import DodoV1MarginlyAdapter from '../contract-api/DodoV1MarginlyAdapter';
 import DodoV2MarginlyAdapter from '../contract-api/DodoV2MarginlyAdapter';
 import { parseUnits } from 'ethers/lib/utils';
+import UniswapV3TickOracle from '../contract-api/UniswapV3TickOracle';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -163,8 +164,18 @@ async function initializeTestSystem(
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
-  const priceOracle = '0x00'; //TODO: create uniswap price oracle
-  logger.info(`price oracle: ${priceOracle}`);
+  const priceOracle = await UniswapV3TickOracle.deploy(uniswapFactory.address, treasury);
+  logger.info(`price oracle: ${priceOracle.address}`);
+
+  const secondsAgo = 1800;
+  const secondsAgoLiquidation = 5;
+  const uniswapPoolFee = 500;
+  const priceOracleOptions = ethers.utils.defaultAbiCoder.encode(
+    ['uint16', 'uint16', 'uint24'],
+    [secondsAgo, secondsAgoLiquidation, uniswapPoolFee]
+  );
+  //'0x0000000000000000000000000000000000000000000000000000000000000708000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000001f4';
+  await priceOracle.connect(treasury).setOptions(usdc.address, weth.address, priceOracleOptions); //TODO: create uniswap price oracle
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
   logger.info(`marginly pool implementation: ${marginlyPoolImplementation.address}`);
@@ -195,7 +206,7 @@ async function initializeTestSystem(
   const gasReporter = new GasReporter(suiteName);
   const txReceipt = await gasReporter.saveGasUsage(
     'factory.createPool',
-    marginlyFactory.createPool(usdc.address, weth.address, priceOracle, defaultSwapCallData, initialParams)
+    marginlyFactory.createPool(usdc.address, weth.address, priceOracle.address, defaultSwapCallData, initialParams)
   );
 
   const poolCreatedEvents = txReceipt.events?.filter((x) => x.event === 'PoolCreated');

@@ -34,7 +34,7 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly','SwapPoolRegistry'],
+    only: ['Marginly', 'SwapPoolRegistry', 'UniswapV3TickOracle', 'UniswapV3TickOracleDouble'],
     except: ['Mock', 'Test'],
   },
   docgen: {

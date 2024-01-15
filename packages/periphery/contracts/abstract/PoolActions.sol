@@ -24,7 +24,8 @@ abstract contract PoolActions is MarginlyAdminStorage {
     uint24 poolFee,
     MarginlyParams calldata params
   ) external returns (address marginlyPoolAddress) {
-    if (baseToken == address(0)) revert Errors.Forbidden();
+    //FIX: no function getPool in marginlyFactory
+    /*if (baseToken == address(0)) revert Errors.Forbidden();
     if (quoteToken == address(0)) revert Errors.Forbidden();
 
     marginlyPoolAddress = IMarginlyFactory(marginlyFactoryAddress).createPool(quoteToken, baseToken, poolFee, params);
@@ -44,7 +45,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
     }
 
     poolsOwners[marginlyPoolAddress] = msg.sender;
-    emit NewPoolOwner(marginlyPoolAddress, msg.sender);
+    emit NewPoolOwner(marginlyPoolAddress, msg.sender);*/
   }
 
   /// @dev Set new params for a Marginly pool. Allowed only for pool owner
