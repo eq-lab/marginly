@@ -12,7 +12,7 @@ import {
 } from './shared/utils';
 import { BigNumber } from 'ethers';
 
-describe.only('Deleverage', () => {
+describe('Deleverage', () => {
   it('Deleverage long position', async () => {
     const { marginlyPool, factoryOwner } = await loadFixture(createMarginlyPool);
 
@@ -483,10 +483,10 @@ describe.only('Deleverage', () => {
     const disBaseCollateralAfter = await marginlyPool.discountedBaseCollateral();
 
     const posBaseCollDelta = positionBefore.discountedBaseAmount.sub(positionAfter.discountedBaseAmount);
-    expect(posBaseCollDelta).to.be.closeTo(disBaseCollDelta, 1);
+    expect(posBaseCollDelta).to.be.closeTo(disBaseCollDelta, 2);
 
     const totalBaseCollDelta = disBaseCollateralBefore.sub(disBaseCollateralAfter);
-    expect(totalBaseCollDelta).to.be.closeTo(disBaseCollDelta, 1);
+    expect(totalBaseCollDelta).to.be.closeTo(disBaseCollDelta, 2);
   });
 
   it('close short position after deleverage', async () => {

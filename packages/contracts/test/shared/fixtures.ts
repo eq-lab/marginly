@@ -114,7 +114,7 @@ export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
   owner: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
   swapRouter: TestSwapRouter;
-  priceOracle: IPriceOracle;
+  priceOracle: MockPriceOracle;
 }> {
   const { uniswapFactory, uniswapPoolInfo } = await createUniswapFactory();
   const { swapRouter } = await createSwapRoute(uniswapPoolInfo.address);
@@ -152,13 +152,13 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
   baseContract: TestERC20;
   swapRouter: TestSwapRouter;
   marginlyFactory: MarginlyFactory;
+  priceOracle: MockPriceOracle;
 }> {
   const { factory, owner, uniswapPoolInfo, swapRouter, priceOracle } = await createMarginlyFactory(baseTokenIsWETH);
 
   const quoteToken = uniswapPoolInfo.token0.address;
   const baseToken = uniswapPoolInfo.token1.address;
   const defaultSwapCallData = 0;
-  const priceOracleOptions: number[] = [];
 
   const params: MarginlyParamsStruct = {
     interestRate: 54000, //5,4 %
@@ -175,10 +175,9 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     baseToken,
     priceOracle.address,
     defaultSwapCallData,
-    params,
-    priceOracleOptions
+    params
   );
-  await factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params, priceOracleOptions);
+  await factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params);
 
   const poolFactory = await ethers.getContractFactory('MarginlyPool');
   const pool = poolFactory.attach(poolAddress) as MarginlyPool;
@@ -221,6 +220,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     baseContract,
     swapRouter,
     marginlyFactory: factory,
+    priceOracle,
   };
 }
 

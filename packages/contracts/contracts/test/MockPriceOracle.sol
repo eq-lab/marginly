@@ -48,7 +48,7 @@ contract MockPriceOracle is IPriceOracle {
   }
 
   function setPriceQuoteLowerThanBase() external {
-    balancePrice = FP96.fromRatio(2, 1).inner;
-    marginCallPrice = FP96.fromRatio(2, 1).inner;
+    balancePrice = FP96.fromRatio(4, 1).inner;
+    marginCallPrice = FP96.fromRatio(4, 1).inner;
   }
 }
