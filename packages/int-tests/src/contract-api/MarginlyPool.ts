@@ -23,6 +23,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'baseDebtCoeff()': utils.FunctionFragment;
     'baseDelevCoeff()': utils.FunctionFragment;
     'baseToken()': utils.FunctionFragment;
+    'defaultSwapCallData()': utils.FunctionFragment;
     'discountedBaseCollateral()': utils.FunctionFragment;
     'discountedBaseDebt()': utils.FunctionFragment;
     'discountedQuoteCollateral()': utils.FunctionFragment;
@@ -33,12 +34,13 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'getBasePrice()': utils.FunctionFragment;
     'getHeapPosition(uint32,bool)': utils.FunctionFragment;
     'getLiquidationPrice()': utils.FunctionFragment;
-    'initialize(address,address,bool,address,tuple)': utils.FunctionFragment;
+    'initialize(address,address,address,uint32,tuple)': utils.FunctionFragment;
     'initialPrice()': utils.FunctionFragment;
     'lastReinitTimestampSeconds()': utils.FunctionFragment;
     'mode()': utils.FunctionFragment;
     'params()': utils.FunctionFragment;
     'positions(address)': utils.FunctionFragment;
+    'priceOracle()': utils.FunctionFragment;
     'quoteCollateralCoeff()': utils.FunctionFragment;
     'quoteDebtCoeff()': utils.FunctionFragment;
     'quoteDelevCoeff()': utils.FunctionFragment;
@@ -47,7 +49,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'shutDown(uint256)': utils.FunctionFragment;
     'sweepETH()': utils.FunctionFragment;
     'systemLeverage()': utils.FunctionFragment;
-    'uniswapPool()': utils.FunctionFragment;
   };
 
   getFunction(
@@ -56,6 +57,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'baseDebtCoeff'
       | 'baseDelevCoeff'
       | 'baseToken'
+      | 'defaultSwapCallData'
       | 'discountedBaseCollateral'
       | 'discountedBaseDebt'
       | 'discountedQuoteCollateral'
@@ -72,6 +74,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'mode'
       | 'params'
       | 'positions'
+      | 'priceOracle'
       | 'quoteCollateralCoeff'
       | 'quoteDebtCoeff'
       | 'quoteDelevCoeff'
@@ -80,7 +83,6 @@ export interface MarginlyPoolInterface extends utils.Interface {
       | 'shutDown'
       | 'sweepETH'
       | 'systemLeverage'
-      | 'uniswapPool'
   ): utils.FunctionFragment;
 }
 
@@ -95,6 +97,7 @@ export interface MarginlyPoolContract extends BaseContract {
   baseDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   baseDelevCoeff(override?: CallOverrides): Promise<BigNumber>;
   baseToken(override?: CallOverrides): Promise<string>;
+  defaultSwapCallData(override?: CallOverrides): Promise<BigNumber>;
   discountedBaseCollateral(override?: CallOverrides): Promise<BigNumber>;
   discountedBaseDebt(override?: CallOverrides): Promise<BigNumber>;
   discountedQuoteCollateral(override?: CallOverrides): Promise<BigNumber>;
@@ -121,12 +124,10 @@ export interface MarginlyPoolContract extends BaseContract {
   initialize(
     _quoteToken: PromiseOrValue<string>,
     _baseToken: PromiseOrValue<string>,
-    _quoteTokenIsToken0: PromiseOrValue<boolean>,
-    _uniswapPool: PromiseOrValue<string>,
+    _priceOracle: PromiseOrValue<string>,
+    _defaultSwapCallData: PromiseOrValue<BigNumberish>,
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
-      priceSecondsAgo: BigNumberish;
-      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
@@ -143,8 +144,6 @@ export interface MarginlyPoolContract extends BaseContract {
     override?: CallOverrides
   ): Promise<{
     maxLeverage: number;
-    priceSecondsAgo: BigNumber;
-    priceSecondsAgoMC: BigNumber;
     interestRate: BigNumber;
     fee: BigNumber;
     swapFee: BigNumber;
@@ -161,6 +160,7 @@ export interface MarginlyPoolContract extends BaseContract {
     discountedBaseAmount: BigNumber;
     discountedQuoteAmount: BigNumber;
   }>;
+  priceOracle(override?: CallOverrides): Promise<string>;
   quoteCollateralCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteDebtCoeff(override?: CallOverrides): Promise<BigNumber>;
   quoteDelevCoeff(override?: CallOverrides): Promise<BigNumber>;
@@ -168,8 +168,6 @@ export interface MarginlyPoolContract extends BaseContract {
   setParameters(
     _params: PromiseOrValue<{
       maxLeverage: BigNumberish;
-      priceSecondsAgo: BigNumberish;
-      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
@@ -185,13 +183,13 @@ export interface MarginlyPoolContract extends BaseContract {
   ): Promise<ContractTransaction>;
   sweepETH(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
-  uniswapPool(override?: CallOverrides): Promise<string>;
 
   functions: {
     baseCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     baseToken(override?: CallOverrides): Promise<[string]>;
+    defaultSwapCallData(override?: CallOverrides): Promise<[BigNumber]>;
     discountedBaseCollateral(override?: CallOverrides): Promise<[BigNumber]>;
     discountedBaseDebt(override?: CallOverrides): Promise<[BigNumber]>;
     discountedQuoteCollateral(override?: CallOverrides): Promise<[BigNumber]>;
@@ -212,8 +210,6 @@ export interface MarginlyPoolContract extends BaseContract {
       override?: CallOverrides
     ): Promise<{
       maxLeverage: number;
-      priceSecondsAgo: BigNumber;
-      priceSecondsAgoMC: BigNumber;
       interestRate: BigNumber;
       fee: BigNumber;
       swapFee: BigNumber;
@@ -230,12 +226,12 @@ export interface MarginlyPoolContract extends BaseContract {
       discountedBaseAmount: BigNumber;
       discountedQuoteAmount: BigNumber;
     }>;
+    priceOracle(override?: CallOverrides): Promise<[string]>;
     quoteCollateralCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteDebtCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteDelevCoeff(override?: CallOverrides): Promise<{ inner: BigNumber }>;
     quoteToken(override?: CallOverrides): Promise<[string]>;
     systemLeverage(override?: CallOverrides): Promise<{ shortX96: BigNumber; longX96: BigNumber }>;
-    uniswapPool(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
     execute(
@@ -251,12 +247,10 @@ export interface MarginlyPoolContract extends BaseContract {
     initialize(
       _quoteToken: PromiseOrValue<string>,
       _baseToken: PromiseOrValue<string>,
-      _quoteTokenIsToken0: PromiseOrValue<boolean>,
-      _uniswapPool: PromiseOrValue<string>,
+      _priceOracle: PromiseOrValue<string>,
+      _defaultSwapCallData: PromiseOrValue<BigNumberish>,
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -269,8 +263,6 @@ export interface MarginlyPoolContract extends BaseContract {
     setParameters(
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -300,12 +292,10 @@ export interface MarginlyPoolContract extends BaseContract {
     initialize(
       _quoteToken: PromiseOrValue<string>,
       _baseToken: PromiseOrValue<string>,
-      _quoteTokenIsToken0: PromiseOrValue<boolean>,
-      _uniswapPool: PromiseOrValue<string>,
+      _priceOracle: PromiseOrValue<string>,
+      _defaultSwapCallData: PromiseOrValue<BigNumberish>,
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -318,8 +308,6 @@ export interface MarginlyPoolContract extends BaseContract {
     setParameters(
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -349,12 +337,10 @@ export interface MarginlyPoolContract extends BaseContract {
     initialize(
       _quoteToken: PromiseOrValue<string>,
       _baseToken: PromiseOrValue<string>,
-      _quoteTokenIsToken0: PromiseOrValue<boolean>,
-      _uniswapPool: PromiseOrValue<string>,
+      _priceOracle: PromiseOrValue<string>,
+      _defaultSwapCallData: PromiseOrValue<BigNumberish>,
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -367,8 +353,6 @@ export interface MarginlyPoolContract extends BaseContract {
     setParameters(
       _params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;

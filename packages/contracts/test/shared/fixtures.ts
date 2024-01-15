@@ -12,7 +12,6 @@ import {
   MarginlyKeeper,
   MockSwapRouter,
   MockMarginlyFactory,
-  IPriceOracle,
   MockPriceOracle,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
