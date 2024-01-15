@@ -1,0 +1,225 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Deposit into existing position: depositBase 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 128311,
+}
+`;
+
+exports[`Deposit into existing position: depositQuote 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 128215,
+}
+`;
+
+exports[`Liquidation liquidate long position and create new long position 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 273160,
+}
+`;
+
+exports[`Liquidation liquidate long position and create new position 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 289948,
+}
+`;
+
+exports[`Liquidation liquidate short position and create new position 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 303341,
+}
+`;
+
+exports[`Liquidation liquidate short position and create new short position 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 289406,
+}
+`;
+
+exports[`Open position: depositBase 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 209640,
+}
+`;
+
+exports[`Open position: depositQuote 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 209516,
+}
+`;
+
+exports[`System initialized: closePosition 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 263654,
+}
+`;
+
+exports[`System initialized: depositBase 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 208646,
+}
+`;
+
+exports[`System initialized: depositBase and long 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 364876,
+}
+`;
+
+exports[`System initialized: depositQuote 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 208477,
+}
+`;
+
+exports[`System initialized: depositQuote and short 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 342843,
+}
+`;
+
+exports[`System initialized: long 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 306413,
+}
+`;
+
+exports[`System initialized: short 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 284488,
+}
+`;
+
+exports[`System initialized: withdrawBase 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 167563,
+}
+`;
+
+exports[`System initialized: withdrawQuote 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 186518,
+}
+`;
+
+exports[`mc happens: MC long position with deleverage 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 226947,
+}
+`;
+
+exports[`mc happens: MC long reinit 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 195908,
+}
+`;
+
+exports[`mc happens: MC short position with deleverage 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 227072,
+}
+`;
+
+exports[`mc happens: MC short reinit 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 195907,
+}
+`;
+
+exports[`mc happens: closePosition with two mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 371850,
+}
+`;
+
+exports[`mc happens: depositBase with one mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 260872,
+}
+`;
+
+exports[`mc happens: depositBase with two mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 358864,
+}
+`;
+
+exports[`mc happens: depositQuote with one mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 251396,
+}
+`;
+
+exports[`mc happens: depositQuote with two mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 289860,
+}
+`;
+
+exports[`mc happens: long closePosition with one mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 262883,
+}
+`;
+
+exports[`mc happens: long initialized heap with one mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 290240,
+}
+`;
+
+exports[`mc happens: long with one mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 367496,
+}
+`;
+
+exports[`mc happens: long with two mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 387320,
+}
+`;
+
+exports[`mc happens: short with one mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 334954,
+}
+`;
+
+exports[`mc happens: short with two mc 1`] = `
+Object {
+  "calldataByteLength": 228,
+  "gasUsed": 382476,
+}
+`;

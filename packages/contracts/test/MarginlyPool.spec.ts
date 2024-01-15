@@ -29,7 +29,6 @@ describe('MarginlyPool.Base', () => {
     const baseToken = await pool.baseToken();
     const priceOracle = await pool.priceOracle();
     const defaultSwapCallData = await pool.defaultSwapCallData();
-    const priceOracleOpts = await pool.priceOracleOptions();
 
     const marginlyParams: MarginlyParamsStruct = {
       interestRate: 54,
@@ -42,9 +41,7 @@ describe('MarginlyPool.Base', () => {
     };
 
     await expect(
-      pool
-        .connect(factoryOwner)
-        .initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, marginlyParams, priceOracleOpts)
+      pool.connect(factoryOwner).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, marginlyParams)
     ).to.be.revertedWithCustomError(pool, 'Forbidden');
   });
 

@@ -19,12 +19,9 @@ describe('MarginlyFactory', () => {
       quoteLimit: 1_000_000_000_000,
     };
 
-    const priceOracleOptions: number[] = [];
-
     return {
       params,
       defaultSwapCallData: 0,
-      priceOracleOptions,
     };
   }
 
@@ -32,19 +29,16 @@ describe('MarginlyFactory', () => {
     const { factory, uniswapPoolInfo, priceOracle } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;
     const baseToken = uniswapPoolInfo.token1.address;
-    const { params, defaultSwapCallData, priceOracleOptions } = getPoolParams();
+    const { params, defaultSwapCallData } = getPoolParams();
 
     const poolAddress = await factory.callStatic.createPool(
       quoteToken,
       baseToken,
       priceOracle.address,
       defaultSwapCallData,
-      params,
-      priceOracleOptions
+      params
     );
-    await snapshotGasCost(
-      factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params, priceOracleOptions)
-    );
+    await snapshotGasCost(factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params));
 
     const poolFactory = await ethers.getContractFactory('MarginlyPool');
     const pool = poolFactory.attach(poolAddress) as MarginlyPool;
@@ -70,25 +64,11 @@ describe('MarginlyFactory', () => {
     const { factory, uniswapPoolInfo, priceOracle } = await loadFixture(createMarginlyFactory);
     const quoteToken = uniswapPoolInfo.token0.address;
     const baseToken = uniswapPoolInfo.token1.address;
-    const { params, defaultSwapCallData, priceOracleOptions } = getPoolParams();
+    const { params, defaultSwapCallData } = getPoolParams();
 
-    await factory.createPool(
-      quoteToken,
-      baseToken,
-      priceOracle.address,
-      defaultSwapCallData,
-      params,
-      priceOracleOptions
-    );
+    await factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params);
 
-    await factory.createPool(
-      quoteToken,
-      baseToken,
-      priceOracle.address,
-      defaultSwapCallData,
-      params,
-      priceOracleOptions
-    );
+    await factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params);
   });
 
   it('should raise error when trying to renounce ownership', async () => {

@@ -12,7 +12,7 @@ import {
 } from './shared/utils';
 import { BigNumber } from 'ethers';
 
-describe('Deleverage', () => {
+describe.only('Deleverage', () => {
   it('Deleverage long position', async () => {
     const { marginlyPool, factoryOwner } = await loadFixture(createMarginlyPool);
 
@@ -433,6 +433,7 @@ describe('Deleverage', () => {
 
     const [_, lender, longer] = await ethers.getSigners();
     const price = (await marginlyPool.getBasePrice()).inner;
+    console.log(`price is ${price}`);
 
     await marginlyPool
       .connect(lender)

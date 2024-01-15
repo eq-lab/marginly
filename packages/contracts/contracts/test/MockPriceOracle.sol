@@ -31,4 +31,24 @@ contract MockPriceOracle is IPriceOracle {
   function getMargincallPrice(address, address) external view returns (uint256) {
     return marginCallPrice;
   }
+
+  function setDefaultPrice() external {
+    balancePrice = FP96.fromRatio(1, 4).inner;
+    marginCallPrice = FP96.fromRatio(1, 4).inner;
+  }
+
+  function setParityPrice() external {
+    balancePrice = FP96.fromRatio(1, 1).inner;
+    marginCallPrice = FP96.fromRatio(1, 1).inner;
+  }
+
+  function setPriceQuoteBiggerThanBase() external {
+    balancePrice = FP96.fromRatio(1, 16).inner;
+    marginCallPrice = FP96.fromRatio(1, 16).inner;
+  }
+
+  function setPriceQuoteLowerThanBase() external {
+    balancePrice = FP96.fromRatio(2, 1).inner;
+    marginCallPrice = FP96.fromRatio(2, 1).inner;
+  }
 }
