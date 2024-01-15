@@ -4,8 +4,10 @@ import {
   MockMarginlyPoolWithPriceAdapter,
   PriceAdapter,
   SwapPoolRegistry,
+  TestUniswapPool,
   TestUniswapV3Factory,
 } from '../../typechain-types';
+import { UniswapV3TickOracle } from '../../typechain-types/contracts/oracles';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -129,4 +131,24 @@ export function createMarginlyPoolWithPriceAdapter(
   }
 
   return inner;
+}
+
+export type OracleData = {
+  oracle: UniswapV3TickOracle;
+  pool: TestUniswapPool;
+}
+
+export async function createUniswapV3TickOracle(): Promise<OracleData> {
+  const poolFactory = await ethers.getContractFactory('TestUniswapPool');
+  const pool = await poolFactory.deploy(Tokens.USDC, Tokens.WETH);
+  // ~ 2500 WETH/USDC
+  await pool.setTokenPriceAndTickCumulative(140737488355328, 198080 * 900);
+
+  const factory = await ethers.getContractFactory('TestUniswapFactory');
+  const testUniswapFactory = await factory.deploy();
+  await testUniswapFactory.addPool(pool.address);
+
+  const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracle');
+  const oracle = await oracleFactory.deploy(testUniswapFactory.address);
+  return { oracle, pool };
 }

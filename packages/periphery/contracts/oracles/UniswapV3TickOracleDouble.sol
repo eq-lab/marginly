@@ -5,10 +5,10 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
-import './IMarginlyOracle.sol';
+import './IPriceOracle.sol';
 import './libraries/OracleLib.sol';
 
-contract UniswapV3TickOracleDouble is IMarginlyOracle, Ownable2Step {
+contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
   struct OracleCalldata {
     uint16 secondsAgo;
     uint24 firstPairFee;
@@ -16,38 +16,53 @@ contract UniswapV3TickOracleDouble is IMarginlyOracle, Ownable2Step {
     address intermediateToken;
   }
 
-  uint256 private constant Q96 = 1 << 96;
-
   address public immutable factory;
 
   constructor(address _factory) {
     factory = _factory;
   }
 
-  function initialize() external {}
-
-  function getBasePriceX96(
-    address baseToken,
-    address quoteToken,
-    bytes calldata oracleCalldata
-  ) external view returns (uint256) {
-    return getPriceX96Inner(baseToken, quoteToken, oracleCalldata);
+  function validateOptions(address quoteToken, address baseToken, bytes calldata options) external view {
+    OracleCalldata memory oracleCalldata = decode(options);
+    if (oracleCalldata.secondsAgo == 0) revert();
+    getPoolAddress(baseToken, oracleCalldata.intermediateToken, oracleCalldata.firstPairFee);
+    getPoolAddress(quoteToken, oracleCalldata.intermediateToken, oracleCalldata.secondPairFee);
   }
 
-  function getLiquidationPriceX96(
-    address baseToken,
+  function canChangeOptions(bytes calldata newOptions, bytes calldata oldOptions) external pure returns (bool) {
+    OracleCalldata memory oldOracleCalldata = decode(oldOptions);
+    OracleCalldata memory newOracleCalldata = decode(newOptions);
+
+    bool sameFirstPairFee = oldOracleCalldata.firstPairFee == newOracleCalldata.firstPairFee;
+    bool sameSecondPairFee = oldOracleCalldata.secondPairFee == newOracleCalldata.secondPairFee;
+    bool sameIntermediateToken = oldOracleCalldata.intermediateToken == newOracleCalldata.intermediateToken;
+    bool secondsAgoIsCorrect = newOracleCalldata.secondsAgo != 0;
+
+    return sameFirstPairFee && sameSecondPairFee && sameIntermediateToken && secondsAgoIsCorrect;
+  }
+
+  function getBalancePrice(
     address quoteToken,
-    bytes calldata oracleCalldata
+    address baseToken,
+    bytes calldata options
   ) external view returns (uint256) {
-    return getPriceX96Inner(baseToken, quoteToken, oracleCalldata);
+    return getPriceX96Inner(quoteToken, baseToken, options);
+  }
+
+  function getMargincallPrice(
+    address quoteToken,
+    address baseToken,
+    bytes calldata options
+  ) external view returns (uint256) {
+    return getPriceX96Inner(quoteToken, baseToken, options);
   }
 
   function getPriceX96Inner(
-    address baseToken,
     address quoteToken,
-    bytes calldata encodedOracleCalldata
+    address baseToken,
+    bytes calldata options
   ) private view returns (uint256) {
-    OracleCalldata memory oracleCalldata = abi.decode(encodedOracleCalldata, (OracleCalldata));
+    OracleCalldata memory oracleCalldata = abi.decode(options, (OracleCalldata));
     address intermediateToken = oracleCalldata.intermediateToken;
     address firstPool = getPoolAddress(baseToken, intermediateToken, oracleCalldata.firstPairFee);
     address secondPool = getPoolAddress(quoteToken, intermediateToken, oracleCalldata.secondPairFee);
@@ -72,11 +87,15 @@ contract UniswapV3TickOracleDouble is IMarginlyOracle, Ownable2Step {
     return sqrtPrice * sqrtPrice;
   }
 
+  function decode(bytes calldata options) private pure returns (OracleCalldata memory) {
+    return abi.decode(options, (OracleCalldata));
+  }
+
   // TODO tmp impl, need to rewrite it so basically any UniswapV3-like factory can be supported
   // e.g. algebra is uniswapV3-like, but method with another name is used to get pools and it has no fee param
   // most likely can be achieved via `factory.call(bytes)` with necessary encoded method and params;
   function getPoolAddress(address tokenA, address tokenB, uint24 fee) private view returns (address pool) {
     pool = IUniswapV3Factory(factory).getPool(tokenA, tokenB, fee);
-    if(pool == address(0)) revert();
+    if (pool == address(0)) revert();
   }
 }

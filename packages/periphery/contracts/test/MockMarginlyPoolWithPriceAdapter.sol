@@ -15,4 +15,3 @@ contract MockMarginlyPoolWithPriceAdapter {
     return OracleLib.getSqrtPriceX96(uniswapPool, priceSecondsAgo);
   }
 }
-

@@ -5,16 +5,14 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
-import './IMarginlyOracle.sol';
+import './IPriceOracle.sol';
 import './libraries/OracleLib.sol';
 
-contract UniswapV3TickOracle is IMarginlyOracle, Ownable2Step {
+contract UniswapV3TickOracle is IPriceOracle, Ownable2Step {
   struct OracleCalldata {
     uint16 secondsAgo;
     uint24 fee;
   }
-
-  uint256 private constant Q96 = 1 << 96;
 
   address public immutable factory;
 
@@ -22,36 +20,50 @@ contract UniswapV3TickOracle is IMarginlyOracle, Ownable2Step {
     factory = _factory;
   }
 
-  function initialize() external {}
-
-  function getBasePriceX96(
-    address baseToken,
-    address quoteToken,
-    bytes calldata oracleCalldata
-  ) external view returns (uint256) {
-    return getPriceX96Inner(baseToken, quoteToken, oracleCalldata);
+  function validateOptions(address quoteToken, address baseToken, bytes calldata options) external view {
+    OracleCalldata memory oracleCalldata = decode(options);
+    if (oracleCalldata.secondsAgo == 0) revert();
+    getPoolAddress(quoteToken, baseToken, oracleCalldata.fee);
   }
 
-  function getLiquidationPriceX96(
-    address baseToken,
+  function canChangeOptions(bytes calldata newOptions, bytes calldata oldOptions) external pure returns (bool) {
+    OracleCalldata memory newOracleCalldata = decode(newOptions);
+    return decode(oldOptions).fee == newOracleCalldata.fee && newOracleCalldata.secondsAgo != 0;
+  }
+
+  function getBalancePrice(
     address quoteToken,
-    bytes calldata oracleCalldata
+    address baseToken,
+    bytes calldata options
   ) external view returns (uint256) {
-    return getPriceX96Inner(baseToken, quoteToken, oracleCalldata);
+    return getPriceX96Inner(quoteToken, baseToken, options);
+  }
+
+  function getMargincallPrice(
+    address quoteToken,
+    address baseToken,
+    bytes calldata options
+  ) external view returns (uint256) {
+    return getPriceX96Inner(quoteToken, baseToken, options);
   }
 
   function getPriceX96Inner(
-    address baseToken,
     address quoteToken,
-    bytes calldata encodedOracleCalldata
+    address baseToken,
+    bytes calldata options
   ) private view returns (uint256) {
-    OracleCalldata memory oracleCalldata = abi.decode(encodedOracleCalldata, (OracleCalldata));
+    OracleCalldata memory oracleCalldata = decode(options);
     address pool = getPoolAddress(baseToken, quoteToken, oracleCalldata.fee);
     int24 arithmeticMeanTick = OracleLib.getArithmeticMeanTick(pool, oracleCalldata.secondsAgo);
     if (quoteToken < baseToken) {
       arithmeticMeanTick = -arithmeticMeanTick;
     }
-    return OracleLib.getSqrtRatioAtTick(arithmeticMeanTick);
+    uint256 sqrtPrice = OracleLib.getSqrtRatioAtTick(arithmeticMeanTick);
+    return sqrtPrice * sqrtPrice;
+  }
+
+  function decode(bytes calldata options) private pure returns (OracleCalldata memory) {
+    return abi.decode(options, (OracleCalldata));
   }
 
   // TODO tmp impl, need to rewrite it so basically any UniswapV3-like factory can be supported
