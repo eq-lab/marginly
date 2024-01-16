@@ -202,8 +202,8 @@ async function createUniswapV3TickOracleDouble(
   const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracleDouble');
   const oracle = await oracleFactory.deploy(testUniswapFactory.address);
   await oracle.setOptions(
-    baseToken,
     quoteToken,
+    baseToken,
     ethers.utils.defaultAbiCoder.encode(
       ['uint16', 'uint16', 'uint24', 'uint24', 'address'],
       [900, 900, await firstPool.fee(), await secondPool.fee(), intermediateToken]

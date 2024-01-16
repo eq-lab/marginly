@@ -12,8 +12,8 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
   struct OracleParams {
     uint16 secondsAgo;
     uint16 secondsAgoLiquidation;
-    uint24 firstPairFee;
-    uint24 secondPairFee;
+    uint24 baseTokenPairFee;
+    uint24 quoteTokenPairFee;
     address intermediateToken;
   }
 
@@ -26,25 +26,24 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     factory = _factory;
   }
 
-  function setOptions(address tokenA, address tokenB, bytes calldata encodedParams) external onlyOwner {
+  function setOptions(address quoteToken, address baseToken, bytes calldata encodedParams) external onlyOwner {
     OracleParams memory newParams = decode(encodedParams);
     if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert();
 
-    bytes memory currentParamsEncoded = getParamsEncoded[tokenA][tokenB];
+    bytes memory currentParamsEncoded = getParamsEncoded[quoteToken][baseToken];
     if (currentParamsEncoded.length == 0) {
-      getPoolAddress(tokenA, newParams.intermediateToken, newParams.firstPairFee);
-      getPoolAddress(tokenB, newParams.intermediateToken, newParams.secondPairFee);
+      getPoolAddress(quoteToken, newParams.intermediateToken, newParams.quoteTokenPairFee);
+      getPoolAddress(baseToken, newParams.intermediateToken, newParams.baseTokenPairFee);
     } else {
       OracleParams memory currentParams = decode(currentParamsEncoded);
       if (
-        currentParams.firstPairFee != newParams.firstPairFee ||
-        currentParams.secondPairFee != newParams.secondPairFee ||
+        currentParams.baseTokenPairFee != newParams.baseTokenPairFee ||
+        currentParams.quoteTokenPairFee != newParams.quoteTokenPairFee ||
         currentParams.intermediateToken != newParams.intermediateToken
       ) revert();
     }
 
-    getParamsEncoded[tokenA][tokenB] = encodedParams;
-    getParamsEncoded[tokenB][tokenA] = encodedParams;
+    getParamsEncoded[quoteToken][baseToken] = encodedParams;
   }
 
   function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256) {
@@ -63,8 +62,8 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     OracleParams memory params,
     bool isBalancePrice
   ) private view returns (uint256) {
-    address firstPool = getPoolAddress(quoteToken, params.intermediateToken, params.firstPairFee);
-    address secondPool = getPoolAddress(baseToken, params.intermediateToken, params.secondPairFee);
+    address firstPool = getPoolAddress(quoteToken, params.intermediateToken, params.quoteTokenPairFee);
+    address secondPool = getPoolAddress(baseToken, params.intermediateToken, params.baseTokenPairFee);
 
     uint16 secondsAgo = isBalancePrice ? params.secondsAgo : params.secondsAgoLiquidation;
 
