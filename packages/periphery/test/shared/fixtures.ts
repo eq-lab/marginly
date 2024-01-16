@@ -5,6 +5,7 @@ import {
   PriceAdapter,
   SwapPoolRegistry,
   TestUniswapPool,
+  TestUniswapFactory,
   TestUniswapV3Factory,
 } from '../../typechain-types';
 import { UniswapV3TickOracle } from '../../typechain-types/contracts/oracles';
@@ -139,6 +140,7 @@ export function createMarginlyPoolWithPriceAdapter(
 export type OracleData = {
   oracle: UniswapV3TickOracle;
   pool: TestUniswapPool;
+  uniswapFactory: TestUniswapFactory;
   quoteToken: string;
   baseToken: string;
 };
@@ -150,17 +152,17 @@ async function createUniswapV3TickOracle(quoteToken: string, baseToken: string):
   await pool.setTokenPriceAndTickCumulative(14073748835, 198080);
 
   const factory = await ethers.getContractFactory('TestUniswapFactory');
-  const testUniswapFactory = await factory.deploy();
-  await testUniswapFactory.addPool(pool.address);
+  const uniswapFactory = await factory.deploy();
+  await uniswapFactory.addPool(pool.address);
 
   const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracle');
-  const oracle = await oracleFactory.deploy(testUniswapFactory.address);
+  const oracle = await oracleFactory.deploy(uniswapFactory.address);
   await oracle.setOptions(
     quoteToken,
     baseToken,
     ethers.utils.defaultAbiCoder.encode(['uint16', 'uint16', 'uint24'], [900, 5, await pool.fee()])
   );
-  return { oracle, pool, quoteToken, baseToken };
+  return { oracle, pool, uniswapFactory, quoteToken, baseToken };
 }
 
 export async function createUniswapV3TickOracleForward(): Promise<OracleData> {
@@ -175,6 +177,7 @@ export type OracleDoubleData = {
   oracle: UniswapV3TickOracle;
   firstPool: TestUniswapPool;
   secondPool: TestUniswapPool;
+  uniswapFactory: TestUniswapFactory;
   quoteToken: string;
   baseToken: string;
   intermediateToken: string;
@@ -195,12 +198,12 @@ async function createUniswapV3TickOracleDouble(
   await secondPool.setTokenPriceAndTickCumulative(5910974510923776, -60894);
 
   const factory = await ethers.getContractFactory('TestUniswapFactory');
-  const testUniswapFactory = await factory.deploy();
-  await testUniswapFactory.addPool(firstPool.address);
-  await testUniswapFactory.addPool(secondPool.address);
+  const uniswapFactory = await factory.deploy();
+  await uniswapFactory.addPool(firstPool.address);
+  await uniswapFactory.addPool(secondPool.address);
 
   const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracleDouble');
-  const oracle = await oracleFactory.deploy(testUniswapFactory.address);
+  const oracle = await oracleFactory.deploy(uniswapFactory.address);
   await oracle.setOptions(
     quoteToken,
     baseToken,
@@ -209,7 +212,7 @@ async function createUniswapV3TickOracleDouble(
       [900, 5, await firstPool.fee(), await secondPool.fee(), intermediateToken]
     )
   );
-  return { oracle, firstPool, secondPool, quoteToken, baseToken, intermediateToken };
+  return { oracle, firstPool, secondPool, uniswapFactory, quoteToken, baseToken, intermediateToken };
 }
 
 // Naming convention below: last 3 letters represent token addresses order:
