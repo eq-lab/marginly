@@ -147,7 +147,7 @@ async function createUniswapV3TickOracle(quoteToken: string, baseToken: string):
   const poolFactory = await ethers.getContractFactory('TestUniswapPool');
   const pool = await poolFactory.deploy(quoteToken, baseToken);
   // represents 2500 * 10 ** (-12) price value
-  await pool.setTokenPriceAndTickCumulative(14073748835, 198080 * 900);
+  await pool.setTokenPriceAndTickCumulative(14073748835, 198080);
 
   const factory = await ethers.getContractFactory('TestUniswapFactory');
   const testUniswapFactory = await factory.deploy();
@@ -158,7 +158,7 @@ async function createUniswapV3TickOracle(quoteToken: string, baseToken: string):
   await oracle.setOptions(
     quoteToken,
     baseToken,
-    ethers.utils.defaultAbiCoder.encode(['uint16', 'uint16', 'uint24'], [900, 900, await pool.fee()])
+    ethers.utils.defaultAbiCoder.encode(['uint16', 'uint16', 'uint24'], [900, 5, await pool.fee()])
   );
   return { oracle, pool, quoteToken, baseToken };
 }
@@ -188,11 +188,11 @@ async function createUniswapV3TickOracleDouble(
   const poolFactory = await ethers.getContractFactory('TestUniswapPool');
   const firstPool = await poolFactory.deploy(intermediateToken, quoteToken);
   // represents 2500 * 10 ** (-12) price value
-  await firstPool.setTokenPriceAndTickCumulative(14073748835, 198080 * 900);
+  await firstPool.setTokenPriceAndTickCumulative(14073748835, 198080);
 
   const secondPool = await poolFactory.deploy(intermediateToken, baseToken);
   // represents 44100 * 10 ** (-2) = 21^2 price value
-  await secondPool.setTokenPriceAndTickCumulative(5910974510923776, -60894 * 900);
+  await secondPool.setTokenPriceAndTickCumulative(5910974510923776, -60894);
 
   const factory = await ethers.getContractFactory('TestUniswapFactory');
   const testUniswapFactory = await factory.deploy();
@@ -206,7 +206,7 @@ async function createUniswapV3TickOracleDouble(
     baseToken,
     ethers.utils.defaultAbiCoder.encode(
       ['uint16', 'uint16', 'uint24', 'uint24', 'address'],
-      [900, 900, await firstPool.fee(), await secondPool.fee(), intermediateToken]
+      [900, 5, await firstPool.fee(), await secondPool.fee(), intermediateToken]
     )
   );
   return { oracle, firstPool, secondPool, quoteToken, baseToken, intermediateToken };
