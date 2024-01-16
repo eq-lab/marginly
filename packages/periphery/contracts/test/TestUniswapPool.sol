@@ -12,9 +12,8 @@ contract TestUniswapPool is IUniswapV3PoolImmutables, IUniswapV3PoolState {
   uint160 public token1ToToken0SqrtPriceX96 = 0x02000000000000000000000000;
   int56 public tickCumulativesSecond = 13863 * 900;
 
-  constructor(address _token0, address _token1) {
-    token0 = _token0;
-    token1 = _token1;
+  constructor(address tokenA, address tokenB) {
+    (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
   }
 
   function setTokenPriceAndTickCumulative(uint160 _token1ToToken1SqrtPriceX96, int56 _tickCumulativesSecond) external {

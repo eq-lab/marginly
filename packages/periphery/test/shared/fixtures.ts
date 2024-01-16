@@ -138,7 +138,7 @@ export function createMarginlyPoolWithPriceAdapter(
 export type OracleData = {
   oracle: UniswapV3TickOracle;
   pool: TestUniswapPool;
-}
+};
 
 export async function createUniswapV3TickOracle(): Promise<OracleData> {
   const poolFactory = await ethers.getContractFactory('TestUniswapPool');
@@ -152,9 +152,44 @@ export async function createUniswapV3TickOracle(): Promise<OracleData> {
 
   const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracle');
   const oracle = await oracleFactory.deploy(testUniswapFactory.address);
-  await oracle.setOptions(Tokens.USDC, Tokens.WETH, ethers.utils.defaultAbiCoder.encode(
-    ['uint16', 'uint16', 'uint24'],
-    [900, 900, await pool.fee()]
-  ));
+  await oracle.setOptions(
+    Tokens.USDC,
+    Tokens.WETH,
+    ethers.utils.defaultAbiCoder.encode(['uint16', 'uint16', 'uint24'], [900, 900, await pool.fee()])
+  );
   return { oracle, pool };
+}
+
+export type OracleDoubleData = {
+  oracle: UniswapV3TickOracle;
+  firstPool: TestUniswapPool;
+  secondPool: TestUniswapPool;
+};
+
+export async function createUniswapV3TickOracleDouble(): Promise<OracleDoubleData> {
+  const poolFactory = await ethers.getContractFactory('TestUniswapPool');
+  const firstPool = await poolFactory.deploy(Tokens.USDC, Tokens.WETH);
+  // represents 2500 * 10 ** (-12) price value
+  await firstPool.setTokenPriceAndTickCumulative(14073748835, 198080 * 900);
+
+  const secondPool = await poolFactory.deploy(Tokens.USDC, Tokens.WBTC);
+  // represents 44100 * 10 ** (-2) = 21^2 price value
+  await secondPool.setTokenPriceAndTickCumulative(5910974510923776, -60894 * 900);
+
+  const factory = await ethers.getContractFactory('TestUniswapFactory');
+  const testUniswapFactory = await factory.deploy();
+  await testUniswapFactory.addPool(firstPool.address);
+  await testUniswapFactory.addPool(secondPool.address);
+
+  const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracleDouble');
+  const oracle = await oracleFactory.deploy(testUniswapFactory.address);
+  await oracle.setOptions(
+    Tokens.WBTC,
+    Tokens.WETH,
+    ethers.utils.defaultAbiCoder.encode(
+      ['uint16', 'uint16', 'uint24', 'uint24', 'address'],
+      [900, 900, await firstPool.fee(), await secondPool.fee(), Tokens.USDC]
+    )
+  );
+  return { oracle, firstPool, secondPool };
 }
