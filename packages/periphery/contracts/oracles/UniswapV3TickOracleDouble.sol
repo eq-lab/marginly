@@ -9,6 +9,10 @@ import './IPriceOracle.sol';
 import './libraries/OracleLib.sol';
 
 contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
+  error CannotChangeUnderlyingPool();
+  error UnknownPool();
+  error WrongValue();
+
   struct OracleParams {
     uint16 secondsAgo;
     uint16 secondsAgoLiquidation;
@@ -28,7 +32,7 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
 
   function setOptions(address quoteToken, address baseToken, bytes calldata encodedParams) external onlyOwner {
     OracleParams memory newParams = decode(encodedParams);
-    if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert();
+    if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert WrongValue();
 
     bytes memory currentParamsEncoded = getParamsEncoded[quoteToken][baseToken];
     if (currentParamsEncoded.length == 0) {
@@ -40,7 +44,7 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
         currentParams.baseTokenPairFee != newParams.baseTokenPairFee ||
         currentParams.quoteTokenPairFee != newParams.quoteTokenPairFee ||
         currentParams.intermediateToken != newParams.intermediateToken
-      ) revert();
+      ) revert CannotChangeUnderlyingPool();
     }
 
     getParamsEncoded[quoteToken][baseToken] = encodedParams;
@@ -96,6 +100,6 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
   // most likely can be achieved via `factory.call(bytes)` with necessary encoded method and params;
   function getPoolAddress(address tokenA, address tokenB, uint24 fee) private view returns (address pool) {
     pool = IUniswapV3Factory(factory).getPool(tokenA, tokenB, fee);
-    if (pool == address(0)) revert();
+    if (pool == address(0)) revert UnknownPool();
   }
 }
