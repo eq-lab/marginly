@@ -24,19 +24,20 @@ contract UniswapV3TickOracle is IPriceOracle, Ownable2Step {
     factory = _factory;
   }
 
-  function setOptions(address quoteToken, address baseToken, bytes calldata encodedParams) external {
+  function setOptions(address tokenA, address tokenB, bytes calldata encodedParams) external {
     OracleParams memory newParams = decode(encodedParams);
     if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert();
 
-    bytes memory currentParamsEncoded = getParamsEncoded[quoteToken][baseToken];
+    bytes memory currentParamsEncoded = getParamsEncoded[tokenA][tokenB];
     if (currentParamsEncoded.length == 0) {
-      getPoolAddress(quoteToken, baseToken, newParams.fee);
+      getPoolAddress(tokenA, tokenB, newParams.fee);
     } else {
       OracleParams memory currentParams = decode(currentParamsEncoded);
       if (currentParams.fee != newParams.fee) revert();
     }
 
-    getParamsEncoded[quoteToken][baseToken] = encodedParams;
+    getParamsEncoded[tokenA][tokenB] = encodedParams;
+    getParamsEncoded[tokenB][tokenA] = encodedParams;
   }
 
   function getBalancePrice(

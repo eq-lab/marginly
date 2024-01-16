@@ -21,6 +21,8 @@ export const Tokens = {
   PENDLE: '0x79696e0859A0Af409617e39d817864AFF7565dBd',
   TBTC: '0xAB249FdD9F3e5D90d65007EAf5A6c4Ca05E1E72f',
   GMX: '0xBc030A9e840202971f881A70143B63AC77dbc199',
+  TOKEN1: '0x0000000000000000000000000000000000000001',
+  TOKEN2: '0x0000000000000000000000000000000000000002',
 };
 
 export type Pool = {
@@ -141,8 +143,8 @@ export type OracleData = {
 export async function createUniswapV3TickOracle(): Promise<OracleData> {
   const poolFactory = await ethers.getContractFactory('TestUniswapPool');
   const pool = await poolFactory.deploy(Tokens.USDC, Tokens.WETH);
-  // ~ 2500 WETH/USDC
-  await pool.setTokenPriceAndTickCumulative(140737488355328, 198080 * 900);
+  // represents 2500 * 10 ** (-12) price value
+  await pool.setTokenPriceAndTickCumulative(14073748835, 198080 * 900);
 
   const factory = await ethers.getContractFactory('TestUniswapFactory');
   const testUniswapFactory = await factory.deploy();
@@ -150,5 +152,9 @@ export async function createUniswapV3TickOracle(): Promise<OracleData> {
 
   const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracle');
   const oracle = await oracleFactory.deploy(testUniswapFactory.address);
+  await oracle.setOptions(Tokens.USDC, Tokens.WETH, ethers.utils.defaultAbiCoder.encode(
+    ['uint16', 'uint16', 'uint24'],
+    [900, 900, await pool.fee()]
+  ));
   return { oracle, pool };
 }

@@ -34,8 +34,8 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly', 'SwapPoolRegistry', 'UniswapV3TickOracle', 'UniswapV3TickOracleDouble'],
-    except: ['Mock', 'Test'],
+    only: ['Marginly','SwapPoolRegistry', 'Oracle'],
+    except: ['Mock', 'Test', 'Lib'],
   },
   docgen: {
     outputDir: './docs',
