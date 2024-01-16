@@ -24,7 +24,7 @@ contract UniswapV3TickOracle is IPriceOracle, Ownable2Step {
     factory = _factory;
   }
 
-  function setOptions(address tokenA, address tokenB, bytes calldata encodedParams) external {
+  function setOptions(address tokenA, address tokenB, bytes calldata encodedParams) external onlyOwner {
     OracleParams memory newParams = decode(encodedParams);
     if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert();
 
@@ -40,18 +40,12 @@ contract UniswapV3TickOracle is IPriceOracle, Ownable2Step {
     getParamsEncoded[tokenB][tokenA] = encodedParams;
   }
 
-  function getBalancePrice(
-    address quoteToken,
-    address baseToken
-  ) external view returns (uint256) {
+  function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256) {
     OracleParams memory params = decode(getParamsEncoded[quoteToken][baseToken]);
     return getPriceX96Inner(quoteToken, baseToken, params.fee, params.secondsAgo);
   }
 
-  function getMargincallPrice(
-    address quoteToken,
-    address baseToken
-  ) external view returns (uint256) {
+  function getMargincallPrice(address quoteToken, address baseToken) external view returns (uint256) {
     OracleParams memory params = decode(getParamsEncoded[quoteToken][baseToken]);
     return getPriceX96Inner(quoteToken, baseToken, params.fee, params.secondsAgoLiquidation);
   }
