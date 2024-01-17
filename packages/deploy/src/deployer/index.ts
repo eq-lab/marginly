@@ -20,6 +20,7 @@ import {
   MarginlyConfigUniswapPoolGenuine,
   MarginlyConfigUniswapPoolMock,
   PriceProviderMock,
+  UniswapV3TickOracleConfig,
 } from './configs';
 import { sortUniswapPoolTokens } from '@marginly/common/math';
 
@@ -31,6 +32,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   private readonly readMarginlyMockContract;
   private readonly readMarginlyPeripheryContract;
   private readonly readMarginlyPeripheryMockContract;
+  private readonly readMarginlyPeripheryOracleContract;
   private readonly deploy;
   private readonly signer;
   private readonly ethArgs;
@@ -46,6 +48,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     this.readMarginlyMockContract = createMarginlyMockContractReader();
     this.readMarginlyPeripheryContract = createMarginlyPeripheryContractReader();
     this.readMarginlyPeripheryMockContract = createMarginlyPeripheryMockContract();
+    this.readMarginlyPeripheryOracleContract = createMarginlyPeripheryOracleReader();
     this.deploy = deployTemplate(signer, ethArgs, this.readMarginlyContract, stateStore, logger);
     this.ethArgs = ethArgs;
     this.signer = signer;
@@ -64,7 +67,6 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
   public deployMarginlyFactory(
     marginlyPoolImplementation: EthAddress,
-    uniswapFactory: EthAddress,
     swapRouter: EthAddress,
     feeHolder: EthAddress,
     weth9: MarginlyConfigToken,
@@ -76,7 +78,6 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       'MarginlyFactory',
       [
         marginlyPoolImplementation.toString(),
-        uniswapFactory.toString(),
         swapRouter.toString(),
         feeHolder.toString(),
         weth9Address.toString(),
@@ -260,7 +261,8 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   public async getOrCreateMarginlyPool(
     marginlyPoolFactoryContract: Contract,
     config: MarginlyConfigMarginlyPool,
-    tokenRepository: ITokenRepository
+    tokenRepository: ITokenRepository,
+    priceOracle: EthAddress
   ): Promise<LimitedDeployResult> {
     const stateFileId = `marginlyPool_${config.id}`;
     const marginlyPoolContractDescription = this.readMarginlyContract('MarginlyPool');
@@ -282,52 +284,41 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
     const quoteTokenInfo = tokenRepository.getTokenInfo(config.quoteToken.id);
     const baseTokenInfo = tokenRepository.getTokenInfo(config.baseToken.id);
-    let marginlyPoolAddress = EthAddress.parse(
-      await marginlyPoolFactoryContract.getPool(
-        quoteTokenInfo.address.toString(),
-        baseTokenInfo.address.toString(),
-        this.toUniswapFee(config.uniswapPool.fee)
-      )
+
+    this.logger.log('Marginly pool not found in state file. Creating new one');
+
+    const one = BigNumber.from(1e6);
+    const baseOne = BigNumber.from(10).pow(baseTokenInfo.decimals);
+    const quoteOne = BigNumber.from(10).pow(quoteTokenInfo.decimals);
+    const params = {
+      interestRate: config.params.interestRate.mul(one).toInteger(),
+      fee: config.params.fee.mul(one).toInteger(),
+      maxLeverage: config.params.maxLeverage.toInteger(),
+      swapFee: config.params.swapFee.mul(one).toInteger(),
+      mcSlippage: config.params.mcSlippage.mul(one).toInteger(),
+      positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
+      quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
+    };
+
+    const createPoolTx = await marginlyPoolFactoryContract.createPool(
+      quoteTokenInfo.address.toString(),
+      baseTokenInfo.address.toString(),
+      priceOracle.toString(),
+      config.defaultSwapCallData,
+      params,
+      this.ethArgs
     );
-    let creationTxHash: string | undefined = undefined;
-
-    if (marginlyPoolAddress.isZero()) {
-      this.logger.log('Marginly pool not found. Creating new one');
-      const one = BigNumber.from(1e6);
-      const baseOne = BigNumber.from(10).pow(baseTokenInfo.decimals);
-      const quoteOne = BigNumber.from(10).pow(quoteTokenInfo.decimals);
-      const params = {
-        interestRate: config.params.interestRate.mul(one).toInteger(),
-        fee: config.params.fee.mul(one).toInteger(),
-        maxLeverage: config.params.maxLeverage.toInteger(),
-        swapFee: config.params.swapFee.mul(one).toInteger(),
-        priceSecondsAgo: config.params.priceAgo.toSeconds(),
-        priceSecondsAgoMC: config.params.priceAgoMC.toSeconds(),
-        mcSlippage: config.params.mcSlippage.mul(one).toInteger(),
-        positionMinAmount: config.params.positionMinAmount.mul(baseOne).toInteger(),
-        quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
-      };
-
-      const tx = await marginlyPoolFactoryContract.createPool(
-        quoteTokenInfo.address.toString(),
-        baseTokenInfo.address.toString(),
-        this.toUniswapFee(config.uniswapPool.fee),
-        params,
-        this.ethArgs
-      );
-      await tx.wait();
-      marginlyPoolAddress = await this.getCreatedMarginlyPoolAddress(
-        marginlyPoolFactoryContract,
-        tx.hash,
-        quoteTokenInfo.address,
-        baseTokenInfo.address
-      );
-      creationTxHash = tx.hash;
-    }
+    await createPoolTx.wait();
+    const marginlyPoolAddress = await this.getCreatedMarginlyPoolAddress(
+      marginlyPoolFactoryContract,
+      createPoolTx.hash,
+      quoteTokenInfo.address,
+      baseTokenInfo.address
+    );
 
     this.stateStore.setById(stateFileId, {
       address: marginlyPoolAddress.toString(),
-      txHash: creationTxHash,
+      txHash: createPoolTx.hash,
     });
 
     const marginlyPoolContract = new ethers.Contract(
@@ -338,7 +329,7 @@ export class MarginlyDeployer implements IMarginlyDeployer {
 
     return {
       address: marginlyPoolAddress.toString(),
-      txHash: creationTxHash,
+      txHash: createPoolTx.hash,
       contract: marginlyPoolContract,
     };
   }
@@ -498,19 +489,56 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy('SwapRouterMock', [address.toString()], 'swapRouterMock', readUniswapMockContract);
   }
 
-  public async deployUniswapPoolMock(
+  public async deployUniswapV3FactoryMock(): Promise<DeployResult> {
+    return this.deploy('UniswapV3FactoryMock', [], 'uniswapV3FactoryMock', readUniswapMockContract);
+  }
+
+  public async getOrCreateUniswapV3PoolMock(
+    uniswapFactoryContract: ethers.Contract,
     oracle: EthAddress,
     poolConfig: MarginlyConfigUniswapPoolMock,
     tokenRepository: ITokenRepository
-  ): Promise<DeployResult> {
+  ): Promise<LimitedDeployResult> {
     const { address: tokenAAddress } = tokenRepository.getTokenInfo(poolConfig.tokenA.id);
     const { address: tokenBAddress } = tokenRepository.getTokenInfo(poolConfig.tokenB.id);
-    return this.deploy(
-      'UniswapV3PoolMock',
-      [oracle.toString(), tokenAAddress.toString(), tokenBAddress.toString(), this.toUniswapFee(poolConfig.fee)],
-      `uniswapV3PoolMock_${poolConfig.id}`,
-      readUniswapMockContract
+
+    const uniswapMockContractDescription = readUniswapMockContract('UniswapV3PoolMock');
+
+    let uniswapV3PoolMock = EthAddress.parse(
+      await uniswapFactoryContract.getPool(
+        tokenAAddress.toString(),
+        tokenBAddress.toString(),
+        this.toUniswapFee(poolConfig.fee)
+      )
     );
+
+    let txHash: string | undefined = undefined;
+    if (uniswapV3PoolMock.isZero()) {
+      const tx = await uniswapFactoryContract.createPool(
+        oracle.toString(),
+        tokenAAddress.toString(),
+        tokenBAddress.toString(),
+        this.toUniswapFee(poolConfig.fee)
+      );
+      await tx.wait();
+
+      uniswapV3PoolMock = await this.getCreatedUniswapPoolAddress(
+        uniswapFactoryContract,
+        tx.hash,
+        tokenAAddress,
+        tokenBAddress,
+        poolConfig.fee
+      );
+      txHash = tx.hash;
+    }
+
+    const contract = new ethers.Contract(uniswapV3PoolMock.toString(), uniswapMockContractDescription.abi, this.signer);
+
+    return {
+      address: uniswapV3PoolMock.toString(),
+      contract,
+      txHash,
+    };
   }
 
   public async deployMarginlyPriceAdapter(
@@ -564,6 +592,51 @@ export class MarginlyDeployer implements IMarginlyDeployer {
       throw new Error(`Unable to set balance for token ${token.id}`);
     }
   }
+
+  public async deployAndConfigureUniswapV3TickOracle(
+    config: UniswapV3TickOracleConfig,
+    uniswapV3Factory: EthAddress,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'UniswapV3TickOracle',
+      [uniswapV3Factory.toString()],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+
+      const encodedOptions = ethers.utils.defaultAbiCoder.encode(
+        ['uint16', 'uint16', 'uint24'],
+        [
+          setting.priceSecondsAgo.toSeconds(),
+          setting.priceSecondsAgoMC.toSeconds(),
+          this.toUniswapFee(setting.uniswapFee),
+        ]
+      );
+
+      const currentEncodedOptions = await priceOracle.getParamsEncoded(quoteToken.toString(), baseToken.toString());
+      if (currentEncodedOptions != encodedOptions) {
+        this.logger.log(`Set oracle ${config.id} options`);
+        await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), encodedOptions);
+      }
+
+      this.logger.log(`Check oracle ${config.id}`);
+
+      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`BalancePrice is ${balancePrice}`);
+
+      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+    }
+
+    return deploymentResult;
+  }
 }
 
 function createMarginlyContractReader(): ContractReader {
@@ -581,6 +654,12 @@ function createMarginlyMockContractReader(): ContractReader {
 function createMarginlyPeripheryContractReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@marginly/periphery/artifacts/contracts/${name}.sol/${name}.json`);
+  };
+}
+
+function createMarginlyPeripheryOracleReader(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/periphery/artifacts/contracts/oracles/${name}.sol/${name}.json`);
   };
 }
 

@@ -3,11 +3,15 @@ import { EthAddress, RationalNumber } from '@marginly/common';
 import {
   Dex,
   EthConnectionConfig,
+  isChainlinkOracleConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
   isMarginlyDeployConfigSwapPoolRegistry,
   isMarginlyDeployConfigUniswapGenuine,
   isMarginlyDeployConfigUniswapMock,
+  isPythOracleConfig,
+  isUniswapV3DoubleOracleConfig,
+  isUniswapV3OracleConfig,
   MarginlyDeployConfig,
 } from '../config';
 import { adapterWriter, Logger } from '../logger';
@@ -16,7 +20,6 @@ import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
 import { BigNumber } from 'ethers';
-import { deployMarginly } from '..';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -139,8 +142,6 @@ export interface MarginlyPoolParams {
   fee: RationalNumber;
   maxLeverage: RationalNumber;
   swapFee: RationalNumber;
-  priceAgo: TimeSpan;
-  priceAgoMC: TimeSpan;
   mcSlippage: RationalNumber;
   positionMinAmount: RationalNumber;
   quoteLimit: RationalNumber;
@@ -152,6 +153,8 @@ export interface MarginlyConfigMarginlyPool {
   baseToken: MarginlyConfigToken;
   quoteToken: MarginlyConfigToken;
   params: MarginlyPoolParams;
+  defaultSwapCallData: number;
+  priceOracle: PriceOracleConfig;
 }
 
 export interface MarginlyAdapterParam {
@@ -178,10 +181,78 @@ export interface MarginlyConfigMarginlyKeeper {
   };
 }
 
+export type PriceOracleConfig =
+  | UniswapV3TickOracleConfig
+  | UniswapV3TickDoubleOracleConfig
+  | ChainlinkOracleConfig
+  | PythOracleConfig;
+
+export interface UniswapV3TickOracleConfig {
+  id: string;
+  type: 'uniswapV3';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    priceSecondsAgo: TimeSpan;
+    priceSecondsAgoMC: TimeSpan;
+    uniswapFee: RationalNumber;
+  }[];
+}
+
+export interface UniswapV3TickDoubleOracleConfig {
+  id: string;
+  type: 'uniswapV3Double';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    priceSecondsAgo: TimeSpan;
+    priceSecondsAgoMC: TimeSpan;
+  }[];
+}
+
+export interface ChainlinkOracleConfig {
+  id: string;
+  type: 'chainlink';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    priceSecondsAgo: TimeSpan;
+    priceSecondsAgoMC: TimeSpan;
+  }[];
+}
+
+export interface PythOracleConfig {
+  id: string;
+  type: 'pyth';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    priceSecondsAgo: TimeSpan;
+    priceSecondsAgoMC: TimeSpan;
+  }[];
+}
+
+export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
+  return config.type === 'uniswapV3';
+}
+
+export function isUniswapV3DoubleOracle(config: PriceOracleConfig): config is UniswapV3TickDoubleOracleConfig {
+  return config.type === 'uniswapV3Double';
+}
+
+export function isChainlinkOracle(config: PriceOracleConfig): config is ChainlinkOracleConfig {
+  return config.type === 'chainlink';
+}
+
+export function isPythOracle(config: PriceOracleConfig): config is PythOracleConfig {
+  return config.type === 'pyth';
+}
+
 export class StrictMarginlyDeployConfig {
   public readonly connection: EthConnectionConfig;
   public readonly tokens: MarginlyConfigToken[];
   public readonly uniswap: MarginlyConfigUniswap;
+  public readonly priceOracles: PriceOracleConfig[];
   public readonly marginlyFactory: MarginlyFactoryConfig;
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
   public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
@@ -190,6 +261,7 @@ export class StrictMarginlyDeployConfig {
   private constructor(
     connection: EthConnectionConfig,
     uniswap: MarginlyConfigUniswap,
+    priceOracles: PriceOracleConfig[],
     marginlyFactory: MarginlyFactoryConfig,
     tokens: MarginlyConfigToken[],
     marginlyPools: MarginlyConfigMarginlyPool[],
@@ -198,6 +270,7 @@ export class StrictMarginlyDeployConfig {
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
+    this.priceOracles = priceOracles;
     this.marginlyFactory = marginlyFactory;
     this.tokens = tokens;
     this.marginlyPools = marginlyPools;
@@ -247,6 +320,7 @@ export class StrictMarginlyDeployConfig {
         logger: priceLogger,
       },
     });
+
     for (const rawPrice of config.prices) {
       const priceGetter = createPriceGetter(executor, rawPrice);
       const price = await priceGetter.getPrice(priceLogger);
@@ -456,7 +530,7 @@ export class StrictMarginlyDeployConfig {
       throw new Error('Unknown uniswap type');
     }
 
-    const ids = [];
+    const priceOracles = this.createPriceOracleConfigs(config, tokens);
 
     const marginlyPools: MarginlyConfigMarginlyPool[] = [];
     for (let i = 0; i < config.marginlyPools.length; i++) {
@@ -485,19 +559,24 @@ export class StrictMarginlyDeployConfig {
         fee: RationalNumber.parsePercent(rawPool.params.fee),
         maxLeverage: RationalNumber.parse(rawPool.params.maxLeverage),
         swapFee: RationalNumber.parsePercent(rawPool.params.swapFee),
-        priceAgo: TimeSpan.parse(rawPool.params.priceAgo),
-        priceAgoMC: TimeSpan.parse(rawPool.params.priceAgoMC),
         mcSlippage: RationalNumber.parsePercent(rawPool.params.mcSlippage),
         positionMinAmount: RationalNumber.parse(rawPool.params.positionMinAmount),
         quoteLimit: RationalNumber.parse(rawPool.params.quoteLimit),
       };
-      ids.push(rawPool.id);
+
+      const priceOracle = priceOracles.get(rawPool.priceOracleId);
+      if (!priceOracle) {
+        throw new Error(`Price oracle with id ${rawPool.priceOracleId} not found`);
+      }
+
       marginlyPools.push({
         id: rawPool.id,
         uniswapPool,
         baseToken,
         quoteToken,
         params,
+        defaultSwapCallData: rawPool.defaultSwapCallData,
+        priceOracle,
       });
     }
 
@@ -560,6 +639,7 @@ export class StrictMarginlyDeployConfig {
     return new StrictMarginlyDeployConfig(
       config.connection,
       uniswap,
+      Array.from(priceOracles.values()),
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
         techPositionOwner: EthAddress.parse(config.marginlyFactory.techPositionOwner),
@@ -570,5 +650,48 @@ export class StrictMarginlyDeployConfig {
       marginlyKeeper,
       marginlyRouter
     );
+  }
+
+  private static createPriceOracleConfigs(
+    config: MarginlyDeployConfig,
+    tokens: Map<string, MarginlyConfigToken>
+  ): Map<string, PriceOracleConfig> {
+    const priceOracles = new Map<string, PriceOracleConfig>();
+
+    for (let i = 0; i < config.priceOracles.length; i++) {
+      const priceOracleConfig = config.priceOracles[i];
+
+      if (isUniswapV3OracleConfig(priceOracleConfig)) {
+        const config: UniswapV3TickOracleConfig = {
+          id: priceOracleConfig.id,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            priceSecondsAgo: TimeSpan.parse(x.priceSecondsAgo),
+            priceSecondsAgoMC: TimeSpan.parse(x.priceSecondsAgoMC),
+            uniswapFee: RationalNumber.parsePercent(x.uniswapFee),
+          })),
+        };
+
+        priceOracles.set(priceOracleConfig.id, config);
+      } else if (isUniswapV3DoubleOracleConfig(priceOracleConfig)) {
+        throw new Error('UniswapV3DoubleOracle is not yet implemented');
+      } else if (isChainlinkOracleConfig(priceOracleConfig)) {
+        throw new Error('ChainlinkOracle is not yet implemented');
+      } else if (isPythOracleConfig(priceOracleConfig)) {
+        throw new Error('PythOracle is not yet implemented');
+      }
+    }
+
+    return priceOracles;
   }
 }

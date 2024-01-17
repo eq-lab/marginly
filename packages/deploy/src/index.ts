@@ -17,6 +17,7 @@ import {
   isMarginlyConfigSwapPoolRegistry,
   isMarginlyConfigUniswapGenuine,
   isMarginlyConfigUniswapMock,
+  isUniswapV3Oracle,
   StrictMarginlyDeployConfig,
 } from './deployer/configs';
 import { Contract } from 'ethers';
@@ -121,6 +122,8 @@ export async function deployMarginly(
         });
         return config.uniswap.factory;
       } else if (isMarginlyConfigUniswapMock(config.uniswap)) {
+        logger.log('Create uniswap mock pool');
+
         const uniswapConfig = config.uniswap;
         const uniswapRouterDeploymentResult = await marginlyDeployer.deployUniswapRouterMock(
           uniswapConfig.weth9Token,
@@ -128,20 +131,31 @@ export async function deployMarginly(
         );
         const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
         await uniswapRouterContract.setRejectArbitraryRecipient(true);
+
+        const uniswapV3FactoryMockDeploymentResult = await marginlyDeployer.deployUniswapV3FactoryMock();
+        const uniswapV3Factory = uniswapV3FactoryMockDeploymentResult.contract;
+
         for (const pool of uniswapConfig.pools) {
-          const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
+          logger.log(`Deploy uniswap pool mock ${pool.id}`);
+
+          const uniswapPoolDeploymentResult = await marginlyDeployer.getOrCreateUniswapV3PoolMock(
+            uniswapV3Factory,
             uniswapConfig.oracle,
             pool,
             tokenRepository
           );
-          routerPools.push({
-            dex: Dex.UniswapV3,
-            token0: tokenRepository.getTokenInfo(pool.tokenA.id).address,
-            token1: tokenRepository.getTokenInfo(pool.tokenB.id).address,
-            pool: EthAddress.parse(uniswapPoolDeploymentResult.address),
-          });
+          logger.log(`UniswapPoolMock ${pool.id} deployed`);
+
           const { address: tokenAAddress } = tokenRepository.getTokenInfo(pool.tokenA.id);
           const { address: tokenBAddress } = tokenRepository.getTokenInfo(pool.tokenB.id);
+
+          routerPools.push({
+            dex: Dex.UniswapV3,
+            token0: tokenAAddress,
+            token1: tokenBAddress,
+            pool: EthAddress.parse(uniswapPoolDeploymentResult.address),
+          });
+
           const uniswapFee = marginlyDeployer.toUniswapFee(pool.fee);
           await uniswapRouterContract.setPool(
             tokenAAddress.toString(),
@@ -172,7 +186,10 @@ export async function deployMarginly(
           const uniswapPoolContract = uniswapPoolDeploymentResult.contract;
 
           await uniswapPoolContract.setPrice(priceFp27, sqrtPriceX96);
-          await uniswapPoolContract.increaseObservationCardinalityNext(config.uniswap.priceLogSize);
+
+          const observationCardinality = 1000;
+          await uniswapPoolContract.increaseObservationCardinalityNext(observationCardinality);
+          const observation = await uniswapPoolContract.observe([0, 5]);
 
           await uniswapPoolContract.setAllowListEnabled(true);
           await uniswapPoolContract.addToAllowList(uniswapRouterDeploymentResult.address);
@@ -210,7 +227,7 @@ export async function deployMarginly(
           );
         }
 
-        return EthAddress.parse(uniswapRouterDeploymentResult.address);
+        return EthAddress.parse(uniswapV3Factory.address);
       } else if (isMarginlyConfigSwapPoolRegistry(config.uniswap)) {
         const swapPoolRegistryConfig = config.uniswap;
         const priceAdapters: EthAddress[] = [];
@@ -315,7 +332,6 @@ export async function deployMarginly(
     const marginlyFactoryDeployResult = await using(logger.beginScope('Deploy marginly factory'), async () => {
       const marginlyFactoryDeployResult = await marginlyDeployer.deployMarginlyFactory(
         EthAddress.parse(marginlyPoolImplDeployResult.contract.address),
-        uniswapFactoryAddress,
         EthAddress.parse(marginlyRouterDeployResult.address),
         config.marginlyFactory.feeHolder,
         config.marginlyFactory.weth9Token,
@@ -369,13 +385,38 @@ export async function deployMarginly(
     });
     */
 
+    const deployedPriceOracles: Map<string, EthAddress> = new Map<string, EthAddress>();
+    await using(logger.beginScope(`Process price oracles`), async () => {
+      for (const priceOracle of config.priceOracles) {
+        if (isUniswapV3Oracle(priceOracle)) {
+          logger.log(`Deploy price oracle with params `);
+
+          const deploymentResult = await marginlyDeployer.deployAndConfigureUniswapV3TickOracle(
+            priceOracle,
+            uniswapFactoryAddress,
+            tokenRepository
+          );
+
+          logger.log(`Price oracle ${priceOracle.id} deployed`);
+
+          deployedPriceOracles.set(priceOracle.id, EthAddress.parse(deploymentResult.address));
+        }
+      }
+    });
+
     const deployedMarginlyPools = await using(logger.beginScope('Create marginly pools'), async () => {
       const deployedMarginlyPools: MarginlyDeploymentMarginlyPool[] = [];
       for (const pool of config.marginlyPools) {
+        const priceOracle = deployedPriceOracles.get(pool.priceOracle.id);
+        if (!priceOracle) {
+          throw new Error(`Price oracle address with id ${pool.priceOracle.id} not found`);
+        }
+
         const marginlyPoolDeploymentResult = await marginlyDeployer.getOrCreateMarginlyPool(
           marginlyFactoryDeployResult.contract,
           pool,
-          tokenRepository
+          tokenRepository,
+          priceOracle
         );
         deployedMarginlyPools.push({
           id: pool.id,

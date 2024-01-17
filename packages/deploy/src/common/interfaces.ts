@@ -7,7 +7,6 @@ import {
   MarginlyAdapterParam,
   MarginlyConfigMarginlyPool,
   MarginlyConfigUniswapPoolGenuine,
-  MarginlyConfigUniswapPoolMock,
 } from '../deployer/configs';
 
 export interface ITokenRepository {
@@ -25,7 +24,6 @@ export interface IMarginlyDeployer {
   deployMarginlyPoolImplementation(): Promise<DeployResult>;
   deployMarginlyFactory(
     marginlyPoolImplementation: EthAddress,
-    uniswapFactory: EthAddress,
     swapRouter: EthAddress,
     feeHolder: EthAddress,
     weth9: MarginlyConfigToken,
@@ -44,6 +42,7 @@ export interface IMarginlyDeployer {
     marginlyPoolFactoryContract: Contract,
     config: MarginlyConfigMarginlyPool,
     tokenRepository: ITokenRepository,
+    priceOracle: EthAddress
   ): Promise<LimitedDeployResult>;
   getOrCreateMockAavePool(): Promise<LimitedDeployResult>;
   getOrCreateMockAavePoolAddressesProvider(aavePoolAddress: EthAddress): Promise<LimitedDeployResult>;
@@ -58,11 +57,6 @@ export interface IMarginlyDeployer {
   ): Promise<DeployResult>;
   deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult>;
   deployUniswapRouterMock(weth9: MarginlyConfigToken, tokenRepository: ITokenRepository): Promise<DeployResult>;
-  deployUniswapPoolMock(
-    oracle: EthAddress,
-    poolConfig: MarginlyConfigUniswapPoolMock,
-    tokenRepository: ITokenRepository
-  ): Promise<DeployResult>;
   ensureTokenAmount(
     token: MarginlyConfigToken,
     ethAddress: EthAddress,

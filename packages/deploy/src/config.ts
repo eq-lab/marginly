@@ -44,6 +44,60 @@ export function isMarginlyDeployConfigMintableToken(
   return token.type === 'mintable';
 }
 
+export type PriceOracleDeployConfig =
+  | UniswapV3TickOracleDeployConfig
+  | UniswapV3DoubleDeployOracleConfig
+  | ChainlinkOracleDeployConfig
+  | PythOracleDeployConfig;
+
+export interface UniswapV3TickOracleDeployConfig {
+  type: 'uniswapV3';
+  id: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    priceSecondsAgo: string;
+    priceSecondsAgoMC: string;
+    uniswapFee: string;
+  }[];
+}
+
+export interface UniswapV3DoubleDeployOracleConfig {
+  type: 'uniswapV3Double';
+  id: string;
+  settings: [];
+}
+
+export interface ChainlinkOracleDeployConfig {
+  type: 'chainlink';
+  id: string;
+  settings: [];
+}
+
+export interface PythOracleDeployConfig {
+  type: 'pyth';
+  id: string;
+  settings: [];
+}
+
+export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
+  return config.type === 'uniswapV3';
+}
+
+export function isUniswapV3DoubleOracleConfig(
+  config: PriceOracleDeployConfig
+): config is UniswapV3DoubleDeployOracleConfig {
+  return config.type === 'uniswapV3Double';
+}
+
+export function isChainlinkOracleConfig(config: PriceOracleDeployConfig): config is ChainlinkOracleDeployConfig {
+  return config.type === 'chainlink';
+}
+
+export function isPythOracleConfig(config: PriceOracleDeployConfig): config is PythOracleDeployConfig {
+  return config.type === 'pyth';
+}
+
 interface MarginlyDeployConfigUniswapGenuine {
   type: 'genuine' | undefined;
   factory: string;
@@ -139,6 +193,7 @@ export interface MarginlyDeployConfig {
   tokens: MarginlyDeployConfigToken[];
   prices: RootPriceConfig[];
   uniswap: MarginlyDeployConfigUniswap;
+  priceOracles: PriceOracleDeployConfig[];
   adapters: {
     dexId: number;
     adapterName: string;
@@ -158,13 +213,13 @@ export interface MarginlyDeployConfig {
     id: string;
     uniswapPoolId: string;
     baseTokenId: string;
+    priceOracleId: string;
+    defaultSwapCallData: number;
     params: {
       interestRate: string;
       fee: string;
       maxLeverage: string;
       swapFee: string;
-      priceAgo: string;
-      priceAgoMC: string;
       mcSlippage: string;
       positionMinAmount: string;
       quoteLimit: string;
