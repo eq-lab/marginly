@@ -129,11 +129,6 @@ export function mergeMarginlyDeployments(
   return mergedDeployment;
 }
 
-export function getMarginlyKeeperAddress(stateStore: StateStore): string | undefined {
-  const deployState = stateStore.getById('marginlyKeeper');
-  return deployState ? deployState.address : undefined;
-}
-
 export class TimeSpan {
   private static readonly regex: RegExp = /^(\d+) (min|sec)$/;
   private readonly value: BigNumber;

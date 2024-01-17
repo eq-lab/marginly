@@ -1,13 +1,6 @@
 import { DeployState, MarginlyConfigToken } from './index';
-import { EthAddress, RationalNumber } from '@marginly/common';
+import { EthAddress } from '@marginly/common';
 import { Contract, ContractFactory } from 'ethers';
-import { BigNumber } from '@ethersproject/bignumber';
-import * as ethers from 'ethers';
-import {
-  MarginlyAdapterParam,
-  MarginlyConfigMarginlyPool,
-  MarginlyConfigUniswapPoolGenuine,
-} from '../deployer/configs';
 
 export interface ITokenRepository {
   materializeToken(token: MarginlyConfigToken): Promise<void>;
@@ -20,49 +13,8 @@ export interface TokenInfo {
   symbol: string;
 }
 
-export interface IMarginlyDeployer {
-  deployMarginlyPoolImplementation(): Promise<DeployResult>;
-  deployMarginlyFactory(
-    marginlyPoolImplementation: EthAddress,
-    swapRouter: EthAddress,
-    feeHolder: EthAddress,
-    weth9: MarginlyConfigToken,
-    tokenRepository: ITokenRepository,
-    techPositionOwner: EthAddress
-  ): Promise<DeployResult>;
-  deployMarginlyPoolAdmin(marginlyFactoryAddress: EthAddress): Promise<DeployResult>;
-  deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult>;
-  toUniswapFee(fee: RationalNumber): BigNumber;
-  getOrCreateUniswapPoolGenuine(
-    uniswapFactory: EthAddress,
-    config: MarginlyConfigUniswapPoolGenuine,
-    tokenRepository: ITokenRepository
-  ): Promise<LimitedDeployResult>;
-  getOrCreateMarginlyPool(
-    marginlyPoolFactoryContract: Contract,
-    config: MarginlyConfigMarginlyPool,
-    tokenRepository: ITokenRepository,
-    priceOracle: EthAddress
-  ): Promise<LimitedDeployResult>;
-  getOrCreateMockAavePool(): Promise<LimitedDeployResult>;
-  getOrCreateMockAavePoolAddressesProvider(aavePoolAddress: EthAddress): Promise<LimitedDeployResult>;
-  getAavePoolAddressesProvider(address: EthAddress): ethers.Contract;
+export interface ITokenDeployer {
   deployMintableToken(name: string, symbol: string, decimals: number): Promise<DeployResult>;
-  deployMarginlyAdapter(
-    tokenRepository: ITokenRepository,
-    dexId: BigNumber,
-    name: string,
-    pools: MarginlyAdapterParam[],
-    balancerVault?: EthAddress
-  ): Promise<DeployResult>;
-  deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult>;
-  deployUniswapRouterMock(weth9: MarginlyConfigToken, tokenRepository: ITokenRepository): Promise<DeployResult>;
-  ensureTokenAmount(
-    token: MarginlyConfigToken,
-    ethAddress: EthAddress,
-    amount: RationalNumber,
-    tokenRepository: ITokenRepository
-  ): Promise<void>;
 }
 
 export interface DeployResult extends DeployState {

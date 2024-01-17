@@ -193,8 +193,8 @@ export interface UniswapV3TickOracleConfig {
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-    priceSecondsAgo: TimeSpan;
-    priceSecondsAgoMC: TimeSpan;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
     uniswapFee: RationalNumber;
   }[];
 }
@@ -205,8 +205,11 @@ export interface UniswapV3TickDoubleOracleConfig {
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-    priceSecondsAgo: TimeSpan;
-    priceSecondsAgoMC: TimeSpan;
+    intermediateToken: MarginlyConfigToken;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
+    baseTokenPairFee: RationalNumber;
+    quoteTokenPairFee: RationalNumber;
   }[];
 }
 
@@ -216,8 +219,8 @@ export interface ChainlinkOracleConfig {
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-    priceSecondsAgo: TimeSpan;
-    priceSecondsAgoMC: TimeSpan;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
   }[];
 }
 
@@ -227,8 +230,8 @@ export interface PythOracleConfig {
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-    priceSecondsAgo: TimeSpan;
-    priceSecondsAgoMC: TimeSpan;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
   }[];
 }
 
@@ -660,10 +663,11 @@ export class StrictMarginlyDeployConfig {
 
     for (let i = 0; i < config.priceOracles.length; i++) {
       const priceOracleConfig = config.priceOracles[i];
+      const priceOracleId = priceOracleConfig.id;
 
       if (isUniswapV3OracleConfig(priceOracleConfig)) {
-        const config: UniswapV3TickOracleConfig = {
-          id: priceOracleConfig.id,
+        const strictConfig: UniswapV3TickOracleConfig = {
+          id: priceOracleId,
           type: priceOracleConfig.type,
           settings: priceOracleConfig.settings.map((x) => ({
             quoteToken:
@@ -676,15 +680,41 @@ export class StrictMarginlyDeployConfig {
               (() => {
                 throw new Error(`Base token not found by id ${x.baseTokenId}`);
               })(),
-            priceSecondsAgo: TimeSpan.parse(x.priceSecondsAgo),
-            priceSecondsAgoMC: TimeSpan.parse(x.priceSecondsAgoMC),
+            secondsAgo: TimeSpan.parse(x.secondsAgo),
+            secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
             uniswapFee: RationalNumber.parsePercent(x.uniswapFee),
           })),
         };
 
-        priceOracles.set(priceOracleConfig.id, config);
+        priceOracles.set(priceOracleId, strictConfig);
       } else if (isUniswapV3DoubleOracleConfig(priceOracleConfig)) {
-        throw new Error('UniswapV3DoubleOracle is not yet implemented');
+        const strictConfig: UniswapV3TickDoubleOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            intermediateToken:
+              tokens.get(x.intermediateTokenId) ||
+              (() => {
+                throw new Error(`Interm token not found by id ${x.baseTokenId}`);
+              })(),
+            secondsAgo: TimeSpan.parse(x.secondsAgo),
+            secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
+            baseTokenPairFee: RationalNumber.parsePercent(x.baseTokenPairFee),
+            quoteTokenPairFee: RationalNumber.parsePercent(x.quoteTokenPairFee),
+          })),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
       } else if (isChainlinkOracleConfig(priceOracleConfig)) {
         throw new Error('ChainlinkOracle is not yet implemented');
       } else if (isPythOracleConfig(priceOracleConfig)) {

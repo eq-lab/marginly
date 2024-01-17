@@ -56,8 +56,8 @@ export interface UniswapV3TickOracleDeployConfig {
   settings: {
     quoteTokenId: string;
     baseTokenId: string;
-    priceSecondsAgo: string;
-    priceSecondsAgoMC: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
     uniswapFee: string;
   }[];
 }
@@ -65,7 +65,15 @@ export interface UniswapV3TickOracleDeployConfig {
 export interface UniswapV3DoubleDeployOracleConfig {
   type: 'uniswapV3Double';
   id: string;
-  settings: [];
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    intermediateTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+    baseTokenPairFee: string;
+    quoteTokenPairFee: string;
+  }[];
 }
 
 export interface ChainlinkOracleDeployConfig {
