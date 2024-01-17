@@ -13,22 +13,30 @@ import './MarginlyAdminStorage.sol';
 
 abstract contract PoolActions is MarginlyAdminStorage {
   /// @dev Create a new Marginly pool. The signer will be granted owner role for a new pool
+  /// @param underlyingPool Address of underlyig pool
   /// @param quoteToken Address of a quote token
   /// @param baseToken Address of a base token
-  /// @param poolFee Amount of underlying pool fee
+  /// @param priceOracle Address of price oracle
+  /// @param defaultSwapCallData Swap call data that used in MC case
   /// @param params Marginly pool parameters
   function createPool(
     address underlyingPool,
     address quoteToken,
     address baseToken,
-    uint24 poolFee,
+    address priceOracle,
+    uint32 defaultSwapCallData,
     MarginlyParams calldata params
   ) external returns (address marginlyPoolAddress) {
-    //FIX: no function getPool in marginlyFactory
-    /*if (baseToken == address(0)) revert Errors.Forbidden();
+    if (baseToken == address(0)) revert Errors.Forbidden();
     if (quoteToken == address(0)) revert Errors.Forbidden();
 
-    marginlyPoolAddress = IMarginlyFactory(marginlyFactoryAddress).createPool(quoteToken, baseToken, poolFee, params);
+    marginlyPoolAddress = IMarginlyFactory(marginlyFactoryAddress).createPool(
+      quoteToken,
+      baseToken,
+      priceOracle,
+      defaultSwapCallData,
+      params
+    );
     MarginlyRouter marginlyRouter = MarginlyRouter(IMarginlyFactory(marginlyFactoryAddress).swapRouter());
     address adapterAddress = marginlyRouter.adapters(UNISWAPV3_ADAPTER_INDEX);
     if (adapterAddress == address(0)) revert Errors.Forbidden();
@@ -45,7 +53,7 @@ abstract contract PoolActions is MarginlyAdminStorage {
     }
 
     poolsOwners[marginlyPoolAddress] = msg.sender;
-    emit NewPoolOwner(marginlyPoolAddress, msg.sender);*/
+    emit NewPoolOwner(marginlyPoolAddress, msg.sender);
   }
 
   /// @dev Set new params for a Marginly pool. Allowed only for pool owner
