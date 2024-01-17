@@ -894,6 +894,46 @@ contract MarginlyPool is IMarginlyPool {
     emit Long(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteDebtChange, discountedBaseCollateralChange);
   }
 
+  /// @notice sells all the base tokens from lend position for quote ones
+  /// @dev no liquidity limit check since this function goes prior to 'short' call and it fail there anyway
+  /// @dev you may consider adding that check here if this method is used in any other way
+  function sellBaseForQuote(Position storage position, uint256 limitPriceX96, uint256 swapCalldata) private {
+    if (position._type != PositionType.Lend) revert Errors.WrongPositionType();
+
+    uint256 baseAmountIn = calcRealBaseCollateral(position.discountedBaseAmount, 0);
+    if (baseAmountIn == 0) revert Errors.ZeroAmount();
+
+    uint256 minQuoteOut = Math.mulDiv(limitPriceX96, baseAmountIn, FP96.Q96);
+    uint256 quoteAmountOut = swapExactInput(false, baseAmountIn, minQuoteOut, swapCalldata);
+
+    uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteAmountOut);
+
+    discountedBaseCollateral -= position.discountedBaseAmount;
+    position.discountedBaseAmount = 0;
+    discountedQuoteCollateral += discountedQuoteCollateralDelta;
+    position.discountedQuoteAmount += discountedQuoteCollateralDelta;
+  }
+
+  /// @notice sells all the quote tokens from lend position for base ones
+  /// @dev no liquidity limit check since this function goes prior to 'long' call and it fail there anyway
+  /// @dev you may consider adding that check here if this method is used in any other way
+  function sellQuoteForBase(Position storage position, uint256 limitPriceX96, uint256 swapCalldata) private {
+    if (position._type != PositionType.Lend) revert Errors.WrongPositionType();
+
+    uint256 quoteAmountIn = calcRealQuoteCollateral(position.discountedQuoteAmount, 0);
+    if (quoteAmountIn == 0) revert Errors.ZeroAmount();
+
+    uint256 minBaseOut = Math.mulDiv(FP96.Q96, quoteAmountIn, limitPriceX96);
+    uint256 baseAmountOut = swapExactInput(true, quoteAmountIn, minBaseOut, swapCalldata);
+
+    uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmountOut);
+
+    discountedQuoteCollateral -= position.discountedQuoteAmount;
+    position.discountedQuoteAmount = 0;
+    discountedBaseCollateral += discountedBaseCollateralDelta;
+    position.discountedBaseAmount += discountedBaseCollateralDelta;
+  }
+
   /// @dev Update collateral and debt coeffs in system
   function accrueInterest() private returns (bool) {
     uint256 secondsPassed = getTimestamp() - lastReinitTimestampSeconds;
@@ -1462,8 +1502,10 @@ contract MarginlyPool is IMarginlyPool {
     } else if (call == CallType.WithdrawQuote) {
       withdrawQuote(amount1, flag, basePrice, position);
     } else if (call == CallType.Short) {
+      if (flag) sellBaseForQuote(position, limitPriceX96, swapCalldata);
       short(amount1, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.Long) {
+      if (flag) sellQuoteForBase(position, limitPriceX96, swapCalldata);
       long(amount1, limitPriceX96, basePrice, position, swapCalldata);
     } else if (call == CallType.ClosePosition) {
       closePosition(limitPriceX96, position, swapCalldata);
