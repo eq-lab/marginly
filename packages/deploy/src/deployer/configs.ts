@@ -1,7 +1,6 @@
 import { MarginlyConfigExistingToken, MarginlyConfigMintableToken, MarginlyConfigToken, TimeSpan } from '../common';
 import { EthAddress, RationalNumber } from '@marginly/common';
 import {
-  Dex,
   EthConnectionConfig,
   isChainlinkOracleConfig,
   isMarginlyDeployConfigExistingToken,

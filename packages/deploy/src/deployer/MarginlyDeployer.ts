@@ -1,10 +1,10 @@
 import { Contract, Signer } from 'ethers';
 import { EthOptions } from '../config';
 import { Logger } from '../logger';
-import { EthAddress, RationalNumber } from '@marginly/common';
+import { EthAddress } from '@marginly/common';
 import { BigNumber } from '@ethersproject/bignumber';
 import * as ethers from 'ethers';
-import { isMarginlyConfigMintableToken, MarginlyConfigToken, readUniswapMockContract, StateStore } from '../common';
+import { MarginlyConfigToken, StateStore } from '../common';
 import { DeployResult, ITokenRepository, LimitedDeployResult } from '../common/interfaces';
 import { MarginlyConfigMarginlyPool, MarginlyConfigSwapPool, PriceProviderMock } from './configs';
 import {
