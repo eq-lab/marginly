@@ -90,6 +90,18 @@ describe('System initialized:', async () => {
     );
   });
 
+  it('long with flip', async () => {
+    const { marginlyPool, wallets } = await loadFixture(getInitializedPool);
+    const price = (await marginlyPool.getBasePrice()).inner;
+    const longer = wallets[0];
+    await marginlyPool
+      .connect(longer)
+      .execute(CallType.DepositQuote, 1000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await snapshotGasCost(
+      marginlyPool.connect(longer).execute(CallType.Long, 900, 0, price, true, ZERO_ADDRESS, uniswapV3Swapdata())
+    );
+  });
+
   it('short', async () => {
     const { marginlyPool, wallets } = await loadFixture(getInitializedPool);
     const price = (await marginlyPool.getBasePrice()).inner;
@@ -99,6 +111,18 @@ describe('System initialized:', async () => {
       .execute(CallType.DepositQuote, 3000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
     await snapshotGasCost(
       marginlyPool.connect(shorter).execute(CallType.Short, 400, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata())
+    );
+  });
+
+  it('short with flip', async () => {
+    const { marginlyPool, wallets } = await loadFixture(getInitializedPool);
+    const price = (await marginlyPool.getBasePrice()).inner;
+    const shorter = wallets[0];
+    await marginlyPool
+      .connect(shorter)
+      .execute(CallType.DepositBase, 3000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+    await snapshotGasCost(
+      marginlyPool.connect(shorter).execute(CallType.Short, 400, 0, price, true, ZERO_ADDRESS, uniswapV3Swapdata())
     );
   });
 
