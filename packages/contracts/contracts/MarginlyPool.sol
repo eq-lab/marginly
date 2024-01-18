@@ -901,7 +901,7 @@ contract MarginlyPool is IMarginlyPool {
     if (position._type != PositionType.Lend) revert Errors.WrongPositionType();
 
     uint256 baseAmountIn = calcRealBaseCollateral(position.discountedBaseAmount, 0);
-    if (baseAmountIn == 0) revert Errors.ZeroAmount();
+    if (baseAmountIn == 0) return;
 
     uint256 minQuoteOut = Math.mulDiv(limitPriceX96, baseAmountIn, FP96.Q96);
     uint256 quoteAmountOut = swapExactInput(false, baseAmountIn, minQuoteOut, swapCalldata);
@@ -912,6 +912,7 @@ contract MarginlyPool is IMarginlyPool {
     position.discountedBaseAmount = 0;
     discountedQuoteCollateral += discountedQuoteCollateralDelta;
     position.discountedQuoteAmount += discountedQuoteCollateralDelta;
+    emit SellBaseForQuote(msg.sender, baseAmountIn, quoteAmountOut, discountedQuoteCollateralDelta);
   }
 
   /// @notice sells all the quote tokens from lend position for base ones
@@ -921,7 +922,7 @@ contract MarginlyPool is IMarginlyPool {
     if (position._type != PositionType.Lend) revert Errors.WrongPositionType();
 
     uint256 quoteAmountIn = calcRealQuoteCollateral(position.discountedQuoteAmount, 0);
-    if (quoteAmountIn == 0) revert Errors.ZeroAmount();
+    if (quoteAmountIn == 0) return;
 
     uint256 minBaseOut = Math.mulDiv(FP96.Q96, quoteAmountIn, limitPriceX96);
     uint256 baseAmountOut = swapExactInput(true, quoteAmountIn, minBaseOut, swapCalldata);
@@ -932,6 +933,7 @@ contract MarginlyPool is IMarginlyPool {
     position.discountedQuoteAmount = 0;
     discountedBaseCollateral += discountedBaseCollateralDelta;
     position.discountedBaseAmount += discountedBaseCollateralDelta;
+    emit SellQuoteForBase(msg.sender, quoteAmountIn, baseAmountOut, discountedBaseCollateralDelta);
   }
 
   /// @dev Update collateral and debt coeffs in system

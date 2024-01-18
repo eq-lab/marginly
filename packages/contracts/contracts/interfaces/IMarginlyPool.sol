@@ -73,6 +73,30 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     uint256 baseDiscountedDelta
   );
 
+  /// @dev Emitted when user sell all the base tokens from position before Short
+  /// @param user User
+  /// @param baseDelta amount of base token sold
+  /// @param quoteDelta amount of quote tokens received
+  /// @param discountedQuoteCollateralDelta discounted delta amount of quote tokens collateral
+  event SellBaseForQuote(
+    address indexed user,
+    uint256 baseDelta,
+    uint256 quoteDelta,
+    uint256 discountedQuoteCollateralDelta
+  );
+
+  /// @dev Emitted when user sell all the quote tokens from position before Long
+  /// @param user User
+  /// @param quoteDelta amount of quote tokens sold
+  /// @param baseDelta amount of base token received
+  /// @param discountedBaseCollateralDelta discounted delta amount of base tokens collateral
+  event SellQuoteForBase(
+    address indexed user,
+    uint256 quoteDelta,
+    uint256 baseDelta,
+    uint256 discountedBaseCollateralDelta
+  );
+
   /// @dev Emitted when user closed position
   /// @param user User
   /// @param token Collateral token
