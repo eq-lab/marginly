@@ -4,7 +4,7 @@
   },
   "connection": {
     "ethOptions": {
-      "gasLimit": 2200000
+      "gasLimit": 4400000
     }
   },
   "marginlyKeeperAddress": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
