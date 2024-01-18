@@ -5,7 +5,8 @@ import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
-import './IPriceOracle.sol';
+import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
+
 import './libraries/OracleLib.sol';
 
 contract UniswapV3TickOracle is IPriceOracle, Ownable2Step {
