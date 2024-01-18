@@ -8,7 +8,7 @@ import {
   TestUniswapFactory,
   TestUniswapV3Factory,
 } from '../../typechain-types';
-import { UniswapV3TickOracle } from '../../typechain-types/contracts/oracles';
+import { UniswapV3TickOracle, UniswapV3TickOracleDouble } from '../../typechain-types/contracts/oracles';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -157,11 +157,7 @@ async function createUniswapV3TickOracle(quoteToken: string, baseToken: string):
 
   const oracleFactory = await ethers.getContractFactory('UniswapV3TickOracle');
   const oracle = await oracleFactory.deploy(uniswapFactory.address);
-  await oracle.setOptions(
-    quoteToken,
-    baseToken,
-    ethers.utils.defaultAbiCoder.encode(['uint16', 'uint16', 'uint24'], [900, 5, await pool.fee()])
-  );
+  await oracle.setOptions(quoteToken, baseToken, 900, 5, await pool.fee());
   return { oracle, pool, uniswapFactory, quoteToken, baseToken };
 }
 
@@ -174,7 +170,7 @@ export async function createUniswapV3TickOracleBackward(): Promise<OracleData> {
 }
 
 export type OracleDoubleData = {
-  oracle: UniswapV3TickOracle;
+  oracle: UniswapV3TickOracleDouble;
   firstPool: TestUniswapPool;
   secondPool: TestUniswapPool;
   uniswapFactory: TestUniswapFactory;
@@ -207,10 +203,11 @@ async function createUniswapV3TickOracleDouble(
   await oracle.setOptions(
     quoteToken,
     baseToken,
-    ethers.utils.defaultAbiCoder.encode(
-      ['uint16', 'uint16', 'uint24', 'uint24', 'address'],
-      [900, 5, await firstPool.fee(), await secondPool.fee(), intermediateToken]
-    )
+    900,
+    5,
+    await firstPool.fee(),
+    await secondPool.fee(),
+    intermediateToken
   );
   return { oracle, firstPool, secondPool, uniswapFactory, quoteToken, baseToken, intermediateToken };
 }

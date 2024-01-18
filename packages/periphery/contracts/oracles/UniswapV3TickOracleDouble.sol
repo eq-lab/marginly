@@ -15,6 +15,7 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
   error WrongValue();
 
   struct OracleParams {
+    bool initialized;
     uint16 secondsAgo;
     uint16 secondsAgoLiquidation;
     uint24 baseTokenPairFee;
@@ -24,47 +25,58 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
 
   uint256 private constant X96ONE = 79228162514264337593543950336;
 
-  mapping(address => mapping(address => bytes)) public getParamsEncoded;
+  mapping(address => mapping(address => OracleParams)) public getParams;
   address public immutable factory;
 
   constructor(address _factory) {
     factory = _factory;
   }
 
-  function setOptions(address quoteToken, address baseToken, bytes calldata encodedParams) external onlyOwner {
-    OracleParams memory newParams = decode(encodedParams);
-    if (newParams.secondsAgo == 0 || newParams.secondsAgoLiquidation == 0) revert WrongValue();
+  function setOptions(
+    address quoteToken,
+    address baseToken,
+    uint16 secondsAgo,
+    uint16 secondsAgoLiquidation,
+    uint24 baseTokenPairFee,
+    uint24 quoteTokenPairFee,
+    address intermediateToken
+  ) external onlyOwner {
+    if (secondsAgo == 0 || secondsAgoLiquidation == 0) revert WrongValue();
 
-    bytes memory currentParamsEncoded = getParamsEncoded[quoteToken][baseToken];
-    if (currentParamsEncoded.length == 0) {
-      getPoolAddress(quoteToken, newParams.intermediateToken, newParams.quoteTokenPairFee);
-      getPoolAddress(baseToken, newParams.intermediateToken, newParams.baseTokenPairFee);
-    } else {
-      OracleParams memory currentParams = decode(currentParamsEncoded);
+    OracleParams storage currentParams = getParams[quoteToken][baseToken];
+    if (currentParams.initialized) {
       if (
-        currentParams.baseTokenPairFee != newParams.baseTokenPairFee ||
-        currentParams.quoteTokenPairFee != newParams.quoteTokenPairFee ||
-        currentParams.intermediateToken != newParams.intermediateToken
+        currentParams.baseTokenPairFee != baseTokenPairFee ||
+        currentParams.quoteTokenPairFee != quoteTokenPairFee ||
+        currentParams.intermediateToken != intermediateToken
       ) revert CannotChangeUnderlyingPool();
+    } else {
+      getPoolAddress(quoteToken, intermediateToken, quoteTokenPairFee);
+      getPoolAddress(baseToken, intermediateToken, baseTokenPairFee);
+      currentParams.initialized = true;
+      currentParams.baseTokenPairFee = baseTokenPairFee;
+      currentParams.quoteTokenPairFee = quoteTokenPairFee;
+      currentParams.intermediateToken = intermediateToken;
     }
 
-    getParamsEncoded[quoteToken][baseToken] = encodedParams;
+    currentParams.secondsAgo = secondsAgo;
+    currentParams.secondsAgoLiquidation = secondsAgoLiquidation;
   }
 
   function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256) {
-    OracleParams memory params = decode(getParamsEncoded[quoteToken][baseToken]);
+    OracleParams storage params = getParams[quoteToken][baseToken];
     return getPriceX96Inner(quoteToken, baseToken, params, true);
   }
 
   function getMargincallPrice(address quoteToken, address baseToken) external view returns (uint256) {
-    OracleParams memory params = decode(getParamsEncoded[quoteToken][baseToken]);
+    OracleParams storage params = getParams[quoteToken][baseToken];
     return getPriceX96Inner(quoteToken, baseToken, params, false);
   }
 
   function getPriceX96Inner(
     address quoteToken,
     address baseToken,
-    OracleParams memory params,
+    OracleParams storage params,
     bool isBalancePrice
   ) private view returns (uint256) {
     address firstPool = getPoolAddress(quoteToken, params.intermediateToken, params.quoteTokenPairFee);
@@ -96,9 +108,6 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     return abi.decode(options, (OracleParams));
   }
 
-  // TODO tmp impl, need to rewrite it so basically any UniswapV3-like factory can be supported
-  // e.g. algebra is uniswapV3-like, but method with another name is used to get pools and it has no fee param
-  // most likely can be achieved via `factory.call(bytes)` with necessary encoded method and params;
   function getPoolAddress(address tokenA, address tokenB, uint24 fee) private view returns (address pool) {
     pool = IUniswapV3Factory(factory).getPool(tokenA, tokenB, fee);
     if (pool == address(0)) revert UnknownPool();
