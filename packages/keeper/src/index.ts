@@ -179,9 +179,14 @@ const watchMarginlyPoolsCommand = new Command()
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      await keeperWorker.run();
-      if (keeperWorker.isStopRequested()) {
-        break;
+      try {
+        if (keeperWorker.isStopRequested()) {
+          break;
+        }
+
+        await keeperWorker.run();
+      } catch (error) {
+        logger.error(error);
       }
 
       await sleep(3000);
