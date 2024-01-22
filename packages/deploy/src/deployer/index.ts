@@ -90,6 +90,10 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy('MarginlyKeeper', [aavePoolAddressesProvider.toString()], 'marginlyKeeper');
   }
 
+  public deployMarginlyKeeperUniswapV3(): Promise<DeployResult> {
+    return this.deploy('MarginlyKeeperUniswapV3', [], 'marginlyKeeperUniswapV3');
+  }
+
   public toUniswapFee(fee: RationalNumber): BigNumber {
     const uniswapFeeMultiplier = BigNumber.from('1000000');
     return fee.nom.mul(uniswapFeeMultiplier).div(fee.denom);
