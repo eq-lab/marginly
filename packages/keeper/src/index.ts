@@ -160,16 +160,18 @@ const watchMarginlyPoolsCommand = new Command()
 
     const signer = await createSignerFromContext(systemContext);
     const contractDescriptions = prepareContractDescriptions();
-    const keeperAaveContract = new ethers.Contract(
-      config.marginlyKeeperAaveAddress,
-      contractDescriptions.keeperAave.abi,
-      signer.provider
-    );
-    const keeperUniswapV3Contract = new ethers.Contract(
-      config.marginlyKeeperUniswapV3Address,
-      contractDescriptions.keeperUniswapV3.abi,
-      signer.provider
-    );
+
+    const keeperAaveContract: ethers.Contract | undefined = config.marginlyKeeperAaveAddress
+      ? new ethers.Contract(config.marginlyKeeperAaveAddress, contractDescriptions.keeperAave.abi, signer.provider)
+      : undefined;
+
+    const keeperUniswapV3Contract: ethers.Contract | undefined = config.marginlyKeeperUniswapV3Address
+      ? new ethers.Contract(
+          config.marginlyKeeperUniswapV3Address,
+          contractDescriptions.keeperUniswapV3.abi,
+          signer.provider
+        )
+      : undefined;
 
     const poolWatchers = await createPoolWatchers(
       logger,

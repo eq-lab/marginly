@@ -11,8 +11,8 @@ import { encodeLiquidationParams } from '@marginly/common';
 export class MarginlyKeeperWorker implements Worker {
   private readonly logger: Logger;
   private readonly signer: ethers.Signer;
-  private readonly keeperAaveContract: ethers.Contract;
-  private readonly keeperUniswapV3Contract: ethers.Contract;
+  private readonly keeperAaveContract: ethers.Contract | undefined;
+  private readonly keeperUniswapV3Contract: ethers.Contract | undefined;
   private readonly contractDescriptions: ContractDescriptions;
   private readonly poolWatchers: PoolWatcher[];
   private readonly ethOptions: EthOptions;
@@ -23,8 +23,8 @@ export class MarginlyKeeperWorker implements Worker {
     signer: ethers.Signer,
     contractDescriptions: ContractDescriptions,
     poolWatchers: PoolWatcher[],
-    keeperAaveContract: ethers.Contract,
-    keeperUniswapV3Contract: ethers.Contract,
+    keeperAaveContract: ethers.Contract | undefined,
+    keeperUniswapV3Contract: ethers.Contract | undefined,
     ethOptions: EthOptions,
     logger: Logger
   ) {
@@ -65,8 +65,16 @@ export class MarginlyKeeperWorker implements Worker {
           }
 
           if (liquidationParam.config.keeperType == 'aave') {
+            if (!this.keeperAaveContract) {
+              throw new Error(`Configuration error. Address of MarginlyKeeperAaveContract not set`);
+            }
+
             await this.tryLiquidateWithAave(logger, liquidationParam);
           } else if (liquidationParam.config.keeperType === 'uniswapV3') {
+            if (!this.keeperUniswapV3Contract) {
+              throw new Error(`Configuration error. Address of MarginlyKeeperUniswapV3Contract not set`);
+            }
+
             await this.tryLiquidateWithUniswapV3(logger, liquidationParam);
           } else {
             throw new Error(`Configuration error. Unknown keeperType: ${liquidationParam.config.keeperType}`);
@@ -154,17 +162,15 @@ export class MarginlyKeeperWorker implements Worker {
       );
 
       await this.logBalanceChange(logger, debtTokenContract, async () => {
-        const tx = await this.keeperAaveContract
-          .connect(this.signer)
-          .flashLoan(
-            liquidationParam.asset,
-            liquidationParam.amount,
-            refferalCode,
-            liquidationParam.pool,
-            liquidationParam.position,
-            minProfit,
-            this.ethOptions
-          );
+        const tx = await this.keeperAaveContract!.connect(this.signer).flashLoan(
+          liquidationParam.asset,
+          liquidationParam.amount,
+          refferalCode,
+          liquidationParam.pool,
+          liquidationParam.position,
+          minProfit,
+          this.ethOptions
+        );
         const txReceipt = await tx.wait();
         logger.info(`Position ${liquidationParam.position} liquidated`);
       });
@@ -174,7 +180,7 @@ export class MarginlyKeeperWorker implements Worker {
   }
 
   private async isAvailableForBorrow(logger: Logger, tokenAddress: string): Promise<boolean> {
-    const aavePoolAddress = await this.keeperAaveContract.POOL();
+    const aavePoolAddress = await this.keeperAaveContract!.POOL();
     const aavePoolContract = new ethers.Contract(
       aavePoolAddress,
       this.contractDescriptions.aavePool.abi,
@@ -252,9 +258,13 @@ export class MarginlyKeeperWorker implements Worker {
       );
 
       await this.logBalanceChange(logger, debtTokenContract, async () => {
-        const tx = await this.keeperUniswapV3Contract
-          .connect(this.signer)
-          .liquidatePosition(uniswapPool!.address, amount0, amount1, encodedParams, this.ethOptions);
+        const tx = await this.keeperUniswapV3Contract!.connect(this.signer).liquidatePosition(
+          uniswapPool!.address,
+          amount0,
+          amount1,
+          encodedParams,
+          this.ethOptions
+        );
         const txReceipt = await tx.wait();
         logger.info(`Position ${liquidationParams.position} liquidated`);
       });

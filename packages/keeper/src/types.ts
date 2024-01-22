@@ -29,8 +29,8 @@ export interface PoolPositionLiquidationConfig {
 export interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
   connection: EthConnectionConfig;
-  marginlyKeeperAaveAddress: string;
-  marginlyKeeperUniswapV3Address: string;
+  marginlyKeeperAaveAddress?: string;
+  marginlyKeeperUniswapV3Address?: string;
   marginlyPools: PoolPositionLiquidationConfig[];
   log?: LogConfig;
 }

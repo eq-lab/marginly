@@ -6,6 +6,7 @@
     "ethOptions": {}
   },
   "marginlyKeeperAaveAddress": "0x13d1bD42884585d0D00121E596b3733B47152FeB",
+  "marginlyKeeperUniswapV3Address": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
   "marginlyPools": [
     {
       "type": "aave",
