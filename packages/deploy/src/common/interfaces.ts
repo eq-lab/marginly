@@ -43,7 +43,7 @@ export interface IMarginlyDeployer {
   getOrCreateMarginlyPool(
     marginlyPoolFactoryContract: Contract,
     config: MarginlyConfigMarginlyPool,
-    tokenRepository: ITokenRepository,
+    tokenRepository: ITokenRepository
   ): Promise<LimitedDeployResult>;
   getOrCreateMockAavePool(): Promise<LimitedDeployResult>;
   getOrCreateMockAavePoolAddressesProvider(aavePoolAddress: EthAddress): Promise<LimitedDeployResult>;
@@ -56,7 +56,7 @@ export interface IMarginlyDeployer {
     pools: MarginlyAdapterParam[],
     balancerVault?: EthAddress
   ): Promise<DeployResult>;
-  deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult>;
+  deployMarginlyRouter(adapters: AdapterDeployResult[]): Promise<DeployResult>;
   deployUniswapRouterMock(weth9: MarginlyConfigToken, tokenRepository: ITokenRepository): Promise<DeployResult>;
   deployUniswapPoolMock(
     oracle: EthAddress,
@@ -78,4 +78,8 @@ export interface DeployResult extends DeployState {
 
 export interface LimitedDeployResult extends DeployState {
   contract: Contract;
+}
+
+export interface AdapterDeployResult extends LimitedDeployResult {
+  dexId: ethers.BigNumber;
 }

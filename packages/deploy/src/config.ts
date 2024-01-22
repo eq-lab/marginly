@@ -76,23 +76,18 @@ interface MarginlyDeployConfigUniswapMock {
 
 interface MarginlyDeployConfigSwapPoolRegistry {
   type: 'swapPoolRegistry';
-  factory: string;
+  factory?: string;
   pools: {
     id: string;
     tokenAId: string;
     tokenBId: string;
     fee: string;
-    priceProvidersMock?: {
-      basePriceProviderMock?: {
-        answer: string;
-        decimals: string;
-      };
-      quotePriceProviderMock?: {
-        answer: string;
-        decimals: string;
-      };
-    };
     priceAdapter: {
+      priceProvidersMock?: {
+        oracle: string;
+        decimals: string;
+        id: string;
+      };
       basePriceProvider?: string;
       quotePriceProvider?: string;
     };
@@ -154,6 +149,7 @@ export interface MarginlyDeployConfig {
     techPositionOwner: string;
     wethTokenId: string;
   };
+  adminContract?: boolean;
   marginlyPools: {
     id: string;
     uniswapPoolId: string;

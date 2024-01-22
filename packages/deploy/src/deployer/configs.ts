@@ -16,7 +16,6 @@ import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
 import { BigNumber } from 'ethers';
-import { deployMarginly } from '..';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -36,6 +35,7 @@ export interface MarginlyConfigUniswapGenuine {
 
 export interface MarginlyConfigUniswapPoolMock {
   type: 'mock';
+  fromFactory?: boolean;
   id: string;
   tokenA: MarginlyConfigToken;
   tokenB: MarginlyConfigToken;
@@ -56,13 +56,13 @@ export interface MarginlyConfigUniswapMock {
 }
 
 export interface PriceProviderMock {
-  answer: RationalNumber;
+  oracle: EthAddress;
   decimals: number;
 }
 
 export interface PriceProvidersMockConfig {
-  basePriceProviderMock?: PriceProviderMock;
-  quotePriceProviderMock?: PriceProviderMock;
+  priceProviderMock: PriceProviderMock;
+  price: number;
 }
 
 export interface PriceAdapterConfig {
@@ -82,7 +82,7 @@ export interface MarginlyConfigSwapPool {
 
 export interface MarginlyConfigSwapPoolRegistry {
   type: 'swapPoolRegistry';
-  factory: EthAddress;
+  factory?: EthAddress;
   pools: MarginlyConfigSwapPool[];
 }
 
@@ -185,7 +185,8 @@ export class StrictMarginlyDeployConfig {
   public readonly marginlyFactory: MarginlyFactoryConfig;
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
   public readonly marginlyKeeper: MarginlyConfigMarginlyKeeper;
-  public readonly marginlyRouter: MarginlyConfigMarginlyRouter;
+  public readonly marginlyAdapters: MarginlyConfigAdapter[];
+  public readonly deployAdmin: boolean;
 
   private constructor(
     connection: EthConnectionConfig,
@@ -194,7 +195,8 @@ export class StrictMarginlyDeployConfig {
     tokens: MarginlyConfigToken[],
     marginlyPools: MarginlyConfigMarginlyPool[],
     marginlyKeeper: MarginlyConfigMarginlyKeeper,
-    marginlyRouter: MarginlyConfigMarginlyRouter
+    marginlyAdapters: MarginlyConfigAdapter[],
+    deployAdmin: boolean,
   ) {
     this.connection = connection;
     this.uniswap = uniswap;
@@ -202,7 +204,8 @@ export class StrictMarginlyDeployConfig {
     this.tokens = tokens;
     this.marginlyPools = marginlyPools;
     this.marginlyKeeper = marginlyKeeper;
-    this.marginlyRouter = marginlyRouter;
+    this.marginlyAdapters = marginlyAdapters;
+    this.deployAdmin = deployAdmin;
   }
 
   public static async fromConfig(logger: Logger, config: MarginlyDeployConfig): Promise<StrictMarginlyDeployConfig> {
@@ -387,32 +390,31 @@ export class StrictMarginlyDeployConfig {
         const fee = RationalNumber.parsePercent(rawPool.fee);
 
         let basePriceProviderMock, quotePriceProviderMock, priceProvidersMock;
-        if (rawPool.priceProvidersMock !== undefined) {
-          if (rawPool.priceProvidersMock.basePriceProviderMock !== undefined) {
-            basePriceProviderMock = {
-              answer: RationalNumber.parse(rawPool.priceProvidersMock.basePriceProviderMock.answer),
-              decimals: Number(rawPool.priceProvidersMock.basePriceProviderMock.decimals),
-            };
+        const priceAdapterConfig = rawPool.priceAdapter;
+        if (priceAdapterConfig.priceProvidersMock !== undefined) {
+          basePriceProviderMock = {
+            oracle: EthAddress.parse(priceAdapterConfig.priceProvidersMock.oracle),
+            decimals: Number(priceAdapterConfig.priceProvidersMock.decimals),
+          };
+          const priceId = priceAdapterConfig.priceProvidersMock.id;
+          const price = prices.get(priceId);
+          if (price === undefined) {
+            throw new Error(`Unknown price-id ${priceId}`);
           }
-          if (rawPool.priceProvidersMock.quotePriceProviderMock !== undefined) {
-            quotePriceProviderMock = {
-              answer: RationalNumber.parse(rawPool.priceProvidersMock.quotePriceProviderMock.answer),
-              decimals: Number(rawPool.priceProvidersMock.quotePriceProviderMock.decimals),
-            };
-          }
-          priceProvidersMock = { basePriceProviderMock, quotePriceProviderMock };
+          
+          priceProvidersMock = { priceProviderMock: basePriceProviderMock, price };
         }
 
         let basePriceProvider, quotePriceProvider;
-        if (rawPool.priceAdapter.basePriceProvider !== undefined) {
-          basePriceProvider = EthAddress.parse(rawPool.priceAdapter.basePriceProvider);
+        if (priceAdapterConfig.basePriceProvider !== undefined) {
+          basePriceProvider = EthAddress.parse(priceAdapterConfig.basePriceProvider);
         }
 
         if (quotePriceProviderMock === undefined) {
           quotePriceProvider = EthAddress.parse(
-            rawPool.priceAdapter.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
+            priceAdapterConfig.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
           );
-        } else if (quotePriceProviderMock !== undefined && rawPool.priceAdapter.quotePriceProvider !== undefined) {
+        } else if (quotePriceProviderMock !== undefined && priceAdapterConfig.quotePriceProvider !== undefined) {
           throw new Error(
             `Both quote PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
           );
@@ -449,7 +451,7 @@ export class StrictMarginlyDeployConfig {
       }
       uniswap = {
         type: 'swapPoolRegistry',
-        factory: EthAddress.parse(config.uniswap.factory),
+        factory: config.uniswap.factory ? EthAddress.parse(config.uniswap.factory) : undefined,
         pools: swapPools,
       };
     } else {
@@ -541,8 +543,6 @@ export class StrictMarginlyDeployConfig {
       });
     }
 
-    const marginlyRouter: MarginlyConfigMarginlyRouter = { adapters };
-
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
       aavePoolAddressesProvider: {
         address: config.marginlyKeeper.aavePoolAddressesProvider.address
@@ -568,7 +568,8 @@ export class StrictMarginlyDeployConfig {
       Array.from(tokens.values()),
       marginlyPools,
       marginlyKeeper,
-      marginlyRouter
+      adapters,
+      !!config.adminContract,
     );
   }
 }
