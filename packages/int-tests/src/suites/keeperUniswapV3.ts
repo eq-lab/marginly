@@ -13,6 +13,15 @@ type PoolCoeffs = {
   quoteDebtCoeffX96: BigNumber;
 };
 
+//To generate swapCallData use script here https://dotnetfiddle.net/zAmYaP
+const balancerSwapCallData = 2621441;
+const sushiSwapSwapCallData = 7864321;
+const dodoV1SwapCallData = 12058625;
+const dodoV2SwapCallData = 13107201;
+const kyberClassicSwapCallData = 4718593;
+
+const keeperSwapCallData = sushiSwapSwapCallData;
+
 async function getDebtAmount(
   marginlyPool: MarginlyPoolContract,
   positionAddress: string,
@@ -47,11 +56,11 @@ async function getDebtAmount(
   }
 }
 
-export async function keeper(sut: SystemUnderTest) {
+export async function keeperUniswapV3(sut: SystemUnderTest) {
   logger.info(`Starting keeper liquidation test suite`);
   const ethArgs = { gasLimit: 1_000_000 };
 
-  const { marginlyPool, keeper, treasury, usdc, weth, accounts, provider, uniswap, gasReporter } = sut;
+  const { marginlyPool, keeperUniswapV3, treasury, usdc, weth, accounts, provider, uniswap, gasReporter } = sut;
 
   const lender = accounts[0];
   logger.info(`Deposit lender account`);
@@ -116,7 +125,7 @@ export async function keeper(sut: SystemUnderTest) {
     ).wait();
   }
 
-  // Set parameters to leverage 15
+  // Set parameters.maxLeverage to leverage 15
   {
     const params = await marginlyPool.params();
     await (await marginlyPool.connect(treasury).setParameters({ ...params, maxLeverage: 15 })).wait();
@@ -158,10 +167,21 @@ export async function keeper(sut: SystemUnderTest) {
   let balanceBefore = BigNumber.from(await usdc.balanceOf(liquidator.address));
 
   await gasReporter.saveGasUsage(
-    'keeper.flashLoan',
-    keeper
+    'keeperUniswapV3.liquidatePosition',
+    keeperUniswapV3
       .connect(liquidator)
-      .flashLoan(usdc.address, longerDebtAmount, 0, marginlyPool.address, longer.address, 0, { gasLimit: 1_000_000 })
+      .liquidatePosition(
+        uniswap.address,
+        usdc.address,
+        longerDebtAmount,
+        marginlyPool.address,
+        longer.address,
+        0,
+        keeperSwapCallData,
+        {
+          gasLimit: 1_000_000,
+        }
+      )
   );
 
   let balanceAfter = BigNumber.from(await usdc.balanceOf(liquidator.address));
@@ -171,10 +191,21 @@ export async function keeper(sut: SystemUnderTest) {
 
   balanceBefore = BigNumber.from(await weth.balanceOf(liquidator.address));
   await gasReporter.saveGasUsage(
-    'keeper.flashLoan',
-    keeper
+    'keeper.liquidatePosition',
+    keeperUniswapV3
       .connect(liquidator)
-      .flashLoan(weth.address, shorterDebtAmount, 0, marginlyPool.address, shorter.address, 0, { gasLimit: 1_000_000 })
+      .liquidatePosition(
+        uniswap.address,
+        weth.address,
+        shorterDebtAmount,
+        marginlyPool.address,
+        shorter.address,
+        0,
+        keeperSwapCallData,
+        {
+          gasLimit: 1_000_000,
+        }
+      )
   );
 
   balanceAfter = BigNumber.from(await weth.balanceOf(liquidator.address));

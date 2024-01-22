@@ -3,11 +3,9 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
 import { createMarginlyKeeperContract } from './shared/fixtures';
+import { PositionType } from './shared/utils';
 
-const shortPositionType = 2;
-const longPositionType = 3;
-
-describe('MarginlyKeeper', () => {
+describe('MarginlyKeeperAave', () => {
   it('Should liquidate short bad position', async () => {
     const { marginlyKeeper, swapRouter, baseToken, marginlyPool } = await loadFixture(createMarginlyKeeperContract);
     const [, badPosition, liquidator] = await ethers.getSigners();
@@ -28,7 +26,7 @@ describe('MarginlyKeeper', () => {
     const baseAmount = 12n * 10n ** (decimals - 1n); // 1.2 ETH - debt
 
     //borrow asset = baseToken
-    await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, shortPositionType);
+    await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, PositionType.Short);
 
     const minProfitETH = 1n * 10n ** (decimals - 2n); // 0.01 ETH
     const referralCode = 0;
@@ -73,7 +71,7 @@ describe('MarginlyKeeper', () => {
     const baseAmount = 19n * 10n ** (decimals - 1n); // 1.9 ETH - debt
 
     //borrow asset = baseToken
-    await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, longPositionType);
+    await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, PositionType.Long);
 
     const minProfitETH = 100n * 10n ** decimals; // 100 USDC
     const referralCode = 0;
@@ -116,7 +114,7 @@ describe('MarginlyKeeper', () => {
     const baseAmount = 19n * 10n ** (decimals - 1n); // 1.9 ETH - debt
 
     //borrow asset = baseToken
-    await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, longPositionType);
+    await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, PositionType.Long);
 
     const minProfitETH = 500n * 10n ** decimals; // 500 USDC
     const referralCode = 0;

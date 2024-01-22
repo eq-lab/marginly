@@ -52,7 +52,7 @@ Object {
 exports[`MaxBinaryHeapTest should create max binary heap and remove items in right order 1`] = `
 Object {
   "calldataByteLength": 68,
-  "gasUsed": 144895,
+  "gasUsed": 144919,
 }
 `;
 
