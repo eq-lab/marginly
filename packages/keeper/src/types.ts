@@ -21,10 +21,14 @@ export interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
   connection: EthConnectionConfig;
   marginlyKeeperAddress: string;
+  marginlyKeeperUniswap: string;
   marginlyPools: {
+    keeperType: 'aave' | 'uniswapV3';
     address: string;
     minProfitQuote: string;
     minProfitBase: string;
+    flashParams?: string[];
+    swapCallData?: number;
   }[];
   log?: LogConfig;
 }

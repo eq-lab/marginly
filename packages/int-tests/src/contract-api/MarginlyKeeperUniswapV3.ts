@@ -22,7 +22,7 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyKeeperUniswapV3Interface extends utils.Interface {
   functions: {
-    'liquidatePosition(address,address,uint256,address,address,uint256,uint256)': utils.FunctionFragment;
+    'liquidatePosition(address,uint256,uint256,bytes)': utils.FunctionFragment;
     'uniswapV3FlashCallback(uint256,uint256,bytes)': utils.FunctionFragment;
   };
 
@@ -38,12 +38,9 @@ export interface MarginlyKeeperUniswapV3Contract extends BaseContract {
 
   liquidatePosition(
     uniswapPool: PromiseOrValue<string>,
-    asset: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
-    marginlyPool: PromiseOrValue<string>,
-    positionToLiquidate: PromiseOrValue<string>,
-    minProfit: PromiseOrValue<BigNumberish>,
-    swapCallData: PromiseOrValue<BigNumberish>,
+    amount0: PromiseOrValue<BigNumberish>,
+    amount1: PromiseOrValue<BigNumberish>,
+    params: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   uniswapV3FlashCallback(
@@ -57,12 +54,9 @@ export interface MarginlyKeeperUniswapV3Contract extends BaseContract {
   estimateGas: {
     liquidatePosition(
       uniswapPool: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      marginlyPool: PromiseOrValue<string>,
-      positionToLiquidate: PromiseOrValue<string>,
-      minProfit: PromiseOrValue<BigNumberish>,
-      swapCallData: PromiseOrValue<BigNumberish>,
+      amount0: PromiseOrValue<BigNumberish>,
+      amount1: PromiseOrValue<BigNumberish>,
+      params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     uniswapV3FlashCallback(
@@ -75,12 +69,9 @@ export interface MarginlyKeeperUniswapV3Contract extends BaseContract {
   populateTransaction: {
     liquidatePosition(
       uniswapPool: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      marginlyPool: PromiseOrValue<string>,
-      positionToLiquidate: PromiseOrValue<string>,
-      minProfit: PromiseOrValue<BigNumberish>,
-      swapCallData: PromiseOrValue<BigNumberish>,
+      amount0: PromiseOrValue<BigNumberish>,
+      amount1: PromiseOrValue<BigNumberish>,
+      params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     uniswapV3FlashCallback(
@@ -93,12 +84,9 @@ export interface MarginlyKeeperUniswapV3Contract extends BaseContract {
   callStatic: {
     liquidatePosition(
       uniswapPool: PromiseOrValue<string>,
-      asset: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
-      marginlyPool: PromiseOrValue<string>,
-      positionToLiquidate: PromiseOrValue<string>,
-      minProfit: PromiseOrValue<BigNumberish>,
-      swapCallData: PromiseOrValue<BigNumberish>,
+      amount0: PromiseOrValue<BigNumberish>,
+      amount1: PromiseOrValue<BigNumberish>,
+      params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     uniswapV3FlashCallback(

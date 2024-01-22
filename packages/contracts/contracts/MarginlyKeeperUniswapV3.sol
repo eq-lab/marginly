@@ -32,44 +32,11 @@ contract MarginlyKeeperUniswapV3 is IUniswapV3FlashCallback {
 
   /// @notice Takes flashloan in uniswap v3 pool to liquidate position in Marginly
   /// @param uniswapPool uniswap pool, source of flashloan
-  /// @param asset borrow asset
-  /// @param amount borrow amount
-  /// @param marginlyPool address of marginly pool
-  /// @param positionToLiquidate address of liquidatable position in Marginly pool
-  /// @param minProfit amount of minimum profit worth in borrow asset
-  /// @param swapCallData swapCallData to swap liquidated position collateral
-  function liquidatePosition(
-    address uniswapPool,
-    address asset,
-    uint256 amount,
-    address marginlyPool,
-    address positionToLiquidate,
-    uint256 minProfit,
-    uint256 swapCallData
-  ) external {
-    bytes memory params = abi.encode(
-      LiquidationParams({
-        asset: asset,
-        marginlyPool: marginlyPool,
-        amount: amount,
-        positionToLiquidate: positionToLiquidate,
-        minProfit: minProfit,
-        liquidator: msg.sender,
-        uniswapPool: uniswapPool,
-        swapCallData: swapCallData
-      })
-    );
-
-    uint256 amount0;
-    uint256 amount1;
-    if (IUniswapV3Pool(uniswapPool).token0() == asset) {
-      amount0 = amount;
-    } else if (IUniswapV3Pool(uniswapPool).token1() == asset) {
-      amount1 = amount;
-    } else {
-      revert('Asset not available in uniswapPool');
-    }
-
+  /// @param amount0 borrow amount of uniswapV3.token0
+  /// @param amount1 borrow amount of uniswapV3.token1
+  /// @param params encoded LiquidationParams
+  function liquidatePosition(address uniswapPool, uint256 amount0, uint256 amount1, bytes calldata params) external {
+    require((amount0 > 0 && amount1 == 0) || (amount0 == 0 && amount1 > 0), 'Wrong amount');
     IUniswapV3Pool(uniswapPool).flash(address(this), amount0, amount1, params);
   }
 
