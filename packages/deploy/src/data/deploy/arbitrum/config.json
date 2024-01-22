@@ -4,8 +4,7 @@
   },
   "connection": {
     "assertChainId": 42161,
-    "ethOptions": {
-    }
+    "ethOptions": {}
   },
   "tokens": [
     {

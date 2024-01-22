@@ -425,9 +425,19 @@ export async function deployMarginly(
       marginlyKeeperAddress = deployedMarginlyKeeper.address;
     }
 
+    const deployedMarginlyKeeperUniswapV3 = await using(
+      logger.beginScope('Deploy MarginlyKeeperUniswapV3'),
+      async () => {
+        const deploymentResult = await marginlyDeployer.deployMarginlyKeeperUniswapV3();
+        printDeployState(`MarginlyKeeperUniswapV3`, deploymentResult, logger);
+        return deploymentResult;
+      }
+    );
+
     return {
       marginlyPools: deployedMarginlyPools,
       marginlyKeeper: { address: marginlyKeeperAddress },
+      marginlyKeeperUniswapV3: { address: deployedMarginlyKeeperUniswapV3.address },
     };
   } finally {
     const balanceAfter = await signer.getBalance();

@@ -84,6 +84,7 @@ export interface MarginlyDeploymentMarginlyPool {
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
   marginlyKeeper?: { address: string };
+  marginlyKeeperUniswapV3: { address: string };
 }
 
 export function mergeMarginlyDeployments(
