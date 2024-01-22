@@ -4,18 +4,22 @@ import {
   isMarginlyConfigExistingToken,
   isMarginlyConfigMintableToken,
   MarginlyConfigToken,
+  printDeployState,
   readOpenzeppelinContract,
-} from '../common';
-import { IMarginlyDeployer, ITokenRepository, TokenInfo } from '../common/interfaces';
+} from './common';
+import { ITokenDeployer, ITokenRepository, TokenInfo } from './common/interfaces';
+import { Logger } from './logger';
 
 export class TokenRepository implements ITokenRepository {
-  private readonly provider;
-  private readonly marginlyDeployer;
-  private readonly tokens;
+  private readonly provider: ethers.ethers.providers.Provider;
+  private readonly tokenDeployer: ITokenDeployer;
+  private readonly tokens: Map<string, TokenInfo>;
+  private readonly logger: Logger;
 
-  public constructor(provider: ethers.providers.Provider, marginlyDeployer: IMarginlyDeployer) {
+  public constructor(provider: ethers.providers.Provider, tokenDeployer: ITokenDeployer, logger: Logger) {
     this.provider = provider;
-    this.marginlyDeployer = marginlyDeployer;
+    this.tokenDeployer = tokenDeployer;
+    this.logger = logger;
     this.tokens = new Map<string, TokenInfo>();
   }
 
@@ -53,11 +57,15 @@ export class TokenRepository implements ITokenRepository {
       tokenAddress = token.address;
       tokenSymbol = actualSymbol;
       tokenDecimals = actualDecimals;
+
+      this.logger.log(`Existing token ${tokenSymbol}, address ${tokenAddress}`);
     } else if (isMarginlyConfigMintableToken(token)) {
-      const deployResult = await this.marginlyDeployer.deployMintableToken(token.name, token.symbol, token.decimals);
+      const deployResult = await this.tokenDeployer.deployMintableToken(token.name, token.symbol, token.decimals);
       tokenAddress = EthAddress.parse(deployResult.address);
       tokenSymbol = await deployResult.contract.symbol();
       tokenDecimals = await deployResult.contract.decimals();
+
+      printDeployState(`Mock token ${tokenSymbol}`, deployResult, this.logger);
     } else {
       throw new Error('Unknown token type');
     }

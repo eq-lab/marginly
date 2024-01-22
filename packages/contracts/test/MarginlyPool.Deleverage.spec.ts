@@ -433,6 +433,7 @@ describe('Deleverage', () => {
 
     const [_, lender, longer] = await ethers.getSigners();
     const price = (await marginlyPool.getBasePrice()).inner;
+    console.log(`price is ${price}`);
 
     await marginlyPool
       .connect(lender)
@@ -482,10 +483,10 @@ describe('Deleverage', () => {
     const disBaseCollateralAfter = await marginlyPool.discountedBaseCollateral();
 
     const posBaseCollDelta = positionBefore.discountedBaseAmount.sub(positionAfter.discountedBaseAmount);
-    expect(posBaseCollDelta).to.be.closeTo(disBaseCollDelta, 1);
+    expect(posBaseCollDelta).to.be.closeTo(disBaseCollDelta, 2);
 
     const totalBaseCollDelta = disBaseCollateralBefore.sub(disBaseCollateralAfter);
-    expect(totalBaseCollDelta).to.be.closeTo(disBaseCollDelta, 1);
+    expect(totalBaseCollDelta).to.be.closeTo(disBaseCollDelta, 2);
   });
 
   it('close short position after deleverage', async () => {

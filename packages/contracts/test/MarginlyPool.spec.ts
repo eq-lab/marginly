@@ -19,6 +19,7 @@ import {
 } from './shared/utils';
 import { BigNumber } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
+import { MarginlyParamsStruct } from '../typechain-types/contracts/MarginlyPool';
 
 describe('MarginlyPool.Base', () => {
   it('should revert when second try of initialization', async () => {
@@ -26,23 +27,21 @@ describe('MarginlyPool.Base', () => {
 
     const quoteToken = await pool.quoteToken();
     const baseToken = await pool.baseToken();
-    const uniswapPool = await pool.uniswapPool();
+    const priceOracle = await pool.priceOracle();
+    const defaultSwapCallData = await pool.defaultSwapCallData();
 
-    const marginlyParams = {
+    const marginlyParams: MarginlyParamsStruct = {
       interestRate: 54,
       maxLeverage: 15,
       fee: 1,
       swapFee: 1000,
-      priceSecondsAgo: 1000,
-      priceSecondsAgoMC: 100,
-      positionMinAmount: 100,
-      positionSlippage: 300000,
       mcSlippage: 400000,
+      positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000,
     };
 
     await expect(
-      pool.connect(factoryOwner).initialize(quoteToken, baseToken, true, uniswapPool, marginlyParams)
+      pool.connect(factoryOwner).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, marginlyParams)
     ).to.be.revertedWithCustomError(pool, 'Forbidden');
   });
 
@@ -106,25 +105,23 @@ describe('MarginlyPool.Base', () => {
   it('should set Marginly parameters by factory owner', async () => {
     const { marginlyPool: pool, factoryOwner } = await loadFixture(createMarginlyPool);
 
-    await pool.connect(factoryOwner).setParameters({
+    const parameters: MarginlyParamsStruct = {
       interestRate: 54,
       fee: 1,
       maxLeverage: 15,
       swapFee: 1000,
-      priceSecondsAgo: 1000,
-      priceSecondsAgoMC: 100,
       positionMinAmount: 100,
       mcSlippage: 400000,
       quoteLimit: 1_000_000_000,
-    });
+    };
+
+    await pool.connect(factoryOwner).setParameters(parameters);
 
     const params = await pool.params();
 
     expect(params.interestRate).to.equal(54);
     expect(params.maxLeverage).to.equal(15);
     expect(params.swapFee).to.equal(1000);
-    expect(params.priceSecondsAgo).to.equal(1000);
-    expect(params.priceSecondsAgoMC).to.equal(100);
     expect(params.positionMinAmount).to.equal(100);
     expect(params.mcSlippage).to.equal(400000);
     expect(params.quoteLimit).to.equal(1_000_000_000);
@@ -137,30 +134,29 @@ describe('MarginlyPool.Base', () => {
 
     expect((await pool.positions).length).to.be.equal(0);
 
-    await expect(
-      pool.connect(otherSigner).setParameters({
-        interestRate: 54,
-        maxLeverage: 15,
-        fee: 1,
-        swapFee: 1000,
-        priceSecondsAgo: 1000,
-        priceSecondsAgoMC: 100,
-        positionMinAmount: 100,
-        mcSlippage: 400000,
-        quoteLimit: 1_000_000_000,
-      })
-    ).to.be.revertedWithCustomError(pool, 'AccessDenied');
-  });
-
-  it('should raise error when trying to set invalid parameters', async () => {
-    const { marginlyPool: pool } = await loadFixture(createMarginlyPool);
-    const params = {
+    const parameters: MarginlyParamsStruct = {
       interestRate: 54,
       maxLeverage: 15,
       fee: 1,
       swapFee: 1000,
-      priceSecondsAgo: 1000,
-      priceSecondsAgoMC: 100,
+      positionMinAmount: 100,
+      mcSlippage: 400000,
+      quoteLimit: 1_000_000_000,
+    };
+
+    await expect(pool.connect(otherSigner).setParameters(parameters)).to.be.revertedWithCustomError(
+      pool,
+      'AccessDenied'
+    );
+  });
+
+  it('should raise error when trying to set invalid parameters', async () => {
+    const { marginlyPool: pool } = await loadFixture(createMarginlyPool);
+    const params: MarginlyParamsStruct = {
+      interestRate: 54,
+      maxLeverage: 15,
+      fee: 1,
+      swapFee: 1000,
       positionMinAmount: 100,
       mcSlippage: 400000,
       quoteLimit: 1_000_000_000,
@@ -177,14 +173,6 @@ describe('MarginlyPool.Base', () => {
       'WrongValue'
     );
     await expect(pool.setParameters({ ...params, mcSlippage: 1_000_001 })).to.be.revertedWithCustomError(
-      pool,
-      'WrongValue'
-    );
-    await expect(pool.setParameters({ ...params, priceSecondsAgo: 0 })).to.be.revertedWithCustomError(
-      pool,
-      'WrongValue'
-    );
-    await expect(pool.setParameters({ ...params, priceSecondsAgoMC: 0 })).to.be.revertedWithCustomError(
       pool,
       'WrongValue'
     );
@@ -233,9 +221,9 @@ describe('MarginlyPool.Base', () => {
       const tx = await marginlyPool
         .connect(signer)
         .execute(CallType.DepositBase, depositAmount, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
-      const depositBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'DepositBase')!;
-      expect(depositBaseEvent.args?.user).to.be.equal(signer.address);
-      expect(depositBaseEvent.args?.amount).to.be.equal(depositAmount);
+      const depositBaseEvent = (await tx.wait()).events?.find((x) => x.event === 'DepositBase');
+      expect(depositBaseEvent?.args?.user).to.be.equal(signer.address);
+      expect(depositBaseEvent?.args?.amount).to.be.equal(depositAmount);
 
       const expectedDBC = convertFP96ToNumber(await marginlyPool.baseCollateralCoeff()) * depositAmount;
 
@@ -2158,6 +2146,7 @@ describe('MarginlyPool.Base', () => {
     const { marginlyPool } = await loadFixture(createMarginlyPool);
     const [, longer1, longer2, depositor] = await ethers.getSigners();
     const price = (await marginlyPool.getBasePrice()).inner;
+    console.log(price);
 
     const depositAmount = 40000;
     await marginlyPool

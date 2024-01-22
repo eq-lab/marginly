@@ -22,11 +22,14 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, shorter1, shorter2] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
+    await priceOracle.setParityPrice();
     await pool.setParityPrice();
+
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -45,6 +48,7 @@ describe('MarginlyPool.Shutdown', () => {
       .execute(CallType.DepositQuote, amountToDeposit, shortAmount2, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     //Quote price lower than Base price
+    await priceOracle.setPriceQuoteLowerThanBase();
     await pool.setPriceQuoteLowerThanBase();
 
     //wait for accrue interest
@@ -83,11 +87,14 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, shorter1, shorter2] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
+
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -107,6 +114,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
+    await priceOracle.setPriceQuoteLowerThanBase();
 
     //wait for accrue interest
     const timeShift = 24 * 60 * 60;
@@ -128,11 +136,14 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, longer1, longer2] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
+
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -152,6 +163,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Base price lower than Quote price
     await pool.setPriceQuoteBiggerThanBase();
+    await priceOracle.setPriceQuoteBiggerThanBase();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -172,11 +184,14 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, shorter1, shorter2, longer1, longer2, longer3] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
+
     let price = (await marginlyPool.getBasePrice()).inner;
 
     const baseAmountToDeposit = 10000;
@@ -207,6 +222,8 @@ describe('MarginlyPool.Shutdown', () => {
       .execute(CallType.DepositBase, longAmountDeposit, longAmount, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     await pool.setPriceQuoteBiggerThanBase();
+    await priceOracle.setPriceQuoteBiggerThanBase();
+
     price = (await marginlyPool.getBasePrice()).inner;
 
     const shortAmount = 5000;
@@ -229,6 +246,7 @@ describe('MarginlyPool.Shutdown', () => {
     expect(prevWorstLongPosOwner).to.be.not.eq(currWorstLongPosOwner);
 
     await pool.setDefaultQuoteBasePrice();
+    await priceOracle.setDefaultPrice();
 
     //wait for accrue interest
     const timeShift = 24 * 60 * 60;
@@ -255,11 +273,14 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, longer1, longer2, shorter1, shorter2, shorter3] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setPriceQuoteBiggerThanBase();
+    await priceOracle.setPriceQuoteBiggerThanBase();
+
     let price = (await marginlyPool.getBasePrice()).inner;
 
     const quoteAmountToDeposit = 10000;
@@ -290,6 +311,7 @@ describe('MarginlyPool.Shutdown', () => {
       .execute(CallType.DepositQuote, shortAmountDeposit, shortAmount, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
     price = (await marginlyPool.getBasePrice()).inner;
 
     const longAmount = 100;
@@ -314,6 +336,7 @@ describe('MarginlyPool.Shutdown', () => {
     expect(prevWorstLongPosOwner).to.be.not.eq(currWorstLongPosOwner);
 
     await pool.setDefaultQuoteBasePrice();
+    await priceOracle.setDefaultPrice();
     price = (await marginlyPool.getBasePrice()).inner;
 
     //wait for accrue interest
@@ -343,11 +366,14 @@ describe('MarginlyPool.Shutdown', () => {
       uniswapPoolInfo: { pool },
       baseContract,
       quoteContract,
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, shorter, longer] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
+
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -376,6 +402,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
+    await priceOracle.setPriceQuoteLowerThanBase();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -444,11 +471,13 @@ describe('MarginlyPool.Shutdown', () => {
       uniswapPoolInfo: { pool },
       quoteContract,
       baseContract,
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, longer, shorter] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -471,6 +500,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Base price lower than Quote price
     await pool.setPriceQuoteBiggerThanBase();
+    await priceOracle.setPriceQuoteBiggerThanBase();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -539,11 +569,13 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, shorter, longer] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -572,6 +604,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
+    await priceOracle.setPriceQuoteLowerThanBase();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -606,11 +639,13 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, shorter] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -625,6 +660,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Quote price lower than Base price
     await pool.setPriceQuoteLowerThanBase();
+    await priceOracle.setPriceQuoteLowerThanBase();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;
@@ -644,11 +680,13 @@ describe('MarginlyPool.Shutdown', () => {
     const {
       marginlyPool,
       uniswapPoolInfo: { pool },
+      priceOracle,
     } = await loadFixture(createMarginlyPool);
     const [owner, longer] = await ethers.getSigners();
     const depositor = await ethers.getImpersonatedSigner(TechnicalPositionOwner);
 
     await pool.setParityPrice();
+    await priceOracle.setParityPrice();
     const price = (await marginlyPool.getBasePrice()).inner;
 
     const amountToDeposit = 100;
@@ -663,6 +701,7 @@ describe('MarginlyPool.Shutdown', () => {
 
     //Base price lower than Quote price
     await pool.setPriceQuoteBiggerThanBase();
+    await priceOracle.setPriceQuoteBiggerThanBase();
 
     //wait for accrue interest
     const timeShift = 20 * 24 * 60 * 60;

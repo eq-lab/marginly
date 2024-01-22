@@ -21,9 +21,8 @@ export interface MarginlyFactoryInterface extends utils.Interface {
   functions: {
     'acceptOwnership()': utils.FunctionFragment;
     'changeSwapRouter(address)': utils.FunctionFragment;
-    'createPool(address,address,uint24,tuple)': utils.FunctionFragment;
+    'createPool(address,address,address,uint32,tuple)': utils.FunctionFragment;
     'feeHolder()': utils.FunctionFragment;
-    'getPool(address,address,uint24)': utils.FunctionFragment;
     'marginlyPoolImplementation()': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'pendingOwner()': utils.FunctionFragment;
@@ -31,7 +30,6 @@ export interface MarginlyFactoryInterface extends utils.Interface {
     'swapRouter()': utils.FunctionFragment;
     'techPositionOwner()': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
-    'uniswapFactory()': utils.FunctionFragment;
     'WETH9()': utils.FunctionFragment;
   };
 
@@ -41,7 +39,6 @@ export interface MarginlyFactoryInterface extends utils.Interface {
       | 'changeSwapRouter'
       | 'createPool'
       | 'feeHolder'
-      | 'getPool'
       | 'marginlyPoolImplementation'
       | 'owner'
       | 'pendingOwner'
@@ -49,7 +46,6 @@ export interface MarginlyFactoryInterface extends utils.Interface {
       | 'swapRouter'
       | 'techPositionOwner'
       | 'transferOwnership'
-      | 'uniswapFactory'
       | 'WETH9'
   ): utils.FunctionFragment;
 }
@@ -69,11 +65,10 @@ export interface MarginlyFactoryContract extends BaseContract {
   createPool(
     quoteToken: PromiseOrValue<string>,
     baseToken: PromiseOrValue<string>,
-    uniswapFee: PromiseOrValue<BigNumberish>,
+    priceOracle: PromiseOrValue<string>,
+    defaultSwapCallData: PromiseOrValue<BigNumberish>,
     params: PromiseOrValue<{
       maxLeverage: BigNumberish;
-      priceSecondsAgo: BigNumberish;
-      priceSecondsAgoMC: BigNumberish;
       interestRate: BigNumberish;
       fee: BigNumberish;
       swapFee: BigNumberish;
@@ -84,39 +79,26 @@ export interface MarginlyFactoryContract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   feeHolder(override?: CallOverrides): Promise<string>;
-  getPool(
-    arg0: PromiseOrValue<string>,
-    arg1: PromiseOrValue<string>,
-    arg2: PromiseOrValue<BigNumberish>,
-    override?: CallOverrides
-  ): Promise<string>;
   marginlyPoolImplementation(override?: CallOverrides): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
   pendingOwner(override?: CallOverrides): Promise<string>;
-  renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
+  renounceOwnership(override?: CallOverrides): Promise<void>;
   swapRouter(override?: CallOverrides): Promise<string>;
   techPositionOwner(override?: CallOverrides): Promise<string>;
   transferOwnership(
     newOwner: PromiseOrValue<string>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  uniswapFactory(override?: CallOverrides): Promise<string>;
   WETH9(override?: CallOverrides): Promise<string>;
 
   functions: {
     feeHolder(override?: CallOverrides): Promise<[string]>;
-    getPool(
-      arg0: PromiseOrValue<string>,
-      arg1: PromiseOrValue<string>,
-      arg2: PromiseOrValue<BigNumberish>,
-      override?: CallOverrides
-    ): Promise<[string]>;
     marginlyPoolImplementation(override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
     pendingOwner(override?: CallOverrides): Promise<[string]>;
+    renounceOwnership(override?: CallOverrides): Promise<{}>;
     swapRouter(override?: CallOverrides): Promise<[string]>;
     techPositionOwner(override?: CallOverrides): Promise<[string]>;
-    uniswapFactory(override?: CallOverrides): Promise<[string]>;
     WETH9(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
@@ -128,11 +110,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     createPool(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
-      uniswapFee: PromiseOrValue<BigNumberish>,
+      priceOracle: PromiseOrValue<string>,
+      defaultSwapCallData: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -142,7 +123,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     transferOwnership(
       newOwner: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -157,11 +137,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     createPool(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
-      uniswapFee: PromiseOrValue<BigNumberish>,
+      priceOracle: PromiseOrValue<string>,
+      defaultSwapCallData: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -171,7 +150,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     transferOwnership(
       newOwner: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -186,11 +164,10 @@ export interface MarginlyFactoryContract extends BaseContract {
     createPool(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
-      uniswapFee: PromiseOrValue<BigNumberish>,
+      priceOracle: PromiseOrValue<string>,
+      defaultSwapCallData: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<{
         maxLeverage: BigNumberish;
-        priceSecondsAgo: BigNumberish;
-        priceSecondsAgoMC: BigNumberish;
         interestRate: BigNumberish;
         fee: BigNumberish;
         swapFee: BigNumberish;
@@ -200,7 +177,6 @@ export interface MarginlyFactoryContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<string>;
-    renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     transferOwnership(
       newOwner: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -210,7 +186,6 @@ export interface MarginlyFactoryContract extends BaseContract {
 
 export async function deploy(
   _marginlyPoolImplementation: string,
-  _uniswapFactory: string,
   _swapRouter: string,
   _feeHolder: string,
   _WETH9: string,
@@ -220,7 +195,6 @@ export async function deploy(
   const factory = new ContractFactory(abi, bytecode, signer);
   const contract = await factory.deploy(
     _marginlyPoolImplementation,
-    _uniswapFactory,
     _swapRouter,
     _feeHolder,
     _WETH9,

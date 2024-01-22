@@ -15,22 +15,19 @@ contract MockMarginlyFactory is IMarginlyFactory {
   }
 
   function createPool(
-    address quoteToken,
-    address baseToken,
-    uint24 uniswapFee,
-    MarginlyParams memory params
-  ) external override returns (address pool) {
+    address,
+    address,
+    address,
+    uint32,
+    MarginlyParams memory
+  ) external pure override returns (address pool) {
     return address(0);
   }
 
   function changeSwapRouter(address newSwapRouter) external {}
 
-  function getPool(address quoteToken, address baseToken, uint24 fee) external view override returns (address pool) {
-    return address(0);
-  }
-
   /// @notice Swap fee holder address
-  function feeHolder() external view override returns (address) {
+  function feeHolder() external pure override returns (address) {
     return address(0);
   }
 

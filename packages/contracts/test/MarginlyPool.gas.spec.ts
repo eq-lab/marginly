@@ -10,7 +10,6 @@ import {
   toHumanString,
   ZERO_ADDRESS,
   uniswapV3Swapdata,
-  FP96,
 } from './shared/utils';
 import { expect } from 'chai';
 

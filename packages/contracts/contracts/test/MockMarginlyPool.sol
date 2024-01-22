@@ -11,6 +11,7 @@ contract MockMarginlyPool is IMarginlyPool {
   address public override quoteToken;
   address public override baseToken;
   address public override factory;
+  uint32 public override defaultSwapCallData;
 
   address private badPositionAddress;
   uint256 private quoteAmount;
@@ -41,8 +42,8 @@ contract MockMarginlyPool is IMarginlyPool {
   function initialize(
     address _quoteToken,
     address _baseToken,
-    bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceOracle,
+    uint32 _defaultSwapCallData,
     MarginlyParams memory _params
   ) external {}
 
@@ -52,9 +53,7 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function setRecoveryMode(bool set) external {}
 
-  function uniswapPool() external pure returns (address pool) {}
-
-  function quoteTokenIsToken0() external pure returns (bool) {}
+  function priceOracle() external pure returns (address) {}
 
   function execute(
     CallType call,

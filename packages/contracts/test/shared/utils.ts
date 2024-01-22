@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { BigNumber, Wallet, logger } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
 import bn from 'bignumber.js';
 import { MarginlyPool } from '../../typechain-types';
 import { expect } from 'chai';
@@ -147,8 +147,6 @@ export const paramsDefaultLeverageWithoutIr = {
   maxLeverage: 20,
   swapFee: 1000, // 0.1%
   fee: 0,
-  priceSecondsAgo: 900, // 15 min
-  priceSecondsAgoMC: 900, // 15 min
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
@@ -159,8 +157,6 @@ export const paramsLowLeverageWithoutIr = {
   maxLeverage: 19,
   swapFee: 1000, // 0.1%
   fee: 0,
-  priceSecondsAgo: 900, // 15 min
-  priceSecondsAgoMC: 900, // 15 min
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
@@ -171,8 +167,6 @@ export const paramsLowLeverageWithIr = {
   maxLeverage: 19,
   swapFee: 1000, // 0.1%
   fee: 20000,
-  priceSecondsAgo: 900, // 15 min
-  priceSecondsAgoMC: 900, // 15 min
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
