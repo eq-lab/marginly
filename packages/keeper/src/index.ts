@@ -1,4 +1,5 @@
 import { Command, Option } from 'commander';
+import 'dotenv/config';
 import { sleep, ContractDescription } from '@marginly/common';
 import {
   createSystemContext,
@@ -63,11 +64,16 @@ function createOpenZeppelinContractDescription(name: string): ContractDescriptio
   return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
 }
 
+function createAaveIPoolContractDescription(): ContractDescription {
+  return require(`@aave/core-v3/artifacts/contracts/interfaces/IPool.sol/IPool.json`);
+}
+
 function prepareContractDescriptions(): ContractDescriptions {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
     keeper: createMarginlyContractDescription('MarginlyKeeper'),
     marginlyPool: createMarginlyContractDescription('MarginlyPool'),
+    aavePool: createAaveIPoolContractDescription(),
   };
 }
 
@@ -90,7 +96,7 @@ const logFormatParamter: KeeperParamter = {
 const logLevelParamter: KeeperParamter = {
   name: ['log', 'level'],
   description: 'Log level: 1-Verbose,2-Debug,3-Information,4-Warning,5-Error,6-Fatal',
-  default: 'json',
+  default: '3',
   env: `${ENV_PREFIX}_LOG_LEVEL`,
 };
 
@@ -173,9 +179,14 @@ const watchMarginlyPoolsCommand = new Command()
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      await keeperWorker.run();
-      if (keeperWorker.isStopRequested()) {
-        break;
+      try {
+        if (keeperWorker.isStopRequested()) {
+          break;
+        }
+
+        await keeperWorker.run();
+      } catch (error) {
+        logger.error(error);
       }
 
       await sleep(3000);

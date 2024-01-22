@@ -58,6 +58,7 @@ export interface ContractDescriptions {
   token: ContractDescription;
   keeper: ContractDescription;
   marginlyPool: ContractDescription;
+  aavePool: ContractDescription;
 }
 
 export interface KeeperArgs {

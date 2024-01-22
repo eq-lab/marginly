@@ -129,7 +129,7 @@ export class PoolWatcher {
           pool: this.pool.address,
         };
 
-        this.logger.debug(
+        this.logger.info(
           `Bad short position ${positionAddress} found: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
             Fp96One
           )}) amount:${debt}`
@@ -162,7 +162,7 @@ export class PoolWatcher {
           minProfit: this.minProfitQuote,
           pool: this.pool.address,
         };
-        this.logger.debug(
+        this.logger.info(
           `Bad long position ${positionAddress} found: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
             Fp96One
           )}) amount:${debt}`
