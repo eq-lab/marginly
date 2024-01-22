@@ -13,7 +13,7 @@ interface IMarginlyFactory {
   event PoolCreated(
     address indexed quoteToken,
     address indexed baseToken,
-    address priceOracle,
+    address indexed priceOracle,
     uint32 defaultSwapCallData,
     address pool
   );
