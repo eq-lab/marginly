@@ -7,7 +7,7 @@
       "gasLimit": 4400000
     }
   },
-  "marginlyKeeperAddress": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
+  "marginlyKeeperAaveAddress": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
   "marginlyPools": [
     {
       "address": "0x53C08A5e2b7bc973d3d5Aee60373969E30e93B93",

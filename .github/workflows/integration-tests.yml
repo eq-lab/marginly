@@ -53,7 +53,10 @@ jobs:
           node-version: 18.14.2
       - name: Build for testing
         run: |
-          cd ./packages/int-tests/
+          cd ./packages/common/
+          yarn
+          yarn build
+          cd ../int-tests/
           yarn
           yarn compile 
           yarn gen

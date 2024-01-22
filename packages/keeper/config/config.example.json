@@ -5,7 +5,7 @@
   "connection": {
     "ethOptions": {}
   },
-  "marginlyKeeperAddress": "0x13d1bD42884585d0D00121E596b3733B47152FeB",
+  "marginlyKeeperAaveAddress": "0x13d1bD42884585d0D00121E596b3733B47152FeB",
   "marginlyPools": [
     {
       "address": "0x7D3c686CeaFD6e36198BA2fE96091c9eB5FBbd45",

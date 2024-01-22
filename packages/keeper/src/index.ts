@@ -68,12 +68,18 @@ function createAaveIPoolContractDescription(): ContractDescription {
   return require(`@aave/core-v3/artifacts/contracts/interfaces/IPool.sol/IPool.json`);
 }
 
+function createUniswapV3ContractDescription(): ContractDescription {
+  return require(`@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json`);
+}
+
 function prepareContractDescriptions(): ContractDescriptions {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
-    keeper: createMarginlyContractDescription('MarginlyKeeper'),
+    keeperAave: createMarginlyContractDescription('MarginlyKeeper'),
+    keeperUniswapV3: createMarginlyContractDescription('MarginlyKeeperUniswapV3'),
     marginlyPool: createMarginlyContractDescription('MarginlyPool'),
     aavePool: createAaveIPoolContractDescription(),
+    uniswapPool: createUniswapV3ContractDescription(),
   };
 }
 
@@ -154,9 +160,14 @@ const watchMarginlyPoolsCommand = new Command()
 
     const signer = await createSignerFromContext(systemContext);
     const contractDescriptions = prepareContractDescriptions();
-    const keeperContract = new ethers.Contract(
-      config.marginlyKeeperAddress,
-      contractDescriptions.keeper.abi,
+    const keeperAaveContract = new ethers.Contract(
+      config.marginlyKeeperAaveAddress,
+      contractDescriptions.keeperAave.abi,
+      signer.provider
+    );
+    const keeperUniswapV3Contract = new ethers.Contract(
+      config.marginlyKeeperUniswapV3Address,
+      contractDescriptions.keeperUniswapV3.abi,
       signer.provider
     );
 
@@ -172,7 +183,8 @@ const watchMarginlyPoolsCommand = new Command()
       signer,
       contractDescriptions,
       poolWatchers,
-      keeperContract,
+      keeperAaveContract,
+      keeperUniswapV3Contract,
       config.connection.ethOptions,
       logger
     );
