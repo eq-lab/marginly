@@ -13,20 +13,18 @@ import { calcAccruedRateContext, calcBaseCoeffs, calcQuoteCoeffs } from '@margin
 import { Logger } from '@marginly/common/logger';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { LiquidationParams, PoolCoeffs } from './types';
+import { LiquidationParams, PoolCoeffs, PoolPositionLiquidationConfig } from './types';
 import { KeeperConfig } from './types';
 
 export class PoolWatcher {
   private readonly logger: Logger;
   public readonly pool: ethers.Contract;
-  public readonly minProfitQuote: BigNumber;
-  public readonly minProfitBase: BigNumber;
+  public readonly config: PoolPositionLiquidationConfig;
 
-  public constructor(pool: ethers.Contract, minProfitQuote: BigNumber, minProfitBase: BigNumber, logger: Logger) {
+  public constructor(pool: ethers.Contract, config: PoolPositionLiquidationConfig, logger: Logger) {
     this.pool = pool;
-    this.minProfitQuote = minProfitQuote;
-    this.minProfitBase = minProfitBase;
     this.logger = logger;
+    this.config = config;
   }
 
   public async findBadPositions(): Promise<LiquidationParams[]> {
@@ -123,13 +121,14 @@ export class PoolWatcher {
       if (leverageX96.gt(maxLeverageX96)) {
         liquidationParams = {
           position: positionAddress,
+          isQuoteAsset: false,
           asset: await this.pool.baseToken(),
           amount: debt.mul(1010).div(1000), //  get 1% more
-          minProfit: this.minProfitBase,
           pool: this.pool.address,
+          config: this.config,
         };
 
-        this.logger.debug(
+        this.logger.info(
           `Bad short position ${positionAddress} found: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
             Fp96One
           )}) amount:${debt}`
@@ -157,12 +156,13 @@ export class PoolWatcher {
       if (leverageX96.gt(maxLeverageX96)) {
         liquidationParams = {
           position: positionAddress,
+          isQuoteAsset: true,
           asset: await this.pool.quoteToken(),
           amount: debt.mul(1010).div(1000), //  get 1% more
-          minProfit: this.minProfitQuote,
+          config: this.config,
           pool: this.pool.address,
         };
-        this.logger.debug(
+        this.logger.info(
           `Bad long position ${positionAddress} found: leverage:${leverageX96.div(Fp96One)} (max:${maxLeverageX96.div(
             Fp96One
           )}) amount:${debt}`
@@ -282,17 +282,16 @@ export async function createPoolWatchers(
   };
 
   return Promise.all(
-    config.marginlyPools.map(async (c) => {
-      const marginlyPoolContract = new ethers.Contract(c.address, marginlyPoolContractDescription.abi, provider);
-      const quoteDecimals: number = await getERC20Decimals(await marginlyPoolContract.quoteToken());
-      const quoteOne = BigNumber.from(10).pow(quoteDecimals);
-      const minProfitQuote = RationalNumber.parse(c.minProfitQuote).mul(quoteOne).toInteger();
+    config.marginlyPools.map(async (config) => {
+      const marginlyPoolContract = new ethers.Contract(config.address, marginlyPoolContractDescription.abi, provider);
+      // const quoteDecimals: number = await getERC20Decimals(await marginlyPoolContract.quoteToken());
+      // const quoteOne = BigNumber.from(10).pow(quoteDecimals);
 
-      const baseDecimals: number = await getERC20Decimals(await marginlyPoolContract.baseToken());
-      const baseOne = BigNumber.from(10).pow(baseDecimals);
-      const minProfitBase = RationalNumber.parse(c.minProfitBase).mul(baseOne).toInteger();
+      // const baseDecimals: number = await getERC20Decimals(await marginlyPoolContract.baseToken());
+      // const baseOne = BigNumber.from(10).pow(baseDecimals);
+      // const minProfitBase = RationalNumber.parse(config.minProfitBase).mul(baseOne).toInteger();
 
-      return new PoolWatcher(marginlyPoolContract, minProfitQuote, minProfitBase, logger);
+      return new PoolWatcher(marginlyPoolContract, config, logger);
     })
   );
 }

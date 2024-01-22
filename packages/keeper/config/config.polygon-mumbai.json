@@ -7,34 +7,40 @@
       "gasLimit": 900000
     }
   },
-  "marginlyKeeperAddress": "0x03bDDd499ecb0E5AF7373ed774b2AC75CF5880aD",
+  "marginlyKeeperAaveAddress": "0x03bDDd499ecb0E5AF7373ed774b2AC75CF5880aD",
   "marginlyPools": [
     {
+      "type": "aave",
       "address": "0x46C1f8Ab01872CB09c35063A980e7D87E79A884b",
       "minProfitQuote": "1",
       "minProfitBase": "0.001"
     },
     {
+      "type": "aave",
       "address": "0xc0826Ed64534bABDaF7a5Cf85f621E0ba8de9d01",
       "minProfitQuote": "1",
       "minProfitBase": "1"
     },
     {
+      "type": "aave",
       "address": "0x645AEF65183fbBC061F6f00862de4ef37aCAB729",
       "minProfitQuote": "1",
       "minProfitBase": "0.0001"
     },
     {
+      "type": "aave",
       "address": "0x42c91B187d395Ed5d6B192B602a6a5F0cc68e733",
       "minProfitQuote": "0.1",
       "minProfitBase": "1"
     },
     {
+      "type": "aave",
       "address": "0x3321E377f5283CE0ebCaA0382CD5cE50034FB50b",
       "minProfitQuote": "1",
       "minProfitBase": "1"
     },
     {
+      "type": "aave",
       "address": "0xC405A6b8C9C62Fc9BbF85CBFb0ACd54AaEeb1827",
       "minProfitQuote": "1",
       "minProfitBase": "1"

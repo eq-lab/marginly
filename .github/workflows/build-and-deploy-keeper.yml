@@ -10,7 +10,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/keeper
   CLUSTER: ${{ secrets.CLUSTER }}
-  IMAGE_TAG: latest
   LIMIT_CPU: "500m"
   LIMIT_MEMORY: "512Mi"
   HELM_REPOSITORY: "eq-lab/devops-helm-charts-deploy"
@@ -18,6 +17,8 @@ env:
 jobs:
   build-image:
     runs-on: ubuntu-latest
+    outputs:
+        output_tag: ${{ steps.tag_env.outputs.tag }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up QEMU
@@ -40,6 +41,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'keeper-releases') }}
+      - id: tag_env
+        run: echo "tag=${{ env.DOCKER_METADATA_OUTPUT_VERSION }}"  >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -95,7 +98,7 @@ jobs:
           --set fullnameOverride=$SERVICE_NAME \
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
-          --set image.tag=$IMAGE_TAG \
+          --set image.tag=${{ needs.build-image.outputs.output_tag }} \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
@@ -147,7 +150,7 @@ jobs:
           --set fullnameOverride=$SERVICE_NAME \
           --set image.repository=$REGISTRY \
           --set image.name=$REGISTRY/$IMAGE_NAME \
-          --set image.tag=$IMAGE_TAG \
+          --set image.tag=${{ needs.build-image.outputs.output_tag }} \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
