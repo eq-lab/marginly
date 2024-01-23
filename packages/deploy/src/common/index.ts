@@ -107,6 +107,7 @@ export function mergeMarginlyDeployments(
   const mergedDeployment = {
     marginlyPools: [...oldDeployment.marginlyPools],
     marginlyKeeper: newDeployment.marginlyKeeper,
+    marginlyKeeperUniswapV3: newDeployment.marginlyKeeperUniswapV3,
   };
 
   for (const marginlyPool of newDeployment.marginlyPools) {
