@@ -509,9 +509,16 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   ): Promise<DeployResult> {
     const { address: tokenAAddress } = tokenRepository.getTokenInfo(poolConfig.tokenA.id);
     const { address: tokenBAddress } = tokenRepository.getTokenInfo(poolConfig.tokenB.id);
+    const initializer = await this.signer.getAddress();
     return this.deploy(
       'UniswapV3PoolMock',
-      [oracle.toString(), tokenAAddress.toString(), tokenBAddress.toString(), this.toUniswapFee(poolConfig.fee)],
+      [
+        initializer,
+        oracle.toString(),
+        tokenAAddress.toString(),
+        tokenBAddress.toString(),
+        this.toUniswapFee(poolConfig.fee),
+      ],
       `uniswapV3PoolMock_${poolConfig.id}`,
       readUniswapMockContract
     );
