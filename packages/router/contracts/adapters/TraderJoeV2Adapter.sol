@@ -3,6 +3,8 @@ pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
+import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
+
 import '../abstract/AdapterStorage.sol';
 import '../abstract/UniswapV2LikeSwap.sol';
 import '../interfaces/IMarginlyRouter.sol';
@@ -53,8 +55,22 @@ contract TraderJoeV2Adapter is AdapterStorage {
     (amountIn, amountOutLeft,) = pool.getSwapIn(uint128(amountOut), swapForY);
     if (amountOutLeft != 0) revert NonZeroSwapAmountLeft();
     if (amountIn > maxAmountIn) revert TooMuchRequested();
-    IMarginlyRouter(msg.sender).adapterCallback(address(pool), amountOut, data);
-    pool.swap(swapForY, recipient);
+    IMarginlyRouter(msg.sender).adapterCallback(address(pool), amountIn, data);
+    
+    // Trader joe has some calculation inaccuracy, so the actual amountOut can differ from the requested one
+    // Receiving tokenOut here and transferring amountOut to the recipient is to prevent router `WrongAmountOut` error
+    (uint256 amountXOut, uint256 amountYOut) = decode(pool.swap(swapForY, address(this)));
+    if ((swapForY ? amountYOut : amountXOut) < amountOut) revert InsufficientAmount();
+    TransferHelper.safeTransfer(tokenOut, recipient, amountOut);
+  }
+
+  // implementation is taken here:
+  // https://github.com/traderjoe-xyz/joe-v2/blob/31e31f65c6e6e183d42dec8029aca5443fa2a2c3/src/libraries/math/PackedUint128Math.sol#L86
+  function decode(bytes32 z) private pure returns (uint128 x1, uint128 x2) {
+    assembly {
+      x1 := and(z, 0xffffffffffffffffffffffffffffffff)
+      x2 := shr(128, z)
+    }
   }
 }
 
