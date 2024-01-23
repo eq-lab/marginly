@@ -313,6 +313,22 @@
       ]
     },
     {
+      "dexId": 8,
+      "adapterName": "TraderJoeV2Adapter",
+      "pools": [
+        {
+          "tokenAId": "wbtc",
+          "tokenBId": "weth",
+          "poolAddress": "0xcfA09B20c85933B197e8901226ad0D6dACa7f114"
+        },
+        {
+          "tokenAId": "weth",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0x69f1216cB2905bf0852f74624D5Fa7b5FC4dA710"
+        }
+      ]
+    },
+    {
       "dexId": 10,
       "adapterName": "RamsesAdapter",
       "pools": [
