@@ -93,7 +93,6 @@ jobs:
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
           --set extraEnv.MARGINLY_ORACLE_ETHEREUM_ORACLE_PRIVATE_KEY=$PK \
-          -f extraEnv.yml \
           ./
 
 #         
