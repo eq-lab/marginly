@@ -356,7 +356,7 @@
           "id": "btc-usdc",
           "address": "0x429366dC3ccaBf97Cf71A73152f622C3587C524b",
           "priceId": "btc-usdc",
-          "priceBaseTokenId": "btc"
+          "priceBaseTokenId": "wbtc"
         },
         {
           "id": "arb-usdc",
