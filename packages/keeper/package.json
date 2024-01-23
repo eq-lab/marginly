@@ -14,11 +14,15 @@
   "author": "EqLab",
   "license": "MIT",
   "dependencies": {
-    "@marginly/contracts":"0.1.0",
+    "@marginly/contracts": "0.1.0",
     "@marginly/common": "0.1.0",
     "@marginly/cli-common": "0.1.0",
+    "@marginly/logger": "^1.0.0",
+    "@marginly/logger-node": "^1.0.0",
+    "@aave/core-v3": "^1.18.0",
     "commander": "^8.1.0",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.31.0",

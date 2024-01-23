@@ -74,7 +74,35 @@ interface MarginlyDeployConfigUniswapMock {
   }[];
 }
 
-type MarginlyDeployConfigUniswap = MarginlyDeployConfigUniswapGenuine | MarginlyDeployConfigUniswapMock;
+interface MarginlyDeployConfigSwapPoolRegistry {
+  type: 'swapPoolRegistry';
+  factory: string;
+  pools: {
+    id: string;
+    tokenAId: string;
+    tokenBId: string;
+    fee: string;
+    priceProvidersMock?: {
+      basePriceProviderMock?: {
+        answer: string;
+        decimals: string;
+      };
+      quotePriceProviderMock?: {
+        answer: string;
+        decimals: string;
+      };
+    };
+    priceAdapter: {
+      basePriceProvider?: string;
+      quotePriceProvider?: string;
+    };
+  }[];
+}
+
+type MarginlyDeployConfigUniswap =
+  | MarginlyDeployConfigUniswapGenuine
+  | MarginlyDeployConfigUniswapMock
+  | MarginlyDeployConfigSwapPoolRegistry;
 export function isMarginlyDeployConfigUniswapGenuine(
   uniswap: MarginlyDeployConfigUniswap
 ): uniswap is MarginlyDeployConfigUniswapGenuine {
@@ -85,6 +113,12 @@ export function isMarginlyDeployConfigUniswapMock(
   uniswap: MarginlyDeployConfigUniswap
 ): uniswap is MarginlyDeployConfigUniswapMock {
   return uniswap.type === 'mock';
+}
+
+export function isMarginlyDeployConfigSwapPoolRegistry(
+  uniswap: MarginlyDeployConfigUniswap
+): uniswap is MarginlyDeployConfigSwapPoolRegistry {
+  return uniswap.type === 'swapPoolRegistry';
 }
 
 export enum Dex {

@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {loadFixture} from '@nomicfoundation/hardhat-network-helpers';
 import {ethers} from 'hardhat';
-import {TestUniswapV3PoolMock, MintableToken, UniswapV3PoolMock, WETH9} from "../typechain-types";
+import {TestUniswapV3PoolMock, MintableToken, UniswapV3PoolMock, UniswapV3FactoryMock, WETH9} from "../typechain-types";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {
     priceToPriceFp18,
@@ -22,6 +22,11 @@ async function createWeth9(): Promise<WETH9> {
 async function createTestUniswapV3PoolMock(oracle: string, tokenA: string, tokenB: string, fee: number): Promise<TestUniswapV3PoolMock> {
     const factory = await ethers.getContractFactory('TestUniswapV3PoolMock');
     return await factory.deploy(oracle, tokenA, tokenB, fee);
+}
+
+async function createUniswapV3FactoryMock(): Promise<UniswapV3FactoryMock> {
+    const factory = await ethers.getContractFactory('UniswapV3FactoryMock');
+    return await factory.deploy();
 }
 
 interface CreateContractResultTokens {
@@ -160,4 +165,30 @@ describe('UniswapV3PoolMock', () => {
             })
         )
     )
+});
+
+describe('UniswapV3FactoryMock test', () => {
+    it('Factory creates pool', async () => {
+        const uniswapFactory = await createUniswapV3FactoryMock();
+
+        const [owner, oracle, tokenA, tokenB] =  await ethers.getSigners();
+        const fee = 800n;
+        const tx = await(
+            await uniswapFactory.connect(owner).createPool(oracle.address, tokenA.address, tokenB.address, fee)
+        ).wait();
+        const creationEvent = tx.events?.find((x) => x.event == 'PoolCreated');
+        const poolAddress = creationEvent!.args![3];
+        const pool = await ethers.getContractAt('UniswapV3PoolMock', poolAddress);
+        const [token0, token1] = 
+            tokenA.address < tokenB.address ? [tokenA.address, tokenB.address] : [tokenB.address, tokenA.address];
+
+        expect(await uniswapFactory.getPool(token0, token1, fee)).to.be.eq(poolAddress);
+        expect(await uniswapFactory.getPool(token1, token0, fee)).to.be.eq(poolAddress);
+        expect(await pool.token0()).to.be.eq(token0);
+        expect(await pool.token1()).to.be.eq(token1);
+        expect(await pool.fee()).to.be.eq(fee);
+        expect(await pool.hasRole(ethers.utils.formatBytes32String('0x00'), owner.address)); // DEFAULT_ADMIN_ROLE
+        expect(await pool.hasRole(ethers.utils.keccak256(ethers.utils.toUtf8Bytes('ORACLE_ROLE')), owner.address));
+        expect(await pool.hasRole(ethers.utils.keccak256(ethers.utils.toUtf8Bytes('ORACLE_ROLE')), oracle.address));
+    });
 });

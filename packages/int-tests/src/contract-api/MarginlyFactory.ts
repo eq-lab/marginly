@@ -19,30 +19,36 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyFactoryInterface extends utils.Interface {
   functions: {
+    'acceptOwnership()': utils.FunctionFragment;
     'changeSwapRouter(address)': utils.FunctionFragment;
     'createPool(address,address,uint24,tuple)': utils.FunctionFragment;
     'feeHolder()': utils.FunctionFragment;
     'getPool(address,address,uint24)': utils.FunctionFragment;
     'marginlyPoolImplementation()': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
-    'setOwner(address)': utils.FunctionFragment;
+    'pendingOwner()': utils.FunctionFragment;
+    'renounceOwnership()': utils.FunctionFragment;
     'swapRouter()': utils.FunctionFragment;
     'techPositionOwner()': utils.FunctionFragment;
+    'transferOwnership(address)': utils.FunctionFragment;
     'uniswapFactory()': utils.FunctionFragment;
     'WETH9()': utils.FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | 'acceptOwnership'
       | 'changeSwapRouter'
       | 'createPool'
       | 'feeHolder'
       | 'getPool'
       | 'marginlyPoolImplementation'
       | 'owner'
-      | 'setOwner'
+      | 'pendingOwner'
+      | 'renounceOwnership'
       | 'swapRouter'
       | 'techPositionOwner'
+      | 'transferOwnership'
       | 'uniswapFactory'
       | 'WETH9'
   ): utils.FunctionFragment;
@@ -55,6 +61,7 @@ export interface MarginlyFactoryContract extends BaseContract {
 
   interface: MarginlyFactoryInterface;
 
+  acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   changeSwapRouter(
     newSwapRouter: PromiseOrValue<string>,
     override?: Overrides & { from?: PromiseOrValue<string> }
@@ -85,12 +92,14 @@ export interface MarginlyFactoryContract extends BaseContract {
   ): Promise<string>;
   marginlyPoolImplementation(override?: CallOverrides): Promise<string>;
   owner(override?: CallOverrides): Promise<string>;
-  setOwner(
-    _owner: PromiseOrValue<string>,
-    override?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  pendingOwner(override?: CallOverrides): Promise<string>;
+  renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapRouter(override?: CallOverrides): Promise<string>;
   techPositionOwner(override?: CallOverrides): Promise<string>;
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    override?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
   uniswapFactory(override?: CallOverrides): Promise<string>;
   WETH9(override?: CallOverrides): Promise<string>;
 
@@ -104,12 +113,14 @@ export interface MarginlyFactoryContract extends BaseContract {
     ): Promise<[string]>;
     marginlyPoolImplementation(override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
+    pendingOwner(override?: CallOverrides): Promise<[string]>;
     swapRouter(override?: CallOverrides): Promise<[string]>;
     techPositionOwner(override?: CallOverrides): Promise<[string]>;
     uniswapFactory(override?: CallOverrides): Promise<[string]>;
     WETH9(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     changeSwapRouter(
       newSwapRouter: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -131,12 +142,14 @@ export interface MarginlyFactoryContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    setOwner(
-      _owner: PromiseOrValue<string>,
+    renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
   populateTransaction: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     changeSwapRouter(
       newSwapRouter: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -158,12 +171,14 @@ export interface MarginlyFactoryContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    setOwner(
-      _owner: PromiseOrValue<string>,
+    renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     changeSwapRouter(
       newSwapRouter: PromiseOrValue<string>,
       override?: Overrides & { from?: PromiseOrValue<string> }
@@ -185,7 +200,11 @@ export interface MarginlyFactoryContract extends BaseContract {
       }>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<string>;
-    setOwner(_owner: PromiseOrValue<string>, override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
+    renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      override?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<void>;
   };
 }
 

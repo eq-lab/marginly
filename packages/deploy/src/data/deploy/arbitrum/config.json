@@ -1,0 +1,341 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://arb1.arbitrum.io/rpc"
+  },
+  "connection": {
+    "assertChainId": 42161,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc",
+      "address": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
+    },
+    {
+      "id": "wbtc",
+      "address": "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",
+      "assertSymbol": "WBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "arb",
+      "address": "0x912ce59144191c1204e64559fe8253a0e49e6548",
+      "assertSymbol": "ARB",
+      "assertDecimals": 18
+    },
+    {
+      "id": "gmx",
+      "address": "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a",
+      "assertSymbol": "GMX",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pendle",
+      "address": "0x0c880f6761f1af8d9aa9c466984b80dab9a8c9e8",
+      "assertSymbol": "PENDLE",
+      "assertDecimals": 18
+    },
+    {
+      "id": "rdnt",
+      "address": "0x3082cc23568ea640225c2467653db90e9250aaa0",
+      "assertSymbol": "RDNT",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc-native",
+      "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
+    }
+  ],
+  "prices": [],
+  "uniswap": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "weth9TokenId": "weth",
+    "priceLogSize": 60,
+    "pools": [
+      {
+        "id": "weth-usdc",
+        "tokenAId": "usdc",
+        "tokenBId": "weth",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0xc31e54c7a869b9fcbecc14363cf510d1c41fa443"
+      },
+      {
+        "id": "wbtc-weth",
+        "tokenAId": "wbtc",
+        "tokenBId": "weth",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0x2f5e87c9312fa29aed5c179e456625d79015299c"
+      },
+      {
+        "id": "arb-usdc",
+        "tokenAId": "arb",
+        "tokenBId": "usdc",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0xcda53b1f66614552f834ceef361a8d12a0b8dad8"
+      },
+      {
+        "id": "weth-gmx",
+        "tokenAId": "weth",
+        "tokenBId": "gmx",
+        "fee": "0.3%",
+        "allowCreate": false,
+        "assertAddress": "0x1aeedd3727a6431b8f070c0afaa81cc74f273882"
+      },
+      {
+        "id": "pendle-weth",
+        "tokenAId": "pendle",
+        "tokenBId": "weth",
+        "fee": "0.3%",
+        "allowCreate": false,
+        "assertAddress": "0xdbaeb7f0dfe3a0aafd798ccecb5b22e708f7852c"
+      },
+      {
+        "id": "rdnt-weth",
+        "tokenAId": "rdnt",
+        "tokenBId": "weth",
+        "fee": "0.3%",
+        "allowCreate": false,
+        "assertAddress": "0x446bf9748b4ea044dd759d9b9311c70491df8f29"
+      },
+      {
+        "id": "weth-usdc-native",
+        "tokenAId": "weth",
+        "tokenBId": "usdc-native",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0xc6962004f452be9203591991d15f6b388e09e8d0"
+      },
+      {
+        "id": "arb-usdc-native",
+        "tokenAId": "arb",
+        "tokenBId": "usdc-native",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0xb0f6ca40411360c03d41c5ffc5f179b8403cdcf8"
+      }
+    ]
+  },
+  "marginlyFactory": {
+    "feeHolder": "0x21D4693e811ed5E63BCF3A3EC93D85271A8d4f64",
+    "techPositionOwner": "0x21D4693e811ed5E63BCF3A3EC93D85271A8d4f64",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "weth-usdc",
+      "uniswapPoolId": "weth-usdc",
+      "baseTokenId": "weth",
+      "params": {
+        "maxLeverage": "10",
+        "interestRate": "5.4%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "10_000_000"
+      }
+    },
+    {
+      "id": "wbtc-weth",
+      "uniswapPoolId": "wbtc-weth",
+      "baseTokenId": "wbtc",
+      "params": {
+        "maxLeverage": "10",
+        "interestRate": "5.4%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "0.0001",
+        "quoteLimit": "2_000"
+      }
+    },
+    {
+      "id": "arb-usdc",
+      "uniswapPoolId": "arb-usdc",
+      "baseTokenId": "arb",
+      "params": {
+        "maxLeverage": "10",
+        "interestRate": "5.4%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "1",
+        "quoteLimit": "1_000_000"
+      }
+    },
+    {
+      "id": "gmx-weth",
+      "uniswapPoolId": "weth-gmx",
+      "baseTokenId": "gmx",
+      "params": {
+        "maxLeverage": "5",
+        "interestRate": "15%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "0.1",
+        "quoteLimit": "500"
+      }
+    },
+    {
+      "id": "pendle-weth",
+      "uniswapPoolId": "pendle-weth",
+      "baseTokenId": "pendle",
+      "params": {
+        "maxLeverage": "4",
+        "interestRate": "15%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "60 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "1",
+        "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "rdnt-weth",
+      "uniswapPoolId": "rdnt-weth",
+      "baseTokenId": "rdnt",
+      "params": {
+        "maxLeverage": "3",
+        "interestRate": "21.6%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "60 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "10",
+        "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "weth-usdc-native",
+      "uniswapPoolId": "weth-usdc-native",
+      "baseTokenId": "weth",
+      "params": {
+        "maxLeverage": "10",
+        "interestRate": "5.4%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "10_000_000"
+      }
+    },
+    {
+      "id": "arb-usdc-native",
+      "uniswapPoolId": "arb-usdc-native",
+      "baseTokenId": "arb",
+      "params": {
+        "maxLeverage": "10",
+        "interestRate": "5.4%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "1",
+        "quoteLimit": "1_000_000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "usdc",
+          "tokenBId": "weth",
+          "poolAddress": "0xc31e54c7a869b9fcbecc14363cf510d1c41fa443"
+        },
+        {
+          "tokenAId": "wbtc",
+          "tokenBId": "weth",
+          "poolAddress": "0x2f5e87c9312fa29aed5c179e456625d79015299c"
+        },
+        {
+          "tokenAId": "arb",
+          "tokenBId": "usdc",
+          "poolAddress": "0xcda53b1f66614552f834ceef361a8d12a0b8dad8"
+        },
+        {
+          "tokenAId": "weth",
+          "tokenBId": "gmx",
+          "poolAddress": "0x1aeedd3727a6431b8f070c0afaa81cc74f273882"
+        },
+        {
+          "tokenAId": "pendle",
+          "tokenBId": "weth",
+          "poolAddress": "0xdbaeb7f0dfe3a0aafd798ccecb5b22e708f7852c"
+        },
+        {
+          "tokenAId": "rdnt",
+          "tokenBId": "weth",
+          "poolAddress": "0x446bf9748b4ea044dd759d9b9311c70491df8f29"
+        },
+        {
+          "tokenAId": "weth",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0xc6962004f452be9203591991d15f6b388e09e8d0"
+        },
+        {
+          "tokenAId": "arb",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0xb0f6ca40411360c03d41c5ffc5f179b8403cdcf8"
+        }
+      ]
+    },
+    {
+      "dexId": 10,
+      "adapterName": "RamsesAdapter",
+      "pools": [
+        {
+          "tokenAId": "wbtc",
+          "tokenBId": "weth",
+          "poolAddress": "0x2760cc828b2e4d04f8ec261a5335426bb22d9291"
+        },
+        {
+          "tokenAId": "weth",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0x30afbcf9458c3131a6d051c621e307e6278e4110"
+        },
+        {
+          "tokenAId": "arb",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0xee5f2e39d8abf28e449327bfd44317fc500eb4d8"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "address": "0xa97684ead0e402dc232d5a977953df7ecbab3cdb"
+    }
+  }
+}

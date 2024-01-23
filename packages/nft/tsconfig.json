@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "composite": true,
+    "resolveJsonModule": true
+  },
+  "files": [
+    "./hardhat.config.ts",
+    "./hardhat.common.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "scripts/**/*",
+    "typechain-types/**/*"
+  ],
+}

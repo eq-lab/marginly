@@ -10,7 +10,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
   NAMESPACE: ${{ secrets.NAMESPACE }}
-  GH_SECR: ${{ secrets.GH_SECR }}
   CLUSTER: ${{ secrets.CLUSTER }}
   IMAGE_TAG: latest
   LIMIT_CPU: "500m"
@@ -68,7 +67,7 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: [name: $GH_SECR ]
+          imagePullSecrets: ${{ secrets.PULL_SECRET }}
           EOF
     - name: Set Kubernetes Context
       uses: azure/k8s-set-context@v3
@@ -76,15 +75,6 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
           context: ${{ env.CLUSTER }}
-    - name: Set imagePullSecret
-      uses: azure/k8s-create-secret@v4
-      with:
-        namespace: ${{ env.NAMESPACE }}
-        secret-name: ${{ env.GH_SECR }}
-        container-registry-url: ${{ env.REGISTRY }}
-        container-registry-username: ${{ github.actor }}
-        container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-      id: create-secret
     - name: 'deploy'
       run: |
         helm upgrade -i $SERVICE_NAME \

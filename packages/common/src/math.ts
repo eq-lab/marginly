@@ -1,3 +1,6 @@
+import { BigNumber } from 'ethers';
+import { Fp96One } from './types';
+
 export const x96FracSize = 96n;
 
 export const x128FracSize = 128n;
@@ -240,4 +243,30 @@ export function numberToFp(decimals: number, num: number): bigint {
 
 export function fpToNumber(decimals: number, fpNum: bigint): number {
   return Number(fpNum) / 10 ** decimals;
+}
+
+export function powTaylor(self: BigNumber, exponent: number): BigNumber {
+  const x = self.sub(Fp96One);
+  if (x >= BigNumber.from(Fp96One)) {
+    throw new Error(`x can't be greater than FP.one, series diverges`);
+  }
+
+  let resultX96 = BigNumber.from(Fp96One);
+  let multiplier: BigNumber;
+  let term = BigNumber.from(Fp96One);
+
+  const steps = exponent < 3 ? exponent : 3;
+  for (let i = 0; i != steps; ++i) {
+    multiplier = BigNumber.from(exponent - i)
+      .mul(x)
+      .div(BigNumber.from(i + 1));
+    term = term.mul(multiplier).div(Fp96One);
+    resultX96 = resultX96.add(term);
+  }
+
+  return resultX96;
+}
+
+export function fp96FromRatio(nom: BigNumber, denom: BigNumber): BigNumber {
+  return nom.mul(Fp96One).div(denom);
 }

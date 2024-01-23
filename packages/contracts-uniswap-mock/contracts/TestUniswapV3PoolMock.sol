@@ -6,7 +6,12 @@ import "./UniswapV3PoolMock.sol";
 contract TestUniswapV3PoolMock is UniswapV3PoolMock {
     uint256 timestamp;
 
-    constructor(address oracle, address tokenA, address tokenB, uint24 _fee) UniswapV3PoolMock(oracle, tokenA, tokenB, _fee) {
+    constructor(
+      address oracle, 
+      address tokenA, 
+      address tokenB, 
+      uint24 _fee
+    ) UniswapV3PoolMock(msg.sender, oracle, tokenA, tokenB, _fee) {
 
     }
 

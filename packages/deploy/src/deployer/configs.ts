@@ -5,6 +5,7 @@ import {
   EthConnectionConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
+  isMarginlyDeployConfigSwapPoolRegistry,
   isMarginlyDeployConfigUniswapGenuine,
   isMarginlyDeployConfigUniswapMock,
   MarginlyDeployConfig,
@@ -15,6 +16,7 @@ import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
 import { BigNumber } from 'ethers';
+import { deployMarginly } from '..';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -53,7 +55,41 @@ export interface MarginlyConfigUniswapMock {
   pools: MarginlyConfigUniswapPoolMock[];
 }
 
-export type MarginlyConfigUniswap = MarginlyConfigUniswapGenuine | MarginlyConfigUniswapMock;
+export interface PriceProviderMock {
+  answer: RationalNumber;
+  decimals: number;
+}
+
+export interface PriceProvidersMockConfig {
+  basePriceProviderMock?: PriceProviderMock;
+  quotePriceProviderMock?: PriceProviderMock;
+}
+
+export interface PriceAdapterConfig {
+  priceProvidersMock?: PriceProvidersMockConfig;
+  basePriceProvider?: EthAddress;
+  quotePriceProvider?: EthAddress;
+}
+
+export interface MarginlyConfigSwapPool {
+  type: 'swapPool';
+  id: string;
+  priceAdapter: PriceAdapterConfig;
+  tokenA: MarginlyConfigToken;
+  tokenB: MarginlyConfigToken;
+  fee: RationalNumber;
+}
+
+export interface MarginlyConfigSwapPoolRegistry {
+  type: 'swapPoolRegistry';
+  factory: EthAddress;
+  pools: MarginlyConfigSwapPool[];
+}
+
+export type MarginlyConfigUniswap =
+  | MarginlyConfigUniswapGenuine
+  | MarginlyConfigUniswapMock
+  | MarginlyConfigSwapPoolRegistry;
 
 export function isMarginlyConfigUniswapGenuine(
   uniswap: MarginlyConfigUniswap
@@ -65,7 +101,16 @@ export function isMarginlyConfigUniswapMock(uniswap: MarginlyConfigUniswap): uni
   return uniswap.type === 'mock';
 }
 
-export type MarginlyConfigUniswapPool = MarginlyConfigUniswapPoolGenuine | MarginlyConfigUniswapPoolMock;
+export function isMarginlyConfigSwapPoolRegistry(
+  uniswap: MarginlyConfigUniswap
+): uniswap is MarginlyConfigSwapPoolRegistry {
+  return uniswap.type === 'swapPoolRegistry';
+}
+
+export type MarginlyConfigUniswapPool =
+  | MarginlyConfigUniswapPoolGenuine
+  | MarginlyConfigUniswapPoolMock
+  | MarginlyConfigSwapPool;
 
 export function isMarginlyConfigUniswapPoolGenuine(
   uniswapPool: MarginlyConfigUniswapPool
@@ -77,6 +122,10 @@ export function isMarginlyConfigUniswapPoolMock(
   uniswapPool: MarginlyConfigUniswapPool
 ): uniswapPool is MarginlyConfigUniswapPoolMock {
   return uniswapPool.type === 'mock';
+}
+
+export function isMarginlyConfigSwapPool(uniswapPool: MarginlyConfigSwapPool): uniswapPool is MarginlyConfigSwapPool {
+  return uniswapPool.type === 'swapPool';
 }
 
 export interface MarginlyFactoryConfig {
@@ -317,6 +366,91 @@ export class StrictMarginlyDeployConfig {
         weth9Token,
         priceLogSize: config.uniswap.priceLogSize,
         pools: mockPools,
+      };
+    } else if (isMarginlyDeployConfigSwapPoolRegistry(config.uniswap)) {
+      const swapPools: MarginlyConfigSwapPool[] = [];
+      for (let i = 0; i < config.uniswap.pools.length; i++) {
+        const rawPool = config.uniswap.pools[i];
+
+        if (uniswapPools.has(rawPool.id)) {
+          throw new Error(`Duplicate uniswap pool id '${rawPool.id} at index ${i}`);
+        }
+
+        const tokenA = tokens.get(rawPool.tokenAId);
+        if (tokenA === undefined) {
+          throw new Error(`TokenA with id '${rawPool.tokenAId}' is not found for uniswap pool '${rawPool.id}'`);
+        }
+        const tokenB = tokens.get(rawPool.tokenBId);
+        if (tokenB === undefined) {
+          throw new Error(`TokenB with id '${rawPool.tokenBId}' is not found for uniswap pool '${rawPool.id}'`);
+        }
+        const fee = RationalNumber.parsePercent(rawPool.fee);
+
+        let basePriceProviderMock, quotePriceProviderMock, priceProvidersMock;
+        if (rawPool.priceProvidersMock !== undefined) {
+          if (rawPool.priceProvidersMock.basePriceProviderMock !== undefined) {
+            basePriceProviderMock = {
+              answer: RationalNumber.parse(rawPool.priceProvidersMock.basePriceProviderMock.answer),
+              decimals: Number(rawPool.priceProvidersMock.basePriceProviderMock.decimals),
+            };
+          }
+          if (rawPool.priceProvidersMock.quotePriceProviderMock !== undefined) {
+            quotePriceProviderMock = {
+              answer: RationalNumber.parse(rawPool.priceProvidersMock.quotePriceProviderMock.answer),
+              decimals: Number(rawPool.priceProvidersMock.quotePriceProviderMock.decimals),
+            };
+          }
+          priceProvidersMock = { basePriceProviderMock, quotePriceProviderMock };
+        }
+
+        let basePriceProvider, quotePriceProvider;
+        if (rawPool.priceAdapter.basePriceProvider !== undefined) {
+          basePriceProvider = EthAddress.parse(rawPool.priceAdapter.basePriceProvider);
+        }
+
+        if (quotePriceProviderMock === undefined) {
+          quotePriceProvider = EthAddress.parse(
+            rawPool.priceAdapter.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
+          );
+        } else if (quotePriceProviderMock !== undefined && rawPool.priceAdapter.quotePriceProvider !== undefined) {
+          throw new Error(
+            `Both quote PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
+          );
+        }
+
+        if (basePriceProviderMock === undefined && basePriceProvider === undefined) {
+          throw new Error(
+            `Not base PriceProvider nor PriceProviderMock for uniswap pool with id ${rawPool.id} is not found`
+          );
+        }
+
+        if (basePriceProviderMock !== undefined && basePriceProvider !== undefined) {
+          throw new Error(
+            `Both base PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
+          );
+        }
+
+        const priceProvider: PriceAdapterConfig = {
+          priceProvidersMock,
+          basePriceProvider,
+          quotePriceProvider,
+        };
+
+        const pool: MarginlyConfigSwapPool = {
+          type: 'swapPool',
+          id: rawPool.id,
+          tokenA,
+          tokenB,
+          fee,
+          priceAdapter: priceProvider,
+        };
+        uniswapPools.set(rawPool.id, pool);
+        swapPools.push(pool);
+      }
+      uniswap = {
+        type: 'swapPoolRegistry',
+        factory: EthAddress.parse(config.uniswap.factory),
+        pools: swapPools,
       };
     } else {
       throw new Error('Unknown uniswap type');

@@ -19,10 +19,12 @@ import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyRouterInterface extends utils.Interface {
   functions: {
+    'acceptOwnership()': utils.FunctionFragment;
     'adapterCallback(address,uint256,bytes)': utils.FunctionFragment;
     'adapters(uint256)': utils.FunctionFragment;
     'addDexAdapters(tuple[])': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
+    'pendingOwner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
     'swapExactInput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
     'swapExactOutput(uint256,address,address,uint256,uint256)': utils.FunctionFragment;
@@ -31,10 +33,12 @@ export interface MarginlyRouterInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | 'acceptOwnership'
       | 'adapterCallback'
       | 'adapters'
       | 'addDexAdapters'
       | 'owner'
+      | 'pendingOwner'
       | 'renounceOwnership'
       | 'swapExactInput'
       | 'swapExactOutput'
@@ -49,6 +53,7 @@ export interface MarginlyRouterContract extends BaseContract {
 
   interface: MarginlyRouterInterface;
 
+  acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   adapterCallback(
     recipient: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
@@ -61,6 +66,7 @@ export interface MarginlyRouterContract extends BaseContract {
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   owner(override?: CallOverrides): Promise<string>;
+  pendingOwner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   swapExactInput(
     swapCalldata: PromiseOrValue<BigNumberish>,
@@ -86,8 +92,10 @@ export interface MarginlyRouterContract extends BaseContract {
   functions: {
     adapters(arg0: PromiseOrValue<BigNumberish>, override?: CallOverrides): Promise<[string]>;
     owner(override?: CallOverrides): Promise<[string]>;
+    pendingOwner(override?: CallOverrides): Promise<[string]>;
   };
   estimateGas: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
     adapterCallback(
       recipient: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -121,6 +129,7 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<BigNumber>;
   };
   populateTransaction: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
     adapterCallback(
       recipient: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
@@ -154,6 +163,7 @@ export interface MarginlyRouterContract extends BaseContract {
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
+    acceptOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<void>;
     adapterCallback(
       recipient: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,

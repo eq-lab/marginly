@@ -1,16 +1,12 @@
 {
   "marginlyPools": [
     {
-      "id": "fweth-usdc",
-      "address": "0xea85A6a9A6e73Aa1203B3ee365D8e82B10feD7F8"
-    },
-    {
-      "id": "wbtc-usdc",
-      "address": "0x2f690B319C407C86CFdeF85d9088215C69960B0b"
-    },
-    {
       "id": "arb-usdc",
       "address": "0xA85151ef2756AdF90B232D94E31366547f4882e4"
+    },
+    {
+      "id": "fweth-usdc",
+      "address": "0xea85A6a9A6e73Aa1203B3ee365D8e82B10feD7F8"
     },
     {
       "id": "gmx-usdc",
@@ -23,9 +19,13 @@
     {
       "id": "rdnt-eth",
       "address": "0xC0b3acac242f476415F043F1B0432F3197983f92"
+    },
+    {
+      "id": "wbtc-usdc",
+      "address": "0x2f690B319C407C86CFdeF85d9088215C69960B0b"
     }
   ],
   "marginlyKeeper": {
-    "address": "0xFa29DBc4D4Ee1d160C3fa5917FE74Bd653C36e99"
+    "address": "0x258Dad63c47efeDc807158dF9f59CfB1eaf606Aa"
   }
 }
