@@ -128,6 +128,7 @@ export async function deployMarginly(
         );
         const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
         await uniswapRouterContract.setRejectArbitraryRecipient(true);
+
         for (const pool of uniswapConfig.pools) {
           const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
             uniswapConfig.oracle,
