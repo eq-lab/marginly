@@ -910,8 +910,11 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 minQuoteOut = Math.mulDiv(limitPriceX96, baseAmountIn, FP96.Q96);
     uint256 quoteAmountOut = swapExactInput(false, baseAmountIn, minQuoteOut, swapCalldata);
+    uint256 fee = Math.mulDiv(params.swapFee, quoteAmountOut, WHOLE_ONE);
+    chargeFee(fee);
 
-    uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteAmountOut.sub(realQuoteDebt));
+    uint256 quoteOutSubFee = quoteAmountOut.sub(fee);
+    uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteOutSubFee.sub(realQuoteDebt));
 
     discountedBaseCollateral -= position.discountedBaseAmount;
     position.discountedBaseAmount = 0;
@@ -927,7 +930,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedQuoteCollateral += discountedQuoteCollateralDelta;
       position.discountedQuoteAmount += discountedQuoteCollateralDelta;
     }
-    emit SellBaseForQuote(msg.sender, baseAmountIn, quoteAmountOut, discountedQuoteCollateralDelta);
+    emit SellBaseForQuote(msg.sender, baseAmountIn, quoteOutSubFee, discountedQuoteCollateralDelta);
   }
 
   /// @notice sells all the quote tokens from lend position for base ones
@@ -944,10 +947,14 @@ contract MarginlyPool is IMarginlyPool {
     uint256 quoteAmountIn = calcRealQuoteCollateral(position.discountedQuoteAmount, posDiscountedBaseDebt);
     if (quoteAmountIn == 0) return;
 
+    uint256 fee = Math.mulDiv(params.swapFee, quoteAmountIn, WHOLE_ONE);
+    uint256 quoteInSubFee = quoteAmountIn.sub(fee);
+
     uint256 realBaseDebt = baseDebtCoeff.mul(posDiscountedBaseDebt);
 
-    uint256 minBaseOut = Math.mulDiv(FP96.Q96, quoteAmountIn, limitPriceX96);
-    uint256 baseAmountOut = swapExactInput(true, quoteAmountIn, minBaseOut, swapCalldata);
+    uint256 minBaseOut = Math.mulDiv(FP96.Q96, quoteInSubFee, limitPriceX96);
+    uint256 baseAmountOut = swapExactInput(true, quoteInSubFee, minBaseOut, swapCalldata);
+    chargeFee(fee);
 
     uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmountOut.sub(realBaseDebt));
 
@@ -965,7 +972,7 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseCollateral += discountedBaseCollateralDelta;
       position.discountedBaseAmount += discountedBaseCollateralDelta;
     }
-    emit SellQuoteForBase(msg.sender, quoteAmountIn, baseAmountOut, discountedBaseCollateralDelta);
+    emit SellQuoteForBase(msg.sender, quoteInSubFee, baseAmountOut, discountedBaseCollateralDelta);
   }
 
   /// @dev Update collateral and debt coeffs in system
