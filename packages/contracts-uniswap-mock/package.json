@@ -22,7 +22,7 @@
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
     "@nomicfoundation/hardhat-verify": "^1.0.1",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
-    "@nomiclabs/hardhat-etherscan": "^3.1.5",
+    "@nomiclabs/hardhat-etherscan": "^3.1.8",
     "@openzeppelin/contracts": "3.4.2-solc-0.7",
     "@typechain/ethers-v5": "^10.2.0",
     "@typechain/hardhat": "^6.1.5",
@@ -43,6 +43,7 @@
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
     "typescript": "^4.9.4",
-    "@marginly/common": "0.1.0"
+    "@marginly/common": "0.1.0",
+    "dotenv": "^16.3.1"
   }
 }

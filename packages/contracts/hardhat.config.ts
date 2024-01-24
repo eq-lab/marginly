@@ -2,6 +2,10 @@ import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
 import 'solidity-docgen';
+import './scripts';
+import { config as dotEnvConfig } from 'dotenv';
+
+dotEnvConfig();
 
 const config = {
   solidity: {
@@ -28,13 +32,27 @@ const config = {
     arbitrumOne: {
       url: 'https://arb1.arbitrum.io/rpc',
     },
+    arbitrumSepolia: {
+      url: 'https://sepolia-rollup.arbitrum.io/rpc',
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.API_KEY,
       arbitrumGoerli: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
+      arbitrumSepolia: process.env.API_KEY,
     },
+    customChains: [
+      {
+        network: 'arbitrumSepolia',
+        chainId: 421614,
+        urls: {
+          apiURL: 'https://api-sepolia.arbiscan.io/api',
+          browserURL: 'https://sepolia.arbiscan.io/',
+        },
+      },
+    ],
   },
   mocha: {
     timeout: 200_000,
