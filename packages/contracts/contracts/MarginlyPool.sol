@@ -918,16 +918,15 @@ contract MarginlyPool is IMarginlyPool {
 
     discountedBaseCollateral -= position.discountedBaseAmount;
     position.discountedBaseAmount = 0;
+    discountedQuoteCollateral += discountedQuoteCollateralDelta;
     if (isLong) {
-      discountedQuoteCollateral += discountedQuoteCollateralDelta;
       discountedQuoteDebt -= position.discountedQuoteAmount;
       position.discountedQuoteAmount = discountedQuoteCollateralDelta;
 
       position._type = PositionType.Lend;
       uint32 heapIndex = position.heapPosition - 1;
-      shortHeap.remove(positions, heapIndex);
+      longHeap.remove(positions, heapIndex);
     } else {
-      discountedQuoteCollateral += discountedQuoteCollateralDelta;
       position.discountedQuoteAmount += discountedQuoteCollateralDelta;
     }
     emit SellBaseForQuote(msg.sender, baseAmountIn, quoteOutSubFee, discountedQuoteCollateralDelta);
@@ -960,8 +959,8 @@ contract MarginlyPool is IMarginlyPool {
 
     discountedQuoteCollateral -= position.discountedQuoteAmount;
     position.discountedQuoteAmount = 0;
+    discountedBaseCollateral += discountedBaseCollateralDelta;
     if (isShort) {
-      discountedBaseCollateral += discountedBaseCollateralDelta;
       discountedBaseDebt -= position.discountedBaseAmount;
       position.discountedBaseAmount = discountedBaseCollateralDelta;
 
@@ -969,7 +968,6 @@ contract MarginlyPool is IMarginlyPool {
       uint32 heapIndex = position.heapPosition - 1;
       shortHeap.remove(positions, heapIndex);
     } else {
-      discountedBaseCollateral += discountedBaseCollateralDelta;
       position.discountedBaseAmount += discountedBaseCollateralDelta;
     }
     emit SellQuoteForBase(msg.sender, quoteInSubFee, baseAmountOut, discountedBaseCollateralDelta);

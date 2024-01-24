@@ -428,7 +428,7 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositQuote, 10000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       const firstDeposit = 1000;
-      const shortAmount = 200;
+      const shortAmount = 5000;
       await marginlyPool
         .connect(signer)
         .execute(CallType.DepositQuote, firstDeposit, shortAmount, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
@@ -441,6 +441,10 @@ describe('MarginlyPool.Base', () => {
       const discountedQuoteDebtBefore = await marginlyPool.discountedQuoteDebt();
 
       const baseDepositFirst = 1000;
+      // making sure flip is tested on short position (deposit won't cover all the position debt)
+      expect(
+        positionBefore.discountedBaseAmount.mul(await marginlyPool.baseDebtCoeff()).div(FP96.one)
+      ).to.be.gt(baseDepositFirst);
       const longAmount = 5000;
       await marginlyPool
         .connect(signer)
@@ -460,7 +464,7 @@ describe('MarginlyPool.Base', () => {
 
       expect(heapPositionBefore[1].account).to.be.eq(signer.address);
       expect(heapPositionAfter[1].account).to.be.not.eq(signer.address);
-      expect(positionAfter._type).to.be.eq(3);
+      expect(positionAfter._type).to.be.eq(PositionType.Long);
 
       const baseDebtDelta = positionBefore.discountedBaseAmount;
       expect(discountedBaseDebtBefore.sub(discountedBaseDebtAfter)).to.be.eq(baseDebtDelta);
@@ -709,7 +713,7 @@ describe('MarginlyPool.Base', () => {
         .execute(CallType.DepositQuote, 100000, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
       const firstDeposit = 10000;
-      const longAmount = 2000;
+      const longAmount = 50000;
       await marginlyPool
         .connect(signer)
         .execute(CallType.DepositBase, firstDeposit, longAmount, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
@@ -722,6 +726,10 @@ describe('MarginlyPool.Base', () => {
       const discountedQuoteDebtBefore = await marginlyPool.discountedQuoteDebt();
 
       const quoteDepositSecond = 10000;
+      // making sure flip is tested on long position (deposit won't cover all the position debt)
+      expect(
+        positionBefore.discountedQuoteAmount.mul(await marginlyPool.quoteDebtCoeff()).div(FP96.one)
+      ).to.be.gt(quoteDepositSecond);
       const shortAmount = 50000;
       await marginlyPool
         .connect(signer)
@@ -749,7 +757,7 @@ describe('MarginlyPool.Base', () => {
 
       expect(heapPositionBefore[1].account).to.be.eq(signer.address);
       expect(heapPositionAfter[1].account).to.be.not.eq(signer.address);
-      expect(positionAfter._type).to.be.eq(2);
+      expect(positionAfter._type).to.be.eq(PositionType.Short);
       
       const quoteDebtDelta = positionBefore.discountedQuoteAmount;
       expect(discountedQuoteDebtBefore.sub(discountedQuoteDebtAfter)).to.be.eq(quoteDebtDelta);
@@ -2148,7 +2156,7 @@ describe('MarginlyPool.Base', () => {
       expect(discountedQuoteCollateralAfter.sub(discountedQuoteCollateralBefore)).to.be.closeTo(quoteCollDelta, 1);
       expect(discountedBaseDebtAfter.sub(discountedBaseDebtBefore)).to.be.eq(baseDebtDelta);
 
-      expect(positionAfter._type).to.be.eq(2);
+      expect(positionAfter._type).to.be.eq(PositionType.Short);
       expect(positionAfter.discountedBaseAmount).to.be.eq(baseDebtDelta);
       expect(
         positionAfter.discountedQuoteAmount.sub(positionBefore.discountedQuoteAmount)
@@ -2208,7 +2216,7 @@ describe('MarginlyPool.Base', () => {
       expect(discountedQuoteCollateralBefore.sub(discountedQuoteCollateralAfter)).to.be.eq(quoteCollDelta);
       expect(discountedQuoteDebtAfter.sub(discountedQuoteDebtBefore)).to.be.eq(quoteDebtDelta);
 
-      expect(positionAfter._type).to.be.eq(3);
+      expect(positionAfter._type).to.be.eq(PositionType.Long);
       expect(positionAfter.discountedQuoteAmount).to.be.eq(quoteDebtDelta);
       expect(positionAfter.discountedBaseAmount.sub(positionBefore.discountedBaseAmount)).to.be.eq(baseCollDelta);
     });
