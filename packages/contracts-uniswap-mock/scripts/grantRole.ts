@@ -1,9 +1,9 @@
 import { task } from 'hardhat/config';
 import { Network, TaskArguments } from 'hardhat/types';
 
-// Example: npx hardhat token:grantrole --network arbitrumSepolia --signer <signerPk> --account <accountPK> --minter --burner
+// Example: npx hardhat token:grantRole --network arbitrumSepolia --signer <signerPk> --account <accountPK> --minter --burner
 
-task('token:grantrole')
+task('token:grantRole')
   .addParam('signer', 'The signer private key.')
   .addParam('token', 'Address of mintable token.')
   .addParam('account', 'Account to grant a role.')
