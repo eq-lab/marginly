@@ -55,4 +55,6 @@ interface IMarginlyFactory {
 
   /// @notice Address of technical position
   function techPositionOwner() external view returns (address);
+
+  function manager() external view returns (address);
 }
