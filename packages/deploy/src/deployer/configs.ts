@@ -19,6 +19,7 @@ import { timeoutRetry } from '@marginly/common/execution';
 import { CriticalError } from '@marginly/common/error';
 import { createPriceGetter } from '@marginly/common/price';
 import { BigNumber } from 'ethers';
+import * as ethers from 'ethers';
 
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
@@ -218,19 +219,18 @@ export interface ChainlinkOracleConfig {
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-    secondsAgo: TimeSpan;
-    secondsAgoLiquidation: TimeSpan;
+    aggregatorV3: EthAddress;
   }[];
 }
 
 export interface PythOracleConfig {
   id: string;
   type: 'pyth';
+  pyth: EthAddress;
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-    secondsAgo: TimeSpan;
-    secondsAgoLiquidation: TimeSpan;
+    pythPriceId: `0x${string}`;
   }[];
 }
 
@@ -715,9 +715,49 @@ export class StrictMarginlyDeployConfig {
 
         priceOracles.set(priceOracleId, strictConfig);
       } else if (isChainlinkOracleConfig(priceOracleConfig)) {
-        throw new Error('ChainlinkOracle is not yet implemented');
+        const strictConfig: ChainlinkOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            aggregatorV3: EthAddress.parse(x.aggregatorV3)
+          }))
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
       } else if (isPythOracleConfig(priceOracleConfig)) {
-        throw new Error('PythOracle is not yet implemented');
+        const strictConfig: PythOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          pyth: EthAddress.parse(priceOracleConfig.pyth),
+          settings: priceOracleConfig.settings.map((x) => {
+            if (!ethers.utils.isHexString(x.pythPriceId, 32)) {
+              throw new Error(`Invalid pythPriceId for ${priceOracleConfig.id}`);
+            }
+            return {
+              quoteToken:
+                tokens.get(x.quoteTokenId) ||
+                (() => {
+                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                })(),
+              baseToken:
+                tokens.get(x.baseTokenId) ||
+                (() => {
+                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                })(),
+              pythPriceId: x.pythPriceId as `0x{string}`
+            }
+          })
+        };
       }
     }
 

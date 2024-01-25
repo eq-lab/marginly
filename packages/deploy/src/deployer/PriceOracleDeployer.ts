@@ -1,5 +1,10 @@
 import { EthAddress } from '@marginly/common';
-import { UniswapV3TickDoubleOracleConfig, UniswapV3TickOracleConfig } from './configs';
+import {
+  ChainlinkOracleConfig,
+  PythOracleConfig,
+  UniswapV3TickDoubleOracleConfig,
+  UniswapV3TickOracleConfig,
+} from './configs';
 import { DeployResult, ITokenRepository } from '../common/interfaces';
 import { Signer, ethers } from 'ethers';
 import { EthOptions } from '../config';
@@ -103,6 +108,52 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
       this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+    }
+
+    return deploymentResult;
+  }
+
+  public async deployAndConfigureChainlinkOracle(
+    config: ChainlinkOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'ChainlinkOracle',
+      [],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+
+      await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), setting.aggregatorV3.toString());
+    }
+
+    return deploymentResult;
+  }
+
+  public async deployAndConfigurePythOracle(
+    config: PythOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'PythOracle',
+      [config.pyth.toString()],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+
+      await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), setting.pythPriceId);
     }
 
     return deploymentResult;

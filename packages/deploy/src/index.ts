@@ -16,7 +16,7 @@ import {
   UniswapV3Deployer,
   KeeperDeployer,
   MockTokenDeployer,
-  MarginlyRouterDeployer,
+  MarginlyRouterDeployer, isChainlinkOracle, isPythOracle,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -364,8 +364,20 @@ async function processPriceOracles(
         printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
+      } else if (isChainlinkOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployAndConfigureChainlinkOracle(
+          priceOracle,
+          tokenRepository
+        );
+        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
+      } else if (isPythOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployAndConfigurePythOracle(
+          priceOracle,
+          tokenRepository
+        );
+        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
       } else {
-        throw new Error(`Unknown priceOracle type ${priceOracle.type}`);
+        throw new Error(`Unknown priceOracle type`);
       }
     }
 

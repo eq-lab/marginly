@@ -79,13 +79,22 @@ export interface UniswapV3DoubleDeployOracleConfig {
 export interface ChainlinkOracleDeployConfig {
   type: 'chainlink';
   id: string;
-  settings: [];
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    aggregatorV3: string;
+  }[];
 }
 
 export interface PythOracleDeployConfig {
   type: 'pyth';
   id: string;
-  settings: [];
+  pyth: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    pythPriceId: string;
+  }[];
 }
 
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
