@@ -38,6 +38,7 @@ describe('MarginlyPool.Base', () => {
       mcSlippage: 400000,
       positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000,
+      managerFee: 100,
     };
 
     await expect(
@@ -113,6 +114,7 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       mcSlippage: 400000,
       quoteLimit: 1_000_000_000,
+      managerFee: 100,
     };
 
     await pool.connect(factoryOwner).setParameters(parameters);
@@ -126,6 +128,7 @@ describe('MarginlyPool.Base', () => {
     expect(params.mcSlippage).to.equal(400000);
     expect(params.quoteLimit).to.equal(1_000_000_000);
     expect(params.fee).to.equal(1);
+    expect(params.managerFee).to.equal(100);
   });
 
   it('should raise error when not an owner trying to set parameters', async () => {
@@ -142,6 +145,7 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       mcSlippage: 400000,
       quoteLimit: 1_000_000_000,
+      managerFee: 100,
     };
 
     await expect(pool.connect(otherSigner).setParameters(parameters)).to.be.revertedWithCustomError(
@@ -160,6 +164,7 @@ describe('MarginlyPool.Base', () => {
       positionMinAmount: 100,
       mcSlippage: 400000,
       quoteLimit: 1_000_000_000,
+      managerFee: 100,
     };
 
     await expect(pool.setParameters({ ...params, interestRate: 1_000_001 })).to.be.revertedWithCustomError(

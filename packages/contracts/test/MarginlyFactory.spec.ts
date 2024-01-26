@@ -17,6 +17,7 @@ describe('MarginlyFactory', () => {
       mcSlippage: 50000, //5%
       positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000_000,
+      managerFee: 100,
     };
 
     return {

@@ -724,9 +724,10 @@ contract MarginlyPool is IMarginlyPool {
         swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
 
         uint256 realFeeAmount = Math.mulDiv(params.swapFee, realCollateralDelta, WHOLE_ONE);
-        chargeFee(realFeeAmount);
+        uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
+        chargeFee(realFeeAmount, managerFee);
 
-        realCollateralDelta = realCollateralDelta.add(realFeeAmount);
+        realCollateralDelta = realCollateralDelta.add(realFeeAmount).add(managerFee);
         discountedCollateralDelta = quoteCollateralCoeff.recipMul(
           realCollateralDelta.add(quoteDelevCoeff.mul(positionDiscountedBaseDebtPrev))
         );
@@ -744,23 +745,25 @@ contract MarginlyPool is IMarginlyPool {
       collateralToken = baseToken;
 
       uint256 positionDiscountedQuoteDebtPrev = position.discountedQuoteAmount;
-      uint256 realBaseCollateral = calcRealBaseCollateral(
-        position.discountedBaseAmount,
-        positionDiscountedQuoteDebtPrev
-      );
       uint256 realQuoteDebt = quoteDebtCoeff.mul(positionDiscountedQuoteDebtPrev, Math.Rounding.Up);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
-      uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount);
+      uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
+      uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount).add(managerFee);
 
       {
-        realCollateralDelta = swapExactOutput(false, realBaseCollateral, exactQuoteOut, swapCalldata);
+        realCollateralDelta = swapExactOutput(
+          false,
+          calcRealBaseCollateral(position.discountedBaseAmount, positionDiscountedQuoteDebtPrev),
+          exactQuoteOut,
+          swapCalldata
+        );
 
         // baseInMaximum is defined by user input limitPriceX96
         if (realCollateralDelta > Math.mulDiv(FP96.Q96, exactQuoteOut, limitPriceX96)) revert Errors.SlippageLimit();
         swapPriceX96 = getSwapPrice(exactQuoteOut, realCollateralDelta);
 
-        chargeFee(realFeeAmount);
+        chargeFee(realFeeAmount, managerFee);
 
         discountedCollateralDelta = baseCollateralCoeff.recipMul(
           realCollateralDelta.add(baseDelevCoeff.mul(positionDiscountedQuoteDebtPrev))
@@ -783,9 +786,11 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   /// @dev Charge fee (swap or debt fee) in quote token
-  /// @param feeAmount amount of token
-  function chargeFee(uint256 feeAmount) private {
+  /// @param feeAmount amount of token sent to feeHolder
+  /// @param managerFee amount of token sent to manager
+  function chargeFee(uint256 feeAmount, uint256 managerFee) private {
     TransferHelper.safeTransfer(quoteToken, IMarginlyFactory(factory).feeHolder(), feeAmount);
+    if (managerFee != 0) TransferHelper.safeTransfer(quoteToken, msg.sender, managerFee);
   }
 
   /// @notice Get oracle price baseToken / quoteToken
@@ -822,12 +827,17 @@ contract MarginlyPool is IMarginlyPool {
       revert Errors.WrongPositionType();
 
     // quoteOutMinimum is defined by user input limitPriceX96
-    uint256 quoteOutMinimum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
-    uint256 realQuoteCollateralChangeWithFee = swapExactInput(false, realBaseAmount, quoteOutMinimum, swapCalldata);
+    uint256 realQuoteCollateralChangeWithFee = swapExactInput(
+      false,
+      realBaseAmount,
+      Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96),
+      swapCalldata
+    );
     uint256 swapPriceX96 = getSwapPrice(realQuoteCollateralChangeWithFee, realBaseAmount);
 
     uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteCollateralChangeWithFee, WHOLE_ONE);
-    uint256 realQuoteCollateralChange = realQuoteCollateralChangeWithFee.sub(realSwapFee);
+    uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
+    uint256 realQuoteCollateralChange = realQuoteCollateralChangeWithFee.sub(realSwapFee).sub(managerFee);
 
     if (newPoolQuoteBalance(realQuoteCollateralChange) > params.quoteLimit) revert Errors.ExceedsLimit();
 
@@ -840,7 +850,7 @@ contract MarginlyPool is IMarginlyPool {
     );
     position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteChange);
     discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteChange);
-    chargeFee(realSwapFee);
+    chargeFee(realSwapFee, managerFee);
 
     if (_type == PositionType.Lend) {
       if (position.heapPosition != 0) revert Errors.WrongIndex();
@@ -877,14 +887,19 @@ contract MarginlyPool is IMarginlyPool {
       revert Errors.WrongPositionType();
 
     // realQuoteInMaximum is defined by user input limitPriceX96
-    uint256 realQuoteInMaximum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
-    uint256 realQuoteAmount = swapExactOutput(true, realQuoteInMaximum, realBaseAmount, swapCalldata);
+    uint256 realQuoteAmount = swapExactOutput(
+      true,
+      Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96),
+      realBaseAmount,
+      swapCalldata
+    );
     uint256 swapPriceX96 = getSwapPrice(realQuoteAmount, realBaseAmount);
 
     uint256 realSwapFee = Math.mulDiv(params.swapFee, realQuoteAmount, WHOLE_ONE);
-    chargeFee(realSwapFee);
+    uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
+    chargeFee(realSwapFee, managerFee);
 
-    uint256 discountedQuoteDebtChange = quoteDebtCoeff.recipMul(realQuoteAmount.add(realSwapFee));
+    uint256 discountedQuoteDebtChange = quoteDebtCoeff.recipMul(realQuoteAmount.add(realSwapFee).add(managerFee));
     position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteDebtChange);
     discountedQuoteDebt = discountedQuoteDebt.add(discountedQuoteDebtChange);
 

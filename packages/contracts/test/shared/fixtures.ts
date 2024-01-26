@@ -173,6 +173,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     mcSlippage: 50000, //5%
     positionMinAmount: 5, // 5 Wei
     quoteLimit: 1_000_000,
+    managerFee: 10,
   };
 
   const poolAddress = await factory.callStatic.createPool(
