@@ -256,11 +256,15 @@ export async function createMarginlyManager(): Promise<{
 }> {
   const [owner] = await ethers.getSigners();
 
-  const marginlyManager = await (await ethers.getContractFactory('MarginlyManager', owner)).deploy();
-  const testAction = await (await ethers.getContractFactory('TestAction', owner)).deploy();
-
   const quoteToken = await (await ethers.getContractFactory('TestERC20Token')).deploy('Token', 'TKN');
+  const marginlyFactory = await (await ethers.getContractFactory('TestMarginlyFactory', owner)).deploy();
   const marginlyPool = await (await ethers.getContractFactory('TestMarginlyPool', owner)).deploy(quoteToken.address);
+  await marginlyFactory.addPool(marginlyPool.address);
+
+  const marginlyManager = await (
+    await ethers.getContractFactory('MarginlyManager', owner)
+  ).deploy(marginlyFactory.address);
+  const testAction = await (await ethers.getContractFactory('TestAction', owner)).deploy();
 
   return { marginlyManager, testAction, marginlyPool, quoteToken };
 }

@@ -6,7 +6,18 @@ import { IAction } from '../typechain-types';
 import { parseUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 
-describe.only('MarginlyManager', () => {
+describe('MarginlyManager', () => {
+  it('create MarginlyManager', async () => {
+    const [signer] = await ethers.getSigners();
+    const nonZeroAddress = signer.address;
+    await (await ethers.getContractFactory('MarginlyManager')).deploy(nonZeroAddress);
+  });
+
+  it('create MarginlyManager should be failed when zero address passed', async () => {
+    const factory = await ethers.getContractFactory('MarginlyManager');
+    await expect(factory.deploy(ethers.constants.AddressZero)).to.be.revertedWithCustomError(factory, 'ZeroAddress');
+  });
+
   it('subscribe to action', async () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer] = await ethers.getSigners();
@@ -50,7 +61,7 @@ describe.only('MarginlyManager', () => {
 
     await expect(
       marginlyManager.connect(signer).subscribe(ethers.constants.AddressZero, testAction.address, subOptions)
-    ).to.be.revertedWithCustomError(marginlyManager, 'ZeroAddress');
+    ).to.be.revertedWithCustomError(marginlyManager, 'UnknownMarginlyPool');
 
     await expect(
       marginlyManager.connect(signer).subscribe(marginlyPool.address, ethers.constants.AddressZero, subOptions)

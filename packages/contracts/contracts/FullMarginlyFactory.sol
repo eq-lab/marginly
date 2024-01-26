@@ -24,6 +24,8 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
   address public immutable override WETH9;
   /// @notice Technical position address
   address public immutable override techPositionOwner;
+  /// @notice Map that contains all pools created by factory
+  mapping(address => bool) public override isPoolExists;
 
   constructor(
     address _uniswapFactory,

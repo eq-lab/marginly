@@ -3,11 +3,13 @@ pragma solidity 0.8.19;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyPool.sol';
+import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
 
 import './interfaces/IAction.sol';
 
 contract MarginlyManager {
   error ZeroAddress();
+  error UnknownMarginlyPool();
   error ActionFailed();
   error ActionNotTriggered();
   error NoSubscription();
@@ -33,11 +35,20 @@ contract MarginlyManager {
     bytes callData;
   }
 
+  /// @notice Address of marginly factory
+  address public marginlyFactory;
+
   /// @notice Subscriptions on actions. Key position => marginlyPool => action => subCallData;
   mapping(address => mapping(address => mapping(address => SubOptions))) public subscriptions;
 
   /// @dev reentrancy guard
   bool private locked;
+
+  constructor(address _marginlyFactory) {
+    if (_marginlyFactory == address(0)) revert ZeroAddress();
+
+    marginlyFactory = _marginlyFactory;
+  }
 
   function _lock() private view {
     if (locked) revert Errors.Locked();
@@ -57,8 +68,8 @@ contract MarginlyManager {
   /// @param action Address of action contract
   /// @param subOptions Subscription options
   function subscribe(address marginlyPool, address action, SubOptions calldata subOptions) external {
-    if (marginlyPool == address(0)) revert ZeroAddress();
     if (action == address(0)) revert ZeroAddress();
+    if (!IMarginlyFactory(marginlyFactory).isPoolExists(marginlyPool)) revert UnknownMarginlyPool();
 
     subscriptions[msg.sender][marginlyPool][action] = subOptions;
 
