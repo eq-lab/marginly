@@ -1455,7 +1455,7 @@ contract MarginlyPool is IMarginlyPool {
 
     address positionOwner = msg.sender;
     if (positionOwner == IMarginlyFactory(factory).manager()) {
-      if (call != CallType.Long || call != CallType.Short || call != CallType.ClosePosition) {
+      if (call != CallType.Long && call != CallType.Short && call != CallType.ClosePosition) {
         revert Errors.Forbidden();
       }
       positionOwner = receivePositionAddress;
