@@ -7,6 +7,10 @@ import {
   TestUniswapPool,
   TestUniswapFactory,
   TestUniswapV3Factory,
+  MarginlyManager,
+  TestAction,
+  TestMarginlyPool,
+  TestERC20Token,
 } from '../../typechain-types';
 import { UniswapV3TickOracle, UniswapV3TickOracleDouble } from '../../typechain-types/contracts/oracles';
 
@@ -242,4 +246,28 @@ export async function createUniswapV3TickOracleDoubleIQB() {
 // intermediateToken < baseToken < quoteToken
 export async function createUniswapV3TickOracleDoubleIBQ() {
   return createUniswapV3TickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
+}
+
+export async function createMarginlyManager(): Promise<{
+  marginlyManager: MarginlyManager;
+  testAction: TestAction;
+  marginlyPool: TestMarginlyPool;
+  quoteToken: TestERC20Token;
+}> {
+  const [owner] = await ethers.getSigners();
+
+  const quoteToken = await (await ethers.getContractFactory('TestERC20Token')).deploy('Token', 'TKN');
+  const marginlyFactory = await (await ethers.getContractFactory('TestMarginlyFactory', owner)).deploy();
+  const marginlyPool = await (await ethers.getContractFactory('TestMarginlyPool', owner)).deploy(quoteToken.address);
+  await marginlyFactory.addPool(marginlyPool.address);
+
+  const testAction = await (await ethers.getContractFactory('TestAction', owner)).deploy();
+
+  const marginlyManager = await (
+    await ethers.getContractFactory('MarginlyManager', owner)
+  ).deploy(marginlyFactory.address);
+
+  await marginlyManager.addAction(testAction.address, true);
+
+  return { marginlyManager, testAction, marginlyPool, quoteToken };
 }

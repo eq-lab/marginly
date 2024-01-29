@@ -10,6 +10,8 @@ import '../dataTypes/Position.sol';
 contract MockMarginlyFactory is IMarginlyFactory {
   address public override swapRouter;
 
+  mapping(address => bool) public override isPoolExists;
+
   constructor(address _swapRouter) {
     swapRouter = _swapRouter;
   }

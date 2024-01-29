@@ -38,6 +38,8 @@ describe('MarginlyFactory', () => {
       defaultSwapCallData,
       params
     );
+    expect(await factory.isPoolExists(poolAddress)).to.be.eq(false);
+
     await snapshotGasCost(factory.createPool(quoteToken, baseToken, priceOracle.address, defaultSwapCallData, params));
 
     const poolFactory = await ethers.getContractFactory('MarginlyPool');
@@ -46,6 +48,8 @@ describe('MarginlyFactory', () => {
     const techPositionOwner = await factory.techPositionOwner();
     const techPosition = await pool.positions(techPositionOwner);
     expect(techPosition._type).to.be.eq(PositionType.Lend);
+
+    expect(await factory.isPoolExists(poolAddress)).to.be.eq(true);
   });
 
   it('should change router address', async () => {

@@ -24,6 +24,8 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
   address public immutable override WETH9;
   /// @notice Technical position address
   address public immutable override techPositionOwner;
+  /// @notice Map that contains all pools created by factory
+  mapping(address => bool) public override isPoolExists;
 
   constructor(
     address _marginlyPoolImplementation,
@@ -60,6 +62,7 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
 
     pool = Clones.clone(marginlyPoolImplementation);
     IMarginlyPool(pool).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, params);
+    isPoolExists[pool] = true;
 
     emit PoolCreated(quoteToken, baseToken, priceOracle, defaultSwapCallData, pool);
   }

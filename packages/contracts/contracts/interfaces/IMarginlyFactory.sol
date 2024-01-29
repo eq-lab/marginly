@@ -55,4 +55,7 @@ interface IMarginlyFactory {
 
   /// @notice Address of technical position
   function techPositionOwner() external view returns (address);
+
+  /// @notice Map that contains all pools created by factory
+  function isPoolExists(address pool) external view returns (bool);
 }
