@@ -20,13 +20,14 @@ contract TestAction is IAction {
   /// @notice Subscriptions on actions. Key position => marginlyPool => action => subCallData;
   mapping(address => mapping(address => mapping(address => SubOptions))) public subscriptions;
 
-  function isTriggered(IAction.ActionArgs memory, bytes memory) external pure returns (bool) {
-    return true;
+  function isTriggered(IAction.ActionArgs memory actionCallData, bytes memory) external pure returns (bool) {
+    (, bool shouldTrigger) = abi.decode(actionCallData.callData, (bool, bool));
+    return shouldTrigger;
   }
 
   function execute(IAction.ActionArgs memory actionCallData, bytes memory) external returns (bytes memory) {
-    bool shouldFail = abi.decode(actionCallData.callData, (bool));
-    if (shouldFail) revert('Action failed');
+    bool shouldExecute = abi.decode(actionCallData.callData, (bool));
+    if (!shouldExecute) revert('Action failed');
     delete subscriptions[actionCallData.position][actionCallData.marginlyPool][address(this)];
   }
 }

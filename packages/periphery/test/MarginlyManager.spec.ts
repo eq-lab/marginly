@@ -2,9 +2,12 @@ import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { ethers } from 'hardhat';
 import { createMarginlyManager } from './shared/fixtures';
-import { IAction } from '../typechain-types';
+import { IAction, MarginlyManager } from '../typechain-types';
 import { parseUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
+
+type SubscriptionOpts = MarginlyManager.SubscriptionOptsStruct;
+type ActionArgs = IAction.ActionArgsStruct;
 
 describe('MarginlyManager', () => {
   it('create MarginlyManager', async () => {
@@ -22,9 +25,9 @@ describe('MarginlyManager', () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: true,
-      callData: '0x0102030405060708',
+      encodedTriggerData: '0x0102030405060708',
     };
 
     let storedSubOptions = await marginlyManager.subscriptions(
@@ -33,7 +36,7 @@ describe('MarginlyManager', () => {
       testAction.address
     );
     expect(storedSubOptions.isOneTime).to.be.eq(false);
-    expect(storedSubOptions.callData).to.be.eq('0x');
+    expect(storedSubOptions.encodedTriggerData).to.be.eq('0x');
 
     const tx = await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
     const txReceipt = await tx.wait();
@@ -43,20 +46,20 @@ describe('MarginlyManager', () => {
     expect(subscribedEvent?.args?.at(1).toLowerCase()).to.be.eq(marginlyPool.address.toLowerCase());
     expect(subscribedEvent?.args?.at(2)).to.be.eq(testAction.address);
     expect(subscribedEvent?.args?.at(3)).to.be.eq(subOptions.isOneTime);
-    expect(subscribedEvent?.args?.at(4)).to.be.eq(subOptions.callData);
+    expect(subscribedEvent?.args?.at(4)).to.be.eq(subOptions.encodedTriggerData);
 
     storedSubOptions = await marginlyManager.subscriptions(signer.address, marginlyPool.address, testAction.address);
     expect(storedSubOptions.isOneTime).to.be.eq(subOptions.isOneTime);
-    expect(storedSubOptions.callData).to.be.eq(subOptions.callData);
+    expect(storedSubOptions.encodedTriggerData).to.be.eq(subOptions.encodedTriggerData);
   });
 
   it('subscribe should fail when wrong address passed', async () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: true,
-      callData: '0x0102030405060708',
+      encodedTriggerData: '0x0102030405060708',
     };
 
     await expect(
@@ -72,9 +75,9 @@ describe('MarginlyManager', () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: false,
-      callData: '0x',
+      encodedTriggerData: '0x',
     };
 
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
@@ -85,33 +88,33 @@ describe('MarginlyManager', () => {
       testAction.address
     );
     expect(storedSubOptions.isOneTime).to.be.eq(subOptions.isOneTime);
-    expect(storedSubOptions.callData).to.be.eq(subOptions.callData);
+    expect(storedSubOptions.encodedTriggerData).to.be.eq(subOptions.encodedTriggerData);
 
-    const unsubOpts = {
+    const unsubOpts: SubscriptionOpts = {
       isOneTime: true,
-      callData: '0x',
+      encodedTriggerData: '0x',
     };
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, unsubOpts);
 
     storedSubOptions = await marginlyManager.subscriptions(signer.address, marginlyPool.address, testAction.address);
     expect(storedSubOptions.isOneTime).to.be.eq(unsubOpts.isOneTime);
-    expect(storedSubOptions.callData).to.be.eq(unsubOpts.callData);
+    expect(storedSubOptions.encodedTriggerData).to.be.eq(unsubOpts.encodedTriggerData);
   });
 
   it('should execute action', async () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer, keeper] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: false,
-      callData: '0x01',
+      encodedTriggerData: '0x01',
     };
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
 
-    const actionCallData: IAction.ActionArgsStruct = {
+    const actionCallData: ActionArgs = {
       position: signer.address,
       marginlyPool: marginlyPool.address,
-      callData: ethers.utils.defaultAbiCoder.encode(['bool'], [false]),
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [true, true]),
     };
 
     await marginlyManager.connect(keeper).execute(testAction.address, actionCallData);
@@ -122,23 +125,59 @@ describe('MarginlyManager', () => {
       testAction.address
     );
     expect(storedSubOptions.isOneTime).to.be.eq(subOptions.isOneTime);
-    expect(storedSubOptions.callData).to.be.eq(subOptions.callData);
+    expect(storedSubOptions.encodedTriggerData).to.be.eq(subOptions.encodedTriggerData);
+  });
+
+  it('should fail execution when no subscription', async () => {
+    const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
+    const [, signer, keeper] = await ethers.getSigners();
+
+    const actionCallData: ActionArgs = {
+      position: signer.address,
+      marginlyPool: marginlyPool.address,
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [true, true]),
+    };
+
+    await expect(
+      marginlyManager.connect(keeper).execute(testAction.address, actionCallData)
+    ).to.be.revertedWithCustomError(marginlyManager, 'NoSubscription');
+  });
+
+  it('should fail execution when action is not triggered', async () => {
+    const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
+    const [, signer, keeper] = await ethers.getSigners();
+
+    const subOptions: SubscriptionOpts = {
+      isOneTime: false,
+      encodedTriggerData: '0x01',
+    };
+    await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
+
+    const actionCallData: ActionArgs = {
+      position: signer.address,
+      marginlyPool: marginlyPool.address,
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [true, false]),
+    };
+
+    await expect(
+      marginlyManager.connect(keeper).execute(testAction.address, actionCallData)
+    ).to.be.revertedWithCustomError(marginlyManager, 'ActionNotTriggered');
   });
 
   it('should fail when action failed', async () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer, keeper] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: false,
-      callData: '0x01',
+      encodedTriggerData: '0x01',
     };
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
 
-    const actionCallData: IAction.ActionArgsStruct = {
+    const actionCallData: ActionArgs = {
       position: signer.address,
       marginlyPool: marginlyPool.address,
-      callData: ethers.utils.defaultAbiCoder.encode(['bool'], [true]),
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [false, true]),
     };
 
     await expect(
@@ -150,19 +189,19 @@ describe('MarginlyManager', () => {
     const { marginlyManager, testAction, marginlyPool, quoteToken } = await loadFixture(createMarginlyManager);
     const [signer, keeper] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: false,
-      callData: '0x01',
+      encodedTriggerData: '0x01',
     };
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
 
     const feeAmount: BigNumber = parseUnits('0.234', 18); // 1 token;
     quoteToken.mint(marginlyManager.address, feeAmount);
 
-    const actionCallData: IAction.ActionArgsStruct = {
+    const actionCallData: ActionArgs = {
       position: signer.address,
       marginlyPool: marginlyPool.address,
-      callData: ethers.utils.defaultAbiCoder.encode(['bool'], [false]),
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [true, true]),
     };
 
     const keeperBalanceBefore: BigNumber = await quoteToken.balanceOf(keeper.address);
@@ -176,16 +215,16 @@ describe('MarginlyManager', () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [, signer, keeper] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: true,
-      callData: '0x01',
+      encodedTriggerData: '0x01',
     };
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
 
-    const actionCallData: IAction.ActionArgsStruct = {
+    const actionCallData: ActionArgs = {
       position: signer.address,
       marginlyPool: marginlyPool.address,
-      callData: ethers.utils.defaultAbiCoder.encode(['bool'], [false]),
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [true, true]),
     };
 
     await marginlyManager.connect(keeper).execute(testAction.address, actionCallData);
@@ -196,7 +235,7 @@ describe('MarginlyManager', () => {
       testAction.address
     );
     expect(storedSubOptions.isOneTime).to.be.eq(false);
-    expect(storedSubOptions.callData).to.be.eq('0x');
+    expect(storedSubOptions.encodedTriggerData).to.be.eq('0x');
   });
 
   it('only owner could add or remove action', async () => {
@@ -235,16 +274,16 @@ describe('MarginlyManager', () => {
     const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
     const [owner, signer, keeper] = await ethers.getSigners();
 
-    const subOptions = {
+    const subOptions: SubscriptionOpts = {
       isOneTime: false,
-      callData: '0x01',
+      encodedTriggerData: '0x01',
     };
     await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
 
-    const actionCallData: IAction.ActionArgsStruct = {
+    const actionCallData: ActionArgs = {
       position: signer.address,
       marginlyPool: marginlyPool.address,
-      callData: ethers.utils.defaultAbiCoder.encode(['bool'], [false]),
+      callData: ethers.utils.defaultAbiCoder.encode(['bool', 'bool'], [true, true]),
     };
 
     await marginlyManager.connect(keeper).execute(testAction.address, actionCallData);

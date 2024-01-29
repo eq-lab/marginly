@@ -20,7 +20,7 @@ contract MarginlyManager is Ownable2Step {
     address indexed marginlyPool,
     address indexed action,
     bool isOneTime,
-    bytes subCallData
+    bytes encodedTriggerData
   );
 
   event ActionAdded(address indexed action, bool added);
@@ -33,9 +33,9 @@ contract MarginlyManager is Ownable2Step {
     bytes result
   );
 
-  struct SubOptions {
+  struct SubscriptionOpts {
     bool isOneTime;
-    bytes callData;
+    bytes encodedTriggerData;
   }
 
   /// @notice Address of marginly factory
@@ -44,8 +44,8 @@ contract MarginlyManager is Ownable2Step {
   /// @notice Available actions
   mapping(address => bool) public actions;
 
-  /// @notice Subscriptions on actions. Key: position => marginlyPool => action => subOptions;
-  mapping(address => mapping(address => mapping(address => SubOptions))) public subscriptions;
+  /// @notice Subscription - is allowance to make an action for position in marginlyPool. Key: position => marginlyPool => action => subOptions;
+  mapping(address => mapping(address => mapping(address => SubscriptionOpts))) public subscriptions;
 
   /// @dev reentrancy guard
   bool private locked;
@@ -81,13 +81,13 @@ contract MarginlyManager is Ownable2Step {
   /// @param marginlyPool Address of marginly pool
   /// @param action Address of action contract
   /// @param subOptions Subscription options
-  function subscribe(address marginlyPool, address action, SubOptions calldata subOptions) external {
+  function subscribe(address marginlyPool, address action, SubscriptionOpts calldata subOptions) external {
     if (!actions[action]) revert ActionNotAvailable();
     if (!IMarginlyFactory(marginlyFactory).isPoolExists(marginlyPool)) revert UnknownMarginlyPool();
 
     subscriptions[msg.sender][marginlyPool][action] = subOptions;
 
-    emit Subscribed(msg.sender, marginlyPool, action, subOptions.isOneTime, subOptions.callData);
+    emit Subscribed(msg.sender, marginlyPool, action, subOptions.isOneTime, subOptions.encodedTriggerData);
   }
 
   /// @notice Execute action
@@ -96,10 +96,10 @@ contract MarginlyManager is Ownable2Step {
   function execute(address action, IAction.ActionArgs calldata actionArgs) external lock {
     if (!actions[action]) revert ActionNotAvailable();
 
-    SubOptions memory subOptions = subscriptions[actionArgs.position][actionArgs.marginlyPool][action];
-    if (subOptions.callData.length == 0) revert NoSubscription();
+    SubscriptionOpts memory subOptions = subscriptions[actionArgs.position][actionArgs.marginlyPool][action];
+    if (subOptions.encodedTriggerData.length == 0) revert NoSubscription();
 
-    if (!IAction(action).isTriggered(actionArgs, subOptions.callData)) revert ActionNotTriggered();
+    if (!IAction(action).isTriggered(actionArgs, subOptions.encodedTriggerData)) revert ActionNotTriggered();
 
     (bool success, bytes memory result) = action.delegatecall(
       abi.encodeWithSignature('execute((address,address,bytes),bytes)', actionArgs, subOptions)

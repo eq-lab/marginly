@@ -10,11 +10,11 @@ interface IAction {
 
   /// @dev Returns true if conditions for execution met
   /// @param actionArgs action calldata
-  /// @param subCallData stored calldata
-  function isTriggered(ActionArgs calldata actionArgs, bytes calldata subCallData) external view returns (bool);
+  /// @param encodedTriggerData encoded trigger data stored with subscription options
+  function isTriggered(ActionArgs calldata actionArgs, bytes calldata encodedTriggerData) external view returns (bool);
 
   /// @dev Execute action
   /// @param actionArgs action calldata
-  /// @param subCallData stored calldata
-  function execute(ActionArgs calldata actionArgs, bytes calldata subCallData) external returns (bytes memory);
+  /// @param encodedTriggerData encoded trigger data stored with subscription options
+  function execute(ActionArgs calldata actionArgs, bytes calldata encodedTriggerData) external returns (bytes memory);
 }
