@@ -706,6 +706,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 discountedCollateralDelta;
     address collateralToken;
     uint256 swapPriceX96;
+    uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
     if (position._type == PositionType.Short) {
       collateralToken = quoteToken;
 
@@ -724,7 +725,6 @@ contract MarginlyPool is IMarginlyPool {
         swapPriceX96 = getSwapPrice(realCollateralDelta, realBaseDebt);
 
         uint256 realFeeAmount = Math.mulDiv(params.swapFee, realCollateralDelta, WHOLE_ONE);
-        uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
         chargeFee(realFeeAmount, managerFee);
 
         realCollateralDelta = realCollateralDelta.add(realFeeAmount).add(managerFee);
@@ -748,7 +748,6 @@ contract MarginlyPool is IMarginlyPool {
       uint256 realQuoteDebt = quoteDebtCoeff.mul(positionDiscountedQuoteDebtPrev, Math.Rounding.Up);
 
       uint256 realFeeAmount = Math.mulDiv(params.swapFee, realQuoteDebt, WHOLE_ONE);
-      uint256 managerFee = msg.sender == positionOwner ? 0 : params.managerFee;
       uint256 exactQuoteOut = realQuoteDebt.add(realFeeAmount).add(managerFee);
 
       {
@@ -1468,12 +1467,14 @@ contract MarginlyPool is IMarginlyPool {
 
     if (mode != Mode.Regular) revert Errors.EmergencyMode();
 
-    address positionOwner = msg.sender;
-    if (positionOwner == IMarginlyFactory(factory).manager()) {
+    address positionOwner;
+    if (msg.sender == IMarginlyFactory(factory).manager()) {
       if (call != CallType.Long && call != CallType.Short && call != CallType.ClosePosition) {
         revert Errors.Forbidden();
       }
       positionOwner = positionAddress;
+    } else {
+      positionOwner = msg.sender;
     }
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit(positionOwner);
