@@ -261,10 +261,13 @@ export async function createMarginlyManager(): Promise<{
   const marginlyPool = await (await ethers.getContractFactory('TestMarginlyPool', owner)).deploy(quoteToken.address);
   await marginlyFactory.addPool(marginlyPool.address);
 
+  const testAction = await (await ethers.getContractFactory('TestAction', owner)).deploy();
+
   const marginlyManager = await (
     await ethers.getContractFactory('MarginlyManager', owner)
   ).deploy(marginlyFactory.address);
-  const testAction = await (await ethers.getContractFactory('TestAction', owner)).deploy();
+
+  await marginlyManager.addAction(testAction.address, true);
 
   return { marginlyManager, testAction, marginlyPool, quoteToken };
 }

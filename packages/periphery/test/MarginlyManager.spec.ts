@@ -65,7 +65,7 @@ describe('MarginlyManager', () => {
 
     await expect(
       marginlyManager.connect(signer).subscribe(marginlyPool.address, ethers.constants.AddressZero, subOptions)
-    ).to.be.revertedWithCustomError(marginlyManager, 'ZeroAddress');
+    ).to.be.revertedWithCustomError(marginlyManager, 'ActionNotAvailable');
   });
 
   it('unsubscribe from action', async () => {
@@ -197,5 +197,62 @@ describe('MarginlyManager', () => {
     );
     expect(storedSubOptions.isOneTime).to.be.eq(false);
     expect(storedSubOptions.callData).to.be.eq('0x');
+  });
+
+  it('only owner could add or remove action', async () => {
+    const { marginlyManager } = await loadFixture(createMarginlyManager);
+    const [owner, signer] = await ethers.getSigners();
+
+    const newActionAddress = '0xAB8434A8aB1586F3DA45eE0141731ca09eD0E533';
+
+    await expect(marginlyManager.connect(signer).addAction(newActionAddress, true)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+    await expect(marginlyManager.connect(signer).addAction(newActionAddress, false)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+
+    let tx = await marginlyManager.connect(owner).addAction(newActionAddress, true);
+    let txReceipt = await tx.wait();
+    let actionAddedEvent = txReceipt.events?.filter((x) => x.event === 'ActionAdded')[0];
+
+    expect(actionAddedEvent?.args?.at(0).toLowerCase()).to.be.eq(newActionAddress.toLocaleLowerCase());
+    expect(actionAddedEvent?.args?.at(1)).to.be.eq(true);
+
+    expect(await marginlyManager.actions(newActionAddress)).to.be.true;
+
+    tx = await marginlyManager.connect(owner).addAction(newActionAddress, false);
+    txReceipt = await tx.wait();
+    actionAddedEvent = txReceipt.events?.filter((x) => x.event === 'ActionAdded')[0];
+
+    expect(actionAddedEvent?.args?.at(0).toLowerCase()).to.be.eq(newActionAddress.toLocaleLowerCase());
+    expect(actionAddedEvent?.args?.at(1)).to.be.eq(false);
+
+    expect(await marginlyManager.actions(newActionAddress)).to.be.false;
+  });
+
+  it('should not execute deleted action', async () => {
+    const { marginlyManager, testAction, marginlyPool } = await loadFixture(createMarginlyManager);
+    const [owner, signer, keeper] = await ethers.getSigners();
+
+    const subOptions = {
+      isOneTime: false,
+      callData: '0x01',
+    };
+    await marginlyManager.connect(signer).subscribe(marginlyPool.address, testAction.address, subOptions);
+
+    const actionCallData: IAction.ActionArgsStruct = {
+      position: signer.address,
+      marginlyPool: marginlyPool.address,
+      callData: ethers.utils.defaultAbiCoder.encode(['bool'], [false]),
+    };
+
+    await marginlyManager.connect(keeper).execute(testAction.address, actionCallData);
+
+    await marginlyManager.connect(owner).addAction(testAction.address, false);
+
+    await expect(
+      marginlyManager.connect(keeper).execute(testAction.address, actionCallData)
+    ).to.be.revertedWithCustomError(marginlyManager, 'ActionNotAvailable');
   });
 });

@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyPool.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
-
 import './interfaces/IAction.sol';
 
-contract MarginlyManager {
+contract MarginlyManager is Ownable2Step {
   error ZeroAddress();
   error UnknownMarginlyPool();
   error ActionFailed();
   error ActionNotTriggered();
+  error ActionNotAvailable();
   error NoSubscription();
 
   event Subscribed(
@@ -21,6 +22,8 @@ contract MarginlyManager {
     bool isOneTime,
     bytes subCallData
   );
+
+  event ActionAdded(address indexed action, bool added);
 
   event ActionExecuted(
     address indexed position,
@@ -36,9 +39,12 @@ contract MarginlyManager {
   }
 
   /// @notice Address of marginly factory
-  address public marginlyFactory;
+  address public immutable marginlyFactory;
 
-  /// @notice Subscriptions on actions. Key position => marginlyPool => action => subCallData;
+  /// @notice Available actions
+  mapping(address => bool) public actions;
+
+  /// @notice Subscriptions on actions. Key: position => marginlyPool => action => subOptions;
   mapping(address => mapping(address => mapping(address => SubOptions))) public subscriptions;
 
   /// @dev reentrancy guard
@@ -62,13 +68,21 @@ contract MarginlyManager {
     delete locked;
   }
 
+  /// @notice Adds an action
+  /// @param action Action address
+  /// @param addFlag true - to add action, false - to delete action
+  function addAction(address action, bool addFlag) external onlyOwner {
+    actions[action] = addFlag;
+    emit ActionAdded(action, addFlag);
+  }
+
   /// @notice Subscribe msg.sender position to action
   /// @dev To unsubscribe pass default subOptions
   /// @param marginlyPool Address of marginly pool
   /// @param action Address of action contract
   /// @param subOptions Subscription options
   function subscribe(address marginlyPool, address action, SubOptions calldata subOptions) external {
-    if (action == address(0)) revert ZeroAddress();
+    if (!actions[action]) revert ActionNotAvailable();
     if (!IMarginlyFactory(marginlyFactory).isPoolExists(marginlyPool)) revert UnknownMarginlyPool();
 
     subscriptions[msg.sender][marginlyPool][action] = subOptions;
@@ -80,6 +94,8 @@ contract MarginlyManager {
   /// @param action Address of action
   /// @param actionArgs Action arguments
   function execute(address action, IAction.ActionArgs calldata actionArgs) external lock {
+    if (!actions[action]) revert ActionNotAvailable();
+
     SubOptions memory subOptions = subscriptions[actionArgs.position][actionArgs.marginlyPool][action];
     if (subOptions.callData.length == 0) revert NoSubscription();
 
