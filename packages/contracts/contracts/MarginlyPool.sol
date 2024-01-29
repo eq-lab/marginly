@@ -1455,11 +1455,11 @@ contract MarginlyPool is IMarginlyPool {
     uint256 amount2,
     uint256 limitPriceX96,
     bool flag,
-    address receivePositionAddress,
+    address positionAddress,
     uint256 swapCalldata
   ) external payable override lock {
     if (call == CallType.ReceivePosition) {
-      receivePosition(receivePositionAddress, amount1, amount2);
+      receivePosition(positionAddress, amount1, amount2);
       return;
     } else if (call == CallType.EmergencyWithdraw) {
       emergencyWithdraw(flag);
@@ -1473,7 +1473,7 @@ contract MarginlyPool is IMarginlyPool {
       if (call != CallType.Long && call != CallType.Short && call != CallType.ClosePosition) {
         revert Errors.Forbidden();
       }
-      positionOwner = receivePositionAddress;
+      positionOwner = positionAddress;
     }
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit(positionOwner);

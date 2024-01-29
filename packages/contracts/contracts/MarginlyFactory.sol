@@ -24,7 +24,7 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
   address public immutable override WETH9;
   /// @notice Technical position address
   address public immutable override techPositionOwner;
-
+  /// @notice Address of manager contract
   address public immutable override manager;
 
   constructor(
