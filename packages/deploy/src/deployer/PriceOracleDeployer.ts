@@ -1,12 +1,28 @@
 import { EthAddress } from '@marginly/common';
 import { UniswapV3TickDoubleOracleConfig, UniswapV3TickOracleConfig } from './configs';
 import { DeployResult, ITokenRepository } from '../common/interfaces';
-import { Signer, ethers } from 'ethers';
+import { BigNumber, Signer, ethers } from 'ethers';
 import { EthOptions } from '../config';
 import { StateStore } from '../common';
 import { Logger } from '../logger';
 import { createMarginlyPeripheryOracleReader } from './contract-reader';
 import { BaseDeployer } from './BaseDeployer';
+
+type OracleParams = {
+  initialized: boolean;
+  secondsAgo: BigNumber;
+  secondsAgoLiquidation: BigNumber;
+  uniswapFee: BigNumber;
+};
+
+type OracleDoubleParams = {
+  initialized: boolean;
+  secondsAgo: BigNumber;
+  secondsAgoLiquidation: BigNumber;
+  baseTokenPairFee: BigNumber;
+  quoteTokenPairFee: BigNumber;
+  intermediateToken: string;
+};
 
 export class PriceOracleDeployer extends BaseDeployer {
   private readonly readMarginlyPeripheryOracleContract;
@@ -33,20 +49,26 @@ export class PriceOracleDeployer extends BaseDeployer {
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      const secondsAgo = setting.secondsAgo.toSeconds();
+      const secondsAgoLiquidation = setting.secondsAgoLiquidation.toSeconds();
+      const uniswapFee = this.toUniswapFee(setting.uniswapFee);
 
-      const encodedOptions = ethers.utils.defaultAbiCoder.encode(
-        ['uint16', 'uint16', 'uint24'],
-        [
-          setting.secondsAgo.toSeconds(),
-          setting.secondsAgoLiquidation.toSeconds(),
-          this.toUniswapFee(setting.uniswapFee),
-        ]
-      );
-
-      const currentEncodedOptions = await priceOracle.getParamsEncoded(quoteToken.toString(), baseToken.toString());
-      if (currentEncodedOptions != encodedOptions) {
+      const currentParams: OracleParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+      if (
+        !currentParams.initialized ||
+        !currentParams.secondsAgo.eq(secondsAgo) ||
+        !currentParams.secondsAgoLiquidation.eq(secondsAgoLiquidation) ||
+        !currentParams.uniswapFee.eq(uniswapFee)
+      ) {
         this.logger.log(`Set oracle ${config.id} options`);
-        await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), encodedOptions);
+
+        await priceOracle.setOptions(
+          quoteToken.toString(),
+          baseToken.toString(),
+          secondsAgo,
+          secondsAgoLiquidation,
+          uniswapFee
+        );
       }
 
       this.logger.log(`Check oracle ${config.id}`);
@@ -79,21 +101,34 @@ export class PriceOracleDeployer extends BaseDeployer {
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
       const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
 
-      const encodedOptions = ethers.utils.defaultAbiCoder.encode(
-        ['uint16', 'uint16', 'uint24', 'uint24', 'address'],
-        [
-          setting.secondsAgo.toSeconds(),
-          setting.secondsAgoLiquidation.toSeconds(),
-          this.toUniswapFee(setting.baseTokenPairFee),
-          this.toUniswapFee(setting.quoteTokenPairFee),
-          intermediateToken.toString(),
-        ]
+      const secondsAgo = setting.secondsAgo.toSeconds();
+      const secondsAgoLiquidation = setting.secondsAgoLiquidation.toSeconds();
+      const baseTokenPairFee = this.toUniswapFee(setting.baseTokenPairFee);
+      const quoteTokenPairFee = this.toUniswapFee(setting.quoteTokenPairFee);
+
+      const currentParams: OracleDoubleParams = await priceOracle.getParamsEncoded(
+        quoteToken.toString(),
+        baseToken.toString()
       );
 
-      const currentEncodedOptions = await priceOracle.getParamsEncoded(quoteToken.toString(), baseToken.toString());
-      if (currentEncodedOptions != encodedOptions) {
+      if (
+        !currentParams.initialized ||
+        !currentParams.secondsAgo.eq(secondsAgo) ||
+        !currentParams.secondsAgoLiquidation.eq(secondsAgoLiquidation) ||
+        !currentParams.baseTokenPairFee.eq(baseTokenPairFee) ||
+        !currentParams.quoteTokenPairFee.eq(quoteTokenPairFee) ||
+        currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
+      ) {
         this.logger.log(`Set oracle ${config.id} options`);
-        await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), encodedOptions);
+        await priceOracle.setOptions(
+          quoteToken.toString(),
+          baseToken.toString(),
+          secondsAgo,
+          secondsAgoLiquidation,
+          baseTokenPairFee,
+          quoteTokenPairFee,
+          intermediateToken.toString()
+        );
       }
 
       this.logger.log(`Check oracle ${config.id}`);
