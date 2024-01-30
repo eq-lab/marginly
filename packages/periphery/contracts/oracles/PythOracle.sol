@@ -8,19 +8,12 @@ import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
-contract PythOracle is IPriceOracle, Ownable2Step {
-    error InvalidTokenAddress();
-    error BaseAndQuoteMustBeDifferent();
-    error InvalidPrice();
-    error UnknownPair();
+import './CompositeOracle.sol';
 
+contract PythOracle is IPriceOracle, CompositeOracle, Ownable2Step {
     struct OracleParams {
         bytes32 tokenPriceId;
-        bool isInitialized;
-        bool isReverse;
     }
-
-    uint256 private constant X96ONE = 79228162514264337593543950336;
 
     IPyth public immutable pyth;
     mapping(address => mapping(address => OracleParams)) public getParams;
@@ -29,48 +22,48 @@ contract PythOracle is IPriceOracle, Ownable2Step {
         pyth = IPyth(_pyth);
     }
 
-    function setOptions(
+    function setPair(
         address quoteToken,
         address baseToken,
         bytes32 tokenPriceId
     ) external onlyOwner {
-        if (quoteToken == baseToken) revert BaseAndQuoteMustBeDifferent();
-        if (quoteToken == address(0)) revert InvalidTokenAddress();
-        if (baseToken == address(0)) revert InvalidTokenAddress();
+        _setCommonPair(quoteToken, baseToken);
 
         getParams[quoteToken][baseToken] = OracleParams({
-            tokenPriceId: tokenPriceId,
-            isInitialized: true,
-            isReverse: false
+            tokenPriceId: tokenPriceId
         });
         getParams[baseToken][quoteToken] = OracleParams({
-            tokenPriceId: tokenPriceId,
-            isInitialized: true,
-            isReverse: true
+            tokenPriceId: tokenPriceId
         });
+    }
+
+    function setCompositePair(
+        address quoteToken,
+        address intermediateToken,
+        address baseToken
+    ) external onlyOwner {
+        _setCompositePair(quoteToken, intermediateToken, baseToken);
     }
 
     function getBalancePrice(
         address quoteToken,
         address baseToken
     ) external view returns (uint256) {
-        return getPrice(quoteToken, baseToken);
+        return _getPrice(quoteToken, baseToken);
     }
 
     function getMargincallPrice(
         address quoteToken,
         address baseToken
     ) external view returns (uint256) {
-        return getPrice(quoteToken, baseToken);
+        return _getPrice(quoteToken, baseToken);
     }
 
-    function getPrice(
+    function getRationalPrice(
         address quoteToken,
         address baseToken
-    ) private view returns (uint256) {
+    ) internal override view returns (uint256, uint256) {
         OracleParams memory params = getParams[quoteToken][baseToken];
-
-        if (!params.isInitialized) revert UnknownPair();
 
         PythStructs.Price memory currentPrice = pyth.getPrice(
             params.tokenPriceId
@@ -78,7 +71,7 @@ contract PythOracle is IPriceOracle, Ownable2Step {
 
         int expo = currentPrice.expo;
         bool isNegativeExpo = expo < 0;
-        uint absExpo = uint(expo < 0 ? -expo : expo);
+        uint absExpo = uint(expo < 0 ? - expo : expo);
 
         if (currentPrice.price < 0) revert InvalidPrice();
         uint price = uint(int(currentPrice.price));
@@ -86,10 +79,6 @@ contract PythOracle is IPriceOracle, Ownable2Step {
         uint priceNom = isNegativeExpo ? price : price * 10 ** absExpo;
         uint priceDenom = isNegativeExpo ? 10 ** absExpo : 1;
 
-        if (params.isReverse) {
-            return Math.mulDiv(priceDenom, X96ONE, priceNom);
-        } else {
-            return Math.mulDiv(priceNom, X96ONE, priceDenom);
-        }
+        return (priceNom, priceDenom);
     }
 }

@@ -7,63 +7,57 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
-contract ChainlinkOracle is IPriceOracle, Ownable2Step {
-    error InvalidTokenAddress();
-    error BaseAndQuoteMustBeDifferent();
-    error InvalidPrice();
-    error InvalidDataFeed();
-    error UnknownPair();
+import './CompositeOracle.sol';
 
+contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step {
     struct OracleParams {
         AggregatorV3Interface dataFeed;
-        bool isReverse;
     }
-
-    uint256 private constant X96ONE = 79228162514264337593543950336;
 
     mapping(address => mapping(address => OracleParams)) public getParams;
 
-    function setOptions(
+    function setPair(
         address quoteToken,
         address baseToken,
         address dataFeed
     ) external onlyOwner {
-        if (quoteToken == baseToken) revert BaseAndQuoteMustBeDifferent();
-        if (quoteToken == address(0)) revert InvalidTokenAddress();
-        if (baseToken == address(0)) revert InvalidTokenAddress();
-        if (dataFeed == address(0)) revert InvalidDataFeed();
+        _setCommonPair(quoteToken, baseToken);
 
         getParams[quoteToken][baseToken] = OracleParams({
-            dataFeed: AggregatorV3Interface(dataFeed),
-            isReverse: false
+            dataFeed: AggregatorV3Interface(dataFeed)
         });
         getParams[baseToken][quoteToken] = OracleParams({
-            dataFeed: AggregatorV3Interface(dataFeed),
-            isReverse: true
+            dataFeed: AggregatorV3Interface(dataFeed)
         });
+    }
+
+    function setCompositePair(
+        address quoteToken,
+        address intermediateToken,
+        address baseToken
+    ) external onlyOwner {
+        _setCompositePair(quoteToken, intermediateToken, baseToken);
     }
 
     function getBalancePrice(
         address quoteToken,
         address baseToken
     ) external view returns (uint256) {
-        return getPrice(quoteToken, baseToken);
+        return _getPrice(quoteToken, baseToken);
     }
 
     function getMargincallPrice(
         address quoteToken,
         address baseToken
     ) external view returns (uint256) {
-        return getPrice(quoteToken, baseToken);
+        return _getPrice(quoteToken, baseToken);
     }
 
-    function getPrice(
+    function getRationalPrice(
         address quoteToken,
         address baseToken
-    ) private view returns (uint256) {
+    ) internal override view returns (uint256, uint256) {
         OracleParams memory params = getParams[quoteToken][baseToken];
-
-        if (address(params.dataFeed) == address(0)) revert UnknownPair();
 
         (
         /* uint80 roundID */,
@@ -76,10 +70,6 @@ contract ChainlinkOracle is IPriceOracle, Ownable2Step {
 
         uint8 decimals = params.dataFeed.decimals();
 
-        if (params.isReverse) {
-            return Math.mulDiv(10 ** decimals, X96ONE, uint(answer));
-        } else {
-            return Math.mulDiv(uint(answer), X96ONE, 10 ** decimals);
-        }
+        return (uint256(answer), 10 ** decimals);
     }
 }
