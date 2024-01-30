@@ -35,6 +35,9 @@ const config = {
     arbitrumSepolia: {
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
     },
+    x1Testnet: {
+      url: 'https://x1-testnet.blockpi.network/v1/rpc/public',
+    },
   },
   etherscan: {
     apiKey: {
@@ -42,6 +45,7 @@ const config = {
       arbitrumGoerli: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
       arbitrumSepolia: process.env.API_KEY,
+      x1Testnet: process.env.API_KEY,
     },
     customChains: [
       {
@@ -50,6 +54,14 @@ const config = {
         urls: {
           apiURL: 'https://api-sepolia.arbiscan.io/api',
           browserURL: 'https://sepolia.arbiscan.io/',
+        },
+      },
+      {
+        network: 'x1Testnet',
+        chainId: 195,
+        urls: {
+          apiURL: 'https://www.oklink.com/api/v5/explorer/contract/verify-source-code',
+          browserURL: 'https://www.okx.com/explorer/x1-test/',
         },
       },
     ],
