@@ -12,12 +12,16 @@ import {loadConfig, parseConfig} from "./config";
 import { stdOutWriter } from '@marginly/logger-node';
 import { PricesRepository } from './repository/prices';
 import { WorkerManager } from './worker/manager';
+import { config as dotEnvConfig } from 'dotenv';
+
+
 
 function createLogFormatter(format: 'text' | 'json'): LogFormatter {
     return format === 'text' ? textFormatter : jsonFormatter;
 }
 
 async function main(): Promise<void> {
+    dotEnvConfig();
     const config = parseConfig(loadConfig());
 
     const rootLogger = createRootLogger(
