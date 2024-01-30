@@ -409,6 +409,41 @@
           "periodMs": 60000
         }
       ]
+    },
+    {
+      "id": "x1Testnet",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://x1-testnet.blockpi.network/v1/rpc/public"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0xE4Aca502d05Ca25862ffF831fA90CeCd5241f62a",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x29A7425B0c1d44D5046E10B24821ea859215168c",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x73956b3b0c279e9cF2700F91B2e48E4eC0C8F281",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 60000
+        }
+      ]
     }
   ]
 }
