@@ -902,11 +902,10 @@ contract MarginlyPool is IMarginlyPool {
 
     bool isLong = _type == PositionType.Long;
 
+    uint256 posDiscountedBaseColl = position.discountedBaseAmount;
     uint256 posDiscountedQuoteDebt = isLong ? position.discountedQuoteAmount : 0;
-    uint256 baseAmountIn = calcRealBaseCollateral(position.discountedBaseAmount, posDiscountedQuoteDebt);
+    uint256 baseAmountIn = calcRealBaseCollateral(posDiscountedBaseColl, posDiscountedQuoteDebt);
     if (baseAmountIn == 0) return;
-
-    uint256 realQuoteDebt = quoteDebtCoeff.mul(posDiscountedQuoteDebt);
 
     uint256 quoteAmountOut = swapExactInput(
       false,
@@ -918,21 +917,20 @@ contract MarginlyPool is IMarginlyPool {
     chargeFee(fee);
 
     uint256 quoteOutSubFee = quoteAmountOut.sub(fee);
+    uint256 realQuoteDebt = quoteDebtCoeff.mul(posDiscountedQuoteDebt);
     uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteOutSubFee.sub(realQuoteDebt));
 
-    uint256 discountedBaseCollateralDelta = position.discountedBaseAmount;
-    discountedBaseCollateral -= discountedBaseCollateralDelta;
+    discountedBaseCollateral -= posDiscountedBaseColl;
     position.discountedBaseAmount = 0;
     discountedQuoteCollateral += discountedQuoteCollateralDelta;
     if (isLong) {
-      uint256 discountedQuoteDebtDelta = position.discountedQuoteAmount;
-      discountedQuoteDebt -= discountedQuoteDebtDelta;
+      discountedQuoteDebt -= posDiscountedQuoteDebt;
       position.discountedQuoteAmount = discountedQuoteCollateralDelta;
 
       position._type = PositionType.Lend;
       uint32 heapIndex = position.heapPosition - 1;
       longHeap.remove(positions, heapIndex);
-      emit QuoteDebtRepaid(msg.sender, realQuoteDebt, discountedQuoteDebtDelta);
+      emit QuoteDebtRepaid(msg.sender, realQuoteDebt, posDiscountedQuoteDebt);
     } else {
       position.discountedQuoteAmount += discountedQuoteCollateralDelta;
     }
@@ -941,7 +939,7 @@ contract MarginlyPool is IMarginlyPool {
       msg.sender,
       baseAmountIn,
       quoteOutSubFee,
-      discountedBaseCollateralDelta,
+      posDiscountedBaseColl,
       discountedQuoteCollateralDelta
     );
   }
@@ -956,14 +954,13 @@ contract MarginlyPool is IMarginlyPool {
 
     bool isShort = _type == PositionType.Short;
 
+    uint256 posDiscountedQuoteColl = position.discountedQuoteAmount;
     uint256 posDiscountedBaseDebt = isShort ? position.discountedBaseAmount : 0;
-    uint256 quoteAmountIn = calcRealQuoteCollateral(position.discountedQuoteAmount, posDiscountedBaseDebt);
+    uint256 quoteAmountIn = calcRealQuoteCollateral(posDiscountedQuoteColl, posDiscountedBaseDebt);
     if (quoteAmountIn == 0) return;
 
     uint256 fee = Math.mulDiv(params.swapFee, quoteAmountIn, WHOLE_ONE);
     uint256 quoteInSubFee = quoteAmountIn.sub(fee);
-
-    uint256 realBaseDebt = baseDebtCoeff.mul(posDiscountedBaseDebt);
 
     uint256 baseAmountOut = swapExactInput(
       true,
@@ -973,21 +970,20 @@ contract MarginlyPool is IMarginlyPool {
     );
     chargeFee(fee);
 
+    uint256 realBaseDebt = baseDebtCoeff.mul(posDiscountedBaseDebt);
     uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmountOut.sub(realBaseDebt));
 
-    uint256 discountedQuoteCollateralDelta = position.discountedQuoteAmount;
-    discountedQuoteCollateral -= discountedQuoteCollateralDelta;
+    discountedQuoteCollateral -= posDiscountedQuoteColl;
     position.discountedQuoteAmount = 0;
     discountedBaseCollateral += discountedBaseCollateralDelta;
     if (isShort) {
-      uint256 discountedQuoteDebtDelta = position.discountedBaseAmount;
-      discountedBaseDebt -= discountedQuoteDebtDelta;
+      discountedBaseDebt -= posDiscountedBaseDebt;
       position.discountedBaseAmount = discountedBaseCollateralDelta;
 
       position._type = PositionType.Lend;
       uint32 heapIndex = position.heapPosition - 1;
       shortHeap.remove(positions, heapIndex);
-      emit BaseDebtRepaid(msg.sender, realBaseDebt, discountedQuoteDebtDelta);
+      emit BaseDebtRepaid(msg.sender, realBaseDebt, posDiscountedBaseDebt);
     } else {
       position.discountedBaseAmount += discountedBaseCollateralDelta;
     }
@@ -995,7 +991,7 @@ contract MarginlyPool is IMarginlyPool {
       msg.sender,
       quoteInSubFee,
       baseAmountOut,
-      discountedQuoteCollateralDelta,
+      posDiscountedQuoteColl,
       discountedBaseCollateralDelta
     );
   }
