@@ -908,28 +908,42 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realQuoteDebt = quoteDebtCoeff.mul(posDiscountedQuoteDebt);
 
-    uint256 minQuoteOut = Math.mulDiv(limitPriceX96, baseAmountIn, FP96.Q96);
-    uint256 quoteAmountOut = swapExactInput(false, baseAmountIn, minQuoteOut, swapCalldata);
+    uint256 quoteAmountOut = swapExactInput(
+      false,
+      baseAmountIn,
+      Math.mulDiv(limitPriceX96, baseAmountIn, FP96.Q96),
+      swapCalldata
+    );
     uint256 fee = Math.mulDiv(params.swapFee, quoteAmountOut, WHOLE_ONE);
     chargeFee(fee);
 
     uint256 quoteOutSubFee = quoteAmountOut.sub(fee);
     uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteOutSubFee.sub(realQuoteDebt));
 
-    discountedBaseCollateral -= position.discountedBaseAmount;
+    uint256 discountedBaseCollateralDelta = position.discountedBaseAmount;
+    discountedBaseCollateral -= discountedBaseCollateralDelta;
     position.discountedBaseAmount = 0;
     discountedQuoteCollateral += discountedQuoteCollateralDelta;
     if (isLong) {
-      discountedQuoteDebt -= position.discountedQuoteAmount;
+      uint256 discountedQuoteDebtDelta = position.discountedQuoteAmount;
+      discountedQuoteDebt -= discountedQuoteDebtDelta;
       position.discountedQuoteAmount = discountedQuoteCollateralDelta;
 
       position._type = PositionType.Lend;
       uint32 heapIndex = position.heapPosition - 1;
       longHeap.remove(positions, heapIndex);
+      emit QuoteDebtRepaid(msg.sender, realQuoteDebt, discountedQuoteDebtDelta);
     } else {
       position.discountedQuoteAmount += discountedQuoteCollateralDelta;
     }
-    emit SellBaseForQuote(msg.sender, baseAmountIn, quoteOutSubFee, discountedQuoteCollateralDelta);
+
+    emit SellBaseForQuote(
+      msg.sender,
+      baseAmountIn,
+      quoteOutSubFee,
+      discountedBaseCollateralDelta,
+      discountedQuoteCollateralDelta
+    );
   }
 
   /// @notice sells all the quote tokens from lend position for base ones
@@ -951,26 +965,39 @@ contract MarginlyPool is IMarginlyPool {
 
     uint256 realBaseDebt = baseDebtCoeff.mul(posDiscountedBaseDebt);
 
-    uint256 minBaseOut = Math.mulDiv(FP96.Q96, quoteInSubFee, limitPriceX96);
-    uint256 baseAmountOut = swapExactInput(true, quoteInSubFee, minBaseOut, swapCalldata);
+    uint256 baseAmountOut = swapExactInput(
+      true,
+      quoteInSubFee,
+      Math.mulDiv(FP96.Q96, quoteInSubFee, limitPriceX96),
+      swapCalldata
+    );
     chargeFee(fee);
 
     uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmountOut.sub(realBaseDebt));
 
-    discountedQuoteCollateral -= position.discountedQuoteAmount;
+    uint256 discountedQuoteCollateralDelta = position.discountedQuoteAmount;
+    discountedQuoteCollateral -= discountedQuoteCollateralDelta;
     position.discountedQuoteAmount = 0;
     discountedBaseCollateral += discountedBaseCollateralDelta;
     if (isShort) {
-      discountedBaseDebt -= position.discountedBaseAmount;
+      uint256 discountedQuoteDebtDelta = position.discountedBaseAmount;
+      discountedBaseDebt -= discountedQuoteDebtDelta;
       position.discountedBaseAmount = discountedBaseCollateralDelta;
 
       position._type = PositionType.Lend;
       uint32 heapIndex = position.heapPosition - 1;
       shortHeap.remove(positions, heapIndex);
+      emit BaseDebtRepaid(msg.sender, realBaseDebt, discountedQuoteDebtDelta);
     } else {
       position.discountedBaseAmount += discountedBaseCollateralDelta;
     }
-    emit SellQuoteForBase(msg.sender, quoteInSubFee, baseAmountOut, discountedBaseCollateralDelta);
+    emit SellQuoteForBase(
+      msg.sender,
+      quoteInSubFee,
+      baseAmountOut,
+      discountedQuoteCollateralDelta,
+      discountedBaseCollateralDelta
+    );
   }
 
   /// @dev Update collateral and debt coeffs in system

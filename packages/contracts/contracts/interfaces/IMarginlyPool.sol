@@ -82,6 +82,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     address indexed user,
     uint256 baseDelta,
     uint256 quoteDelta,
+    uint256 discountedBaseCollateralDelta,
     uint256 discountedQuoteCollateralDelta
   );
 
@@ -94,8 +95,13 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     address indexed user,
     uint256 quoteDelta,
     uint256 baseDelta,
+    uint256 discountedQuoteCollateralDelta,
     uint256 discountedBaseCollateralDelta
   );
+
+  event QuoteDebtRepaid(address indexed user, uint256 realQuoteDebtDelta, uint256 discountedQuoteDebtDelta);
+
+  event BaseDebtRepaid(address indexed user, uint256 realBaseDebtDelta, uint256 discountedBaseDebtDelta);
 
   /// @dev Emitted when user closed position
   /// @param user User

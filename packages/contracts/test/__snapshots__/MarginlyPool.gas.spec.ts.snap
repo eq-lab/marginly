@@ -101,7 +101,7 @@ Object {
 exports[`System initialized: long with flip 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 343362,
+  "gasUsed": 343640,
 }
 `;
 
@@ -115,7 +115,7 @@ Object {
 exports[`System initialized: short with flip 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 334791,
+  "gasUsed": 335069,
 }
 `;
 
