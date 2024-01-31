@@ -77,7 +77,8 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param user User
   /// @param baseDelta amount of base token sold
   /// @param quoteDelta amount of quote tokens received
-  /// @param discountedQuoteCollateralDelta discounted delta amount of quote tokens collateral
+  /// @param discountedBaseCollateralDelta discounted delta amount of base tokens decreased collateral
+  /// @param discountedQuoteCollateralDelta discounted amount of quote tokens increased collateral
   event SellBaseForQuote(
     address indexed user,
     uint256 baseDelta,
@@ -90,7 +91,8 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @param user User
   /// @param quoteDelta amount of quote tokens sold
   /// @param baseDelta amount of base token received
-  /// @param discountedBaseCollateralDelta discounted delta amount of base tokens collateral
+  /// @param discountedQuoteCollateralDelta discounted amount of quote tokens decreased collateral
+  /// @param discountedBaseCollateralDelta discounted delta amount of base tokens increased collateral
   event SellQuoteForBase(
     address indexed user,
     uint256 quoteDelta,
@@ -99,8 +101,16 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     uint256 discountedBaseCollateralDelta
   );
 
+  /// @dev Emitted if long position sold base for quote
+  /// @param user User
+  /// @param realQuoteDebtDelta real value of quote debt repaid
+  /// @param discountedQuoteDebtDelta discounted value of quote debt repaid
   event QuoteDebtRepaid(address indexed user, uint256 realQuoteDebtDelta, uint256 discountedQuoteDebtDelta);
 
+  /// @dev Emitted if short position sold quote for base
+  /// @param user User
+  /// @param realBaseDebtDelta real value of base debt repaid
+  /// @param discountedBaseDebtDelta discounted value of base debt repaid
   event BaseDebtRepaid(address indexed user, uint256 realBaseDebtDelta, uint256 discountedBaseDebtDelta);
 
   /// @dev Emitted when user closed position
