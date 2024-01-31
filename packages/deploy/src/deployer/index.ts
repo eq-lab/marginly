@@ -243,7 +243,11 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   ): Promise<EthAddress> {
     const txReceipt = await this.provider.getTransactionReceipt(txHash);
     const eventFilter = marginlyFactoryContract.filters.PoolCreated(quoteToken.toString(), baseToken.toString());
-    const events = await marginlyFactoryContract.queryFilter(eventFilter, txReceipt.blockHash);
+    const events = await marginlyFactoryContract.queryFilter(
+      eventFilter,
+      txReceipt.blockHash,
+      txReceipt.blockNumber + 1
+    );
 
     if (events.length === 0) {
       throw new Error('PoolCreated event not found');
