@@ -1,6 +1,9 @@
 import { EthAddress } from '@marginly/common';
 import {
   ChainlinkOracleConfig,
+  isDoublePairChainlinkOracleConfig, isDoublePairPythOracleConfig,
+  isSinglePairChainlinkOracleConfig,
+  isSinglePairPythOracleConfig,
   PythOracleConfig,
   UniswapV3TickDoubleOracleConfig,
   UniswapV3TickOracleConfig,
@@ -127,10 +130,22 @@ export class PriceOracleDeployer extends BaseDeployer {
     const priceOracle = (await deploymentResult).contract;
 
     for (const setting of config.settings) {
-      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
-      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      if (isSinglePairChainlinkOracleConfig(setting)) {
+        const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+        const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
-      await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), setting.aggregatorV3.toString());
+        await priceOracle.setPair(quoteToken.toString(), baseToken.toString(), setting.aggregatorV3.toString());
+      } else if (isDoublePairChainlinkOracleConfig(setting)) {
+        const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+        const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+        const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
+
+        await priceOracle.setPair(intermediateToken.toString(), quoteToken.toString(), setting.quoteAggregatorV3.toString());
+        await priceOracle.setPair(intermediateToken.toString(), baseToken.toString(), setting.baseAggregatorV3.toString());
+        await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
+      } else {
+        throw new Error('Unknown pair type');
+      }
     }
 
     return deploymentResult;
@@ -150,10 +165,22 @@ export class PriceOracleDeployer extends BaseDeployer {
     const priceOracle = (await deploymentResult).contract;
 
     for (const setting of config.settings) {
-      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
-      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      if (isSinglePairPythOracleConfig(setting)) {
+        const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+        const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
-      await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), setting.pythPriceId);
+        await priceOracle.setPair(quoteToken.toString(), baseToken.toString(), setting.pythPriceId);
+      } else if (isDoublePairPythOracleConfig(setting)) {
+        const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+        const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+        const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
+
+        await priceOracle.setPair(intermediateToken.toString(), quoteToken.toString(), setting.quotePythPriceId.toString());
+        await priceOracle.setPair(intermediateToken.toString(), baseToken.toString(), setting.basePythPriceId.toString());
+        await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
+      } else {
+        throw new Error('Unknown pair type');
+      }
     }
 
     return deploymentResult;

@@ -76,25 +76,69 @@ export interface UniswapV3DoubleDeployOracleConfig {
   }[];
 }
 
+export interface SinglePairChainlinkOracleDeployConfig {
+  type: 'single';
+  quoteTokenId: string;
+  baseTokenId: string;
+  aggregatorV3: string;
+}
+
+export interface DoublePairChainlinkOracleDeployConfig {
+  type: 'double';
+  quoteTokenId: string;
+  baseTokenId: string;
+  intermediateTokenId: string;
+  quoteAggregatorV3: string;
+  baseAggregatorV3: string;
+}
+
+export type PairChainlinkOracleDeployConfig = SinglePairChainlinkOracleDeployConfig | DoublePairChainlinkOracleDeployConfig;
+
+export function isSinglePairChainlinkOracleDeployConfig(config: PairChainlinkOracleDeployConfig): config is SinglePairChainlinkOracleDeployConfig {
+  return config.type === 'single';
+}
+
+export function isDoublePairChainlinkOracleDeployConfig(config: PairChainlinkOracleDeployConfig): config is DoublePairChainlinkOracleDeployConfig {
+  return config.type === 'double';
+}
+
 export interface ChainlinkOracleDeployConfig {
   type: 'chainlink';
   id: string;
-  settings: {
-    quoteTokenId: string;
-    baseTokenId: string;
-    aggregatorV3: string;
-  }[];
+  settings: PairChainlinkOracleDeployConfig[];
+}
+
+export interface SinglePairPythOracleDeployConfig {
+  type: 'single';
+  quoteTokenId: string;
+  baseTokenId: string;
+  pythPriceId: string;
+}
+
+export interface DoublePairPythOracleDeployConfig {
+  type: 'double';
+  quoteTokenId: string;
+  baseTokenId: string;
+  intermediateTokenId: string;
+  basePythPriceId: string;
+  quotePythPriceId: string;
+}
+
+export type PairPythOracleDeployConfig = SinglePairPythOracleDeployConfig | DoublePairPythOracleDeployConfig;
+
+export function isSinglePairPythOracleDeployConfig(config: PairPythOracleDeployConfig): config is SinglePairPythOracleDeployConfig {
+  return config.type === 'single';
+}
+
+export function isDoublePairPythOracleDeployConfig(config: PairPythOracleDeployConfig): config is DoublePairPythOracleDeployConfig {
+  return config.type === 'double';
 }
 
 export interface PythOracleDeployConfig {
   type: 'pyth';
   id: string;
   pyth: string;
-  settings: {
-    quoteTokenId: string;
-    baseTokenId: string;
-    pythPriceId: string;
-  }[];
+  settings: PairPythOracleDeployConfig[];
 }
 
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
