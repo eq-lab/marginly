@@ -50,6 +50,17 @@
     "marginlyKeeperUniswapV3": {
       "address": "0x718ADD2363226a8000b89c90FB6093b66c713Acb",
       "txHash": "0x945141b6895371ca1e056725ea02b2726c67ccfc8c8e011c9a33a611293662ac"
+    },
+    "token_FOKB": {
+      "address": "0x4df92a8FA26338d192A8CE53d4DC194486F14E38",
+      "txHash": "0x16b78b04f704d785861024bcc02df3138f24dcbe8a411ea9778338c01819280a"
+    },
+    "uniswapV3PoolMock_fokb-usdc": {
+      "address": "0x6e66CCF9B75629755b3D7c32390EB4A248Ff539E",
+      "txHash": "0xa0ab3a7a9dbee5dc970e41464f227e1c04d475a66542044d3a0557ec4c48879d"
+    },
+    "marginlyPool_fokb-usdc": {
+      "address": "0x373bbF086484694Cb22E418752Ceb03716b37f0b"
     }
   }
 }

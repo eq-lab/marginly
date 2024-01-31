@@ -141,6 +141,13 @@
             "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT).price"
           }
         ]
+      },
+      {
+        "id": "okb-usdc",
+        "label": "okb/usdc",
+        "type": "http-get",
+        "direction": "forward",
+        "query": "json(https://www.okx.com/api/v5/market/ticker?instId=OKB-USDC).data[0].last"
       }
     ]
   },
@@ -579,6 +586,12 @@
           "address": "0x29A7425B0c1d44D5046E10B24821ea859215168c",
           "assertSymbol": "USDC",
           "assertDecimals": 6
+        },
+        {
+          "id": "fokb",
+          "address": "0x4df92a8FA26338d192A8CE53d4DC194486F14E38",
+          "assertSymbol": "FOKB",
+          "assertDecimals": 18
         }
       ],
       "uniswapV3PoolMocks": [
@@ -587,6 +600,12 @@
           "address": "0x73956b3b0c279e9cF2700F91B2e48E4eC0C8F281",
           "priceId": "eth-usdc",
           "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "fokb-usdc",
+          "address": "0x6e66CCF9B75629755b3D7c32390EB4A248Ff539E",
+          "priceId": "okb-usdc",
+          "priceBaseTokenId": "fokb"
         }
       ],
       "updatePriceJobs": [

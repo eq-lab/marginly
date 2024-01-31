@@ -63,7 +63,7 @@ export async function deployMarginly(
   stateStore: StateStore,
   logger: Logger
 ): Promise<MarginlyDeployment> {
-  const { config, provider, marginlyDeployer } = await using(logger.beginScope('Initialize'), async () => {
+  const { config, provider, marginlyDeployer, ethOptions } = await using(logger.beginScope('Initialize'), async () => {
     if (signer.provider === undefined) {
       throw new Error('Provider is required');
     }
@@ -82,7 +82,7 @@ export async function deployMarginly(
 
     const marginlyDeployer = new MarginlyDeployer(signer, config.connection.ethOptions, stateStore, logger);
 
-    return { config, provider, marginlyDeployer };
+    return { config, provider, marginlyDeployer, ethOptions: config.connection.ethOptions };
   });
 
   const balanceBefore = await signer.getBalance();
@@ -148,7 +148,8 @@ export async function deployMarginly(
             tokenAAddress.toString(),
             tokenBAddress.toString(),
             uniswapFee,
-            uniswapPoolDeploymentResult.address
+            uniswapPoolDeploymentResult.address,
+            ethOptions
           );
 
           const [token0, token1] = sortUniswapPoolTokens(
