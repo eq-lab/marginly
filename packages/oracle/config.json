@@ -461,6 +461,10 @@
         {
           "poolMockId": "fweth-usdc",
           "periodMs": 60000
+        },
+        {
+          "poolMockId": "fokb-usdc",
+          "periodMs": 60000
         }
       ]
     }
