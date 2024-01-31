@@ -16,4 +16,6 @@ struct MarginlyParams {
   uint184 positionMinAmount;
   /// @dev Max amount of quote token in system
   uint184 quoteLimit;
+  /// @dev quote token fees paid for managing your position
+  uint256 managerFee;
 }

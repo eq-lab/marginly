@@ -111,6 +111,7 @@ export async function createPriceOracleMock(): Promise<MockPriceOracle> {
 export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
   factory: MarginlyFactory;
   owner: SignerWithAddress;
+  manager: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
   swapRouter: TestSwapRouter;
   priceOracle: MockPriceOracle;
@@ -125,14 +126,16 @@ export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
 
   const factoryFactory = await ethers.getContractFactory('MarginlyFactory');
   const [owner] = await ethers.getSigners();
+  const manager = (await ethers.getSigners()).at(-1)!;
   const factory = (await factoryFactory.deploy(
     poolImplementation.address,
     swapRouter.address,
     FeeHolder,
     baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address,
-    TechnicalPositionOwner
+    TechnicalPositionOwner,
+    manager.address,
   )) as MarginlyFactory;
-  return { factory, owner, uniswapPoolInfo, swapRouter, priceOracle };
+  return { factory, owner, manager, uniswapPoolInfo, swapRouter, priceOracle };
 }
 
 export function createMarginlyPool() {
@@ -146,6 +149,7 @@ export function createMarginlyPoolQuoteTokenIsWETH() {
 async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
   marginlyPool: MarginlyPool;
   factoryOwner: SignerWithAddress;
+  manager: SignerWithAddress;
   uniswapPoolInfo: UniswapPoolInfo;
   quoteContract: TestERC20;
   baseContract: TestERC20;
@@ -153,7 +157,9 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
   marginlyFactory: MarginlyFactory;
   priceOracle: MockPriceOracle;
 }> {
-  const { factory, owner, uniswapPoolInfo, swapRouter, priceOracle } = await createMarginlyFactory(baseTokenIsWETH);
+  const { factory, owner, manager, uniswapPoolInfo, swapRouter, priceOracle } = await createMarginlyFactory(
+    baseTokenIsWETH
+  );
 
   const quoteToken = uniswapPoolInfo.token0.address;
   const baseToken = uniswapPoolInfo.token1.address;
@@ -167,6 +173,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
     mcSlippage: 50000, //5%
     positionMinAmount: 5, // 5 Wei
     quoteLimit: 1_000_000,
+    managerFee: 10,
   };
 
   const poolAddress = await factory.callStatic.createPool(
@@ -214,6 +221,7 @@ async function createMarginlyPoolInternal(baseTokenIsWETH: boolean): Promise<{
   return {
     marginlyPool: pool,
     factoryOwner: owner,
+    manager,
     uniswapPoolInfo,
     quoteContract,
     baseContract,

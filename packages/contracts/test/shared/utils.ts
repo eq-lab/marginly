@@ -150,6 +150,7 @@ export const paramsDefaultLeverageWithoutIr = {
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
+  managerFee: 10,
 };
 
 export const paramsLowLeverageWithoutIr = {
@@ -160,6 +161,7 @@ export const paramsLowLeverageWithoutIr = {
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
+  managerFee: 10,
 };
 
 export const paramsLowLeverageWithIr = {
@@ -170,6 +172,7 @@ export const paramsLowLeverageWithIr = {
   mcSlippage: 50000, //5%
   positionMinAmount: 5, // 5 Wei
   quoteLimit: 1_000_000,
+  managerFee: 10,
 };
 
 export const WHOLE_ONE = 1e6;
@@ -303,14 +306,13 @@ type MarginlyPoolState = {
   };
   params: {
     maxLeverage: number;
-    priceSecondsAgo: number;
-    priceSecondsAgoMC: number;
     interestRate: number;
     fee: number;
     swapFee: number;
     mcSlippage: number;
     positionMinAmount: BigNumber;
     quoteLimit: BigNumber;
+    managerFee: BigNumber;
   };
   systemLevarage: [BigNumber, BigNumber] & { shortX96: BigNumber; longX96: BigNumber };
   lastReinitTimestampSeconds: BigNumber;

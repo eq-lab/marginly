@@ -17,6 +17,7 @@ describe('MarginlyFactory', () => {
       mcSlippage: 50000, //5%
       positionMinAmount: 1, // 1 WEI
       quoteLimit: 1_000_000_000_000,
+      managerFee: 100,
     };
 
     return {
@@ -82,7 +83,8 @@ describe('MarginlyFactory', () => {
     const nonZeroAddress = '0x0000000000000000000000000000000000000001';
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const constructorArgs: [any, any, any, any, any] = [
+    const constructorArgs: [any, any, any, any, any, any] = [
+      nonZeroAddress,
       nonZeroAddress,
       nonZeroAddress,
       nonZeroAddress,

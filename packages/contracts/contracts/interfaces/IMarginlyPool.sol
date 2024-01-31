@@ -151,7 +151,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     uint256 amount2,
     uint256 limitPriceX96,
     bool unwrapWETH,
-    address receivePositionAddress,
+    address positionAddress,
     uint256 swapCalldata
   ) external payable;
 }
