@@ -63,7 +63,7 @@ export async function deployMarginly(
   stateStore: StateStore,
   logger: Logger
 ): Promise<MarginlyDeployment> {
-  const { config, provider, marginlyDeployer } = await using(logger.beginScope('Initialize'), async () => {
+  const { config, provider, marginlyDeployer, ethOptions } = await using(logger.beginScope('Initialize'), async () => {
     if (signer.provider === undefined) {
       throw new Error('Provider is required');
     }
@@ -82,7 +82,7 @@ export async function deployMarginly(
 
     const marginlyDeployer = new MarginlyDeployer(signer, config.connection.ethOptions, stateStore, logger);
 
-    return { config, provider, marginlyDeployer };
+    return { config, provider, marginlyDeployer, ethOptions: config.connection.ethOptions };
   });
 
   const balanceBefore = await signer.getBalance();
@@ -128,6 +128,7 @@ export async function deployMarginly(
         );
         const uniswapRouterContract = uniswapRouterDeploymentResult.contract;
         await uniswapRouterContract.setRejectArbitraryRecipient(true);
+
         for (const pool of uniswapConfig.pools) {
           const uniswapPoolDeploymentResult = await marginlyDeployer.deployUniswapPoolMock(
             uniswapConfig.oracle,
@@ -147,7 +148,8 @@ export async function deployMarginly(
             tokenAAddress.toString(),
             tokenBAddress.toString(),
             uniswapFee,
-            uniswapPoolDeploymentResult.address
+            uniswapPoolDeploymentResult.address,
+            ethOptions
           );
 
           const [token0, token1] = sortUniswapPoolTokens(
@@ -425,9 +427,19 @@ export async function deployMarginly(
       marginlyKeeperAddress = deployedMarginlyKeeper.address;
     }
 
+    const deployedMarginlyKeeperUniswapV3 = await using(
+      logger.beginScope('Deploy MarginlyKeeperUniswapV3'),
+      async () => {
+        const deploymentResult = await marginlyDeployer.deployMarginlyKeeperUniswapV3();
+        printDeployState(`MarginlyKeeperUniswapV3`, deploymentResult, logger);
+        return deploymentResult;
+      }
+    );
+
     return {
       marginlyPools: deployedMarginlyPools,
       marginlyKeeper: { address: marginlyKeeperAddress },
+      marginlyKeeperUniswapV3: { address: deployedMarginlyKeeperUniswapV3.address },
     };
   } finally {
     const balanceAfter = await signer.getBalance();

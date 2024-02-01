@@ -23,7 +23,7 @@ import { GasReporter } from '../utils/GasReporter';
 import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
 import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
-import { keeper } from './keeper';
+import { keeperAave } from './keeperAave';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
 import BalancerMarginlyAdapter from '../contract-api/BalancerMarginlyAdapter';
 import KyberClassicMarginlyAdapter from '../contract-api/KyberClassicMarginlyAdapter';
@@ -42,6 +42,8 @@ import { routerSwaps, routerMultipleSwaps } from './router';
 import DodoV1MarginlyAdapter from '../contract-api/DodoV1MarginlyAdapter';
 import DodoV2MarginlyAdapter from '../contract-api/DodoV2MarginlyAdapter';
 import { parseUnits } from 'ethers/lib/utils';
+import MarginlyKeeperUniswapV3, { MarginlyKeeperUniswapV3Contract } from '../contract-api/MarginlyKeeperUniswapV3';
+import { keeperUniswapV3 } from './keeperUniswapV3';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -55,7 +57,8 @@ export type SystemUnderTest = {
   swapRouter: MarginlyRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
-  keeper: MarginlyKeeperContract;
+  keeperAave: MarginlyKeeperContract;
+  keeperUniswapV3: MarginlyKeeperUniswapV3Contract;
   treasury: Wallet;
   accounts: Wallet[];
   usdc: FiatTokenV2_1Contract;
@@ -125,7 +128,7 @@ async function initializeTestSystem(
   const dodoV2Pool = '0xCFA990E9c104F6DB3fbECEe04ad211c39ED3830F';
   await weth.connect(treasury).transfer(dodoV2Pool, parseUnits('110', 18));
   await usdc.connect(treasury).transfer(dodoV2Pool, parseUnits('100000', 6));
-  const dodoV2SyncAbi = 
+  const dodoV2SyncAbi =
     '[{"inputs": [], "name": "sync", "outputs": [], "stateMutability": "nonpayable", "type": "function"}]';
   const dodoV2 = new ethers.Contract(dodoV2Pool, dodoV2SyncAbi);
   await dodoV2.connect(treasury).sync();
@@ -201,8 +204,11 @@ async function initializeTestSystem(
   logger.info(`marginly <> uniswap: ${marginlyPool.address} <> ${uniswap.address}`);
 
   const aavePoolAddressesProviderAddress = '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e';
-  const keeper = await MarginlyKeeper.deploy(aavePoolAddressesProviderAddress, treasury);
-  logger.info(`keeper: ${keeper.address}`);
+  const keeperAave = await MarginlyKeeper.deploy(aavePoolAddressesProviderAddress, treasury);
+  logger.info(`keeperAave: ${keeperAave.address}`);
+
+  const keeperUniswapV3 = await MarginlyKeeperUniswapV3.deploy(treasury);
+  logger.info(`keeperUniswapV3: ${keeperUniswapV3.address}`);
 
   logger.info('Initialization completed');
 
@@ -216,7 +222,8 @@ async function initializeTestSystem(
     marginlyFactory,
     marginlyPool,
     swapRouter,
-    keeper,
+    keeperAave,
+    keeperUniswapV3,
     provider: new Web3ProviderDecorator(provider),
     gasReporter,
   };
@@ -238,7 +245,8 @@ export async function startSuite(
     simulation3,
     shortEmergency,
     longEmergency,
-    keeper,
+    keeperAave,
+    keeperUniswapV3,
     deleveragePrecisionLong,
     deleveragePrecisionShort,
     deleveragePrecisionLongCollateral,

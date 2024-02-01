@@ -47,11 +47,11 @@ async function getDebtAmount(
   }
 }
 
-export async function keeper(sut: SystemUnderTest) {
+export async function keeperAave(sut: SystemUnderTest) {
   logger.info(`Starting keeper liquidation test suite`);
   const ethArgs = { gasLimit: 1_000_000 };
 
-  const { marginlyPool, keeper, treasury, usdc, weth, accounts, provider, uniswap, gasReporter } = sut;
+  const { marginlyPool, keeperAave, treasury, usdc, weth, accounts, provider, uniswap, gasReporter } = sut;
 
   const lender = accounts[0];
   logger.info(`Deposit lender account`);
@@ -158,8 +158,8 @@ export async function keeper(sut: SystemUnderTest) {
   let balanceBefore = BigNumber.from(await usdc.balanceOf(liquidator.address));
 
   await gasReporter.saveGasUsage(
-    'keeper.flashLoan',
-    keeper
+    'keeperAave.flashLoan',
+    keeperAave
       .connect(liquidator)
       .flashLoan(usdc.address, longerDebtAmount, 0, marginlyPool.address, longer.address, 0, { gasLimit: 1_000_000 })
   );
@@ -171,8 +171,8 @@ export async function keeper(sut: SystemUnderTest) {
 
   balanceBefore = BigNumber.from(await weth.balanceOf(liquidator.address));
   await gasReporter.saveGasUsage(
-    'keeper.flashLoan',
-    keeper
+    'keeperAave.flashLoan',
+    keeperAave
       .connect(liquidator)
       .flashLoan(weth.address, shorterDebtAmount, 0, marginlyPool.address, shorter.address, 0, { gasLimit: 1_000_000 })
   );

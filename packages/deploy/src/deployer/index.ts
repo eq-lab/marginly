@@ -90,6 +90,10 @@ export class MarginlyDeployer implements IMarginlyDeployer {
     return this.deploy('MarginlyKeeper', [aavePoolAddressesProvider.toString()], 'marginlyKeeper');
   }
 
+  public deployMarginlyKeeperUniswapV3(): Promise<DeployResult> {
+    return this.deploy('MarginlyKeeperUniswapV3', [], 'marginlyKeeperUniswapV3');
+  }
+
   public toUniswapFee(fee: RationalNumber): BigNumber {
     const uniswapFeeMultiplier = BigNumber.from('1000000');
     return fee.nom.mul(uniswapFeeMultiplier).div(fee.denom);
@@ -239,7 +243,11 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   ): Promise<EthAddress> {
     const txReceipt = await this.provider.getTransactionReceipt(txHash);
     const eventFilter = marginlyFactoryContract.filters.PoolCreated(quoteToken.toString(), baseToken.toString());
-    const events = await marginlyFactoryContract.queryFilter(eventFilter, txReceipt.blockHash);
+    const events = await marginlyFactoryContract.queryFilter(
+      eventFilter,
+      txReceipt.blockHash,
+      txReceipt.blockNumber + 1
+    );
 
     if (events.length === 0) {
       throw new Error('PoolCreated event not found');
@@ -505,9 +513,16 @@ export class MarginlyDeployer implements IMarginlyDeployer {
   ): Promise<DeployResult> {
     const { address: tokenAAddress } = tokenRepository.getTokenInfo(poolConfig.tokenA.id);
     const { address: tokenBAddress } = tokenRepository.getTokenInfo(poolConfig.tokenB.id);
+    const initializer = await this.signer.getAddress();
     return this.deploy(
       'UniswapV3PoolMock',
-      [oracle.toString(), tokenAAddress.toString(), tokenBAddress.toString(), this.toUniswapFee(poolConfig.fee)],
+      [
+        initializer,
+        oracle.toString(),
+        tokenAAddress.toString(),
+        tokenBAddress.toString(),
+        this.toUniswapFee(poolConfig.fee),
+      ],
       `uniswapV3PoolMock_${poolConfig.id}`,
       readUniswapMockContract
     );

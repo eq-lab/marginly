@@ -17,15 +17,21 @@ export interface EthConnectionConfig {
   ethOptions: EthOptions;
 }
 
+export interface PoolPositionLiquidationConfig {
+  keeperType: 'aave' | 'uniswapV3';
+  address: string;
+  minProfitQuote: string;
+  minProfitBase: string;
+  flashLoanPools?: string[];
+  swapCallData?: string;
+}
+
 export interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
   connection: EthConnectionConfig;
-  marginlyKeeperAddress: string;
-  marginlyPools: {
-    address: string;
-    minProfitQuote: string;
-    minProfitBase: string;
-  }[];
+  marginlyKeeperAaveAddress?: string;
+  marginlyKeeperUniswapV3Address?: string;
+  marginlyPools: PoolPositionLiquidationConfig[];
   log?: LogConfig;
 }
 
@@ -33,8 +39,9 @@ export type LiquidationParams = {
   position: string;
   pool: string;
   asset: string;
+  isQuoteAsset: boolean;
   amount: BigNumber;
-  minProfit: BigNumber;
+  config: PoolPositionLiquidationConfig;
 };
 
 export type PoolCoeffs = {
@@ -52,8 +59,11 @@ export interface KeeperParamter extends Parameter {
 
 export interface ContractDescriptions {
   token: ContractDescription;
-  keeper: ContractDescription;
+  keeperAave: ContractDescription;
+  keeperUniswapV3: ContractDescription;
   marginlyPool: ContractDescription;
+  aavePool: ContractDescription;
+  uniswapPool: ContractDescription;
 }
 
 export interface KeeperArgs {

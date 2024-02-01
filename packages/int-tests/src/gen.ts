@@ -70,6 +70,13 @@ const defsKeeperContract = genDefinitions(
 );
 writeFileSync(`./src/contract-api/MarginlyKeeper.ts`, defsKeeperContract);
 
+const defsKeeperUniswapV3Contract = genDefinitions(
+  require(`@marginly/contracts/artifacts/contracts/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json`),
+  `@marginly/contracts/artifacts/contracts/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/MarginlyKeeperUniswapV3.ts`, defsKeeperUniswapV3Contract);
+
 const defsMarginlyRouter = genDefinitions(
   require(`@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`),
   `@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`,
@@ -119,6 +126,12 @@ const defsDodoV2MarginlyAdapter = genDefinitions(
 );
 writeFileSync(`./src/contract-api/DodoV2MarginlyAdapter.ts`, defsDodoV2MarginlyAdapter);
 
+const defsRamsesMarginlyAdapter = genDefinitions(
+  require(`@marginly/router/artifacts/contracts/adapters/RamsesAdapter.sol/RamsesAdapter.json`),
+  `@marginly/router/artifacts/contracts/adapters/RamsesAdapter.sol/RamsesAdapter.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/RamsesAdapter.ts`, defsRamsesMarginlyAdapter);
 
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),
