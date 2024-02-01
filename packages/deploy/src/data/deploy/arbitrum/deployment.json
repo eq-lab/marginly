@@ -35,5 +35,8 @@
   ],
   "marginlyKeeper": {
     "address": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629"
+  },
+  "marginlyKeeperUniswapV3": {
+    "address": "0xDdDf54E1323d0d07BfDfedAdC56FaDf2045330dF"
   }
 }
