@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 import {
-  ChainlinkAggregatorV3Mock,
+  TestChainlinkAggregator,
   MockMarginlyPoolWithPriceAdapter,
   PriceAdapter,
   SwapPoolRegistry,
@@ -93,8 +93,8 @@ export async function createSwapPoolRegistry(): Promise<{
   };
 }
 
-export async function createChainlinkAggregator(price: bigint, decimals: bigint): Promise<Aggregator> {
-  const factory = await ethers.getContractFactory('Aggregator');
+export async function createChainlinkAggregator(price: bigint, decimals: bigint): Promise<TestChainlinkAggregator> {
+  const factory = await ethers.getContractFactory('TestChainlinkAggregator');
   return factory.deploy(price, decimals);
 }
 
@@ -111,8 +111,8 @@ export function createMarginlyPoolWithPriceAdapter(
   quotePrice: { price: bigint; decimals: bigint } | null
 ) {
   async function inner(): Promise<{
-    chainlinkAggregatorBase: Aggregator;
-    chainlinkAggregatorQuote: Aggregator | null;
+    chainlinkAggregatorBase: TestChainlinkAggregator;
+    chainlinkAggregatorQuote: TestChainlinkAggregator | null;
     priceAdapter: PriceAdapter;
     marginlyPoolWithPriceAdapter: MockMarginlyPoolWithPriceAdapter;
   }> {

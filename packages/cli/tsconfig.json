@@ -15,7 +15,7 @@
       "path": "../cli-common"
     },
     {
-      "path": "../sbt"
+      "path": "../nft"
     }
   ]
 }

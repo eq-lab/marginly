@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@marginly/contracts/contracts/interfaces/IMarginlyFactory.sol';
 import '@marginly/router/contracts/MarginlyRouter.sol';
 
 import './MarginlyAdminStorage.sol';
 
-abstract contract RouterActions is MarginlyAdminStorage, Ownable2Step {
+abstract contract RouterActions is MarginlyAdminStorage {
   /// @dev add dex adapters to router
   /// @param _adapters input to MarginlyRouter `addDexAdapters` call
   function addDexAdapters(AdapterInput[] calldata _adapters) external onlyOwner {
