@@ -809,9 +809,8 @@ contract MarginlyPool is IMarginlyPool {
   ) private {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
 
-    PositionType _type = position._type;
-    if (_type != PositionType.Short && !(_type == PositionType.Lend && position.discountedBaseAmount == 0))
-      revert Errors.WrongPositionType();
+    // this function guaranties the position is gonna be either Short or Lend with 0 base balance
+    sellBaseForQuote(position, limitPriceX96, swapCalldata);
 
     // quoteOutMinimum is defined by user input limitPriceX96
     uint256 quoteOutMinimum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
@@ -834,7 +833,7 @@ contract MarginlyPool is IMarginlyPool {
     discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteChange);
     chargeFee(realSwapFee);
 
-    if (_type == PositionType.Lend) {
+    if (position._type == PositionType.Lend) {
       if (position.heapPosition != 0) revert Errors.WrongIndex();
       // init heap with default value 0, it will be updated by 'updateHeap' function later
       shortHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
@@ -860,9 +859,8 @@ contract MarginlyPool is IMarginlyPool {
     if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
     if (basePrice.mul(newPoolBaseBalance(realBaseAmount)) > params.quoteLimit) revert Errors.ExceedsLimit();
 
-    PositionType _type = position._type;
-    if (_type != PositionType.Long && !(_type == PositionType.Lend && position.discountedQuoteAmount == 0))
-      revert Errors.WrongPositionType();
+    // this function guaranties the position is gonna be either Long or Lend with 0 quote balance
+    sellQuoteForBase(position, limitPriceX96, swapCalldata);
 
     // realQuoteInMaximum is defined by user input limitPriceX96
     uint256 realQuoteInMaximum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
@@ -882,7 +880,7 @@ contract MarginlyPool is IMarginlyPool {
     position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseCollateralChange);
     discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseCollateralChange);
 
-    if (_type == PositionType.Lend) {
+    if (position._type == PositionType.Lend) {
       if (position.heapPosition != 0) revert Errors.WrongIndex();
       // init heap with default value 0, it will be updated by 'updateHeap' function later
       longHeap.insert(positions, MaxBinaryHeapLib.Node({key: 0, account: msg.sender}));
@@ -892,6 +890,110 @@ contract MarginlyPool is IMarginlyPool {
     if (positionHasBadLeverage(position, basePrice)) revert Errors.BadLeverage();
 
     emit Long(msg.sender, realBaseAmount, swapPriceX96, discountedQuoteDebtChange, discountedBaseCollateralChange);
+  }
+
+  /// @notice sells all the base tokens from lend position for quote ones
+  /// @dev no liquidity limit check since this function goes prior to 'short' call and it fail there anyway
+  /// @dev you may consider adding that check here if this method is used in any other way
+  function sellBaseForQuote(Position storage position, uint256 limitPriceX96, uint256 swapCalldata) private {
+    PositionType _type = position._type;
+    if (_type == PositionType.Uninitialized) revert Errors.UninitializedPosition();
+    if (_type == PositionType.Short) return;
+
+    bool isLong = _type == PositionType.Long;
+
+    uint256 posDiscountedBaseColl = position.discountedBaseAmount;
+    uint256 posDiscountedQuoteDebt = isLong ? position.discountedQuoteAmount : 0;
+    uint256 baseAmountIn = calcRealBaseCollateral(posDiscountedBaseColl, posDiscountedQuoteDebt);
+    if (baseAmountIn == 0) return;
+
+    uint256 quoteAmountOut = swapExactInput(
+      false,
+      baseAmountIn,
+      Math.mulDiv(limitPriceX96, baseAmountIn, FP96.Q96),
+      swapCalldata
+    );
+    uint256 fee = Math.mulDiv(params.swapFee, quoteAmountOut, WHOLE_ONE);
+    chargeFee(fee);
+
+    uint256 quoteOutSubFee = quoteAmountOut.sub(fee);
+    uint256 realQuoteDebt = quoteDebtCoeff.mul(posDiscountedQuoteDebt);
+    uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteOutSubFee.sub(realQuoteDebt));
+
+    discountedBaseCollateral -= posDiscountedBaseColl;
+    position.discountedBaseAmount = 0;
+    discountedQuoteCollateral += discountedQuoteCollateralDelta;
+    if (isLong) {
+      discountedQuoteDebt -= posDiscountedQuoteDebt;
+      position.discountedQuoteAmount = discountedQuoteCollateralDelta;
+
+      position._type = PositionType.Lend;
+      uint32 heapIndex = position.heapPosition - 1;
+      longHeap.remove(positions, heapIndex);
+      emit QuoteDebtRepaid(msg.sender, realQuoteDebt, posDiscountedQuoteDebt);
+    } else {
+      position.discountedQuoteAmount += discountedQuoteCollateralDelta;
+    }
+
+    emit SellBaseForQuote(
+      msg.sender,
+      baseAmountIn,
+      quoteOutSubFee,
+      posDiscountedBaseColl,
+      discountedQuoteCollateralDelta
+    );
+  }
+
+  /// @notice sells all the quote tokens from lend position for base ones
+  /// @dev no liquidity limit check since this function goes prior to 'long' call and it fail there anyway
+  /// @dev you may consider adding that check here if this method is used in any other way
+  function sellQuoteForBase(Position storage position, uint256 limitPriceX96, uint256 swapCalldata) private {
+    PositionType _type = position._type;
+    if (_type == PositionType.Uninitialized) revert Errors.UninitializedPosition();
+    if (_type == PositionType.Long) return;
+
+    bool isShort = _type == PositionType.Short;
+
+    uint256 posDiscountedQuoteColl = position.discountedQuoteAmount;
+    uint256 posDiscountedBaseDebt = isShort ? position.discountedBaseAmount : 0;
+    uint256 quoteAmountIn = calcRealQuoteCollateral(posDiscountedQuoteColl, posDiscountedBaseDebt);
+    if (quoteAmountIn == 0) return;
+
+    uint256 fee = Math.mulDiv(params.swapFee, quoteAmountIn, WHOLE_ONE);
+    uint256 quoteInSubFee = quoteAmountIn.sub(fee);
+
+    uint256 baseAmountOut = swapExactInput(
+      true,
+      quoteInSubFee,
+      Math.mulDiv(FP96.Q96, quoteInSubFee, limitPriceX96),
+      swapCalldata
+    );
+    chargeFee(fee);
+
+    uint256 realBaseDebt = baseDebtCoeff.mul(posDiscountedBaseDebt);
+    uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmountOut.sub(realBaseDebt));
+
+    discountedQuoteCollateral -= posDiscountedQuoteColl;
+    position.discountedQuoteAmount = 0;
+    discountedBaseCollateral += discountedBaseCollateralDelta;
+    if (isShort) {
+      discountedBaseDebt -= posDiscountedBaseDebt;
+      position.discountedBaseAmount = discountedBaseCollateralDelta;
+
+      position._type = PositionType.Lend;
+      uint32 heapIndex = position.heapPosition - 1;
+      shortHeap.remove(positions, heapIndex);
+      emit BaseDebtRepaid(msg.sender, realBaseDebt, posDiscountedBaseDebt);
+    } else {
+      position.discountedBaseAmount += discountedBaseCollateralDelta;
+    }
+    emit SellQuoteForBase(
+      msg.sender,
+      quoteInSubFee,
+      baseAmountOut,
+      posDiscountedQuoteColl,
+      discountedBaseCollateralDelta
+    );
   }
 
   /// @dev Update collateral and debt coeffs in system
