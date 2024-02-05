@@ -1,7 +1,8 @@
 import { EthAddress } from '@marginly/common';
 import {
   ChainlinkOracleConfig,
-  isDoublePairChainlinkOracleConfig, isDoublePairPythOracleConfig,
+  isDoublePairChainlinkOracleConfig,
+  isDoublePairPythOracleConfig,
   isSinglePairChainlinkOracleConfig,
   isSinglePairPythOracleConfig,
   PythOracleConfig,
@@ -64,9 +65,9 @@ export class PriceOracleDeployer extends BaseDeployer {
       const currentParams: OracleParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
       if (
         !currentParams.initialized ||
-        !currentParams.secondsAgo.eq(secondsAgo) ||
-        !currentParams.secondsAgoLiquidation.eq(secondsAgoLiquidation) ||
-        !currentParams.uniswapFee.eq(uniswapFee)
+        !secondsAgo.eq(currentParams.secondsAgo) ||
+        !secondsAgoLiquidation.eq(currentParams.secondsAgoLiquidation) ||
+        !uniswapFee.eq(currentParams.uniswapFee)
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
 
@@ -81,11 +82,11 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       this.logger.log(`Check oracle ${config.id}`);
 
-      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`BalancePrice is ${balancePrice}`);
+      // const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
+      // this.logger.log(`BalancePrice is ${balancePrice}`);
 
-      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+      // const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
+      // this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
     }
 
     return deploymentResult;
@@ -175,8 +176,16 @@ export class PriceOracleDeployer extends BaseDeployer {
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
         const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
 
-        await priceOracle.setPair(intermediateToken.toString(), quoteToken.toString(), setting.quoteAggregatorV3.toString());
-        await priceOracle.setPair(intermediateToken.toString(), baseToken.toString(), setting.baseAggregatorV3.toString());
+        await priceOracle.setPair(
+          intermediateToken.toString(),
+          quoteToken.toString(),
+          setting.quoteAggregatorV3.toString()
+        );
+        await priceOracle.setPair(
+          intermediateToken.toString(),
+          baseToken.toString(),
+          setting.baseAggregatorV3.toString()
+        );
         await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
       } else {
         throw new Error('Unknown pair type');
@@ -210,8 +219,16 @@ export class PriceOracleDeployer extends BaseDeployer {
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
         const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
 
-        await priceOracle.setPair(intermediateToken.toString(), quoteToken.toString(), setting.quotePythPriceId.toString());
-        await priceOracle.setPair(intermediateToken.toString(), baseToken.toString(), setting.basePythPriceId.toString());
+        await priceOracle.setPair(
+          intermediateToken.toString(),
+          quoteToken.toString(),
+          setting.quotePythPriceId.toString()
+        );
+        await priceOracle.setPair(
+          intermediateToken.toString(),
+          baseToken.toString(),
+          setting.basePythPriceId.toString()
+        );
         await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
       } else {
         throw new Error('Unknown pair type');

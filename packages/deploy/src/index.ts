@@ -228,7 +228,7 @@ async function processUniswap(
 
         await uniswapPoolContract.setPrice(priceFp27, sqrtPriceX96);
 
-        const observationCardinality = 500;
+        const observationCardinality = config.uniswap.priceLogSize;
         await uniswapPoolContract.increaseObservationCardinalityNext(observationCardinality);
         await uniswapPoolContract.setAllowListEnabled(true);
         await uniswapPoolContract.addToAllowList(uniswapRouterDeploymentResult.address);
