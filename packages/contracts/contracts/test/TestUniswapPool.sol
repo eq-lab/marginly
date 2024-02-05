@@ -2,10 +2,29 @@
 pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol';
-
 import '@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolState.sol';
+import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 contract TestUniswapPool is IUniswapV3PoolImmutables, IUniswapV3PoolState {
+  /// @notice Emitted by the pool for any flashes of token0/token1
+  /// @param sender The address that initiated the swap call, and that received the callback
+  /// @param recipient The address that received the tokens from flash
+  /// @param amount0 The amount of token0 that was flashed
+  /// @param amount1 The amount of token1 that was flashed
+  /// @param paid0 The amount of token0 paid for the flash, which can exceed the amount0 plus the fee
+  /// @param paid1 The amount of token1 paid for the flash, which can exceed the amount1 plus the fee
+  event Flash(
+    address indexed sender,
+    address indexed recipient,
+    uint256 amount0,
+    uint256 amount1,
+    uint256 paid0,
+    uint256 paid1
+  );
+
   address public override token0;
   address public override token1;
 
@@ -251,5 +270,30 @@ contract TestUniswapPool is IUniswapV3PoolImmutables, IUniswapV3PoolState {
     tickCumulatives[0] = 0;
     tickCumulatives[1] = tickCumulativesSecond;
     secondsPerLiquidityCumulativeX128s = new uint160[](2);
+  }
+
+  function flash(address recipient, uint256 amount0, uint256 amount1, bytes calldata data) external {
+    uint256 fee0 = Math.mulDiv(amount0, this.fee(), 1e6, Math.Rounding.Up);
+    uint256 fee1 = Math.mulDiv(amount1, this.fee(), 1e6, Math.Rounding.Up);
+
+    uint256 balance0Before = IERC20(token0).balanceOf(address(this));
+    uint256 balance1Before = IERC20(token1).balanceOf(address(this));
+
+    if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
+    if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
+
+    IUniswapV3FlashCallback(msg.sender).uniswapV3FlashCallback(fee0, fee1, data);
+
+    uint256 balance0After = IERC20(token0).balanceOf(address(this));
+    uint256 balance1After = IERC20(token1).balanceOf(address(this));
+
+    require(balance0Before + fee0 <= balance0After, 'F0');
+    require(balance1Before + fee1 <= balance1After, 'F1');
+
+    // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
+    uint256 paid0 = balance0After - balance0Before;
+    uint256 paid1 = balance1After - balance1Before;
+
+    emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
   }
 }

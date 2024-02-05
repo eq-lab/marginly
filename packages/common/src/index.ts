@@ -4,3 +4,4 @@ export * from './types';
 export * from './marginly-types';
 export * from './contract-reader';
 export * from './execution';
+export * from './marginly-keeper';

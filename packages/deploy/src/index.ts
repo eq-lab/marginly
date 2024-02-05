@@ -586,7 +586,8 @@ export async function deployMarginly(
 
     return {
       marginlyPools: deployedMarginlyPools,
-      marginlyKeeper: { address: marginlyKeeperAddress.toString() },
+      marginlyKeeper: { address: marginlyKeeperAddress },
+      marginlyKeeperUniswapV3: { address: deployedMarginlyKeeperUniswapV3.address },
     };
   } finally {
     const balanceAfter = await signer.getBalance();
