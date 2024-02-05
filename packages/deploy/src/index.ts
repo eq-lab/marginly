@@ -16,7 +16,10 @@ import {
   UniswapV3Deployer,
   KeeperDeployer,
   MockTokenDeployer,
-  MarginlyRouterDeployer, isChainlinkOracle, isPythOracle,
+  MarginlyRouterDeployer,
+  isChainlinkOracle,
+  isPythOracle,
+  KeeperUniswapV3Deployer,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -86,6 +89,7 @@ async function initializeDeployers(
     const uniswapV3Deployer = new UniswapV3Deployer(signer, ethOptions, stateStore, logger);
     const mockTokenDeployer = new MockTokenDeployer(signer, ethOptions, stateStore, logger);
     const marginlyRouterDeployer = new MarginlyRouterDeployer(signer, ethOptions, stateStore, logger);
+    const keeperUniswapV3Deployer = new KeeperUniswapV3Deployer(signer, ethOptions, stateStore, logger);
 
     return {
       config,
@@ -96,6 +100,7 @@ async function initializeDeployers(
       uniswapV3Deployer,
       mockTokenDeployer,
       marginlyRouterDeployer,
+      keeperUniswapV3Deployer,
     };
   });
 }
@@ -371,10 +376,7 @@ async function processPriceOracles(
         );
         printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
       } else if (isPythOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigurePythOracle(
-          priceOracle,
-          tokenRepository
-        );
+        const deploymentResult = await priceOracleDeployer.deployAndConfigurePythOracle(priceOracle, tokenRepository);
         printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
       } else {
         throw new Error(`Unknown priceOracle type`);
@@ -526,6 +528,17 @@ async function processKeeper(
   return deployedMarginlyKeeper;
 }
 
+async function processKeeperUniswapV3(
+  logger: Logger,
+  keeperUniswapV3Deployer: KeeperUniswapV3Deployer
+): Promise<DeployResult> {
+  const deployResult = await using(logger.beginScope('Process MarginlyKeeper'), async () => {
+    return keeperUniswapV3Deployer.deployKeeper();
+  });
+
+  return deployResult;
+}
+
 export async function deployMarginly(
   signer: ethers.Signer,
   rawConfig: MarginlyDeployConfig,
@@ -541,6 +554,7 @@ export async function deployMarginly(
     uniswapV3Deployer,
     mockTokenDeployer,
     marginlyRouterDeployer,
+    keeperUniswapV3Deployer,
   } = await initializeDeployers(signer, rawConfig, stateStore, logger);
 
   const balanceBefore = await signer.getBalance();
@@ -582,12 +596,14 @@ export async function deployMarginly(
       deployedPriceOracles
     );
 
-    const marginlyKeeperAddress = await processKeeper(logger, keeperDeployer, config);
+    const marginlyKeeperDeployResult = await processKeeper(logger, keeperDeployer, config);
+
+    const keeperUniswapV3DeployResult = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
 
     return {
       marginlyPools: deployedMarginlyPools,
-      marginlyKeeper: { address: marginlyKeeperAddress },
-      marginlyKeeperUniswapV3: { address: deployedMarginlyKeeperUniswapV3.address },
+      marginlyKeeper: { address: marginlyKeeperDeployResult.address },
+      marginlyKeeperUniswapV3: { address: keeperUniswapV3DeployResult.address },
     };
   } finally {
     const balanceAfter = await signer.getBalance();
