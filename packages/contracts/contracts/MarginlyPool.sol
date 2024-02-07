@@ -450,12 +450,12 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @notice Deposit base token
   /// @param amount Amount of base token to deposit
-  /// @param longAmount Amount of base token to open long position
+  /// @param tradeAmount Amount of base token to open position with: long if positive, short if negative
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
   function depositBase(
     uint256 amount,
-    uint256 longAmount,
+    int256 tradeAmount,
     uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
@@ -515,19 +515,21 @@ contract MarginlyPool is IMarginlyPool {
     wrapAndTransferFrom(baseToken, msg.sender, amount);
     emit DepositBase(msg.sender, amount, position._type, position.discountedBaseAmount);
 
-    if (longAmount != 0) {
-      long(longAmount, limitPriceX96, basePrice, position, swapCalldata);
+    if (tradeAmount > 0) {
+      long(uint256(tradeAmount), limitPriceX96, basePrice, position, swapCalldata);
+    } else if (tradeAmount < 0) {
+      short(uint256(-tradeAmount), limitPriceX96, basePrice, position, swapCalldata);
     }
   }
 
   /// @notice Deposit quote token
   /// @param amount Amount of quote token
-  /// @param shortAmount Amount of base token to open short position
+  /// @param tradeAmount Amount of base token to open position with: short if positive, long if negative
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
   function depositQuote(
     uint256 amount,
-    uint256 shortAmount,
+    int256 tradeAmount,
     uint256 limitPriceX96,
     FP96.FixedPoint memory basePrice,
     Position storage position,
@@ -586,8 +588,10 @@ contract MarginlyPool is IMarginlyPool {
     wrapAndTransferFrom(quoteToken, msg.sender, amount);
     emit DepositQuote(msg.sender, amount, position._type, position.discountedQuoteAmount);
 
-    if (shortAmount != 0) {
-      short(shortAmount, limitPriceX96, basePrice, position, swapCalldata);
+    if (tradeAmount > 0) {
+      short(uint256(tradeAmount), limitPriceX96, basePrice, position, swapCalldata);
+    } else if (tradeAmount < 0) {
+      long(uint256(-tradeAmount), limitPriceX96, basePrice, position, swapCalldata);
     }
   }
 
@@ -1527,14 +1531,14 @@ contract MarginlyPool is IMarginlyPool {
   function execute(
     CallType call,
     uint256 amount1,
-    uint256 amount2,
+    int256 amount2,
     uint256 limitPriceX96,
     bool flag,
     address receivePositionAddress,
     uint256 swapCalldata
   ) external payable override lock {
     if (call == CallType.ReceivePosition) {
-      receivePosition(receivePositionAddress, amount1, amount2);
+      receivePosition(receivePositionAddress, amount1, uint256(amount2));
       return;
     } else if (call == CallType.EmergencyWithdraw) {
       emergencyWithdraw(flag);

@@ -58,7 +58,7 @@ contract MockMarginlyPool is IMarginlyPool {
   function execute(
     CallType call,
     uint256 amount1,
-    uint256 amount2,
+    int256 amount2,
     uint256 limitPriceX96,
     bool unwrapWETH,
     address receivePositionAddress,
@@ -68,7 +68,7 @@ contract MockMarginlyPool is IMarginlyPool {
       require(receivePositionAddress == badPositionAddress);
 
       IERC20(quoteToken).transferFrom(msg.sender, address(this), amount1);
-      IERC20(baseToken).transferFrom(msg.sender, address(this), amount2);
+      IERC20(baseToken).transferFrom(msg.sender, address(this), uint256(amount2));
     } else if (call == CallType.WithdrawBase) {
       if (positionType == PositionType.Short) {
         IERC20(baseToken).transfer(msg.sender, dust);

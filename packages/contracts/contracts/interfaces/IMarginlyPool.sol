@@ -188,7 +188,7 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   function execute(
     CallType call,
     uint256 amount1,
-    uint256 amount2,
+    int256 amount2,
     uint256 limitPriceX96,
     bool unwrapWETH,
     address receivePositionAddress,

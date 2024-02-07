@@ -413,6 +413,32 @@ describe('MarginlyPool.Base', () => {
       expect(position.heapPosition).to.be.equal(1);
     });
 
+    it('depositBase and open short position', async () => {
+      const { marginlyPool, baseContract } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      const price = (await marginlyPool.getBasePrice()).inner;
+
+      const lenderDeposit = 10000;
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositQuote, lenderDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositBase, lenderDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      const depositAmount = 1000;
+      const shortAmount = 100;
+      await marginlyPool
+        .connect(signer)
+        .execute(CallType.DepositBase, depositAmount, -shortAmount, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      // check position
+      const position = await marginlyPool.positions(signer.address);
+      expect(position._type).to.be.equal(PositionType.Short);
+      expect(position.heapPosition).to.be.equal(1);
+    });
+
     it('depositBase and long into short position', async () => {
       const { marginlyPool } = await loadFixture(createMarginlyPool);
       const [_, signer, lender] = await ethers.getSigners();
@@ -696,6 +722,32 @@ describe('MarginlyPool.Base', () => {
       // check position
       const position = await marginlyPool.positions(signer.address);
       expect(position._type).to.be.equal(PositionType.Short);
+      expect(position.heapPosition).to.be.equal(1);
+    });
+
+    it('depositQuote and open long position', async () => {
+      const { marginlyPool, quoteContract, baseContract } = await loadFixture(createMarginlyPool);
+      const [_, signer, lender] = await ethers.getSigners();
+      const price = (await marginlyPool.getBasePrice()).inner;
+
+      const lenderDeposit = 10000;
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositBase, lenderDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      await marginlyPool
+        .connect(lender)
+        .execute(CallType.DepositQuote, lenderDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      const depositAmount = 1500;
+      const longAmount = 1000;
+      await marginlyPool
+        .connect(signer)
+        .execute(CallType.DepositQuote, depositAmount, -longAmount, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
+
+      // check position
+      const position = await marginlyPool.positions(signer.address);
+      expect(position._type).to.be.equal(PositionType.Long);
       expect(position.heapPosition).to.be.equal(1);
     });
 
