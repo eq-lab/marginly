@@ -32,6 +32,10 @@
       "address": "0xbD0DAC87d3BEe3f75FEB62b84936aA65b4148c0f",
       "txHash": "0x876573bef07a66d810150bc83f824f62e619bec93bb7a7da9488459d4d0b2f29"
     },
+    "UniswapV3Adapter_0": {
+      "address": "0x718ADD2363226a8000b89c90FB6093b66c713Acb",
+      "txHash": "0x9c234e7727e2b75ffd394b5b57f1f2af00a17af1baf5d7ea3fd8c3948bb7b3ab"
+    },
     "MarginlyRouter": {
       "address": "0x244141f247DF46Ce58cB81a101d0fb9787622126",
       "txHash": "0xfb130c010db90f184333022053142594e73c6bb3a1967292e7f51d5e5df243d9"

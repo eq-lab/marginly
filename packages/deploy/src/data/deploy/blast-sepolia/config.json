@@ -158,7 +158,29 @@
       }
     }
   ],
-  "adapters": [],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "fweth",
+          "tokenBId": "usdc",
+          "poolAddress": "0x73956b3b0c279e9cF2700F91B2e48E4eC0C8F281"
+        },
+        {
+          "tokenAId": "link",
+          "tokenBId": "usdc",
+          "poolAddress": "0x7e5985019A58a96F761C4eAA8A3e73553e8FE6B5"
+        },
+        {
+          "tokenAId": "doge",
+          "tokenBId": "usdc",
+          "poolAddress": "0xbD0DAC87d3BEe3f75FEB62b84936aA65b4148c0f"
+        }
+      ]
+    }
+  ],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "allowCreateMock": "true"
