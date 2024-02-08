@@ -101,7 +101,7 @@ contract MarginlyKeeper is IFlashLoanSimpleReceiver {
       collateralToken = baseToken;
     } else if (baseToken == asset) {
       SafeERC20.forceApprove(IERC20(baseToken), params.marginlyPool, amount);
-      marginlyPool.execute(CallType.ReceivePosition, 0, amount, 0, false, params.positionToLiquidate, 0);
+      marginlyPool.execute(CallType.ReceivePosition, 0, int256(amount), 0, false, params.positionToLiquidate, 0);
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');
