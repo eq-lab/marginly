@@ -41,7 +41,7 @@ export class WorkerManager implements Worker {
   }
 
   private getActivePromises(): Promise<[string, boolean]>[] {
-    return Array.from(this.activeWorkers.values()).map(x => x.promise);
+    return Array.from(this.activeWorkers.values()).map((x) => x.promise);
   }
 
   private getNowMs(): bigint {
@@ -53,10 +53,13 @@ export class WorkerManager implements Worker {
     return {
       failedAtMs,
       worker,
-      promise: worker.run().then(() => [stoppedWorkerId, true], (error) => {
-        this.logger.error(error, 'Worker stopped with error');
-        return [stoppedWorkerId, false];
-      })
+      promise: worker.run().then(
+        () => [stoppedWorkerId, true],
+        (error) => {
+          this.logger.error(error, 'Worker stopped with error');
+          return [stoppedWorkerId, false];
+        }
+      ),
     };
   }
 
@@ -85,18 +88,24 @@ export class WorkerManager implements Worker {
         break;
       } else {
         // here we assume that worker exited with error
-        const workerInfo = this.activeWorkers.get(stoppedWorkerId)!;
-        if (workerInfo.failedAtMs !== undefined && this.getNowMs() - workerInfo.failedAtMs < thresholdMs) {
-          this.logger.info(`Stopping workers due to second failure of ${stoppedWorkerId} in less than ${thresholdMs} ms`);
-          break;
-        } else {
+        //const workerInfo = this.activeWorkers.get(stoppedWorkerId)!;
+        // if (workerInfo.failedAtMs !== undefined && this.getNowMs() - workerInfo.failedAtMs < thresholdMs) {
+        //   this.logger.info(`Stopping workers due to second failure of ${stoppedWorkerId} in less than ${thresholdMs} ms`);
+        //   break;
+        // } else
+        {
           // here worker failed for the first time or after threshold
-          this.logger.info(`Waiting for ${this.config.workerManager.restartDelayMs} ms before restarting worker ${stoppedWorkerId}`);
+          this.logger.info(
+            `Waiting for ${this.config.workerManager.restartDelayMs} ms before restarting worker ${stoppedWorkerId}`
+          );
           await sleep(this.config.workerManager.restartDelayMs);
           this.logger.info(`Restarting worker ${stoppedWorkerId}`);
 
           const transientState = this.activeWorkers.get(stoppedWorkerId)?.worker.getTransientState() ?? [];
-          this.activeWorkers.set(stoppedWorkerId, this.createWorkerInfo(stoppedWorkerId, this.getNowMs(), transientState));
+          this.activeWorkers.set(
+            stoppedWorkerId,
+            this.createWorkerInfo(stoppedWorkerId, this.getNowMs(), transientState)
+          );
         }
       }
     }
@@ -105,9 +114,7 @@ export class WorkerManager implements Worker {
     this.requestStop();
 
     for (let i = this.activeWorkers.size; i > 0; i--) {
-      const [stoppedWorkerId] = await Promise.race(
-        this.getActivePromises(),
-      );
+      const [stoppedWorkerId] = await Promise.race(this.getActivePromises());
       this.activeWorkers.delete(stoppedWorkerId);
     }
 

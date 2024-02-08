@@ -179,6 +179,25 @@
         "type": "http-get",
         "direction": "forward",
         "query": "json(https://www.okx.com/api/v5/market/ticker?instId=OKB-USDC).data[0].last"
+      },
+      {
+        "id": "doge-usdc",
+        "label": "doge/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "doge/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=DOGEUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+          }
+        ]
       }
     ]
   },
@@ -465,6 +484,73 @@
         {
           "poolMockId": "fokb-usdc",
           "periodMs": 60000
+        }
+      ]
+    },
+    {
+      "id": "blastSepolia",
+      "tickMs": 1000,
+      "ethereum": {
+        "nodeUrl": "https://sepolia.blast.io"
+      },
+      "tokens": [
+        {
+          "id": "fweth",
+          "address": "0xE4Aca502d05Ca25862ffF831fA90CeCd5241f62a",
+          "assertSymbol": "FWETH",
+          "assertDecimals": 18
+        },
+        {
+          "id": "usdc",
+          "address": "0x29A7425B0c1d44D5046E10B24821ea859215168c",
+          "assertSymbol": "USDC",
+          "assertDecimals": 6
+        },
+        {
+          "id": "link",
+          "address": "0x429558A95501D82035d8592b07280c3312acBe4A",
+          "assertSymbol": "LINK",
+          "assertDecimals": 18
+        },
+        {
+          "id": "doge",
+          "address": "0x3f5272244e89F26D598Bbb7d4684e27f73708146",
+          "assertSymbol": "DOGE",
+          "assertDecimals": 8
+        }
+      ],
+      "uniswapV3PoolMocks": [
+        {
+          "id": "fweth-usdc",
+          "address": "0x73956b3b0c279e9cF2700F91B2e48E4eC0C8F281",
+          "priceId": "eth-usdc",
+          "priceBaseTokenId": "fweth"
+        },
+        {
+          "id": "link-usdc",
+          "address": "0x7e5985019A58a96F761C4eAA8A3e73553e8FE6B5",
+          "priceId": "link-usdc",
+          "priceBaseTokenId": "link"
+        },
+        {
+          "id": "doge-usdc",
+          "address": "0xbD0DAC87d3BEe3f75FEB62b84936aA65b4148c0f",
+          "priceId": "doge-usdc",
+          "priceBaseTokenId": "doge"
+        }
+      ],
+      "updatePriceJobs": [
+        {
+          "poolMockId": "fweth-usdc",
+          "periodMs": 180000
+        },
+        {
+          "poolMockId": "link-usdc",
+          "periodMs": 180000
+        },
+        {
+          "poolMockId": "doge-usdc",
+          "periodMs": 180000
         }
       ]
     }
