@@ -376,13 +376,7 @@
       }
     }
   ],
-  "adapters": [
-    {
-      "dexId": 0,
-      "adapterName": "UniswapV3Adapter",
-      "pools": []
-    }
-  ],
+  "adapters": [],
   "marginlyKeeper": {
     "aavePoolAddressesProvider": {
       "allowCreateMock": "true"

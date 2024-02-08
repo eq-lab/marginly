@@ -2,33 +2,33 @@
   "marginlyPools": [
     {
       "id": "arb-usdc",
-      "address": "0xb4a238b977a7B48dFad532e99Ea65C848670913B"
+      "address": "0xcAdf9fe6766d4a68a9aE46dcf40F563945266CA2"
     },
     {
       "id": "fweth-usdc",
-      "address": "0x16a3E70694c5Ee5345c116Fda8627a3BDde66b70"
+      "address": "0xEa2Fd69d1f0485192e74E71ae677ce3415690955"
     },
     {
       "id": "gmx-usdc",
-      "address": "0xA450227E2B61B03c068aEd7428aF0bf2FA55c303"
+      "address": "0xE6521A1a83955Cfe60FFa86c11B04BE334F6ed22"
     },
     {
       "id": "pendle-eth",
-      "address": "0xf72c72Ba0e9b5b3eB9c99010c36B8175c819B1d7"
+      "address": "0x6a9f2e88C86965b6183Ac3413c26021847fF2A32"
     },
     {
       "id": "rdnt-eth",
-      "address": "0xFA8cF2FF2f575d87352ac526FC4EaB035C656A6E"
+      "address": "0x4d6e6d4c89F7dDe936b98384F094Fd50Bcf88504"
     },
     {
       "id": "wbtc-usdc",
-      "address": "0x93ac2F3ed6124dDBc7160C90fee200B92bCd1f67"
+      "address": "0xdbbF201F96052A304a0D197E4FF450A769b99Ae1"
     }
   ],
   "marginlyKeeper": {
-    "address": "0x4b05bBD31D497365AB7047C1572E92722f373644"
+    "address": "0x812075FdbC4dE16fC9b80B97D003baD99a8a6371"
   },
   "marginlyKeeperUniswapV3": {
-    "address": "0x34220C777936F118d58e8F317811600346e0735A"
+    "address": "0x10bdFB6d4AF68556dc358405206EE64Ce1169Cae"
   }
 }
