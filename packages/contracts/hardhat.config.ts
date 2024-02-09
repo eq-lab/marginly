@@ -38,6 +38,9 @@ const config = {
     x1Testnet: {
       url: 'https://x1-testnet.blockpi.network/v1/rpc/public',
     },
+    blastSepolia: {
+      url: 'https://sepolia.blast.io',
+    },
   },
   etherscan: {
     apiKey: {
@@ -46,6 +49,7 @@ const config = {
       arbitrumOne: process.env.API_KEY,
       arbitrumSepolia: process.env.API_KEY,
       x1Testnet: process.env.API_KEY,
+      blastSepolia: 'blast_sepolia',
     },
     customChains: [
       {
@@ -62,6 +66,14 @@ const config = {
         urls: {
           apiURL: 'https://www.oklink.com/api/v5/explorer/contract/verify-source-code',
           browserURL: 'https://www.okx.com/explorer/x1-test/',
+        },
+      },
+      {
+        network: 'blastSepolia',
+        chainId: 168587773,
+        urls: {
+          apiURL: 'https://api.routescan.io/v2/network/testnet/evm/168587773/etherscan',
+          browserURL: 'https://testnet.blastscan.io',
         },
       },
     ],
