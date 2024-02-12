@@ -79,6 +79,18 @@
     "marginlyPool_arb-usdc-native": {
       "address": "0x0F750fBb044037254b5843C6b4a715AA12876d94",
       "txHash": "0x0ea6b4a74179ee6e702b7980efcdacba3e530d3e13d41af8e3b274f8f5124861"
+    },
+    "TraderJoeV2Adapter_8": {
+      "address": "0x53031a0FeF218c5cb596D8472b9a0B6df7fA2b59",
+      "txHash": "0x4f126431bd80fa67b709ad9abf8491885f732684bc29beeb4fa24246e185e64e"
+    },
+    "AlgebraAdapter_11": {
+      "address": "0xedE1d40b39A5ab36c5728f4f0289aF14f15E7C06",
+      "txHash": "0xb964eb04db2128fb70ed826032ef5ac753e18f5057df7451c2084b1bb25dbde5"
+    },
+    "marginlyKeeperUniswapV3": {
+      "address": "0xDdDf54E1323d0d07BfDfedAdC56FaDf2045330dF",
+      "txHash": "0xa60cd68e962776e53180f8d9b037f5337a78a2ddbe1fbd2422825004e10b3e7f"
     }
   }
 }

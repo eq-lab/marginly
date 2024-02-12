@@ -312,6 +312,22 @@
       ]
     },
     {
+      "dexId": 8,
+      "adapterName": "TraderJoeV2Adapter",
+      "pools": [
+        {
+          "tokenAId": "wbtc",
+          "tokenBId": "weth",
+          "poolAddress": "0xcfA09B20c85933B197e8901226ad0D6dACa7f114"
+        },
+        {
+          "tokenAId": "weth",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0x69f1216cB2905bf0852f74624D5Fa7b5FC4dA710"
+        }
+      ]
+    },
+    {
       "dexId": 10,
       "adapterName": "RamsesAdapter",
       "pools": [
@@ -329,6 +345,27 @@
           "tokenAId": "arb",
           "tokenBId": "usdc-native",
           "poolAddress": "0xee5f2e39d8abf28e449327bfd44317fc500eb4d8"
+        }
+      ]
+    },
+    {
+      "dexId": 11,
+      "adapterName": "AlgebraAdapter",
+      "pools": [
+        {
+          "tokenAId": "wbtc",
+          "tokenBId": "weth",
+          "poolAddress": "0xd845f7D4f4DeB9Ff5bCf09D140Ef13718F6f6C71"
+        },
+        {
+          "tokenAId": "weth",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0xB1026b8e7276e7AC75410F1fcbbe21796e8f7526"
+        },
+        {
+          "tokenAId": "arb",
+          "tokenBId": "usdc-native",
+          "poolAddress": "0xfaE2AE0a9f87FD35b5b0E24B47BAC796A7EEfEa1"
         }
       ]
     }
