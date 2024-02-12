@@ -481,7 +481,7 @@
           "periodMs": 60000
         },
         {
-          "poolMockId": "btc-usdc",
+          "poolMockId": "wbtc-usdc",
           "periodMs": 60000
         },
         {
