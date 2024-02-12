@@ -198,6 +198,25 @@
             "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
           }
         ]
+      },
+      {
+        "id": "pepe-usdc",
+        "label": "pepe/usdc",
+        "type": "composite",
+        "sources": [
+          {
+            "type": "http-get",
+            "label": "pepe/usdt",
+            "direction": "forward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=PEPEUSDT).price"
+          },
+          {
+            "type": "http-get",
+            "label": "usdt/usdc",
+            "direction": "backward",
+            "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+          }
+        ]
       }
     ]
   },
@@ -206,121 +225,6 @@
     "restartDelayMs": 30000
   },
   "oracleWorkers": [
-    {
-      "id": "arbitrum-goerli",
-      "tickMs": 1000,
-      "ethereum": {
-        "nodeUrl": "https://goerli-rollup.arbitrum.io/rpc"
-      },
-      "tokens": [
-        {
-          "id": "fweth",
-          "address": "0x96eA82aE1EC503f0D4060D591aF432A4C3A12543",
-          "assertSymbol": "FWETH",
-          "assertDecimals": 18
-        },
-        {
-          "id": "wbtc",
-          "address": "0x966DF0Bf32A359d56f32F262C07e1BD70924F09B",
-          "assertSymbol": "WBTC",
-          "assertDecimals": 8
-        },
-        {
-          "id": "usdc",
-          "address": "0xa587570CB27754cC8aaCd671Ab1326F6E4f63bF2",
-          "assertSymbol": "USDC",
-          "assertDecimals": 6
-        },
-        {
-          "id": "arb",
-          "address": "0x9155822Aa3507153BBe797753C3A31E214B67596",
-          "assertSymbol": "ARB",
-          "assertDecimals": 18
-        },
-        {
-          "id": "gmx",
-          "address": "0x538Ee77e594f53A77A5cc22D945b5A1217Db2fe2",
-          "assertSymbol": "GMX",
-          "assertDecimals": 18
-        },
-        {
-          "id": "pendle",
-          "address": "0x57F49ac726B99D8A8Fe9056b5CC2B20fDE411991",
-          "assertSymbol": "PENDLE",
-          "assertDecimals": 18
-        },
-        {
-          "id": "rdnt",
-          "address": "0x6FD96B32E85B160BB98b2Bc203B988f44DfC5Db8",
-          "assertSymbol": "RDNT",
-          "assertDecimals": 18
-        }
-      ],
-      "uniswapV3PoolMocks": [
-        {
-          "id": "fweth-usdc",
-          "address": "0xCc7Cb93A84137307f4783543a14325733Fb17579",
-          "priceId": "eth-usdc",
-          "priceBaseTokenId": "fweth"
-        },
-        {
-          "id": "btc-usdc",
-          "address": "0x27410978DC2E0271B618e8131E512B826bFe4753",
-          "priceId": "btc-usdc",
-          "priceBaseTokenId": "wbtc"
-        },
-        {
-          "id": "arb-usdc",
-          "address": "0xf43A8EF1c62D4884F32A3c9225f44AC267c456B9",
-          "priceId": "arb-usdc",
-          "priceBaseTokenId": "arb"
-        },
-        {
-          "id": "gmx-usdc",
-          "address": "0x39191e03394A43D6117E676DE6082B4Fee8DF44C",
-          "priceId": "gmx-usdc",
-          "priceBaseTokenId": "gmx"
-        },
-        {
-          "id": "pendle-eth",
-          "address": "0x6612B8D59816a02c5038C6645EEA3fc588225241",
-          "priceId": "pendle-eth",
-          "priceBaseTokenId": "pendle"
-        },
-        {
-          "id": "rdnt-eth",
-          "address": "0x9740179d43A4D9404D209bE42a4f18eb5a00cBD5",
-          "priceId": "rdnt-eth",
-          "priceBaseTokenId": "rdnt"
-        }
-      ],
-      "updatePriceJobs": [
-        {
-          "poolMockId": "fweth-usdc",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "btc-usdc",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "arb-usdc",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "gmx-usdc",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "pendle-eth",
-          "periodMs": 60000
-        },
-        {
-          "poolMockId": "rdnt-eth",
-          "periodMs": 60000
-        }
-      ]
-    },
     {
       "id": "arbitrum-sepolia",
       "tickMs": 1000,
@@ -517,6 +421,18 @@
           "address": "0x3f5272244e89F26D598Bbb7d4684e27f73708146",
           "assertSymbol": "DOGE",
           "assertDecimals": 8
+        },
+        {
+          "id": "wbtc",
+          "address": "0x8E044F6D7f82492334ed4215C39C5d89258dfCA2",
+          "assertSymbol": "FWBTC",
+          "assertDecimals": 8
+        },
+        {
+          "id": "pepe",
+          "address": "0xff27081fb23D47520fa5dDC420E4Bdfa9a7BbD96",
+          "assertSymbol": "PEPE",
+          "assertDecimals": 18
         }
       ],
       "uniswapV3PoolMocks": [
@@ -537,20 +453,40 @@
           "address": "0xbD0DAC87d3BEe3f75FEB62b84936aA65b4148c0f",
           "priceId": "doge-usdc",
           "priceBaseTokenId": "doge"
+        },
+        {
+          "id": "wbtc-usdc",
+          "address": "0x6278d9Ecc2919eA19F4a0c6b4095d821a8b3bDa7",
+          "priceId": "btc-usdc",
+          "priceBaseTokenId": "wbtc"
+        },
+        {
+          "id": "pepe-usdc",
+          "address": "0xa689c011Bb1513341617F50B7866b89a6C891Ead",
+          "priceId": "pepe-usdc",
+          "priceBaseTokenId": "pepe"
         }
       ],
       "updatePriceJobs": [
         {
           "poolMockId": "fweth-usdc",
-          "periodMs": 180000
+          "periodMs": 60000
         },
         {
           "poolMockId": "link-usdc",
-          "periodMs": 180000
+          "periodMs": 60000
         },
         {
           "poolMockId": "doge-usdc",
-          "periodMs": 180000
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "btc-usdc",
+          "periodMs": 60000
+        },
+        {
+          "poolMockId": "pepe-usdc",
+          "periodMs": 60000
         }
       ]
     }
