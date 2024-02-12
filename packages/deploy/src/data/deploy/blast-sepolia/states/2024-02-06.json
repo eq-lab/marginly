@@ -16,6 +16,14 @@
       "address": "0x3f5272244e89F26D598Bbb7d4684e27f73708146",
       "txHash": "0x94410942269312edca3ffd0089d5bc9230b317abd1110ea20eab7a23601b9093"
     },
+    "token_FWBTC": {
+      "address": "0x8E044F6D7f82492334ed4215C39C5d89258dfCA2",
+      "txHash": "0x552b8e529725b3a4366c163a6e5cf993a2d87c45af156e492516d6ac6db471dd"
+    },
+    "token_PEPE": {
+      "address": "0xff27081fb23D47520fa5dDC420E4Bdfa9a7BbD96",
+      "txHash": "0x1774f36cfea8dbe321b7068068d35c5a5fd44363101f89b72d5878dfb5a30f27"
+    },
     "swapRouterMock": {
       "address": "0x7C9fe5570cC1b4DDB35Dc591A2e295c91a420413",
       "txHash": "0xd6beff4223e91f89408242c703c5385e36032b6233b17251b812bfe98a4c6014"
@@ -31,6 +39,14 @@
     "uniswapV3PoolMock_doge-usdc": {
       "address": "0xbD0DAC87d3BEe3f75FEB62b84936aA65b4148c0f",
       "txHash": "0x876573bef07a66d810150bc83f824f62e619bec93bb7a7da9488459d4d0b2f29"
+    },
+    "uniswapV3PoolMock_fwbtc-usdc": {
+      "address": "0x6278d9Ecc2919eA19F4a0c6b4095d821a8b3bDa7",
+      "txHash": "0x0d84ea6ae2263c45304f0afba1bce3d763cd6facf2b71d60f736fdd0cc85342f"
+    },
+    "uniswapV3PoolMock_pepe-usdc": {
+      "address": "0xa689c011Bb1513341617F50B7866b89a6C891Ead",
+      "txHash": "0x55488a276915d2d8b67da55b30440702e92973cbfd2bdc37b000b07f1e72473d"
     },
     "UniswapV3Adapter_0": {
       "address": "0x718ADD2363226a8000b89c90FB6093b66c713Acb",
@@ -59,6 +75,14 @@
     "marginlyPool_doge-usdc": {
       "address": "0x06139D9044d2Ea23dd82b19bFCeC2d32cCDA0Bd8",
       "txHash": "0x0a7efd6bf3116da709c417514b9c53f43d9ba51e639ad84fcd043943ca981bea"
+    },
+    "marginlyPool_fwbtc-usdc": {
+      "address": "0x77e84d6FF7Ba9C174B750a7882ce06B8EdFb558C",
+      "txHash": "0x8d44ee02207de03cc011c7f33d491b2d464a88e95ffbfa5b2bb1ed75ca95605e"
+    },
+    "marginlyPool_pepe-usdc": {
+      "address": "0x6F0301885Dc5Ab2722a097376157cA6829FA2a46",
+      "txHash": "0xed7ba61fcfeaa83ac3b33453935eee96b1692983549393ea5853706e77844f00"
     },
     "mockAavePool": {
       "address": "0xc745D5B682E9597001ba291dB61F84846104deE1",

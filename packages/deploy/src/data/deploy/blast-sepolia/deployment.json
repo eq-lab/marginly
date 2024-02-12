@@ -5,12 +5,20 @@
       "address": "0x06139D9044d2Ea23dd82b19bFCeC2d32cCDA0Bd8"
     },
     {
+      "id": "fwbtc-usdc",
+      "address": "0x77e84d6FF7Ba9C174B750a7882ce06B8EdFb558C"
+    },
+    {
       "id": "fweth-usdc",
       "address": "0x1a5f811abbBbd6EEb840F045F91f6cAeA15a2d15"
     },
     {
       "id": "link-usdc",
       "address": "0xBa01578b3f54F47b790011776C117887418c692E"
+    },
+    {
+      "id": "pepe-usdc",
+      "address": "0x6F0301885Dc5Ab2722a097376157cA6829FA2a46"
     }
   ],
   "marginlyKeeper": {
