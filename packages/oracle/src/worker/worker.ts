@@ -174,6 +174,7 @@ export class OracleWorker implements Worker {
       let tx;
       try {
         tx = await poolMock.contract.setPrice(priceFp, sqrtPriceX96);
+        await tx.wait();
       } catch (error) {
         const errorRecord = error as Record<string, unknown>;
 
