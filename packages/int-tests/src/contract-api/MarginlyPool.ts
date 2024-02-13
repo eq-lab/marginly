@@ -29,7 +29,7 @@ export interface MarginlyPoolInterface extends utils.Interface {
     'discountedQuoteCollateral()': utils.FunctionFragment;
     'discountedQuoteDebt()': utils.FunctionFragment;
     'emergencyWithdrawCoeff()': utils.FunctionFragment;
-    'execute(uint8,uint256,uint256,uint256,bool,address,uint256)': utils.FunctionFragment;
+    'execute(uint8,uint256,int256,uint256,bool,address,uint256)': utils.FunctionFragment;
     'factory()': utils.FunctionFragment;
     'getBasePrice()': utils.FunctionFragment;
     'getHeapPosition(uint32,bool)': utils.FunctionFragment;
