@@ -1,7 +1,5 @@
 import { ethers } from 'hardhat';
 import {
-  TestChainlinkAggregator,
-  MockMarginlyPoolWithPriceAdapter,
   SwapPoolRegistry,
   TestUniswapPool,
   TestUniswapFactory,
