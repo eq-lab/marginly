@@ -104,10 +104,6 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
   }
 
-  function decode(bytes memory options) private pure returns (OracleParams memory) {
-    return abi.decode(options, (OracleParams));
-  }
-
   function getPoolAddress(address tokenA, address tokenB, uint24 fee) private view returns (address pool) {
     pool = IUniswapV3Factory(factory).getPool(tokenA, tokenB, fee);
     if (pool == address(0)) revert UnknownPool();
