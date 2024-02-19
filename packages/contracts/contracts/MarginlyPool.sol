@@ -1431,7 +1431,7 @@ contract MarginlyPool is IMarginlyPool {
   }
 
   function claimContractsGas() external onlyFactoryOwner {
-    BLAST.claimAllGas(address(this), IMarginlyFactory(factory).feeHolder());
+    BLAST.claimMaxGas(address(this), IMarginlyFactory(factory).feeHolder());
   }
 
   /// @dev Changes tech position base collateral so total calculated base balance to be equal to actual

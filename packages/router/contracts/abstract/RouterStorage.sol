@@ -59,7 +59,7 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
   }
 
   function claimContractsGas(address feeHolder) external onlyOwner {
-    BLAST.claimAllGas(address(this), feeHolder);
+    BLAST.claimMaxGas(address(this), feeHolder);
   }
 
   function renounceOwnership() public override onlyOwner {

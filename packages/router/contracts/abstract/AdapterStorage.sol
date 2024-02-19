@@ -56,13 +56,13 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
     }
   }
 
-  function claimContractsGas(address feeHolder) external onlyOwner {
-    BLAST.claimAllGas(address(this), feeHolder);
-  }
-
   function getPoolSafe(address tokenA, address tokenB) internal view returns (address pool) {
     pool = getPool[tokenA][tokenB];
     if (pool == address(0)) revert UnknownPool();
+  }
+
+  function claimContractsGas(address feeHolder) external onlyOwner {
+    BLAST.claimMaxGas(address(this), feeHolder);
   }
 
   function renounceOwnership() public override onlyOwner {
