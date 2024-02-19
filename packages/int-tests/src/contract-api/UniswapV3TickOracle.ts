@@ -26,11 +26,11 @@ export interface UniswapV3TickOracleInterface extends utils.Interface {
     'factory()': utils.FunctionFragment;
     'getBalancePrice(address,address)': utils.FunctionFragment;
     'getMargincallPrice(address,address)': utils.FunctionFragment;
-    'getParamsEncoded(address,address)': utils.FunctionFragment;
+    'getParams(address,address)': utils.FunctionFragment;
     'owner()': utils.FunctionFragment;
     'pendingOwner()': utils.FunctionFragment;
     'renounceOwnership()': utils.FunctionFragment;
-    'setOptions(address,address,bytes)': utils.FunctionFragment;
+    'setOptions(address,address,uint16,uint16,uint24)': utils.FunctionFragment;
     'transferOwnership(address)': utils.FunctionFragment;
   };
 
@@ -40,7 +40,7 @@ export interface UniswapV3TickOracleInterface extends utils.Interface {
       | 'factory'
       | 'getBalancePrice'
       | 'getMargincallPrice'
-      | 'getParamsEncoded'
+      | 'getParams'
       | 'owner'
       | 'pendingOwner'
       | 'renounceOwnership'
@@ -68,18 +68,20 @@ export interface UniswapV3TickOracleContract extends BaseContract {
     baseToken: PromiseOrValue<string>,
     override?: CallOverrides
   ): Promise<BigNumber>;
-  getParamsEncoded(
+  getParams(
     arg0: PromiseOrValue<string>,
     arg1: PromiseOrValue<string>,
     override?: CallOverrides
-  ): Promise<BytesLike>;
+  ): Promise<{ initialized: boolean; secondsAgo: BigNumber; secondsAgoLiquidation: BigNumber; uniswapFee: BigNumber }>;
   owner(override?: CallOverrides): Promise<string>;
   pendingOwner(override?: CallOverrides): Promise<string>;
   renounceOwnership(override?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   setOptions(
     quoteToken: PromiseOrValue<string>,
     baseToken: PromiseOrValue<string>,
-    encodedParams: PromiseOrValue<BytesLike>,
+    secondsAgo: PromiseOrValue<BigNumberish>,
+    secondsAgoLiquidation: PromiseOrValue<BigNumberish>,
+    uniswapFee: PromiseOrValue<BigNumberish>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   transferOwnership(
@@ -99,11 +101,16 @@ export interface UniswapV3TickOracleContract extends BaseContract {
       baseToken: PromiseOrValue<string>,
       override?: CallOverrides
     ): Promise<[BigNumber]>;
-    getParamsEncoded(
+    getParams(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<string>,
       override?: CallOverrides
-    ): Promise<[BytesLike]>;
+    ): Promise<{
+      initialized: boolean;
+      secondsAgo: BigNumber;
+      secondsAgoLiquidation: BigNumber;
+      uniswapFee: BigNumber;
+    }>;
     owner(override?: CallOverrides): Promise<[string]>;
     pendingOwner(override?: CallOverrides): Promise<[string]>;
   };
@@ -113,7 +120,9 @@ export interface UniswapV3TickOracleContract extends BaseContract {
     setOptions(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
-      encodedParams: PromiseOrValue<BytesLike>,
+      secondsAgo: PromiseOrValue<BigNumberish>,
+      secondsAgoLiquidation: PromiseOrValue<BigNumberish>,
+      uniswapFee: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
     transferOwnership(
@@ -127,7 +136,9 @@ export interface UniswapV3TickOracleContract extends BaseContract {
     setOptions(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
-      encodedParams: PromiseOrValue<BytesLike>,
+      secondsAgo: PromiseOrValue<BigNumberish>,
+      secondsAgoLiquidation: PromiseOrValue<BigNumberish>,
+      uniswapFee: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
     transferOwnership(
@@ -141,7 +152,9 @@ export interface UniswapV3TickOracleContract extends BaseContract {
     setOptions(
       quoteToken: PromiseOrValue<string>,
       baseToken: PromiseOrValue<string>,
-      encodedParams: PromiseOrValue<BytesLike>,
+      secondsAgo: PromiseOrValue<BigNumberish>,
+      secondsAgoLiquidation: PromiseOrValue<BigNumberish>,
+      uniswapFee: PromiseOrValue<BigNumberish>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
     transferOwnership(

@@ -178,7 +178,7 @@ async function initializeTestSystem(
     [secondsAgo, secondsAgoLiquidation, uniswapPoolFee]
   );
   //'0x0000000000000000000000000000000000000000000000000000000000000708000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000001f4';
-  await priceOracle.connect(treasury).setOptions(usdc.address, weth.address, priceOracleOptions); //TODO: create uniswap price oracle
+  await priceOracle.connect(treasury).setOptions(usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee); //TODO: create uniswap price oracle
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
   logger.info(`marginly pool implementation: ${marginlyPoolImplementation.address}`);
