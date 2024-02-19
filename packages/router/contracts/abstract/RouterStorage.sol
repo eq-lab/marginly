@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
+import '../interfaces/IBlast.sol';
 import '../interfaces/IMarginlyAdapter.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
@@ -16,6 +17,8 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
   event NewAdapter(uint256 dexIndex, address indexed adapter);
 
   error UnknownDex();
+
+  IBlast private constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
 
   mapping(uint256 => address) public adapters;
 
@@ -31,6 +34,8 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
         ++i;
       }
     }
+
+    BLAST.configureClaimableGas();
   }
 
   function addDexAdapters(AdapterInput[] calldata _adapters) external onlyOwner {
@@ -51,6 +56,10 @@ abstract contract RouterStorage is IMarginlyRouter, Ownable2Step {
     address adapterAddress = adapters[dexIndex];
     if (adapterAddress == address(0)) revert UnknownDex();
     return IMarginlyAdapter(adapterAddress);
+  }
+
+  function claimContractsGas(address feeHolder) external onlyOwner {
+    BLAST.claimAllGas(address(this), feeHolder);
   }
 
   function renounceOwnership() public override onlyOwner {

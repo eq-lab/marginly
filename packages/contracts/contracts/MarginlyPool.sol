@@ -11,6 +11,7 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 
+import './interfaces/IBlast.sol';
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
 import './interfaces/IWETH9.sol';
@@ -35,6 +36,8 @@ contract MarginlyPool is IMarginlyPool {
 
   /// @dev Denominator of fee value
   uint24 private constant WHOLE_ONE = 1e6;
+
+  IBlast private constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
 
   /// @inheritdoc IMarginlyPool
   address public override factory;
@@ -131,6 +134,8 @@ contract MarginlyPool is IMarginlyPool {
 
     Position storage techPosition = getTechPosition();
     techPosition._type = PositionType.Lend;
+
+    BLAST.configureClaimableGas();
   }
 
   /// @inheritdoc IMarginlyPool
@@ -1423,6 +1428,10 @@ contract MarginlyPool is IMarginlyPool {
     if (address(this).balance > 0) {
       TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
+  }
+
+  function claimContractsGas() external onlyFactoryOwner {
+    BLAST.claimAllGas(address(this), IMarginlyFactory(factory).feeHolder());
   }
 
   /// @dev Changes tech position base collateral so total calculated base balance to be equal to actual

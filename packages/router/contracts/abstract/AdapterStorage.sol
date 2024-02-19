@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
+import '../interfaces/IBlast.sol';
 import '../interfaces/IMarginlyAdapter.sol';
 
 struct PoolInput {
@@ -19,6 +20,8 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
 
   error Forbidden();
 
+  IBlast private constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
+
   mapping(address => mapping(address => address)) public getPool;
 
   constructor(PoolInput[] memory pools) {
@@ -34,6 +37,8 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
         ++i;
       }
     }
+
+    BLAST.configureClaimableGas();
   }
 
   function addPools(PoolInput[] calldata pools) external onlyOwner {
@@ -49,6 +54,10 @@ abstract contract AdapterStorage is IMarginlyAdapter, Ownable2Step {
         ++i;
       }
     }
+  }
+
+  function claimContractsGas(address feeHolder) external onlyOwner {
+    BLAST.claimAllGas(address(this), feeHolder);
   }
 
   function getPoolSafe(address tokenA, address tokenB) internal view returns (address pool) {
