@@ -13,6 +13,10 @@
       "address": "0x0637B18b5c5b7fe72F63a5511D2e90BEc7FC828E"
     },
     {
+      "id": "link-weth",
+      "address": "0x6e699E6eD6391259e4Cec38c16d80f772dF9F370"
+    },
+    {
       "id": "pendle-weth",
       "address": "0x3adc0f25c7A23a626A67811c47d0A0DbE21773a4"
     },
