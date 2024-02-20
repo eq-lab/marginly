@@ -54,6 +54,12 @@
       "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
       "assertSymbol": "USDC",
       "assertDecimals": 6
+    },
+    {
+      "id": "link",
+      "address": "0xf97f4df75117a78c1a5a0dbb814af92458539fb4",
+      "assertSymbol": "LINK",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -126,6 +132,14 @@
         "fee": "0.05%",
         "allowCreate": false,
         "assertAddress": "0xb0f6ca40411360c03d41c5ffc5f179b8403cdcf8"
+      },
+      {
+        "id": "link-weth",
+        "tokenAId": "weth",
+        "tokenBId": "link",
+        "fee": "0.3%",
+        "allowCreate": false,
+        "assertAddress": "0x468b88941e7cc0b88c1869d68ab6b570bcef62ff"
       }
     ]
   },
@@ -262,6 +276,22 @@
         "positionMinAmount": "1",
         "quoteLimit": "1_000_000"
       }
+    },
+    {
+      "id": "link-weth",
+      "uniswapPoolId": "link-weth",
+      "baseTokenId": "link",
+      "params": {
+        "maxLeverage": "5",
+        "interestRate": "15%",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "priceAgo": "30 min",
+        "priceAgoMC": "5 sec",
+        "positionMinAmount": "0.1",
+        "quoteLimit": "500"
+      }
     }
   ],
   "adapters": [
@@ -366,6 +396,21 @@
           "tokenAId": "arb",
           "tokenBId": "usdc-native",
           "poolAddress": "0xfaE2AE0a9f87FD35b5b0E24B47BAC796A7EEfEa1"
+        },
+        {
+          "tokenAId": "link",
+          "tokenBId": "weth",
+          "poolAddress": "0xe8795cf9c2309ecfe05df028eb0f21d5d6e3a951"
+        },
+        {
+          "tokenAId": "pendle",
+          "tokenBId": "weth",
+          "poolAddress": "0xe461f84c3fe6bcdd1162eb0ef4284f3bb6e4cad3"
+        },
+        {
+          "tokenAId": "gmx",
+          "tokenBId": "weth",
+          "poolAddress": "0xc99be44383bc8d82357f5a1d9ae9976ee9d75bee"
         }
       ]
     }
