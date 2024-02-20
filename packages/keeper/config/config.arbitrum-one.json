@@ -48,6 +48,11 @@
       "address": "0x0F750fBb044037254b5843C6b4a715AA12876d94",
       "minProfitQuote": "1",
       "minProfitBase": "0.8"
+    },
+    {
+      "address": "0x6e699E6eD6391259e4Cec38c16d80f772dF9F370",
+      "minProfitQuote": "0.0005",
+      "minProfitBase": "0.1"
     }
   ]
 }
