@@ -78,7 +78,6 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: ${{ secrets.PULL_SECRET }}
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
@@ -101,6 +100,7 @@ jobs:
           --set image.tag=${{ needs.build-image.outputs.output_tag }} \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
+          --set imagePullSecrets[0].name=${{ secrets.PULL_SECRET }} \
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
           -f extraEnv.yml \
           ./
@@ -130,7 +130,6 @@ jobs:
     - name: 'Prep extraEnv'
       run: |
           cat <<EOF >extraEnv.yml
-          imagePullSecrets: ${{ secrets.PULL_SECRET }}
           extraEnv:
             MARGINLY_KEEPER_CONFIG: "config.arbitrum-one.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
@@ -153,6 +152,7 @@ jobs:
           --set image.tag=${{ needs.build-image.outputs.output_tag }} \
           --set resources.limits.cpu=$LIMIT_CPU \
           --set resources.limits.memory=$LIMIT_MEMORY \
+          --set imagePullSecrets[0].name=${{ secrets.PULL_SECRET }} \
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
           -f extraEnv.yml \
           ./
