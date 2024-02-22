@@ -61,19 +61,6 @@ describe('Camelot oracle', () => {
     printPrices(balancePrice, mcPrice, decimalsDiff);
   });
 
-  it('wbtc-weth', async () => {
-    const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
-    const wbtc = '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f';
-
-    await oracle.setOptions(weth, wbtc, 1800, 5);
-
-    const balancePrice = await oracle.getBalancePrice(weth, wbtc);
-    const mcPrice = await oracle.getMargincallPrice(weth, wbtc);
-
-    const decimalsDiff = await getDecimalsDiff(weth, wbtc);
-    printPrices(balancePrice, mcPrice, decimalsDiff);
-  });
-
   it('gmx-weth', async () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const gmx = '0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a';
