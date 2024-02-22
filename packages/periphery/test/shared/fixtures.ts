@@ -6,9 +6,20 @@ import {
   SwapPoolRegistry,
   TestUniswapPool,
   TestUniswapFactory,
-  TestUniswapV3Factory, PythOracle, MockPyth, ChainlinkOracle, MockChainlink,
+  TestUniswapV3Factory,
+  PythOracle,
+  MockPyth,
+  ChainlinkOracle,
+  MockChainlink,
+  TestAlgebraPool,
+  TestAlgebraFactory,
 } from '../../typechain-types';
-import { UniswapV3TickOracle, UniswapV3TickOracleDouble } from '../../typechain-types/contracts/oracles';
+import {
+  AlgebraTickOracle,
+  AlgebraTickOracleDouble,
+  UniswapV3TickOracle,
+  UniswapV3TickOracleDouble,
+} from '../../typechain-types/contracts/oracles';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -82,7 +93,7 @@ export const initialPools: Pool[] = [
 export const PythIds = {
   TBTC: '0x56a3121958b01f99fdc4e1fd01e81050602c7ace3a571918bb55c6a96657cca9',
   BTC: '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
-  ETH: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace'
+  ETH: '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
 };
 
 export async function createUniswapV3Factory(): Promise<TestUniswapV3Factory> {
@@ -112,7 +123,7 @@ export async function createChainlinkAggregator(price: bigint, decimals: bigint)
 
 export async function createPriceAdapter(
   chainlinkAggregatorBase: string,
-  chainlinkAggregatorQuote: string,
+  chainlinkAggregatorQuote: string
 ): Promise<PriceAdapter> {
   const factory = await ethers.getContractFactory('PriceAdapter');
   return factory.deploy(chainlinkAggregatorBase, chainlinkAggregatorQuote);
@@ -120,7 +131,7 @@ export async function createPriceAdapter(
 
 export function createMarginlyPoolWithPriceAdapter(
   basePrice: { price: bigint; decimals: bigint },
-  quotePrice: { price: bigint; decimals: bigint } | null,
+  quotePrice: { price: bigint; decimals: bigint } | null
 ) {
   async function inner(): Promise<{
     chainlinkAggregatorBase: TestChainlinkAggregator;
@@ -133,7 +144,7 @@ export function createMarginlyPoolWithPriceAdapter(
       quotePrice && (await createChainlinkAggregator(quotePrice.price, quotePrice.decimals)); // eth
     const priceAdapter = await createPriceAdapter(
       chainlinkAggregatorBase.address,
-      chainlinkAggregatorQuote !== null ? chainlinkAggregatorQuote.address : ethers.constants.AddressZero,
+      chainlinkAggregatorQuote !== null ? chainlinkAggregatorQuote.address : ethers.constants.AddressZero
     );
     const factory = await ethers.getContractFactory('MockMarginlyPoolWithPriceAdapter');
     const marginlyPoolWithPriceAdapter = await factory.deploy(priceAdapter.address);
@@ -188,7 +199,7 @@ export type OracleDoubleData = {
 async function createUniswapV3TickOracleDouble(
   quoteToken: string,
   baseToken: string,
-  intermediateToken: string,
+  intermediateToken: string
 ): Promise<OracleDoubleData> {
   const poolFactory = await ethers.getContractFactory('TestUniswapPool');
   const firstPool = await poolFactory.deploy(intermediateToken, quoteToken);
@@ -213,7 +224,7 @@ async function createUniswapV3TickOracleDouble(
     5,
     await firstPool.fee(),
     await secondPool.fee(),
-    intermediateToken,
+    intermediateToken
   );
   return { oracle, firstPool, secondPool, uniswapFactory, quoteToken, baseToken, intermediateToken };
 }
@@ -256,7 +267,7 @@ export type PythOracleData = {
   quoteToken: string;
   baseToken: string;
   pythId: string;
-}
+};
 
 async function createPythOracle(quoteToken: string, baseToken: string, pythId: string): Promise<PythOracleData> {
   const factory = await ethers.getContractFactory('MockPyth');
@@ -286,9 +297,15 @@ export type PythCompositeOracleData = {
   baseToken: string;
   quotePythId: string;
   basePythId: string;
-}
+};
 
-async function createPythCompositeOracle(quoteToken: string, intermediateToken: string, baseToken: string, quotePythId: string, basePythId: string): Promise<PythCompositeOracleData> {
+async function createPythCompositeOracle(
+  quoteToken: string,
+  intermediateToken: string,
+  baseToken: string,
+  quotePythId: string,
+  basePythId: string
+): Promise<PythCompositeOracleData> {
   const factory = await ethers.getContractFactory('MockPyth');
   const mockPyth = await factory.deploy();
 
@@ -304,7 +321,7 @@ async function createPythCompositeOracle(quoteToken: string, intermediateToken: 
     intermediateToken,
     baseToken,
     quotePythId,
-    basePythId
+    basePythId,
   };
 }
 
@@ -318,9 +335,13 @@ export type ChainlinkOracleData = {
   decimals: number;
   quoteToken: string;
   baseToken: string;
-}
+};
 
-async function createChainlinkOracle(quoteToken: string, baseToken: string, decimals: number): Promise<ChainlinkOracleData> {
+async function createChainlinkOracle(
+  quoteToken: string,
+  baseToken: string,
+  decimals: number
+): Promise<ChainlinkOracleData> {
   const factory = await ethers.getContractFactory('MockChainlink');
   const mockChainlink = await factory.deploy(decimals);
 
@@ -349,9 +370,15 @@ export type ChainlinkCompositeOracleData = {
   quoteToken: string;
   intermediateToken: string;
   baseToken: string;
-}
+};
 
-async function createChainlinkCompositeOracle(quoteToken: string, intermediateToken: string, baseToken: string, quoteDecimals: number, baseDecimals: number): Promise<ChainlinkCompositeOracleData> {
+async function createChainlinkCompositeOracle(
+  quoteToken: string,
+  intermediateToken: string,
+  baseToken: string,
+  quoteDecimals: number,
+  baseDecimals: number
+): Promise<ChainlinkCompositeOracleData> {
   const factory = await ethers.getContractFactory('MockChainlink');
   const mockQuoteChainlink = await factory.deploy(quoteDecimals);
   const mockBaseChainlink = await factory.deploy(baseDecimals);
@@ -375,4 +402,103 @@ async function createChainlinkCompositeOracle(quoteToken: string, intermediateTo
 
 export async function createSomeChainlinkCompositeOracle() {
   return createChainlinkCompositeOracle(Tokens.WETH, Tokens.USDC, Tokens.WBTC, 18, 8);
+}
+
+export type AlgebraOracleData = {
+  oracle: AlgebraTickOracle;
+  pool: TestAlgebraPool;
+  algebraFactory: TestAlgebraFactory;
+  quoteToken: string;
+  baseToken: string;
+};
+
+async function createAlgebraTickOracle(quoteToken: string, baseToken: string): Promise<AlgebraOracleData> {
+  const poolFactory = await ethers.getContractFactory('TestAlgebraPool');
+  const pool = await poolFactory.deploy(quoteToken, baseToken);
+  // represents 2500 * 10 ** (-12) price value
+  await pool.setTokenPriceAndTickCumulative(14073748835, 198080);
+
+  const factory = await ethers.getContractFactory('TestAlgebraFactory');
+  const algebraFactory = await factory.deploy();
+  await algebraFactory.addPool(pool.address);
+
+  const oracleFactory = await ethers.getContractFactory('AlgebraTickOracle');
+  const oracle = await oracleFactory.deploy(algebraFactory.address);
+  await oracle.setOptions(quoteToken, baseToken, 900, 5);
+  return { oracle, pool, algebraFactory, quoteToken, baseToken };
+}
+
+export async function createAlgebraTickOracleForward(): Promise<AlgebraOracleData> {
+  return createAlgebraTickOracle(Tokens.TOKEN1, Tokens.TOKEN2);
+}
+
+export async function createAlgebraTickOracleBackward(): Promise<AlgebraOracleData> {
+  return createAlgebraTickOracle(Tokens.TOKEN2, Tokens.TOKEN1);
+}
+
+export type AlgebraOracleDoubleData = {
+  oracle: AlgebraTickOracleDouble;
+  firstPool: TestAlgebraPool;
+  secondPool: TestAlgebraPool;
+  algebraFactory: TestAlgebraFactory;
+  quoteToken: string;
+  baseToken: string;
+  intermediateToken: string;
+};
+
+async function createAlgebraTickOracleDouble(
+  quoteToken: string,
+  baseToken: string,
+  intermediateToken: string
+): Promise<AlgebraOracleDoubleData> {
+  const poolFactory = await ethers.getContractFactory('TestAlgebraPool');
+  const firstPool = await poolFactory.deploy(intermediateToken, quoteToken);
+  // represents 2500 * 10 ** (-12) price value
+  await firstPool.setTokenPriceAndTickCumulative(14073748835, 198080);
+
+  const secondPool = await poolFactory.deploy(intermediateToken, baseToken);
+  // represents 44100 * 10 ** (-2) = 21^2 price value
+  await secondPool.setTokenPriceAndTickCumulative(5910974510923776, -60894);
+
+  const factory = await ethers.getContractFactory('TestAlgebraFactory');
+  const algebraFactory = await factory.deploy();
+  await algebraFactory.addPool(firstPool.address);
+  await algebraFactory.addPool(secondPool.address);
+
+  const oracleFactory = await ethers.getContractFactory('AlgebraTickOracleDouble');
+  const oracle = await oracleFactory.deploy(algebraFactory.address);
+  await oracle.setOptions(quoteToken, baseToken, 900, 5, intermediateToken);
+  return { oracle, firstPool, secondPool, algebraFactory, quoteToken, baseToken, intermediateToken };
+}
+
+// Naming convention below: last 3 letters represent token addresses order:
+// Q -- quote, B -- base, I -- intermediate
+// quoteToken < baseToken < intermediateToken
+export async function createAlgebraTickOracleDoubleQBI() {
+  return createAlgebraTickOracleDouble(Tokens.TOKEN1, Tokens.TOKEN2, Tokens.TOKEN3);
+}
+
+// quoteToken < intermediateToken < baseToken
+export async function createAlgebraTickOracleDoubleQIB() {
+  return createAlgebraTickOracleDouble(Tokens.TOKEN1, Tokens.TOKEN3, Tokens.TOKEN2);
+}
+
+//  baseToken < quoteToken < intermediateToken
+export async function createAlgebraTickOracleDoubleBQI() {
+  return createAlgebraTickOracleDouble(Tokens.TOKEN2, Tokens.TOKEN1, Tokens.TOKEN3);
+}
+
+// baseToken < intermediateToken < quoteToken
+export async function createAlgebraTickOracleDoubleBIQ() {
+  return createAlgebraTickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN1, Tokens.TOKEN2);
+}
+
+// intermediateToken < quoteToken < baseToken
+export async function createAlgebraTickOracleDoubleIQB() {
+  return createAlgebraTickOracleDouble(Tokens.TOKEN2, Tokens.TOKEN3, Tokens.TOKEN1);
+}
+
+// intermediateToken < baseToken < quoteToken
+export async function createAlgebraTickOracleDoubleIBQ() {
+  return createAlgebraTickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
 }
