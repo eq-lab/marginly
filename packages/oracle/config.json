@@ -395,7 +395,7 @@
       "id": "blastSepolia",
       "tickMs": 1000,
       "ethereum": {
-        "nodeUrl": "https://blast-sepolia-testnet.rpc.thirdweb.com"
+        "nodeUrl": "https://rpc.ankr.com/blast_testnet_sepolia"
       },
       "tokens": [
         {
