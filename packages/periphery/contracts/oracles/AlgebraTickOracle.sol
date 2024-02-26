@@ -8,6 +8,7 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
 import './libraries/AlgebraOracleLib.sol';
+import './libraries/TickMathLib.sol';
 
 contract AlgebraTickOracle is IPriceOracle, Ownable2Step {
   error UnknownPool();
@@ -62,7 +63,7 @@ contract AlgebraTickOracle is IPriceOracle, Ownable2Step {
     if (quoteToken < baseToken) {
       arithmeticMeanTick = -arithmeticMeanTick;
     }
-    uint256 sqrtPrice = AlgebraOracleLib.getSqrtRatioAtTick(arithmeticMeanTick);
+    uint256 sqrtPrice = TickMathLib.getSqrtRatioAtTick(arithmeticMeanTick);
     return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
   }
 

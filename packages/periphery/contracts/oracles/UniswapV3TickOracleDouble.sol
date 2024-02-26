@@ -8,6 +8,7 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
 import './libraries/OracleLib.sol';
+import './libraries/TickMathLib.sol';
 
 contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
   error CannotChangeUnderlyingPool();
@@ -99,7 +100,7 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     // base/quote = base/intermediate * intermediate/quote
     int24 resultingTick = firstPoolTick + secondPoolTick;
 
-    uint256 sqrtPrice = OracleLib.getSqrtRatioAtTick(resultingTick);
+    uint256 sqrtPrice = TickMathLib.getSqrtRatioAtTick(resultingTick);
 
     return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
   }
