@@ -7,11 +7,7 @@ import './TickMathLib.sol';
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle
 library AlgebraOracleLib {
-  error T();
   error ZeroSeconds();
-
-  /// @dev The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
-  int24 private constant MAX_TICK = 887272;
 
   /// @dev Copied from Algebra V1.9 https://github.com/cryptoalgebra/AlgebraV1.9/blob/main/src/periphery/contracts/libraries/WeightedDataStorageLibrary.sol
   function getArithmeticMeanTick(address pool, uint32 period) internal view returns (int24 arithmeticMeanTick) {
