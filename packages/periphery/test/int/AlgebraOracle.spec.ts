@@ -97,7 +97,7 @@ describe('ZyberSwap oracle', () => {
   });
 });
 
-describe.only('Camelot oracle (AlgebraTickOracleDouble)', () => {
+describe('Camelot oracle (AlgebraTickOracleDouble)', () => {
   let oracle: AlgebraTickOracleDouble;
   beforeEach(async () => {
     const camelotFactory = '0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B';
