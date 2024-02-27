@@ -1230,6 +1230,11 @@
   resolved "https://registry.npmjs.org/@colors/colors/-/colors-1.5.0.tgz"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
+"@cryptoalgebra/v1.9-core@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cryptoalgebra/v1.9-core/-/v1.9-core-1.0.0.tgz#24133b8feb2829517a2263aebfd7c60e60fe1dc6"
+  integrity sha512-MWH6eRRJNfGWg/U44qvXTCIGZVZNXx+UKLYwCC0MfYYM2dXeHoY4QxKVIjHKiCwZWUURJN3+ZFdKC1i7X+8H9Q==
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.npmjs.org/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz"
