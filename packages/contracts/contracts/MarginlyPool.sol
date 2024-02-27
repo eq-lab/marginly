@@ -1250,16 +1250,12 @@ contract MarginlyPool is IMarginlyPool {
 
     FP96.FixedPoint memory basePrice = getBasePrice();
 
-    /* We use Rounding.Up in baseDebt/quoteDebt calculation 
-       to avoid case when "surplus = quoteCollateral - quoteDebt"
-       a bit more than IERC20(quoteToken).balanceOf(address(this))
-     */
+    uint256 baseDebt = baseDebtCoeff.mul(discountedBaseDebt);
+    uint256 quoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt);
 
-    uint256 baseDebt = baseDebtCoeff.mul(discountedBaseDebt, Math.Rounding.Up);
-    uint256 quoteCollateral = calcRealQuoteCollateral(discountedQuoteCollateral, discountedBaseDebt);
-
-    uint256 quoteDebt = quoteDebtCoeff.mul(discountedQuoteDebt, Math.Rounding.Up);
-    uint256 baseCollateral = calcRealBaseCollateral(discountedBaseCollateral, discountedQuoteDebt);
+    // we calculate collateral value from balance to avoid any potential precision issues
+    uint256 baseCollateral = getBalance(baseToken).add(baseDebt);
+    uint256 quoteCollateral = getBalance(quoteToken).add(quoteDebt);
 
     if (basePrice.mul(baseDebt) > quoteCollateral) {
       // removing all non-emergency position with bad leverages (negative net positions included)
