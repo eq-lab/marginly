@@ -9,6 +9,6 @@ export * as MockMarginlyPoolCompiled from '@marginly/contracts/artifacts/contrac
 export * as MarginlyKeeperCompiled from '@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json';
 // export * as MockSwapRouterCompiled from '@marginly/contracts/artifacts/contracts/test/MockSwapRouter.sol/MockSwapRouter.json';
 export * as MockMarginlyFactory from '@marginly/contracts/artifacts/contracts/test/MockMarginlyFactory.sol/MockMarginlyFactory.json';
-export * as MarginlyPoolAdminCompiled from '../../artifacts/contracts/MarginlyAdmin.sol/MarginlyAdmin.json';
+export * as MarginlyPoolAdminCompiled from '../../artifacts/contracts/admin/MarginlyAdmin.sol/MarginlyAdmin.json';
 export * as MarginlyRouterCompiled from '@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json';
 export * as UniswapV3AdapterCompiled from '@marginly/router/artifacts/contracts/adapters/UniswapV3Adapter.sol/UniswapV3Adapter.json';

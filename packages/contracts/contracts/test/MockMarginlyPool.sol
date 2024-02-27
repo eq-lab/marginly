@@ -85,4 +85,6 @@ contract MockMarginlyPool is IMarginlyPool {
   }
 
   function sweepETH() external {}
+
+  function getBasePrice() view external returns (FP96.FixedPoint memory) {}
 }

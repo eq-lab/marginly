@@ -185,6 +185,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);
 
+  /// @notice Return current value of base price used in all calculations (e.g. leverage)
+  function getBasePrice() external view returns (FP96.FixedPoint memory);
+
   function execute(
     CallType call,
     uint256 amount1,
