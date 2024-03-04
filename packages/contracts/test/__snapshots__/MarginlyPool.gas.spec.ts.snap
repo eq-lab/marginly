@@ -17,28 +17,28 @@ Object {
 exports[`Liquidation liquidate long position and create new long position 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 273138,
+  "gasUsed": 273541,
 }
 `;
 
 exports[`Liquidation liquidate long position and create new position 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 289926,
+  "gasUsed": 290227,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new position 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 303319,
+  "gasUsed": 303625,
 }
 `;
 
 exports[`Liquidation liquidate short position and create new short position 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 289384,
+  "gasUsed": 289795,
 }
 `;
 
@@ -59,7 +59,7 @@ Object {
 exports[`System initialized: closePosition 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 263746,
+  "gasUsed": 263758,
 }
 `;
 
@@ -164,7 +164,7 @@ Object {
 exports[`mc happens: closePosition with two mc 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 372178,
+  "gasUsed": 372188,
 }
 `;
 
@@ -199,7 +199,7 @@ Object {
 exports[`mc happens: long closePosition with one mc 1`] = `
 Object {
   "calldataByteLength": 228,
-  "gasUsed": 263084,
+  "gasUsed": 263093,
 }
 `;
 
