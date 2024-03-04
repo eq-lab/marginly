@@ -60,11 +60,14 @@ export class MarginlyKeeperWorker implements Worker {
             return;
           }
 
-          if (await this.isAvailableForBorrow(logger, liquidationParam.asset)) {
-            await this.tryLiquidateWithFlashloan(logger, liquidationParam);
-          } else {
-            await this.callReinit(logger, liquidationParam);
-          }
+          //Working in reinit mode
+          await this.callReinit(logger, liquidationParam);
+
+          // if (await this.isAvailableForBorrow(logger, liquidationParam.asset)) {
+          //   await this.tryLiquidateWithFlashloan(logger, liquidationParam);
+          // } else {
+          //   await this.callReinit(logger, liquidationParam);
+          // }
         }
       });
     }
