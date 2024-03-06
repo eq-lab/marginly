@@ -10,7 +10,7 @@ import {
   UniswapV3DexIndex,
 } from './shared/utils';
 import { ethers } from 'hardhat';
-import { PoolInputStruct, AdapterInputStruct } from '../typechain-types/contracts/MarginlyAdmin';
+import { PoolInputStruct, AdapterInputStruct } from '../typechain-types/contracts/admin/MarginlyAdmin';
 import { ZERO_ADDRESS } from './shared/fixtures';
 
 //MarginlyPoolAdmin not supported

@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
+import '@cryptoalgebra/v1.9-core/contracts/interfaces/IAlgebraFactory.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
-import './libraries/OracleLib.sol';
+import './libraries/AlgebraOracleLib.sol';
 import './libraries/TickMathLib.sol';
 
-contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
+contract AlgebraTickOracleDouble is IPriceOracle, Ownable2Step {
   error CannotChangeUnderlyingPool();
   error UnknownPool();
   error WrongValue();
@@ -19,8 +19,6 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     bool initialized;
     uint16 secondsAgo;
     uint16 secondsAgoLiquidation;
-    uint24 baseTokenPairFee;
-    uint24 quoteTokenPairFee;
     address intermediateToken;
   }
 
@@ -38,25 +36,17 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     address baseToken,
     uint16 secondsAgo,
     uint16 secondsAgoLiquidation,
-    uint24 baseTokenPairFee,
-    uint24 quoteTokenPairFee,
     address intermediateToken
   ) external onlyOwner {
     if (secondsAgo == 0 || secondsAgoLiquidation == 0) revert WrongValue();
 
     OracleParams storage currentParams = getParams[quoteToken][baseToken];
     if (currentParams.initialized) {
-      if (
-        currentParams.baseTokenPairFee != baseTokenPairFee ||
-        currentParams.quoteTokenPairFee != quoteTokenPairFee ||
-        currentParams.intermediateToken != intermediateToken
-      ) revert CannotChangeUnderlyingPool();
+      if (currentParams.intermediateToken != intermediateToken) revert CannotChangeUnderlyingPool();
     } else {
-      getPoolAddress(quoteToken, intermediateToken, quoteTokenPairFee);
-      getPoolAddress(baseToken, intermediateToken, baseTokenPairFee);
+      getPoolAddress(quoteToken, intermediateToken);
+      getPoolAddress(baseToken, intermediateToken);
       currentParams.initialized = true;
-      currentParams.baseTokenPairFee = baseTokenPairFee;
-      currentParams.quoteTokenPairFee = quoteTokenPairFee;
       currentParams.intermediateToken = intermediateToken;
     }
 
@@ -80,19 +70,19 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     OracleParams storage params,
     bool isBalancePrice
   ) private view returns (uint256) {
-    address firstPool = getPoolAddress(quoteToken, params.intermediateToken, params.quoteTokenPairFee);
-    address secondPool = getPoolAddress(baseToken, params.intermediateToken, params.baseTokenPairFee);
+    address firstPool = getPoolAddress(quoteToken, params.intermediateToken);
+    address secondPool = getPoolAddress(baseToken, params.intermediateToken);
 
     uint16 secondsAgo = isBalancePrice ? params.secondsAgo : params.secondsAgoLiquidation;
 
     // getting intermediate/quote price
-    int24 firstPoolTick = OracleLib.getArithmeticMeanTick(firstPool, secondsAgo);
+    int24 firstPoolTick = AlgebraOracleLib.getArithmeticMeanTick(firstPool, secondsAgo);
     if (quoteToken < params.intermediateToken) {
       firstPoolTick = -firstPoolTick;
     }
 
     // getting base/intermediate price
-    int24 secondPoolTick = OracleLib.getArithmeticMeanTick(secondPool, secondsAgo);
+    int24 secondPoolTick = AlgebraOracleLib.getArithmeticMeanTick(secondPool, secondsAgo);
     if (params.intermediateToken < baseToken) {
       secondPoolTick = -secondPoolTick;
     }
@@ -105,8 +95,12 @@ contract UniswapV3TickOracleDouble is IPriceOracle, Ownable2Step {
     return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
   }
 
-  function getPoolAddress(address tokenA, address tokenB, uint24 fee) private view returns (address pool) {
-    pool = IUniswapV3Factory(factory).getPool(tokenA, tokenB, fee);
+  function decode(bytes memory options) private pure returns (OracleParams memory) {
+    return abi.decode(options, (OracleParams));
+  }
+
+  function getPoolAddress(address tokenA, address tokenB) private view returns (address pool) {
+    pool = IAlgebraFactory(factory).poolByPair(tokenA, tokenB);
     if (pool == address(0)) revert UnknownPool();
   }
 }

@@ -173,9 +173,8 @@ async function initializeTestSystem(
   const secondsAgo = 1800;
   const secondsAgoLiquidation = 5;
   const uniswapPoolFee = 500;
-  const priceOracleOptions = ethers.utils.defaultAbiCoder.encode(
-    ['uint16', 'uint16', 'uint24'],
-    [secondsAgo, secondsAgoLiquidation, uniswapPoolFee]
+  await priceOracle.connect(treasury).setOptions(
+    usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee
   );
   //'0x0000000000000000000000000000000000000000000000000000000000000708000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000001f4';
   await priceOracle.connect(treasury).setOptions(usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee); //TODO: create uniswap price oracle
