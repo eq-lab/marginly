@@ -34,4 +34,6 @@ contract MockMarginlyFactory is IMarginlyFactory {
   function WETH9() external view override returns (address) {}
 
   function techPositionOwner() external view returns (address) {}
+
+  function pointsAdmin() external view returns (address) {}
 }

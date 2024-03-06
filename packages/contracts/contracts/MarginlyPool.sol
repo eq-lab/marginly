@@ -12,6 +12,7 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@marginly/router/contracts/interfaces/IMarginlyRouter.sol';
 
 import './interfaces/IBlast.sol';
+import './interfaces/IBlastPoints.sol';
 import './interfaces/IMarginlyPool.sol';
 import './interfaces/IMarginlyFactory.sol';
 import './interfaces/IWETH9.sol';
@@ -38,6 +39,7 @@ contract MarginlyPool is IMarginlyPool {
   uint24 private constant WHOLE_ONE = 1e6;
 
   IBlast private constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
+  IBlastPoints private constant BLAST_POINTS = IBlastPoints(0x2536FE9ab3F511540F2f9e2eC2A805005C3Dd800);
 
   /// @inheritdoc IMarginlyPool
   address public override factory;
@@ -136,6 +138,7 @@ contract MarginlyPool is IMarginlyPool {
     techPosition._type = PositionType.Lend;
 
     BLAST.configureClaimableGas();
+    BLAST_POINTS.configurePointsOperator(IMarginlyFactory(msg.sender).pointsAdmin());
   }
 
   /// @inheritdoc IMarginlyPool

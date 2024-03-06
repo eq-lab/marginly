@@ -55,4 +55,7 @@ interface IMarginlyFactory {
 
   /// @notice Address of technical position
   function techPositionOwner() external view returns (address);
+
+  /// @notice Address of Blast points admin
+  function pointsAdmin() external view returns (address);
 }

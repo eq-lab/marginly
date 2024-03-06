@@ -24,20 +24,24 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
   address public immutable override WETH9;
   /// @notice Technical position address
   address public immutable override techPositionOwner;
+  /// @notice Address of Blast points admin
+  address public immutable override pointsAdmin;
 
   constructor(
     address _marginlyPoolImplementation,
     address _swapRouter,
     address _feeHolder,
     address _WETH9,
-    address _techPositionOwner
+    address _techPositionOwner,
+    address _pointsAdmin
   ) {
     if (
       _marginlyPoolImplementation == address(0) ||
       _swapRouter == address(0) ||
       _feeHolder == address(0) ||
       _WETH9 == address(0) ||
-      _techPositionOwner == address(0)
+      _techPositionOwner == address(0) ||
+      _pointsAdmin == address(0)
     ) revert Errors.WrongValue();
 
     marginlyPoolImplementation = _marginlyPoolImplementation;
@@ -45,6 +49,7 @@ contract MarginlyFactory is IMarginlyFactory, Ownable2Step {
     feeHolder = _feeHolder;
     WETH9 = _WETH9;
     techPositionOwner = _techPositionOwner;
+    pointsAdmin = _pointsAdmin;
   }
 
   /// @inheritdoc IMarginlyFactory
