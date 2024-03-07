@@ -53,57 +53,59 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: true
   
-  deployment-arbitrum-goerli:
-    needs: build-image
-    runs-on: 'ubuntu-latest'
-    environment: testing
-    env:
-      SERVICE_NAME: "keeper-arbitrum-goerli"
-      PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
-      NAMESPACE: ${{ secrets.NAMESPACE }}
-    steps:
-    - uses: azure/setup-kubectl@v3
-      with:
-        version: 'v1.27.1'
-      id: install
-    - uses: azure/setup-helm@v3
-      with:
-        version: 'v3.12.0'
-    - name: 'Clone Helm repository'
-      uses: actions/checkout@v3
-      with:
-        repository: ${{ env.HELM_REPOSITORY }}
-        ref: 'main'
-        token: ${{ secrets.PAT }}
-    - name: 'Prep extraEnv'
-      run: |
-          cat <<EOF >extraEnv.yml
-          extraEnv:
-            MARGINLY_KEEPER_CONFIG: "config.arbitrum-goerli.json"
-            MARGINLY_KEEPER_LOG_LEVEL: "3"
-            MARGINLY_KEEPER_LOG_FORMAT: "json"
-          EOF
-    - name: Set Kubernetes Context
-      uses: azure/k8s-set-context@v3
-      with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-          context: ${{ env.CLUSTER }}
-    - name: 'deploy'
-      run: |
-        ls -la
-        helm upgrade -i $SERVICE_NAME \
-          -n $NAMESPACE \
-          --set fullnameOverride=$SERVICE_NAME \
-          --set image.repository=$REGISTRY \
-          --set image.name=$REGISTRY/$IMAGE_NAME \
-          --set image.tag=${{ needs.build-image.outputs.output_tag }} \
-          --set resources.limits.cpu=$LIMIT_CPU \
-          --set resources.limits.memory=$LIMIT_MEMORY \
-          --set imagePullSecrets[0].name=${{ secrets.PULL_SECRET }} \
-          --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
-          -f extraEnv.yml \
+ 
+  deployment-blast: 
+    needs: build-image 
+    runs-on: 'ubuntu-latest' 
+    environment: production 
+    env: 
+      SERVICE_NAME: "keeper-blast" 
+      PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }} 
+      NAMESPACE: ${{ secrets.NAMESPACE }} 
+    steps: 
+    - uses: azure/setup-kubectl@v3 
+      with: 
+        version: 'v1.27.1' 
+      id: install 
+    - uses: azure/setup-helm@v3 
+      with: 
+        version: 'v3.12.0' 
+    - name: 'Clone Helm repository' 
+      uses: actions/checkout@v3 
+      with: 
+        repository: ${{ env.HELM_REPOSITORY }} 
+        ref: 'main' 
+        token: ${{ secrets.PAT }}   
+    - name: 'Prep extraEnv' 
+      run: | 
+          cat <<EOF >extraEnv.yml 
+          extraEnv: 
+            MARGINLY_KEEPER_CONFIG: "config.blast.json" 
+            MARGINLY_KEEPER_LOG_LEVEL: "3" 
+            MARGINLY_KEEPER_LOG_FORMAT: "json" 
+          EOF 
+    - name: Set Kubernetes Context 
+      uses: azure/k8s-set-context@v3 
+      with: 
+          method: kubeconfig 
+          kubeconfig: ${{ secrets.KUBECONFIG }} 
+          context: ${{ env.CLUSTER }} 
+    - name: 'deploy' 
+      run: | 
+        ls -la 
+        helm upgrade -i $SERVICE_NAME \ 
+          -n $NAMESPACE \ 
+          --set fullnameOverride=$SERVICE_NAME \ 
+          --set image.repository=$REGISTRY \ 
+          --set image.name=$REGISTRY/$IMAGE_NAME \ 
+          --set image.tag=${{ needs.build-image.outputs.output_tag }} \ 
+          --set resources.limits.cpu=$LIMIT_CPU \ 
+          --set resources.limits.memory=$LIMIT_MEMORY \ 
+          --set imagePullSecrets[0].name=${{ secrets.PULL_SECRET }} \ 
+          --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \ 
+          -f extraEnv.yml \ 
           ./
+
 
   deployment-arbitrum-one:
     needs: build-image
@@ -156,5 +158,4 @@ jobs:
           --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
           -f extraEnv.yml \
           ./
-
-#         
+       
