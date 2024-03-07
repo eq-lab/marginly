@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/keeper-v1.5
+  IMAGE_NAME: ${{ github.repository }}/keeper
   CLUSTER: ${{ secrets.CLUSTER }}
   LIMIT_CPU: '500m'
   LIMIT_MEMORY: '512Mi'
@@ -40,7 +40,7 @@ jobs:
             type=ref,enable=true,priority=600,prefix=,suffix=-{{date 'YYYYMMDD'}}-{{sha}},event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'keeper-releases') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'keeper-releases-v1.5') }}
       - id: tag_env
         run: echo "tag=${{ env.DOCKER_METADATA_OUTPUT_VERSION }}"  >> $GITHUB_OUTPUT
       - name: Build and push
