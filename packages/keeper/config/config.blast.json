@@ -1,0 +1,22 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.blast.io"
+  },
+  "connection": {
+    "ethOptions": {
+      "gasLimit": 4400000,
+      "gasPrice": 250000
+    }
+  },
+  "marginlyKeeperAaveAddress": "0x0000000000000000000000000000000000000000",
+  "marginlyKeeperUniswapV3Address": "0x0000000000000000000000000000000000000000",
+  "marginlyPools": [
+    {
+      "type": "reinit",
+      "description": "weth-usdb",
+      "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7",
+      "minProfitQuote": "1",
+      "minProfitBase": "0.0005"
+    }
+  ]
+}

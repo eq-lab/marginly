@@ -64,7 +64,9 @@ export class MarginlyKeeperWorker implements Worker {
             return;
           }
 
-          if (liquidationParam.config.keeperType == 'aave') {
+          if (liquidationParam.config.keeperType == 'reinit') {
+            await this.callReinit(logger, liquidationParam);
+          } else if (liquidationParam.config.keeperType == 'aave') {
             if (!this.keeperAaveContract) {
               throw new Error(`Configuration error. Address of MarginlyKeeperAaveContract not set`);
             }

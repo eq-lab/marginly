@@ -18,7 +18,7 @@ export interface EthConnectionConfig {
 }
 
 export interface PoolPositionLiquidationConfig {
-  keeperType: 'aave' | 'uniswapV3';
+  keeperType: 'reinit' | 'aave' | 'uniswapV3';
   address: string;
   minProfitQuote: string;
   minProfitBase: string;
