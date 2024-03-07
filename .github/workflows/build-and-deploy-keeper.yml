@@ -93,17 +93,17 @@ jobs:
     - name: 'deploy' 
       run: | 
         ls -la 
-        helm upgrade -i $SERVICE_NAME \ 
-          -n $NAMESPACE \ 
-          --set fullnameOverride=$SERVICE_NAME \ 
-          --set image.repository=$REGISTRY \ 
-          --set image.name=$REGISTRY/$IMAGE_NAME \ 
-          --set image.tag=${{ needs.build-image.outputs.output_tag }} \ 
-          --set resources.limits.cpu=$LIMIT_CPU \ 
-          --set resources.limits.memory=$LIMIT_MEMORY \ 
-          --set imagePullSecrets[0].name=${{ secrets.PULL_SECRET }} \ 
-          --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \ 
-          -f extraEnv.yml \ 
+        helm upgrade -i $SERVICE_NAME \
+          -n $NAMESPACE \
+          --set fullnameOverride=$SERVICE_NAME \
+          --set image.repository=$REGISTRY \
+          --set image.name=$REGISTRY/$IMAGE_NAME \
+          --set image.tag=${{ needs.build-image.outputs.output_tag }} \
+          --set resources.limits.cpu=$LIMIT_CPU \
+          --set resources.limits.memory=$LIMIT_MEMORY \
+          --set imagePullSecrets[0].name=${{ secrets.PULL_SECRET }} \
+          --set extraEnv.MARGINLY_KEEPER_ETH_KEY=$PK \
+          -f extraEnv.yml \
           ./
 
 
@@ -145,7 +145,6 @@ jobs:
           context: ${{ env.CLUSTER }}
     - name: 'deploy'
       run: |
-        ls -la
         helm upgrade -i $SERVICE_NAME \
           -n $NAMESPACE \
           --set fullnameOverride=$SERVICE_NAME \
