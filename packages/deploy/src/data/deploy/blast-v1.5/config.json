@@ -4,7 +4,9 @@
   },
   "connection": {
     "assertChainId": 81457,
-    "ethOptions": {}
+    "ethOptions": {
+      "gasPrice": 1000252
+    }
   },
   "tokens": [
     {
@@ -25,12 +27,11 @@
     "description": "Thruster",
     "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127",
     "weth9TokenId": "weth",
-    "priceLogSize": 60,
     "pools": [
       {
         "id": "weth-usdb",
-        "tokenAId": "weth",
-        "tokenBId": "usdb",
+        "tokenAId": "usdb",
+        "tokenBId": "weth",
         "fee": "0.3%",
         "allowCreate": false,
         "assertAddress": "0xf00DA13d2960Cf113edCef6e3f30D92E52906537"

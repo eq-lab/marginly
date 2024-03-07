@@ -597,14 +597,14 @@ export async function deployMarginly(
       deployedPriceOracles
     );
 
-    const marginlyKeeperDeployResult = await processKeeper(logger, keeperDeployer, config);
+    //const marginlyKeeperDeployResult = await processKeeper(logger, keeperDeployer, config);
 
-    const keeperUniswapV3DeployResult = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
+    //const keeperUniswapV3DeployResult = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
 
     return {
       marginlyPools: deployedMarginlyPools,
-      marginlyKeeper: { address: marginlyKeeperDeployResult.address },
-      marginlyKeeperUniswapV3: { address: keeperUniswapV3DeployResult.address },
+      marginlyKeeper: { address: '' }, //{ address: marginlyKeeperDeployResult.address },
+      marginlyKeeperUniswapV3: { address: '' }, //{ address: keeperUniswapV3DeployResult.address },
     };
   } finally {
     const balanceAfter = await signer.getBalance();

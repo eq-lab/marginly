@@ -1,0 +1,14 @@
+{
+  "marginlyPools": [
+    {
+      "id": "weth-usdb",
+      "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7"
+    }
+  ],
+  "marginlyKeeper": {
+    "address": ""
+  },
+  "marginlyKeeperUniswapV3": {
+    "address": ""
+  }
+}

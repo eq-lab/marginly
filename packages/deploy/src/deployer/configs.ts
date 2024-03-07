@@ -641,16 +641,16 @@ export class StrictMarginlyDeployConfig {
       });
     }
 
-    if (
-      (config.marginlyKeeper.aavePoolAddressesProvider.address &&
-        config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) ||
-      (!config.marginlyKeeper.aavePoolAddressesProvider.address &&
-        !config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock)
-    ) {
-      throw new Error(
-        `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
-      );
-    }
+    // if (
+    //   (config.marginlyKeeper.aavePoolAddressesProvider.address &&
+    //     config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) ||
+    //   (!config.marginlyKeeper.aavePoolAddressesProvider.address &&
+    //     !config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock)
+    // ) {
+    //   throw new Error(
+    //     `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
+    //   );
+    // }
 
     const adapters: MarginlyConfigAdapter[] = [];
 
@@ -685,10 +685,10 @@ export class StrictMarginlyDeployConfig {
 
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
       aavePoolAddressesProvider: {
-        address: config.marginlyKeeper.aavePoolAddressesProvider.address
+        address: config.marginlyKeeper?.aavePoolAddressesProvider?.address
           ? EthAddress.parse(config.marginlyKeeper.aavePoolAddressesProvider.address)
           : undefined,
-        allowCreateMock: config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock,
+        allowCreateMock: config.marginlyKeeper?.aavePoolAddressesProvider?.allowCreateMock ?? false,
       },
     };
 
