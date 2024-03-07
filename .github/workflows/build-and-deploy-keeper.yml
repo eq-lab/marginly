@@ -56,7 +56,7 @@ jobs:
   
  
   deployment-blast:
-    if: github.ref != 'refs/heads/keeper-releases'
+    if: github.ref == 'refs/heads/keeper-releases-v1.5'
     needs: build-image
     runs-on: 'ubuntu-latest'
     environment: production
