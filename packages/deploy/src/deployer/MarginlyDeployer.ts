@@ -36,7 +36,8 @@ export class MarginlyDeployer extends BaseDeployer {
     feeHolder: EthAddress,
     weth9: MarginlyConfigToken,
     tokenRepository: ITokenRepository,
-    techPositionOwner: EthAddress
+    techPositionOwner: EthAddress,
+    blastPointsAdmin: EthAddress
   ): Promise<DeployResult> {
     const { address: weth9Address } = tokenRepository.getTokenInfo(weth9.id);
     return this.deploy(
@@ -47,6 +48,7 @@ export class MarginlyDeployer extends BaseDeployer {
         feeHolder.toString(),
         weth9Address.toString(),
         techPositionOwner.toString(),
+        blastPointsAdmin.toString(),
       ],
       'marginlyFactory',
       this.readMarginlyContract

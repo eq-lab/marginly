@@ -130,7 +130,8 @@ export async function createMarginlyFactory(baseTokenIsWETH = true): Promise<{
     swapRouter.address,
     FeeHolder,
     baseTokenIsWETH ? uniswapPoolInfo.token1.address : uniswapPoolInfo.token0.address,
-    TechnicalPositionOwner
+    TechnicalPositionOwner,
+    owner.address // blastPointsAdmin
   )) as MarginlyFactory;
   return { factory, owner, uniswapPoolInfo, swapRouter, priceOracle };
 }

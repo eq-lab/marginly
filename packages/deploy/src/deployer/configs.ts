@@ -2,14 +2,17 @@ import { MarginlyConfigExistingToken, MarginlyConfigMintableToken, MarginlyConfi
 import { EthAddress, RationalNumber } from '@marginly/common';
 import {
   EthConnectionConfig,
-  isChainlinkOracleConfig, isDoublePairChainlinkOracleDeployConfig, isDoublePairPythOracleDeployConfig,
+  isChainlinkOracleConfig,
+  isDoublePairChainlinkOracleDeployConfig,
+  isDoublePairPythOracleDeployConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
   isMarginlyDeployConfigSwapPoolRegistry,
   isMarginlyDeployConfigUniswapGenuine,
   isMarginlyDeployConfigUniswapMock,
   isPythOracleConfig,
-  isSinglePairChainlinkOracleDeployConfig, isSinglePairPythOracleDeployConfig,
+  isSinglePairChainlinkOracleDeployConfig,
+  isSinglePairPythOracleDeployConfig,
   isUniswapV3DoubleOracleConfig,
   isUniswapV3OracleConfig,
   MarginlyDeployConfig,
@@ -136,6 +139,7 @@ export interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
   techPositionOwner: EthAddress;
   weth9Token: MarginlyConfigToken;
+  blastPointsAdmin: EthAddress;
 }
 
 export interface MarginlyPoolParams {
@@ -232,11 +236,15 @@ export interface DoublePairChainlinkOracleConfig {
 
 export type PairChainlinkOracleConfig = SinglePairChainlinkOracleConfig | DoublePairChainlinkOracleConfig;
 
-export function isSinglePairChainlinkOracleConfig(config: PairChainlinkOracleConfig): config is SinglePairChainlinkOracleConfig {
+export function isSinglePairChainlinkOracleConfig(
+  config: PairChainlinkOracleConfig
+): config is SinglePairChainlinkOracleConfig {
   return config.type === 'single';
 }
 
-export function isDoublePairChainlinkOracleConfig(config: PairChainlinkOracleConfig): config is DoublePairChainlinkOracleConfig {
+export function isDoublePairChainlinkOracleConfig(
+  config: PairChainlinkOracleConfig
+): config is DoublePairChainlinkOracleConfig {
   return config.type === 'double';
 }
 
@@ -697,6 +705,7 @@ export class StrictMarginlyDeployConfig {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
         techPositionOwner: EthAddress.parse(config.marginlyFactory.techPositionOwner),
         weth9Token: wethToken,
+        blastPointsAdmin: EthAddress.parse(config.marginlyFactory.blastPointsAdmin),
       },
       Array.from(tokens.values()),
       marginlyPools,
@@ -804,12 +813,12 @@ export class StrictMarginlyDeployConfig {
                     throw new Error(`Intermediate token not found by id ${x.intermediateTokenId}`);
                   })(),
                 baseAggregatorV3: EthAddress.parse(x.baseAggregatorV3),
-                quoteAggregatorV3: EthAddress.parse(x.quoteAggregatorV3)
+                quoteAggregatorV3: EthAddress.parse(x.quoteAggregatorV3),
               } as DoublePairChainlinkOracleConfig;
             } else {
               throw new Error(`Unknown pair type at index ${i} on ${priceOracleConfig.id}`);
             }
-          })
+          }),
         };
 
         priceOracles.set(priceOracleId, strictConfig);
@@ -835,7 +844,7 @@ export class StrictMarginlyDeployConfig {
                   (() => {
                     throw new Error(`Base token not found by id ${x.baseTokenId}`);
                   })(),
-                pythPriceId: x.pythPriceId as `0x{string}`
+                pythPriceId: x.pythPriceId as `0x{string}`,
               } as SinglePairPythOracleConfig;
             } else if (isDoublePairPythOracleDeployConfig(x)) {
               if (!ethers.utils.isHexString(x.basePythPriceId, 32)) {
@@ -863,12 +872,12 @@ export class StrictMarginlyDeployConfig {
                     throw new Error(`Base token not found by id ${x.intermediateTokenId}`);
                   })(),
                 basePythPriceId: x.basePythPriceId as `0x{string}`,
-                quotePythPriceId: x.quotePythPriceId as `0x{string}`
+                quotePythPriceId: x.quotePythPriceId as `0x{string}`,
               } as DoublePairPythOracleConfig;
             } else {
               throw new Error(`Unknown pair type at index ${i} on ${priceOracleConfig.id}`);
             }
-          })
+          }),
         };
 
         priceOracles.set(priceOracleId, strictConfig);

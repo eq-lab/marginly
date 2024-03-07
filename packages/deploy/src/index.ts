@@ -445,7 +445,8 @@ async function processMarginly(
       config.marginlyFactory.feeHolder,
       config.marginlyFactory.weth9Token,
       tokenRepository,
-      config.marginlyFactory.techPositionOwner
+      config.marginlyFactory.techPositionOwner,
+      config.marginlyFactory.blastPointsAdmin
     );
     printDeployState('Marginly Factory', marginlyFactoryDeployResult, logger);
 

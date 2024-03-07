@@ -55,7 +55,8 @@
   "marginlyFactory": {
     "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
     "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
-    "wethTokenId": "weth"
+    "wethTokenId": "weth",
+    "blastPointsAdmin": "0xC8F8F0ac6b78afc8559Cc39C71361dAB043f9a14"
   },
   "marginlyPools": [
     {
