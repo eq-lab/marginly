@@ -1,0 +1,20 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.blast.io"
+  },
+  "connection": {
+    "ethOptions": {
+      "gasLimit": 4400000,
+      "gasPrice": 250000
+    }
+  },
+  "marginlyKeeperAddress": "0x0000000000000000000000000000000000000000",
+  "operatingMode": "reinit",
+  "marginlyPools": [
+    {
+      "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7",
+      "minProfitQuote": "1",
+      "minProfitBase": "0.0005"
+    }
+  ]
+}

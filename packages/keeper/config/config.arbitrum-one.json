@@ -8,6 +8,7 @@
       "gasPrice": "200000000"
     }
   },
+  "operatingMode": "reinit",
   "marginlyKeeperAddress": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
   "marginlyPools": [
     {

@@ -174,7 +174,8 @@ const watchMarginlyPoolsCommand = new Command()
       poolWatchers,
       keeperContract,
       config.connection.ethOptions,
-      logger
+      logger,
+      config.operatingMode
     );
 
     // eslint-disable-next-line no-constant-condition

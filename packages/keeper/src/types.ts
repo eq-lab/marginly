@@ -17,10 +17,13 @@ export interface EthConnectionConfig {
   ethOptions: EthOptions;
 }
 
+export type OperatingMode = 'liquidation' | 'reinit';
+
 export interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
   connection: EthConnectionConfig;
   marginlyKeeperAddress: string;
+  operatingMode: OperatingMode;
   marginlyPools: {
     address: string;
     minProfitQuote: string;

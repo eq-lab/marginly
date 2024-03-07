@@ -4,7 +4,7 @@ import { using } from '@marginly/common/resource';
 import { ethers } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { formatEther, formatUnits } from 'ethers/lib/utils';
-import { EthOptions, ContractDescriptions, LiquidationParams } from './types';
+import { EthOptions, ContractDescriptions, LiquidationParams, OperatingMode } from './types';
 import { PoolWatcher } from './PoolWatcher';
 
 export class MarginlyKeeperWorker implements Worker {
@@ -14,6 +14,7 @@ export class MarginlyKeeperWorker implements Worker {
   private readonly contractDescriptions: ContractDescriptions;
   private readonly poolWatchers: PoolWatcher[];
   private readonly ethOptions: EthOptions;
+  private readonly operatingMode: OperatingMode;
 
   private stopRequested: boolean;
 
@@ -23,7 +24,8 @@ export class MarginlyKeeperWorker implements Worker {
     poolWatchers: PoolWatcher[],
     keeperContract: ethers.Contract,
     ethOptions: EthOptions,
-    logger: Logger
+    logger: Logger,
+    operatingMode: OperatingMode
   ) {
     this.signer = signer;
     this.keeperContract = keeperContract;
@@ -31,8 +33,8 @@ export class MarginlyKeeperWorker implements Worker {
     this.contractDescriptions = contractDescriptions;
     this.poolWatchers = poolWatchers;
     this.ethOptions = ethOptions;
-
     this.stopRequested = false;
+    this.operatingMode = operatingMode;
   }
 
   requestStop(): void {
@@ -61,13 +63,15 @@ export class MarginlyKeeperWorker implements Worker {
           }
 
           //Working in reinit mode
-          await this.callReinit(logger, liquidationParam);
-
-          // if (await this.isAvailableForBorrow(logger, liquidationParam.asset)) {
-          //   await this.tryLiquidateWithFlashloan(logger, liquidationParam);
-          // } else {
-          //   await this.callReinit(logger, liquidationParam);
-          // }
+          if (this.operatingMode === 'reinit') {
+            await this.callReinit(logger, liquidationParam);
+          } else {
+            if (await this.isAvailableForBorrow(logger, liquidationParam.asset)) {
+              await this.tryLiquidateWithFlashloan(logger, liquidationParam);
+            } else {
+              await this.callReinit(logger, liquidationParam);
+            }
+          }
         }
       });
     }
