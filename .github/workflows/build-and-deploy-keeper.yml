@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'keeper-releases'
+      - 'keeper-releases-*'
     tags:
       - 'v*'
 
@@ -55,6 +56,7 @@ jobs:
   
  
   deployment-blast:
+    if: github.ref != 'refs/heads/keeper-releases'
     needs: build-image
     runs-on: 'ubuntu-latest'
     environment: production
