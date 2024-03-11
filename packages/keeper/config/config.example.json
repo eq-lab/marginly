@@ -9,7 +9,7 @@
   "marginlyKeeperUniswapV3Address": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
   "marginlyPools": [
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0x7D3c686CeaFD6e36198BA2fE96091c9eB5FBbd45",
       "minProfitQuote": "20",
       "minProfitBase": "0.05"

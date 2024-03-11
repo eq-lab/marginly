@@ -5,18 +5,20 @@
   "connection": {
     "ethOptions": {
       "gasLimit": 4400000,
-      "gasPrice": 250000
+      "gasPrice": 2500
     }
   },
   "marginlyKeeperAaveAddress": "0x0000000000000000000000000000000000000000",
-  "marginlyKeeperUniswapV3Address": "0x0000000000000000000000000000000000000000",
+  "marginlyKeeperUniswapV3Address": "0x953bCae95340b4f275c357a9d847E36617401f8e",
   "marginlyPools": [
     {
-      "type": "reinit",
+      "keeperType": "uniswapV3",
       "description": "weth-usdb",
       "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7",
       "minProfitQuote": "1",
-      "minProfitBase": "0.0005"
+      "minProfitBase": "0.0005",
+      "flashLoanPools": ["0x0D44F3F22F917cc57368A6D30Ba18D5801789cD9"],
+      "swapCallData": "0"
     }
   ]
 }
