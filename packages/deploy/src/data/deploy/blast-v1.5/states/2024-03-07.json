@@ -26,6 +26,10 @@
     "marginlyPool_weth-usdb": {
       "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7",
       "txHash": "0xd7e65ed8221f29268b74122eb8bd7d008ff2bce14bac054346e4db02d3f66430"
+    },
+    "marginlyKeeperUniswapV3": {
+      "address": "0x953bCae95340b4f275c357a9d847E36617401f8e",
+      "txHash": "0xd3fd4f277c2ce600c8349d3c6879441d36fd8a23082fe63965de17ebb7854993"
     }
   }
 }

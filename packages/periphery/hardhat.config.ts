@@ -22,9 +22,24 @@ const config = {
     arbitrumOne: {
       url: 'https://arb1.arbitrum.io/rpc',
     },
+    blast: {
+      url: 'https://rpc.blast.io',
+    },
   },
   etherscan: {
-    apiKey: process.env.API_KEY,
+    apiKey: {
+      blast: process.env.BLAST_API_KEY,
+    },
+    customChains: [
+      {
+        network: 'blast',
+        chainId: 81457,
+        urls: {
+          apiURL: 'https://api.blastscan.io/api',
+          browserURL: 'https://blastscan.io/',
+        },
+      },
+    ],
   },
   mocha: {
     timeout: 200_000,
@@ -34,7 +49,7 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly','SwapPoolRegistry', 'Oracle'],
+    only: ['Marginly', 'SwapPoolRegistry', 'Oracle'],
     except: ['Mock', 'Test', 'Lib'],
   },
   docgen: {

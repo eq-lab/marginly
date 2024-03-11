@@ -30,12 +30,16 @@ const config = {
     arbitrumSepolia: {
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
     },
+    blast: {
+      url: 'https://rpc.blast.io',
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.API_KEY,
       arbitrumGoerli: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
+      blast: process.env.BLAST_API_KEY,
     },
     customChains: [
       {
@@ -44,6 +48,14 @@ const config = {
         urls: {
           apiURL: 'https://api-sepolia.arbiscan.io/api',
           browserURL: 'https://sepolia.arbiscan.io/',
+        },
+      },
+      {
+        network: 'blast',
+        chainId: 81457,
+        urls: {
+          apiURL: 'https://api.blastscan.io/api',
+          browserURL: 'https://blastscan.io/',
         },
       },
     ],

@@ -5,7 +5,7 @@
   "connection": {
     "assertChainId": 81457,
     "ethOptions": {
-      "gasPrice": 1000252
+      "gasPrice": 300
     }
   },
   "tokens": [
