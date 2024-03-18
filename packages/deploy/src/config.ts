@@ -53,6 +53,7 @@ export type PriceOracleDeployConfig =
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
   id: string;
+  factory: string;
   settings: {
     quoteTokenId: string;
     baseTokenId: string;
@@ -65,6 +66,7 @@ export interface UniswapV3TickOracleDeployConfig {
 export interface UniswapV3DoubleDeployOracleConfig {
   type: 'uniswapV3Double';
   id: string;
+  factory: string;
   settings: {
     quoteTokenId: string;
     baseTokenId: string;
@@ -177,6 +179,7 @@ interface MarginlyDeployConfigUniswapGenuine {
     tokenAId: string;
     tokenBId: string;
     fee: string;
+    factory: string;
     allowCreate: boolean;
     assertAddress?: string;
   }[];

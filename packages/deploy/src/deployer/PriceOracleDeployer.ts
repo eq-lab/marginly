@@ -43,12 +43,11 @@ export class PriceOracleDeployer extends BaseDeployer {
 
   public async deployAndConfigureUniswapV3TickOracle(
     config: UniswapV3TickOracleConfig,
-    uniswapV3Factory: EthAddress,
     tokenRepository: ITokenRepository
   ): Promise<DeployResult> {
     const deploymentResult = this.deploy(
       'UniswapV3TickOracle',
-      [uniswapV3Factory.toString()],
+      [config.factory.toString()],
       `priceOracle_${config.id}`,
       this.readMarginlyPeripheryOracleContract
     );
@@ -94,12 +93,11 @@ export class PriceOracleDeployer extends BaseDeployer {
 
   public async deployAndConfigureUniswapV3TickDoubleOracle(
     config: UniswapV3TickDoubleOracleConfig,
-    uniswapV3Factory: EthAddress,
     tokenRepository: ITokenRepository
   ): Promise<DeployResult> {
     const deploymentResult = this.deploy(
       'UniswapV3TickOracleDouble',
-      [uniswapV3Factory.toString()],
+      [config.factory.toString()],
       `priceOracle_${config.id}`,
       this.readMarginlyPeripheryOracleContract
     );

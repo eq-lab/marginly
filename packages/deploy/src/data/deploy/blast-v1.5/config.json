@@ -20,21 +20,37 @@
       "address": "0x4300000000000000000000000000000000000003",
       "assertSymbol": "USDB",
       "assertDecimals": 18
+    },
+    {
+      "id": "musd",
+      "address": "0x837fE561e9C5DFa73F607fDa679295DBC2Be5E40",
+      "assertSymbol": "MUSD",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
   "uniswap": {
-    "description": "Thruster",
-    "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127",
     "weth9TokenId": "weth",
     "pools": [
       {
         "id": "weth-usdb",
+        "description": "Thruster",
         "tokenAId": "usdb",
         "tokenBId": "weth",
         "fee": "0.3%",
         "allowCreate": false,
-        "assertAddress": "0xf00DA13d2960Cf113edCef6e3f30D92E52906537"
+        "assertAddress": "0xf00DA13d2960Cf113edCef6e3f30D92E52906537",
+        "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
+      },
+      {
+        "id": "musd-usdb",
+        "description": "Monoswap",
+        "tokenAId": "usdb",
+        "tokenBId": "musd",
+        "fee": "0.3%",
+        "allowCreate": false,
+        "assertAddress": "0x77e149741b4aa14511324e4b554845063ed038bd",
+        "factory": "0x48d0F09710794313f33619c95147F34458BF7C3b"
       }
     ]
   },
@@ -42,11 +58,26 @@
     {
       "id": "thrusterOracle",
       "type": "uniswapV3",
+      "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127",
       "settings": [
         {
           "quoteTokenId": "usdb",
           "baseTokenId": "weth",
           "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.3%"
+        }
+      ]
+    },
+    {
+      "id": "monoswapOracle",
+      "type": "uniswapV3",
+      "factory": "0x48d0F09710794313f33619c95147F34458BF7C3b",
+      "settings": [
+        {
+          "quoteTokenId": "usdb",
+          "baseTokenId": "musd",
+          "secondsAgo": "60 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.3%"
         }
@@ -75,10 +106,27 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "10_000_000"
       }
+    },
+    {
+      "id": "musd-usdb",
+      "uniswapPoolId": "musd-usdb",
+      "baseTokenId": "musd",
+      "priceOracleId": "monoswapOracle",
+      "defaultSwapCallData": "22544385",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "2.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "25_000"
+      }
     }
   ],
   "adapters": [
     {
+      "description": "Thruster",
       "dexId": 0,
       "adapterName": "UniswapV3Adapter",
       "pools": [
@@ -86,6 +134,30 @@
           "tokenAId": "usdb",
           "tokenBId": "weth",
           "poolAddress": "0xf00DA13d2960Cf113edCef6e3f30D92E52906537"
+        }
+      ]
+    },
+    {
+      "description": "Monoswap",
+      "dexId": 21,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "usdb",
+          "tokenBId": "musd",
+          "poolAddress": "0x77e149741b4aa14511324e4b554845063ed038bd"
+        }
+      ]
+    },
+    {
+      "description": "Thruster pool 0.05%",
+      "dexId": 22,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "tokenAId": "usdb",
+          "tokenBId": "weth",
+          "poolAddress": "0x7f0db0d77d0694f29c3f940b5b1f589fff6ef2e0"
         }
       ]
     }

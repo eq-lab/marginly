@@ -31,13 +31,13 @@ export interface MarginlyConfigUniswapPoolGenuine {
   tokenA: MarginlyConfigToken;
   tokenB: MarginlyConfigToken;
   fee: RationalNumber;
+  factory: EthAddress;
   allowCreate: boolean;
   assertAddress?: EthAddress;
 }
 
 export interface MarginlyConfigUniswapGenuine {
   type: 'genuine';
-  factory: EthAddress;
   pools: MarginlyConfigUniswapPoolGenuine[];
 }
 
@@ -195,6 +195,7 @@ export type PriceOracleConfig =
 export interface UniswapV3TickOracleConfig {
   id: string;
   type: 'uniswapV3';
+  factory: EthAddress;
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
@@ -207,6 +208,7 @@ export interface UniswapV3TickOracleConfig {
 export interface UniswapV3TickDoubleOracleConfig {
   id: string;
   type: 'uniswapV3Double';
+  factory: EthAddress;
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
@@ -418,6 +420,7 @@ export class StrictMarginlyDeployConfig {
           tokenA,
           tokenB,
           fee,
+          factory: EthAddress.parse(rawPool.factory),
           allowCreate: rawPool.allowCreate,
           assertAddress: assertAddress,
         };
@@ -426,7 +429,6 @@ export class StrictMarginlyDeployConfig {
       }
       uniswap = {
         type: 'genuine',
-        factory: EthAddress.parse(config.uniswap.factory),
         pools: genuinePools,
       };
     } else if (isMarginlyDeployConfigUniswapMock(config.uniswap)) {
@@ -728,6 +730,7 @@ export class StrictMarginlyDeployConfig {
         const strictConfig: UniswapV3TickOracleConfig = {
           id: priceOracleId,
           type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
             quoteToken:
               tokens.get(x.quoteTokenId) ||
@@ -750,6 +753,7 @@ export class StrictMarginlyDeployConfig {
         const strictConfig: UniswapV3TickDoubleOracleConfig = {
           id: priceOracleId,
           type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
             quoteToken:
               tokens.get(x.quoteTokenId) ||
