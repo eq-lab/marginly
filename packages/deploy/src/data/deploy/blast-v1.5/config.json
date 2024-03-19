@@ -5,7 +5,7 @@
   "connection": {
     "assertChainId": 81457,
     "ethOptions": {
-      "gasPrice": 300
+      "gasPrice": 270
     }
   },
   "tokens": [
@@ -158,6 +158,18 @@
           "tokenAId": "usdb",
           "tokenBId": "weth",
           "poolAddress": "0x7f0db0d77d0694f29c3f940b5b1f589fff6ef2e0"
+        }
+      ]
+    },
+    {
+      "description": "BlasterSwap",
+      "dexId": 23,
+      "adapterName": "UniswapV2Adapter",
+      "pools": [
+        {
+          "tokenAId": "usdb",
+          "tokenBId": "weth",
+          "poolAddress": "0x3b5d3f610Cc3505f4701E9FB7D0F0C93b7713adD"
         }
       ]
     }
