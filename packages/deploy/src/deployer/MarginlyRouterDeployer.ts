@@ -35,6 +35,26 @@ export class MarginlyRouterDeployer extends BaseDeployer {
 
   public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
     const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
-    return this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
+    const deployResult = await this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
+
+    const adaptersToAdd = [];
+    const router = deployResult.contract;
+    for (const adapter of adapters) {
+      const routerAdapter = await router.adapters(adapter.dexId);
+      if (routerAdapter.toString().toLowerCase() !== adapter.adapter.toString().toLowerCase()) {
+        adaptersToAdd.push(adapter);
+
+        this.logger.log(`Adapter dexId:${adapter.dexId} address:${adapter.adapter} should be added to MarginlyRouter`);
+      }
+    }
+
+    if (adaptersToAdd.length > 0) {
+      const adaptersToAddArgs = adaptersToAdd.map((x) => [x.dexId.toNumber(), x.adapter.toString()]);
+      await router.connect(this.signer).addDexAdapters(adaptersToAddArgs);
+
+      this.logger.log(`Added ${adaptersToAdd.length} adapters to MarginlyRouter`);
+    }
+
+    return deployResult;
   }
 }

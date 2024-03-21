@@ -22,9 +22,25 @@ const config = {
     arbitrumOne: {
       url: 'https://arb1.arbitrum.io/rpc',
     },
+    artioTestnet: {
+      url: 'https://artio.rpc.berachain.com',
+    },
   },
   etherscan: {
-    apiKey: process.env.API_KEY,
+    apiKey: {
+      arbitrumOne: process.env.API_KEY,
+      artioTestnet: 'artio_testnet',
+    },
+    customChains: [
+      {
+        network: 'artioTestnet',
+        chainId: 80085,
+        urls: {
+          apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
+          browserURL: 'https://artio.beratrail.io',
+        },
+      },
+    ],
   },
   mocha: {
     timeout: 200_000,
@@ -34,7 +50,7 @@ const config = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
-    only: ['Marginly','SwapPoolRegistry', 'Oracle'],
+    only: ['Marginly', 'SwapPoolRegistry', 'Oracle'],
     except: ['Mock', 'Test', 'Lib'],
   },
   docgen: {
