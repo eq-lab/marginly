@@ -5,7 +5,7 @@
   "connection": {
     "assertChainId": 81457,
     "ethOptions": {
-      "gasPrice": 270
+      "gasPrice": 300
     }
   },
   "tokens": [
@@ -43,6 +43,16 @@
         "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
       },
       {
+        "id": "weth-usdb-500",
+        "description": "Thruster",
+        "tokenAId": "usdb",
+        "tokenBId": "weth",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0x7f0db0d77d0694f29c3f940b5b1f589fff6ef2e0",
+        "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
+      },
+      {
         "id": "musd-usdb",
         "description": "Monoswap",
         "tokenAId": "usdb",
@@ -66,6 +76,20 @@
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.3%"
+        }
+      ]
+    },
+    {
+      "id": "thrusterOracleV2",
+      "type": "uniswapV3",
+      "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127",
+      "settings": [
+        {
+          "quoteTokenId": "usdb",
+          "baseTokenId": "weth",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
         }
       ]
     },
@@ -121,6 +145,22 @@
         "mcSlippage": "2.0%",
         "positionMinAmount": "1",
         "quoteLimit": "25_000"
+      }
+    },
+    {
+      "id": "weth-usdb-500",
+      "uniswapPoolId": "weth-usdb-500",
+      "baseTokenId": "weth",
+      "priceOracleId": "thrusterOracleV2",
+      "defaultSwapCallData": "23592961",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "10_000_000"
       }
     }
   ],
