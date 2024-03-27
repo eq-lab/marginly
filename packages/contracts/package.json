@@ -15,7 +15,8 @@
     "test:bench": "REPORT_GAS=true hardhat test ./test/benchmarks/*.bench.ts",
     "test:benchFP": "REPORT_GAS=true hardhat test ./test/benchmarks/FixedPoint.bench.ts",
     "lint:write": "prettier --write ./contracts",
-    "docgen": "hardhat docgen"
+    "docgen": "hardhat docgen",
+    "test:int": "REPORT_GAS=true hardhat test --config hardhat-fork.config.ts ./test/int/*.spec.ts"
   },
   "author": "EqLab",
   "devDependencies": {
