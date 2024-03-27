@@ -13,12 +13,19 @@
   "marginlyPools": [
     {
       "keeperType": "uniswapV3",
-      "description": "weth-usdb",
-      "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7",
+      "description": "weth-usdb-0.05 keeper in monoswapV3",
+      "address": "0xA24D9FB1CA3909DaaAF62503c766680d087E72B9",
       "minProfitQuote": "1",
       "minProfitBase": "0.0005",
       "flashLoanPools": ["0x0D44F3F22F917cc57368A6D30Ba18D5801789cD9"],
-      "swapCallData": "0"
+      "swapCallData": "23592961"
+    },
+    {
+      "keeperType": "reinit",
+      "description": "musd-usdb",
+      "address": "0xb312D61915c878938fcE09D13DD3006c6835b3e5",
+      "minProfitQuote": "1",
+      "minProfitBase": "1"
     }
   ]
 }
