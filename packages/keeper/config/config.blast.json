@@ -5,7 +5,7 @@
   "connection": {
     "ethOptions": {
       "gasLimit": 4400000,
-      "gasPrice": 2500
+      "gasPrice": 600
     }
   },
   "marginlyKeeperAaveAddress": "0x0000000000000000000000000000000000000000",
