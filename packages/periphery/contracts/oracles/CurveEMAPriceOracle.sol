@@ -25,6 +25,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     uint8 quoteDecimals;
   }
 
+  uint256 private constant X96ONE = 79228162514264337593543950336;
   mapping(address => mapping(address => OracleParams)) public getParams;
 
   function addPool(address pool, address baseToken, address quoteToken) public onlyOwner {
@@ -81,6 +82,6 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     
     uint256 price = ICurve(poolParams.pool).price_oracle();
 
-    priceX96 = price * (2**96) * (10**(poolParams.quoteDecimals - poolParams.baseDecimals));
+    priceX96 = price * 10**(poolParams.quoteDecimals - poolParams.baseDecimals) * X96ONE;
   }
 }
