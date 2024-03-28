@@ -9,7 +9,7 @@ import {
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
-describe.only('UniswapV2Oracle prices', () => {
+describe('UniswapV2Oracle prices', () => {
   it('addPairs should work', async () => {
     const { oracle, pairs } = await loadFixture(createUniswapV2Oracle);
 
