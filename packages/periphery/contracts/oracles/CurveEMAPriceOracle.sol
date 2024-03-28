@@ -2,8 +2,11 @@
 pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
+
+interface IERC20 {
+  function decimals() external view returns (uint8);
+}
 
 interface ICurve {
     function last_price() external view returns (uint256);
