@@ -10,13 +10,18 @@ import {
   MockChainlink,
   TestAlgebraPool,
   TestAlgebraFactory,
+  TestUniswapV2Factory,
+  TestUniswapV2Pair,
 } from '../../typechain-types';
 import {
   AlgebraTickOracle,
   AlgebraTickOracleDouble,
+  UniswapV2Oracle,
   UniswapV3TickOracle,
   UniswapV3TickOracleDouble,
 } from '../../typechain-types/contracts/oracles';
+import { BigNumber } from 'ethers';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -460,4 +465,79 @@ export async function createAlgebraTickOracleDoubleIQB() {
 // intermediateToken < baseToken < quoteToken
 export async function createAlgebraTickOracleDoubleIBQ() {
   return createAlgebraTickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
+}
+
+export type UniswapV2OracleData = {
+  oracle: UniswapV2Oracle;
+  pairs: TestUniswapV2Pair[];
+  factory: TestUniswapV2Factory;
+};
+
+export async function createUniswapV2Oracle(): Promise<UniswapV2OracleData> {
+  const windowSize = 60 * 60;
+  const granularity = 60;
+
+  const pairFactory = await ethers.getContractFactory('TestUniswapV2Factory');
+  const factory = await pairFactory.deploy();
+
+  const pairs = [];
+
+  await factory.createPair(Tokens.USDC, Tokens.WETH);
+  const usdcWethPair = await ethers.getContractAt('TestUniswapV2Pair', await factory.getPair(Tokens.USDC, Tokens.WETH));
+  await usdcWethPair.setPriceCumulatives(
+    BigNumber.from('8336972277168571907928125483464622022025251163418'),
+    BigNumber.from('79842860134165886894026243979741')
+  );
+  await usdcWethPair.setReserves(BigNumber.from('7310295511'), BigNumber.from('2042135526372070598'), 1711622327);
+  pairs.push(usdcWethPair);
+
+  await factory.createPair(Tokens.WBTC, Tokens.WETH);
+  const wbtcWethPair = await ethers.getContractAt('TestUniswapV2Pair', await factory.getPair(Tokens.WBTC, Tokens.WETH));
+  await wbtcWethPair.setPriceCumulatives(
+    BigNumber.from('2717295059900711890375220838382472017626120416460370'),
+    BigNumber.from('82428671486905729838010896445')
+  );
+  await wbtcWethPair.setReserves(
+    BigNumber.from('1568827'),
+    BigNumber.from('308864561753000328'),
+    BigNumber.from(1711618918)
+  );
+  pairs.push(wbtcWethPair);
+
+  const oracleFactory = await ethers.getContractFactory('UniswapV2Oracle');
+  const oracle = await oracleFactory.deploy(factory.address, windowSize, granularity);
+
+  return {
+    oracle,
+    pairs,
+    factory,
+  };
+}
+
+export async function createUniswapV2OracleWithPairs(): Promise<UniswapV2OracleData> {
+  const oracleData = await createUniswapV2Oracle();
+
+  await oracleData.oracle.addPairs(
+    [
+      { token0: Tokens.WETH, token1: Tokens.USDC },
+      { token0: Tokens.WBTC, token1: Tokens.WETH },
+    ],
+    [
+      { secondsAgo: 1800, secondsAgoLiquidation: 60 },
+      { secondsAgo: 3600, secondsAgoLiquidation: 60 },
+    ]
+  );
+
+  return oracleData;
+}
+
+export async function createUniswapV2OracleWithPairsAndObservations(): Promise<UniswapV2OracleData> {
+  const oracleData = await createUniswapV2OracleWithPairs();
+
+  for (let i = 0; i < 61; i++) {
+    await time.increase(60);
+    await oracleData.oracle.updateAll();
+  }
+
+  return oracleData;
 }
