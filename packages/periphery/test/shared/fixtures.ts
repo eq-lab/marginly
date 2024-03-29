@@ -10,6 +10,8 @@ import {
   MockChainlink,
   TestAlgebraPool,
   TestAlgebraFactory,
+  CurveEMAPriceOracle,
+  TestCurveEMAPool,
 } from '../../typechain-types';
 import {
   AlgebraTickOracle,
@@ -17,6 +19,7 @@ import {
   UniswapV3TickOracle,
   UniswapV3TickOracleDouble,
 } from '../../typechain-types/contracts/oracles';
+import { BigNumber } from 'ethers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -218,6 +221,53 @@ export async function createUniswapV3TickOracleDoubleIQB() {
 // intermediateToken < baseToken < quoteToken
 export async function createUniswapV3TickOracleDoubleIBQ() {
   return createUniswapV3TickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
+}
+
+export type CurveEMAOracleData = {
+  oracle: CurveEMAPriceOracle;
+  pool: TestCurveEMAPool;
+  coin0: string;
+  coin1: string;
+  quoteToken: string;
+  baseToken: string;
+};
+
+async function createCurveEMAOracle(
+  coin0: string,
+  coin1: string,
+  baseToken: string,
+  quoteToken: string
+): Promise<CurveEMAOracleData> {
+  const poolFactory = await ethers.getContractFactory('TestCurveEMAPool');
+  const pool = await poolFactory.deploy(coin0, coin1);
+
+  const oracleFactory = await ethers.getContractFactory('CurveEMAPriceOracle');
+  const oracle = await oracleFactory.deploy();
+  await oracle.addPool(pool.address, baseToken, quoteToken);
+
+  await pool.setPrices(
+    BigNumber.from(997).mul(1e15), // last_price   = 0.997 * 1E18
+    BigNumber.from(998).mul(1e15), // ema_price    = 0.998 * 1E18
+    BigNumber.from(1010).mul(1e15) // price_oracle = 1.01  * 1E18
+  );
+
+  return { oracle, pool, coin0, coin1, quoteToken, baseToken };
+}
+
+export async function createCurveEMAOracleForward(): Promise<CurveEMAOracleData> {
+  const tokenFactory = await ethers.getContractFactory('MintableERC20');
+  const frxEthToken = await tokenFactory.deploy('frxETH', 'Frax Ether', 18);
+  const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+
+  return createCurveEMAOracle(wethToken.address, frxEthToken.address, wethToken.address, frxEthToken.address);
+}
+
+export async function createCurveEMAOracleBackward(): Promise<CurveEMAOracleData> {
+  const tokenFactory = await ethers.getContractFactory('MintableERC20');
+  const frxEthToken = await tokenFactory.deploy('frxETH', 'Frax Ether', 18);
+  const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+
+  return createCurveEMAOracle(wethToken.address, frxEthToken.address, frxEthToken.address, wethToken.address);
 }
 
 export type PythOracleData = {
