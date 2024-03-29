@@ -21,13 +21,13 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
   error PairAlreadyExists();
 
   struct TokenPair {
-    address token0;
-    address token1;
+    address quoteToken;
+    address baseToken;
   }
 
   struct Observation {
     uint timestamp;
-    uint price0Cumulative;
+    uint priceCumulative;
   }
 
   struct PairOracleOptions {
@@ -49,10 +49,14 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
   // this is redundant with granularity and windowSize, but stored for gas savings & informational purposes.
   uint public immutable periodSize;
 
-  // mapping from pair address to a list of price observations of that pair
-  mapping(address => Observation[]) public pairObservations;
-  address[] public pairs;
-  mapping(address => PairOracleOptions) public pairOptions;
+  // pair address converted into number,
+  // when pairKey > 0 means pair.token0 - is base token and pair.token1 - is quote token
+  int256[] public pairKeys;
+
+  // mapping from pairKey to a list of price observations of that pair
+  mapping(int256 => Observation[]) public pairObservations;
+  // mapping from pairKey to options for that pair
+  mapping(int256 => PairOracleOptions) public pairOptions;
 
   constructor(address factory_, uint windowSize_, uint8 granularity_) {
     if (factory_ == address(0)) revert WrongValue();
@@ -64,6 +68,21 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
     granularity = granularity_;
   }
 
+  ///@notice Absolute value
+  function _abs(int256 x) private pure returns (int) {
+    return x >= 0 ? x : -x;
+  }
+
+  ///@notice Convert an address to an int256
+  function _addressToNumber(address addr) private pure returns (int256) {
+    return int256(uint256(uint160(addr)));
+  }
+
+  ///@notice Returns the address of the pair corresponding to the given pairKey
+  function keyToAddress(int256 key) public pure returns (address) {
+    return address(uint160(uint256(_abs(key))));
+  }
+
   ///@notice Returns the index of the observation corresponding to the given timestamp
   function observationIndexOf(uint timestamp) public view returns (uint8 index) {
     uint epochPeriod = timestamp / periodSize;
@@ -71,25 +90,26 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
   }
 
   ///@notice update the cumulative price for the observation at the current timestamp. each observation is updated at most once per epoch period
-  function update(address pair) public {
+  function update(int256 pairKey) public {
     // get the observation for the current period
     uint8 observationIndex = observationIndexOf(block.timestamp);
-    Observation storage observation = pairObservations[pair][observationIndex];
+    Observation storage observation = pairObservations[pairKey][observationIndex];
 
     // we only want to commit updates once per period (i.e. windowSize / granularity)
     uint timeElapsed = block.timestamp - observation.timestamp;
     if (timeElapsed > periodSize) {
-      (uint price0Cumulative, , ) = UniswapV2OracleLibrary.currentCumulativePrices(pair);
+      address pair = keyToAddress(pairKey);
+      (uint price0Cumulative, uint256 price1Cumulative, ) = UniswapV2OracleLibrary.currentCumulativePrices(pair);
       observation.timestamp = block.timestamp;
-      observation.price0Cumulative = price0Cumulative;
+      observation.priceCumulative = pairKey > 0 ? price0Cumulative : price1Cumulative;
     }
   }
 
   /// @notice Update all pairs in the oracle
   function updateAll() external {
-    uint256 length = pairs.length;
+    uint256 length = pairKeys.length;
     for (uint i; i < length; ) {
-      update(pairs[i]);
+      update(pairKeys[i]);
 
       unchecked {
         i++;
@@ -111,16 +131,19 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
       if (options.secondsAgo > _windowSize || options.secondsAgoLiquidation > _windowSize) revert WrongValue();
 
       TokenPair memory tokenPair = tokenPairs[i];
-      address pair = IUniswapV2Factory(_factory).getPair(tokenPair.token0, tokenPair.token1);
+      address pair = IUniswapV2Factory(_factory).getPair(tokenPair.quoteToken, tokenPair.baseToken);
       if (pair == address(0)) revert PairNotFound();
-      if (pairOptions[pair].secondsAgo != 0) revert PairAlreadyExists();
 
-      pairs.push(pair);
-      pairOptions[pair] = options;
+      int256 pairKey = tokenPair.baseToken < tokenPair.quoteToken ? _addressToNumber(pair) : -_addressToNumber(pair);
+
+      if (pairOptions[pairKey].secondsAgo != 0) revert PairAlreadyExists();
+
+      pairKeys.push(pairKey);
+      pairOptions[pairKey] = options;
 
       // populate the array with empty observations (first call only)
       for (uint j; j < _granularity; ) {
-        pairObservations[pair].push();
+        pairObservations[pairKey].push();
 
         unchecked {
           j++;
@@ -135,48 +158,45 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
 
   /// @notice Remove a pair from the oracle
   function removePairAt(uint256 index) external onlyOwner {
-    uint256 lastIndex = pairs.length - 1;
-    address pair = pairs[index];
-    delete pairOptions[pair];
-    delete pairObservations[pair];
+    uint256 lastIndex = pairKeys.length - 1;
+    int256 pairKey = pairKeys[index];
+    delete pairOptions[pairKey];
+    delete pairObservations[pairKey];
 
     if (lastIndex != 0 && lastIndex != index) {
-      pairs[index] = pairs[lastIndex];
+      pairKeys[index] = pairKeys[lastIndex];
     }
 
-    pairs.pop();
+    pairKeys.pop();
   }
 
   /// @notice Returns the price in Q96 format of the given pair in the last `secondsAgo` seconds
-  function computePrice(address pair, uint16 secondsAgo) public view returns (uint256) {
+  function computePrice(int256 pairKey, uint16 secondsAgo) public view returns (uint256) {
     uint256 observationIndex = observationIndexOf(block.timestamp - secondsAgo);
-    Observation memory observationStart = pairObservations[pair][observationIndex];
+    Observation memory observationStart = pairObservations[pairKey][observationIndex];
 
     uint timeElapsed = block.timestamp - observationStart.timestamp;
     if (timeElapsed > windowSize) revert MissingHistoricalObservation();
     // should never happen.
     if (timeElapsed < granularity) revert UnexpectedTimeElapsed();
-    (uint price0CumulativeEnd, , ) = UniswapV2OracleLibrary.currentCumulativePrices(pair);
-
+    address pair = keyToAddress(pairKey);
+    (uint256 price0CumulativeEnd, uint256 price1CumulativeEnd, ) = UniswapV2OracleLibrary.currentCumulativePrices(pair);
+    uint256 priceCumulativeEnd = pairKey > 0 ? price0CumulativeEnd : price1CumulativeEnd;
     // ">>16" converting from q112 to q96 FP
-    return uint256((price0CumulativeEnd - observationStart.price0Cumulative) / timeElapsed) >> 16;
+    return uint256((priceCumulativeEnd - observationStart.priceCumulative) / timeElapsed) >> 16;
   }
 
   function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256 price) {
     address pair = IUniswapV2Factory(factory).getPair(quoteToken, baseToken);
+    int256 pairKey = baseToken < quoteToken ? _addressToNumber(pair) : -_addressToNumber(pair);
 
-    price = computePrice(pair, pairOptions[pair].secondsAgo);
-    if (quoteToken < baseToken) {
-      price = Math.mulDiv(X96ONE, X96ONE, price);
-    }
+    price = computePrice(pairKey, pairOptions[pairKey].secondsAgo);
   }
 
   function getMargincallPrice(address quoteToken, address baseToken) external view returns (uint256 price) {
     address pair = IUniswapV2Factory(factory).getPair(quoteToken, baseToken);
+    int256 pairKey = baseToken < quoteToken ? _addressToNumber(pair) : -_addressToNumber(pair);
 
-    price = computePrice(pair, pairOptions[pair].secondsAgoLiquidation);
-    if (quoteToken < baseToken) {
-      price = Math.mulDiv(X96ONE, X96ONE, price);
-    }
+    price = computePrice(pairKey, pairOptions[pairKey].secondsAgoLiquidation);
   }
 }

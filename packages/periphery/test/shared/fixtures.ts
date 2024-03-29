@@ -467,9 +467,15 @@ export async function createAlgebraTickOracleDoubleIBQ() {
   return createAlgebraTickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
 }
 
+export type TokenPair = {
+  baseToken: string;
+  quoteToken: string;
+};
+
 export type UniswapV2OracleData = {
   oracle: UniswapV2Oracle;
   pairs: TestUniswapV2Pair[];
+  tokenPairs: TokenPair[];
   factory: TestUniswapV2Factory;
 };
 
@@ -480,6 +486,10 @@ export async function createUniswapV2Oracle(): Promise<UniswapV2OracleData> {
   const pairFactory = await ethers.getContractFactory('TestUniswapV2Factory');
   const factory = await pairFactory.deploy();
 
+  const tokenPairs: TokenPair[] = [
+    { baseToken: Tokens.WETH, quoteToken: Tokens.USDC },
+    { quoteToken: Tokens.WETH, baseToken: Tokens.WBTC },
+  ];
   const pairs = [];
 
   await factory.createPair(Tokens.USDC, Tokens.WETH);
@@ -510,6 +520,7 @@ export async function createUniswapV2Oracle(): Promise<UniswapV2OracleData> {
   return {
     oracle,
     pairs,
+    tokenPairs,
     factory,
   };
 }
@@ -519,8 +530,8 @@ export async function createUniswapV2OracleWithPairs(): Promise<UniswapV2OracleD
 
   await oracleData.oracle.addPairs(
     [
-      { token0: Tokens.WETH, token1: Tokens.USDC },
-      { token0: Tokens.WBTC, token1: Tokens.WETH },
+      { baseToken: Tokens.WETH, quoteToken: Tokens.USDC },
+      { baseToken: Tokens.WBTC, quoteToken: Tokens.WETH },
     ],
     [
       { secondsAgo: 1800, secondsAgoLiquidation: 60 },
@@ -535,7 +546,7 @@ export async function createUniswapV2OracleWithPairsAndObservations(): Promise<U
   const oracleData = await createUniswapV2OracleWithPairs();
 
   for (let i = 0; i < 61; i++) {
-    await time.increase(60);
+    await time.increase(59);
     await oracleData.oracle.updateAll();
   }
 

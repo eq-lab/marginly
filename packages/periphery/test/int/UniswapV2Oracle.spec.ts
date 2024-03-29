@@ -68,8 +68,8 @@ describe.skip('Arbitrum: UniswapV2Oracle', () => {
 
     await oracle.addPairs(
       [
-        { token0: weth, token1: usdc },
-        { token0: wbtc, token1: weth },
+        { baseToken: weth, quoteToken: usdc },
+        { baseToken: wbtc, quoteToken: weth },
       ],
       [
         { secondsAgo: 1800, secondsAgoLiquidation: 60 },
@@ -79,7 +79,8 @@ describe.skip('Arbitrum: UniswapV2Oracle', () => {
   });
 
   it('weth-usdc, weth price decreases', async () => {
-    const pairAddress = await oracle.pairs(0);
+    const pairKey = await oracle.pairKeys(0);
+    const pairAddress = await oracle.keyToAddress(pairKey);
     const uniswapV2Pair = await ethers.getContractAt('IUniswapV2Pair', pairAddress, wethHolder);
     const wethContract = await ethers.getContractAt('IWETH9', weth, wethHolder);
     for (let i = 0; i < 31; i++) {
@@ -99,8 +100,8 @@ describe.skip('Arbitrum: UniswapV2Oracle', () => {
       await time.increase(60); // increase time and mine new block
       await oracle.updateAll();
 
-      await wethContract.transfer(uniswapV2Pair.address, parseEther('0.1'));
-      const amount1Out = 100 * 10 ** 6;
+      await wethContract.transfer(uniswapV2Pair.address, parseEther('1'));
+      const amount1Out = 10 * 10 ** 6;
       await uniswapV2Pair.swap(0, amount1Out, wethHolder.address, []);
       await uniswapV2Pair.skim(wethHolder.address);
     }
@@ -135,9 +136,9 @@ describe.skip('Blast: BlasterSwap', () => {
 
     await oracle.addPairs(
       [
-        { token0: weth, token1: usdb },
-        { token0: weth, token1: pac },
-        { token0: usdb, token1: pac },
+        { baseToken: weth, quoteToken: usdb },
+        { quoteToken: weth, baseToken: pac },
+        { quoteToken: usdb, baseToken: pac },
       ],
       [
         { secondsAgo: 1800, secondsAgoLiquidation: 60 },
@@ -153,7 +154,8 @@ describe.skip('Blast: BlasterSwap', () => {
   });
 
   it('weth-usdb', async () => {
-    const pairAddress = await oracle.pairs(0);
+    const pairKey = await oracle.pairKeys(0);
+    const pairAddress = await oracle.keyToAddress(pairKey);
     const uniswapV2Pair = await ethers.getContractAt('IUniswapV2Pair', pairAddress, wethHolder);
     const wethContract = await ethers.getContractAt('IWETH9', weth, wethHolder);
     for (let i = 0; i < 31; i++) {
@@ -188,7 +190,8 @@ describe.skip('Blast: BlasterSwap', () => {
   });
 
   it('pac-weth', async () => {
-    const pairAddress = await oracle.pairs(1);
+    const pairKey = await oracle.pairKeys(1);
+    const pairAddress = await oracle.keyToAddress(pairKey);
     const uniswapV2Pair = await ethers.getContractAt('IUniswapV2Pair', pairAddress, wethHolder);
     const wethContract = await ethers.getContractAt('IWETH9', weth, wethHolder);
     for (let i = 0; i < 31; i++) {
@@ -223,7 +226,8 @@ describe.skip('Blast: BlasterSwap', () => {
   });
 
   it('pac-usdb', async () => {
-    const pairAddress = await oracle.pairs(2);
+    const pairKey = await oracle.pairKeys(2);
+    const pairAddress = await oracle.keyToAddress(pairKey);
     const uniswapV2Pair = await ethers.getContractAt('IUniswapV2Pair', pairAddress, wethHolder);
     const usdbContract = await ethers.getContractAt('IERC20', usdb, wethHolder);
     for (let i = 0; i < 31; i++) {
@@ -277,7 +281,7 @@ describe.skip('Blast: ThrusterV2', () => {
 
     bridgeAccount = await ethers.getImpersonatedSigner(blasterBridge);
 
-    await oracle.addPairs([{ token0: weth, token1: doge }], [{ secondsAgo: 1800, secondsAgoLiquidation: 60 }]);
+    await oracle.addPairs([{ quoteToken: weth, baseToken: doge }], [{ secondsAgo: 1800, secondsAgoLiquidation: 60 }]);
 
     await setBalance(bridgeAccount.address, parseEther('10'));
 
@@ -286,7 +290,8 @@ describe.skip('Blast: ThrusterV2', () => {
   });
 
   it('doge-weth', async () => {
-    const pairAddress = await oracle.pairs(0);
+    const pairKey = await oracle.pairKeys(0);
+    const pairAddress = await oracle.keyToAddress(pairKey);
     const uniswapV2Pair = await ethers.getContractAt('IUniswapV2Pair', pairAddress, wethHolder);
     const wethContract = await ethers.getContractAt('IWETH9', weth, wethHolder);
     for (let i = 0; i < 31; i++) {
