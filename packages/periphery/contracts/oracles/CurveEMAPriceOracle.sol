@@ -16,11 +16,13 @@ interface ICurve {
 }
 
 contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
+  error ZeroPrice();
   error ZeroAddress();
   error InvalidTokenAddress();
 
   struct OracleParams {
     address pool;
+    bool isDirect;
     uint8 baseDecimals;
     uint8 quoteDecimals;
   }
@@ -42,6 +44,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
 
     OracleParams memory params = OracleParams({
       pool: pool,
+      isDirect: coin0 == baseToken,
       baseDecimals: IERC20(baseToken).decimals(),
       quoteDecimals: IERC20(quoteToken).decimals()
     });
@@ -50,6 +53,10 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     getParams[baseToken][quoteToken] = params;
   }
 
+  function removePool(address baseToken, address quoteToken) public onlyOwner {
+    delete(getParams[quoteToken][baseToken]);
+    delete(getParams[baseToken][quoteToken]);
+  }
 
   /// @notice Returns price as X96 value
   function getBalancePrice(
@@ -77,10 +84,15 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     if (quoteToken == address(0)) revert ZeroAddress();
     if (baseToken == address(0)) revert ZeroAddress();
     
-    OracleParams storage poolParams = getParams[quoteToken][baseToken];
+    OracleParams storage poolParams = getParams[baseToken][quoteToken];
     if (poolParams.pool == address(0)) revert ZeroAddress();
     
     uint256 price = ICurve(poolParams.pool).price_oracle();
+    if (price == 0) revert ZeroPrice();
+
+    if (!poolParams.isDirect) {
+      price = 1e18 - (price - 1e18);
+    }
 
     priceX96 = price * 10**(poolParams.quoteDecimals - poolParams.baseDecimals) * X96ONE;
   }
