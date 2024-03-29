@@ -13,7 +13,7 @@ function getPairKey(pair: string, baseToken: string, quoteToken: string) {
   return BigNumber.from(baseToken).lt(BigNumber.from(quoteToken)) ? BigNumber.from(pair) : BigNumber.from(pair).mul(-1);
 }
 
-describe.only('UniswapV2Oracle prices', () => {
+describe('UniswapV2Oracle prices', () => {
   it('addPairs should work', async () => {
     const { oracle, pairs } = await loadFixture(createUniswapV2Oracle);
 
@@ -260,21 +260,40 @@ describe.only('UniswapV2Oracle prices', () => {
     }
   });
 
-  it('anybody can call update', async () => {
-    const { oracle, pairs } = await loadFixture(createUniswapV2OracleWithPairs);
-    const [, notAnOwner] = await ethers.getSigners();
+  it('only operator could call update', async () => {
+    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
+    const [, notAnOperator] = await ethers.getSigners();
+    expect(await oracle.operators(notAnOperator.address)).to.be.equal(false);
     const pairKey = await oracle.pairKeys(0);
-    await oracle.connect(notAnOwner).update(pairKey);
+    await expect(oracle.connect(notAnOperator).update(pairKey)).to.be.revertedWithCustomError(
+      oracle,
+      'UnauthorizedAccount'
+    );
+
+    await oracle.addOperator(notAnOperator.address);
+    expect(await oracle.operators(notAnOperator.address)).to.be.equal(true);
+
+    await oracle.connect(notAnOperator).update(pairKey);
   });
 
-  it('anybody can call updateAll', async () => {
+  it('only operator could call updateAll', async () => {
     const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
-    const [, notAnOwner] = await ethers.getSigners();
-    await oracle.connect(notAnOwner).updateAll();
+    const [, notAnOperator] = await ethers.getSigners();
+    expect(await oracle.operators(notAnOperator.address)).to.be.equal(false);
+
+    await expect(oracle.connect(notAnOperator).updateAll()).to.be.revertedWithCustomError(
+      oracle,
+      'UnauthorizedAccount'
+    );
+
+    await oracle.addOperator(notAnOperator.address);
+    expect(await oracle.operators(notAnOperator.address)).to.be.equal(true);
+
+    await oracle.connect(notAnOperator).updateAll();
   });
 
   it('updateAll should work with update', async () => {
-    const { oracle, pairs } = await loadFixture(createUniswapV2OracleWithPairs);
+    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
 
     const timestamp = await time.latest();
     const targetObservationIndex = await oracle.observationIndexOf(timestamp + 60);
@@ -303,19 +322,19 @@ describe.only('UniswapV2Oracle prices', () => {
     const pairKey1 = await oracle.pairKeys(1);
     for (let i = 0; i < granularity; i++) {
       const observationAfter = await oracle.pairObservations(pairKey1, i);
-      expect(observationAfter.timestamp).to.be.eq(0);
-      expect(observationAfter.priceCumulative).to.be.eq(0);
+      expect(observationAfter.timestamp.toBigInt()).to.be.eq(0n);
+      expect(observationAfter.priceCumulative.toBigInt()).to.be.eq(0n);
     }
 
     await oracle.updateAll();
 
     const observationAfter = await oracle.pairObservations(pairKey1, targetObservationIndex);
-    expect(observationAfter.timestamp).not.to.be.eq(0);
-    expect(observationAfter.priceCumulative).not.to.be.eq(0);
+    expect(observationAfter.timestamp.toBigInt()).not.to.be.eq(0n);
+    expect(observationAfter.priceCumulative.toBigInt()).not.to.be.eq(0n);
   });
 
   it('updateAll then update', async () => {
-    const { oracle, pairs } = await loadFixture(createUniswapV2OracleWithPairs);
+    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
     const granularity = await oracle.granularity();
 
     //expect all observations are empty
@@ -421,20 +440,65 @@ describe.only('UniswapV2Oracle prices', () => {
     await time.increase(60);
     await time.increase(60);
 
-    const granularity = await oracle.granularity();
-    const pairKey = await oracle.pairKeys(0);
+    // all observations data
+    // const granularity = await oracle.granularity();
+    // const pairKey = await oracle.pairKeys(0);
 
-    console.log(`Latest block timestamp ${await time.latest()}`);
-    for (let i = 0; i < granularity; i++) {
-      const observation = await oracle.pairObservations(pairKey, i);
-      console.log(`Observation ${i}:`);
-      console.log(`  timestamp: ${observation.timestamp}`);
-      console.log(`  price: ${observation.priceCumulative}`);
-    }
+    // console.log(`Latest block timestamp ${await time.latest()}`);
+    // for (let i = 0; i < granularity; i++) {
+    //   const observation = await oracle.pairObservations(pairKey, i);
+    //   console.log(`Observation ${i}:`);
+    //   console.log(`  timestamp: ${observation.timestamp}`);
+    //   console.log(`  price: ${observation.priceCumulative}`);
+    // }
 
     await expect(oracle.getMargincallPrice(Tokens.USDC, Tokens.WETH)).to.be.revertedWithCustomError(
       oracle,
       'MissingHistoricalObservation'
     );
+  });
+
+  it('only owner could add new operators', async () => {
+    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
+    const [, signer1, signer2] = await ethers.getSigners();
+    expect(await oracle.operators(signer1.address)).to.be.equal(false);
+    expect(await oracle.operators(signer2.address)).to.be.equal(false);
+
+    await oracle.addOperator(signer1.address);
+    expect(await oracle.operators(signer1.address)).to.be.equal(true);
+
+    await expect(oracle.connect(signer2).addOperator(signer2.address)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+    await expect(oracle.connect(signer1).addOperator(signer2.address)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+  });
+
+  it('only owner could remove operators', async () => {
+    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
+    const [, signer1, signer2, signer3] = await ethers.getSigners();
+    await oracle.addOperator(signer1.address);
+    await oracle.addOperator(signer2.address);
+
+    expect(await oracle.operators(signer1.address)).to.be.equal(true);
+    expect(await oracle.operators(signer2.address)).to.be.equal(true);
+    expect(await oracle.operators(signer3.address)).to.be.equal(false);
+
+    await expect(oracle.connect(signer2).removeOperator(signer1.address)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+    await expect(oracle.connect(signer3).removeOperator(signer1.address)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+
+    await oracle.removeOperator(signer1.address);
+    await oracle.removeOperator(signer2.address);
+    expect(await oracle.operators(signer1.address)).to.be.equal(false);
+    expect(await oracle.operators(signer2.address)).to.be.equal(false);
+
+    //no effects
+    await oracle.removeOperator(signer3.address);
+    expect(await oracle.operators(signer3.address)).to.be.equal(false);
   });
 });

@@ -10,16 +10,6 @@ import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
 /// @notice ExampleSlidingWindowOracle with a little modifications https://github.com/Uniswap/v2-periphery/blob/master/contracts/examples/ExampleSlidingWindowOracle.sol
 contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
-  uint256 private constant X96ONE = 79228162514264337593543950336;
-
-  error WrongValue();
-  error WrongGranularity();
-  error WrongWindow();
-  error PairNotFound();
-  error MissingHistoricalObservation();
-  error UnexpectedTimeElapsed();
-  error PairAlreadyExists();
-
   struct TokenPair {
     address quoteToken;
     address baseToken;
@@ -34,10 +24,10 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
     uint16 secondsAgo;
     uint16 secondsAgoLiquidation;
   }
+  /// Equals 2**96
+  uint256 private constant X96ONE = 79228162514264337593543950336;
 
   address public immutable factory;
-  // the desired amount of time over which the moving average should be computed, e.g. 24 hours
-  uint public immutable windowSize;
   // the number of observations stored for each pair, i.e. how many price observations are stored for the window.
   // as granularity increases from 1, more frequent updates are needed, but moving averages become more precise.
   // averages are computed over intervals with sizes in the range:
@@ -46,6 +36,10 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
   //   the period:
   //   [now - [22 hours, 24 hours], now]
   uint8 public immutable granularity;
+
+  // the desired amount of time over which the moving average should be computed, e.g. 24 hours
+  uint public immutable windowSize;
+
   // this is redundant with granularity and windowSize, but stored for gas savings & informational purposes.
   uint public immutable periodSize;
 
@@ -55,17 +49,29 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
 
   // mapping from pairKey to a list of price observations of that pair
   mapping(int256 => Observation[]) public pairObservations;
+
   // mapping from pairKey to options for that pair
   mapping(int256 => PairOracleOptions) public pairOptions;
 
+  // mapping addresses who can call update, updateAll methods
+  mapping(address => bool) public operators;
+
+  error WrongValue();
+  error PairNotFound();
+  error MissingHistoricalObservation();
+  error UnexpectedTimeElapsed();
+  error PairAlreadyExists();
+  error UnauthorizedAccount();
+
   constructor(address factory_, uint windowSize_, uint8 granularity_) {
     if (factory_ == address(0)) revert WrongValue();
-    if (granularity_ < 2) revert WrongGranularity();
-    if ((periodSize = windowSize_ / granularity_) * granularity_ != windowSize_) revert WrongWindow();
+    if (granularity_ < 2) revert WrongValue();
+    if ((periodSize = windowSize_ / granularity_) * granularity_ != windowSize_) revert WrongValue();
 
     factory = factory_;
     windowSize = windowSize_;
     granularity = granularity_;
+    operators[msg.sender] = true;
   }
 
   ///@notice Absolute value
@@ -89,8 +95,18 @@ contract UniswapV2Oracle is IPriceOracle, Ownable2Step {
     return uint8(epochPeriod % granularity);
   }
 
+  function addOperator(address operator) external onlyOwner {
+    operators[operator] = true;
+  }
+
+  function removeOperator(address operator) external onlyOwner {
+    operators[operator] = false;
+  }
+
   ///@notice update the cumulative price for the observation at the current timestamp. each observation is updated at most once per epoch period
   function update(int256 pairKey) public {
+    if (!operators[msg.sender]) revert UnauthorizedAccount();
+
     // get the observation for the current period
     uint8 observationIndex = observationIndexOf(block.timestamp);
     Observation storage observation = pairObservations[pairKey][observationIndex];
