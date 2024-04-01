@@ -16,16 +16,16 @@ interface ICurve {
 }
 
 contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
-  error ZeroPrice();
-  error ZeroAddress();
-  error InvalidTokenAddress();
-
   struct OracleParams {
     address pool;
-    bool isDirect;
+    bool isForwardOrder;
     uint8 baseDecimals;
     uint8 quoteDecimals;
   }
+
+  error ZeroPrice();
+  error ZeroAddress();
+  error InvalidTokenAddress();
 
   uint256 private constant X96ONE = 79228162514264337593543950336;
   mapping(address => mapping(address => OracleParams)) public getParams;
@@ -44,7 +44,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
 
     OracleParams memory params = OracleParams({
       pool: pool,
-      isDirect: coin0 == baseToken,
+      isForwardOrder: coin0 == baseToken,
       baseDecimals: IERC20(baseToken).decimals(),
       quoteDecimals: IERC20(quoteToken).decimals()
     });
@@ -90,7 +90,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     uint256 price = ICurve(poolParams.pool).price_oracle();
     if (price == 0) revert ZeroPrice();
 
-    if (!poolParams.isDirect) {
+    if (!poolParams.isForwardOrder) {
       price = 1e18 - (price - 1e18);
     }
 

@@ -230,20 +230,25 @@ export type CurveEMAOracleData = {
   coin1: string;
   quoteToken: string;
   baseToken: string;
+  anotherToken: string;
 };
 
 async function createCurveEMAOracle(
   coin0: string,
   coin1: string,
   baseToken: string,
-  quoteToken: string
+  quoteToken: string,
+  anotherToken: string,
+  addPool: boolean = true
 ): Promise<CurveEMAOracleData> {
   const poolFactory = await ethers.getContractFactory('TestCurveEMAPool');
   const pool = await poolFactory.deploy(coin0, coin1);
 
   const oracleFactory = await ethers.getContractFactory('CurveEMAPriceOracle');
   const oracle = await oracleFactory.deploy();
-  await oracle.addPool(pool.address, baseToken, quoteToken);
+  if (addPool) {
+    await oracle.addPool(pool.address, baseToken, quoteToken);
+  }
 
   await pool.setPrices(
     BigNumber.from(997).mul(1e15), // last_price   = 0.997 * 1E18
@@ -251,23 +256,53 @@ async function createCurveEMAOracle(
     BigNumber.from(1010).mul(1e15) // price_oracle = 1.01  * 1E18
   );
 
-  return { oracle, pool, coin0, coin1, quoteToken, baseToken };
+  return { oracle, pool, coin0, coin1, quoteToken, baseToken, anotherToken };
 }
 
 export async function createCurveEMAOracleForward(): Promise<CurveEMAOracleData> {
   const tokenFactory = await ethers.getContractFactory('MintableERC20');
   const frxEthToken = await tokenFactory.deploy('frxETH', 'Frax Ether', 18);
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+  const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
 
-  return createCurveEMAOracle(wethToken.address, frxEthToken.address, wethToken.address, frxEthToken.address);
+  return createCurveEMAOracle(
+    wethToken.address,
+    frxEthToken.address,
+    wethToken.address,
+    frxEthToken.address,
+    anotherToken.address
+  );
 }
 
 export async function createCurveEMAOracleBackward(): Promise<CurveEMAOracleData> {
   const tokenFactory = await ethers.getContractFactory('MintableERC20');
   const frxEthToken = await tokenFactory.deploy('frxETH', 'Frax Ether', 18);
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+  const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
 
-  return createCurveEMAOracle(wethToken.address, frxEthToken.address, frxEthToken.address, wethToken.address);
+  return createCurveEMAOracle(
+    wethToken.address,
+    frxEthToken.address,
+    frxEthToken.address,
+    wethToken.address,
+    anotherToken.address
+  );
+}
+
+export async function createCurveEMAOracleWithoutAddingPool(): Promise<CurveEMAOracleData> {
+  const tokenFactory = await ethers.getContractFactory('MintableERC20');
+  const frxEthToken = await tokenFactory.deploy('frxETH', 'Frax Ether', 18);
+  const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+  const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
+
+  return createCurveEMAOracle(
+    wethToken.address,
+    frxEthToken.address,
+    frxEthToken.address,
+    wethToken.address,
+    anotherToken.address,
+    false
+  );
 }
 
 export type PythOracleData = {
