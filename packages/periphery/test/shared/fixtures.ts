@@ -267,7 +267,7 @@ export async function createCurveEMAOracleForward(): Promise<CurveEMAOracleData>
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
   const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
 
-  return createCurveEMAOracle(wethToken.address, usdtToken.address, wethToken, usdtToken, anotherToken);
+  return createCurveEMAOracle(wethToken.address, usdtToken.address, usdtToken, wethToken, anotherToken);
 }
 
 export async function createCurveEMAOracleBackward(): Promise<CurveEMAOracleData> {
@@ -276,7 +276,7 @@ export async function createCurveEMAOracleBackward(): Promise<CurveEMAOracleData
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
   const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
 
-  return createCurveEMAOracle(wethToken.address, usdtToken.address, usdtToken, wethToken, anotherToken);
+  return createCurveEMAOracle(wethToken.address, usdtToken.address, wethToken, usdtToken, anotherToken);
 }
 
 export async function createCurveEMAOracleWithoutAddingPool(): Promise<CurveEMAOracleData> {
@@ -285,7 +285,7 @@ export async function createCurveEMAOracleWithoutAddingPool(): Promise<CurveEMAO
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
   const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
 
-  return createCurveEMAOracle(wethToken.address, usdtToken.address, usdtToken, wethToken, anotherToken, false);
+  return createCurveEMAOracle(wethToken.address, usdtToken.address, wethToken, usdtToken, anotherToken, false);
 }
 
 export type PythOracleData = {

@@ -55,7 +55,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
 
     OracleParams memory params = OracleParams({
       pool: pool,
-      isForwardOrder: coin0 == baseToken,
+      isForwardOrder: coin0 == quoteToken,
       baseDecimals: baseDecimals,
       quoteDecimals: quoteDecimals
     });
@@ -105,7 +105,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
       priceX96 = Math.mulDiv(price, X96ONE, 10**(18 + poolParams.baseDecimals - poolParams.quoteDecimals));
 
     } else {
-      priceX96 = Math.mulDiv(10**(18 + poolParams.baseDecimals - poolParams.quoteDecimals), X96ONE, price);
+      priceX96 = Math.mulDiv(10**(18 + poolParams.quoteDecimals - poolParams.baseDecimals), X96ONE, price);
     }
   }
 }
