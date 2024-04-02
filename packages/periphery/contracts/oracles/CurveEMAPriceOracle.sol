@@ -32,6 +32,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
   error ExtremeDecimals();
 
   uint256 private constant X96ONE = 79228162514264337593543950336;
+  uint256 private constant PRICE_DECIMALS = 18;
   mapping(address => mapping(address => OracleParams)) public getParams;
 
   function addPool(address pool, address quoteToken, address baseToken) external onlyOwner {
@@ -49,10 +50,10 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     uint8 baseDecimals = IERC20(baseToken).decimals();
     uint8 quoteDecimals = IERC20(quoteToken).decimals();
 
-    if (18 + baseDecimals < quoteDecimals) {
+    if (PRICE_DECIMALS + baseDecimals < quoteDecimals) {
       revert ExtremeDecimals();
     }
-    if (18 + quoteDecimals < baseDecimals) {
+    if (PRICE_DECIMALS + quoteDecimals < baseDecimals) {
       revert ExtremeDecimals();
     }
 
@@ -103,10 +104,10 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     if (price == 0) revert ZeroPrice();
 
     if (poolParams.isForwardOrder) {
-      priceX96 = Math.mulDiv(price, X96ONE, 10**(18 + poolParams.baseDecimals - poolParams.quoteDecimals));
+      priceX96 = Math.mulDiv(price, X96ONE, 10**(PRICE_DECIMALS + poolParams.baseDecimals - poolParams.quoteDecimals));
 
     } else {
-      priceX96 = Math.mulDiv(10**(18 + poolParams.quoteDecimals - poolParams.baseDecimals), X96ONE, price);
+      priceX96 = Math.mulDiv(10**(PRICE_DECIMALS + poolParams.quoteDecimals - poolParams.baseDecimals), X96ONE, price);
     }
   }
 }
