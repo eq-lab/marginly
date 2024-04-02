@@ -34,7 +34,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
   uint256 private constant X96ONE = 79228162514264337593543950336;
   mapping(address => mapping(address => OracleParams)) public getParams;
 
-  function addPool(address pool, address baseToken, address quoteToken) external onlyOwner {
+  function addPool(address pool, address quoteToken, address baseToken) external onlyOwner {
     if (pool == address(0)) revert ZeroAddress();
     if (baseToken == address(0)) revert ZeroAddress();
     if (quoteToken == address(0)) revert ZeroAddress();
@@ -49,7 +49,10 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     uint8 baseDecimals = IERC20(baseToken).decimals();
     uint8 quoteDecimals = IERC20(quoteToken).decimals();
 
-    if (18 + int16(uint16(baseDecimals)) - int16(uint16(quoteDecimals)) < 0) {
+    if (18 + baseDecimals < quoteDecimals) {
+      revert ExtremeDecimals();
+    }
+    if (18 + quoteDecimals < baseDecimals) {
       revert ExtremeDecimals();
     }
 
@@ -61,12 +64,10 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     });
 
     getParams[quoteToken][baseToken] = params;
-    getParams[baseToken][quoteToken] = params;
   }
 
-  function removePool(address baseToken, address quoteToken) external onlyOwner {
+  function removePool(address quoteToken, address baseToken) external onlyOwner {
     delete(getParams[quoteToken][baseToken]);
-    delete(getParams[baseToken][quoteToken]);
   }
 
   /// @notice Returns price as X96 value
@@ -95,7 +96,7 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     if (quoteToken == address(0)) revert ZeroAddress();
     if (baseToken == address(0)) revert ZeroAddress();
     
-    OracleParams storage poolParams = getParams[baseToken][quoteToken];
+    OracleParams storage poolParams = getParams[quoteToken][baseToken];
     if (poolParams.pool == address(0)) revert ZeroAddress();
     
     uint256 price = ICurve(poolParams.pool).price_oracle();

@@ -248,7 +248,7 @@ async function createCurveEMAOracle(
   const oracleFactory = await ethers.getContractFactory('CurveEMAPriceOracle');
   const oracle = await oracleFactory.deploy();
   if (addPool) {
-    await oracle.addPool(pool.address, baseToken.address, quoteToken.address);
+    await oracle.addPool(pool.address, quoteToken.address, baseToken.address);
   }
 
   const one = BigNumber.from(10).pow(18);

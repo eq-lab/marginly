@@ -15,7 +15,7 @@ describe('Curve with EMA price oracle (CurveEMAPriceOracle)', () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const frxEth = '0x178412e79c25968a32e89b11f63B33F733770c2A';
 
-    await oracle.addPool(pool, frxEth, weth);
+    await oracle.addPool(pool, weth, frxEth);
 
     const balancePrice = await oracle.getBalancePrice(weth, frxEth);
     const mcPrice = await oracle.getMargincallPrice(weth, frxEth);
@@ -30,7 +30,7 @@ describe('Curve with EMA price oracle (CurveEMAPriceOracle)', () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const frxEth = '0x178412e79c25968a32e89b11f63B33F733770c2A';
 
-    await oracle.addPool(pool, weth, frxEth);
+    await oracle.addPool(pool, frxEth, weth);
 
     const balancePrice = await oracle.getBalancePrice(frxEth, weth);
     const mcPrice = await oracle.getMargincallPrice(frxEth, weth);
@@ -45,7 +45,7 @@ describe('Curve with EMA price oracle (CurveEMAPriceOracle)', () => {
     const tbtc = '0x6c84a8f1c29108F47a79964b5Fe888D4f4D0dE40';
     const wbtc = '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f';
 
-    await oracle.addPool(pool, tbtc, wbtc);
+    await oracle.addPool(pool, wbtc, tbtc);
 
     const balancePrice = await oracle.getBalancePrice(wbtc, tbtc);
     const mcPrice = await oracle.getMargincallPrice(wbtc, tbtc);
@@ -62,7 +62,7 @@ describe('Curve with EMA price oracle (CurveEMAPriceOracle)', () => {
     // WBTC decimals = 8
     const wbtc = '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f';
 
-    await oracle.addPool(pool, wbtc, tbtc);
+    await oracle.addPool(pool, tbtc, wbtc);
 
     const balancePrice = await oracle.getBalancePrice(tbtc, wbtc);
     const mcPrice = await oracle.getMargincallPrice(tbtc, wbtc);
@@ -77,7 +77,7 @@ describe('Curve with EMA price oracle (CurveEMAPriceOracle)', () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const fxn = '0x179F38f78346F5942E95C5C59CB1da7F55Cf7CAd';
 
-    await oracle.addPool(pool, fxn, weth);
+    await oracle.addPool(pool, weth, fxn);
 
     const balancePrice = await oracle.getBalancePrice(weth, fxn);
     const mcPrice = await oracle.getMargincallPrice(weth, fxn);
@@ -92,7 +92,7 @@ describe('Curve with EMA price oracle (CurveEMAPriceOracle)', () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const fxn = '0x179F38f78346F5942E95C5C59CB1da7F55Cf7CAd';
 
-    await oracle.addPool(pool, weth, fxn);
+    await oracle.addPool(pool, fxn, weth);
 
     const balancePrice = await oracle.getBalancePrice(fxn, weth);
     const mcPrice = await oracle.getMargincallPrice(fxn, weth);

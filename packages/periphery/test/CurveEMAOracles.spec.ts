@@ -47,11 +47,8 @@ describe('CurveEMAPriceOracle', () => {
     const quoteDecimals = await quoteToken.decimals();
     const baseDecimals = await baseToken.decimals();
 
-    const paramsOrder1 = await oracle.getParams(quoteToken.address, baseToken.address);
-    const paramsOrder2 = await oracle.getParams(baseToken.address, quoteToken.address);
-
-    assertOracleParamsIsFilled(paramsOrder1, pool.address, true, baseDecimals, quoteDecimals);
-    assertOracleParamsIsFilled(paramsOrder2, pool.address, true, baseDecimals, quoteDecimals);
+    const params = await oracle.getParams(quoteToken.address, baseToken.address);
+    assertOracleParamsIsFilled(params, pool.address, true, baseDecimals, quoteDecimals);
 
     const priceFromPool = await pool.price_oracle();
 
@@ -72,17 +69,15 @@ describe('CurveEMAPriceOracle', () => {
     const quoteDecimals = await quoteToken.decimals();
     const baseDecimals = await baseToken.decimals();
 
-    const paramsOrder1 = await oracle.getParams(quoteToken.address, baseToken.address);
-    const paramsOrder2 = await oracle.getParams(baseToken.address, quoteToken.address);
-    assertOracleParamsIsFilled(paramsOrder1, pool.address, false, baseDecimals, quoteDecimals);
-    assertOracleParamsIsFilled(paramsOrder2, pool.address, false, baseDecimals, quoteDecimals);
+    const params = await oracle.getParams(quoteToken.address, baseToken.address);
+    assertOracleParamsIsFilled(params, pool.address, false, baseDecimals, quoteDecimals);
 
     let priceFromPool = await pool.price_oracle();
 
-    const balancePriceX96 = await oracle.getBalancePrice(baseToken.address, quoteToken.address);
-    const margincallPriceX96 = await oracle.getMargincallPrice(baseToken.address, quoteToken.address);
+    const balancePriceX96 = await oracle.getBalancePrice(quoteToken.address, baseToken.address);
+    const margincallPriceX96 = await oracle.getMargincallPrice(quoteToken.address, baseToken.address);
 
-    const decimalsMultiplier = BigNumber.from(10).pow(18 + baseDecimals - quoteDecimals);
+    const decimalsMultiplier = BigNumber.from(10).pow(18 + quoteDecimals - baseDecimals);
     const expectedBalancePriceX96 = BigNumber.from(X96One).mul(decimalsMultiplier).div(priceFromPool);
     const expectedMargincallPriceX96 = expectedBalancePriceX96;
 
@@ -116,21 +111,17 @@ describe('CurveEMAPriceOracle', () => {
     const quoteDecimals = await quoteToken.decimals();
     const baseDecimals = await baseToken.decimals();
 
-    const paramsBeforeOrder1 = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
-    const paramsBeforeOrder2 = await oracleOwnerConnected.getParams(baseToken.address, quoteToken.address);
-    assertOracleParamsIsEmpty(paramsBeforeOrder1);
-    assertOracleParamsIsEmpty(paramsBeforeOrder2);
+    const paramsBefore = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
+    assertOracleParamsIsEmpty(paramsBefore);
 
     const oracleUserConnected = oracleOwnerConnected.connect(user);
-    await expect(oracleUserConnected.addPool(pool.address, baseToken.address, quoteToken.address)).to.be.revertedWith(
+    await expect(oracleUserConnected.addPool(pool.address, quoteToken.address, baseToken.address)).to.be.revertedWith(
       'Ownable: caller is not the owner'
     );
 
-    await oracleOwnerConnected.addPool(pool.address, baseToken.address, quoteToken.address);
-    const paramsAfterOrder1 = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
-    const paramsAfterOrder2 = await oracleOwnerConnected.getParams(baseToken.address, quoteToken.address);
-    assertOracleParamsIsFilled(paramsAfterOrder1, pool.address, false, baseDecimals, quoteDecimals);
-    assertOracleParamsIsFilled(paramsAfterOrder2, pool.address, false, baseDecimals, quoteDecimals);
+    await oracleOwnerConnected.addPool(pool.address, quoteToken.address, baseToken.address);
+    const paramsAfter = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
+    assertOracleParamsIsFilled(paramsAfter, pool.address, false, baseDecimals, quoteDecimals);
   });
 
   it('add pool invalid', async () => {
@@ -175,21 +166,16 @@ describe('CurveEMAPriceOracle', () => {
     const quoteDecimals = await quoteToken.decimals();
     const baseDecimals = await baseToken.decimals();
 
-    const paramsBeforeOrder1 = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
-    const paramsBeforeOrder2 = await oracleOwnerConnected.getParams(baseToken.address, quoteToken.address);
-
-    assertOracleParamsIsFilled(paramsBeforeOrder1, pool.address, false, baseDecimals, quoteDecimals);
-    assertOracleParamsIsFilled(paramsBeforeOrder2, pool.address, false, baseDecimals, quoteDecimals);
+    const paramsBefore = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
+    assertOracleParamsIsFilled(paramsBefore, pool.address, false, baseDecimals, quoteDecimals);
 
     const oracleUserConnected = oracleOwnerConnected.connect(user);
-    await expect(oracleUserConnected.removePool(baseToken.address, quoteToken.address)).to.be.revertedWith(
+    await expect(oracleUserConnected.removePool(quoteToken.address, baseToken.address)).to.be.revertedWith(
       'Ownable: caller is not the owner'
     );
 
-    await oracleOwnerConnected.removePool(baseToken.address, quoteToken.address);
-    const paramsAfterOrder1 = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
-    const paramsAfterOrder2 = await oracleOwnerConnected.getParams(baseToken.address, quoteToken.address);
-    assertOracleParamsIsEmpty(paramsAfterOrder1);
-    assertOracleParamsIsEmpty(paramsAfterOrder2);
+    await oracleOwnerConnected.removePool(quoteToken.address, baseToken.address);
+    const paramsAfter = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
+    assertOracleParamsIsEmpty(paramsAfter);
   });
 });
