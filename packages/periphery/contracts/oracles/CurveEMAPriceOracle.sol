@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
 interface IERC20 {
@@ -94,6 +95,10 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
       price = 1e18 - (price - 1e18);
     }
 
-    priceX96 = price * 10**(poolParams.quoteDecimals - poolParams.baseDecimals) * X96ONE;
+    if(poolParams.quoteDecimals > poolParams.baseDecimals) {
+      priceX96 = price * X96ONE * 10**uint16(poolParams.quoteDecimals - poolParams.baseDecimals);
+    } else {
+      priceX96 = Math.mulDiv(price, X96ONE, 10**(poolParams.baseDecimals - poolParams.quoteDecimals));
+    }
   }
 }
