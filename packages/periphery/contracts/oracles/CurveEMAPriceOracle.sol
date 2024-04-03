@@ -50,16 +50,17 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
     uint8 baseDecimals = IERC20(baseToken).decimals();
     uint8 quoteDecimals = IERC20(quoteToken).decimals();
 
-    if (PRICE_DECIMALS + baseDecimals < quoteDecimals) {
+    bool isForwardOrder =  coin0 == quoteToken;
+    if (isForwardOrder && PRICE_DECIMALS + baseDecimals < quoteDecimals) {
       revert ExtremeDecimals();
     }
-    if (PRICE_DECIMALS + quoteDecimals < baseDecimals) {
+    if (!isForwardOrder && PRICE_DECIMALS + quoteDecimals < baseDecimals) {
       revert ExtremeDecimals();
     }
 
     OracleParams memory params = OracleParams({
       pool: pool,
-      isForwardOrder: coin0 == quoteToken,
+      isForwardOrder: isForwardOrder,
       baseDecimals: baseDecimals,
       quoteDecimals: quoteDecimals
     });
