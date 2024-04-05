@@ -91,7 +91,7 @@ contract CurveAdapter is AdapterStorage {
       0
     );
 
-    amountIn = maxAmountIn - remainedTokenInAmount;
+    amountIn = maxAmountIn - excessiveAmountIn;
   }
 
   function _swapExactInput(
