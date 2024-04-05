@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '../abstract/AdapterStorage.sol';
@@ -34,7 +34,7 @@ contract CurveAdapter is AdapterStorage {
       minAmountOut
     );
 
-    if (amountOut < minAmountOut) revert TooMuchRequested();
+    if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function swapExactOutput(
@@ -72,29 +72,26 @@ contract CurveAdapter is AdapterStorage {
     SafeERC20.safeTransfer(IERC20(tokenOut), recipient, amountOut);
 
     if (actualAmountOut == amountOut) {
-      amountIn = maxAmountIn;
-      return amountIn;
+      return maxAmountIn;
     }
 
     // amount of tokens that need to back swap
     uint256 deltaAmountOut = actualAmountOut - amountOut;
-    uint256 amountOutMin = ICurvePool(poolAddress).get_dy(1 - tokenInIndex, tokenInIndex, deltaAmountOut);
 
-    // swap and move remained tokenIn directly to recipient
-    uint256 remainedTokenInAmount = _swapExactInput(
+    // swap and move excessive tokenIn directly to recipient.
+    // last arg minAmountOut is zero because we made worst allowed by user swap
+    // and an additional swap with whichever output only improves it,
+    // so the tx shouldn't be reverted
+    uint256 excessiveAmountIn = _swapExactInput(
       poolAddress,
       recipient,
       tokenOut,
       1 - tokenInIndex,
       deltaAmountOut,
-      amountOutMin
+      0
     );
 
-    if (remainedTokenInAmount > maxAmountIn) {
-      amountIn = 0;
-    } else {
-      amountIn = maxAmountIn - remainedTokenInAmount;
-    }
+    amountIn = maxAmountIn - remainedTokenInAmount;
   }
 
   function _swapExactInput(
