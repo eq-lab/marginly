@@ -42,4 +42,6 @@ interface ICurvePool {
         or both tokens have same decimals != 18
      */
     function price_oracle() external view returns (uint256);
+
+    function last_price() external view returns (uint256);
 }
