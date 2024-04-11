@@ -10,6 +10,10 @@ import {
   MockChainlink,
   TestAlgebraPool,
   TestAlgebraFactory,
+  PendleOracle,
+  IPriceOracle,
+  PendleMarketV3,
+  PendlePtLpOracle,
 } from '../../typechain-types';
 import {
   AlgebraTickOracle,
@@ -460,4 +464,82 @@ export async function createAlgebraTickOracleDoubleIQB() {
 // intermediateToken < baseToken < quoteToken
 export async function createAlgebraTickOracleDoubleIBQ() {
   return createAlgebraTickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
+}
+
+export interface TokenInfo {
+  address: string;
+  symbol: string;
+  decimals: number;
+}
+
+export interface PendleOracleCaseParams {
+  pt: TokenInfo;
+  sy: TokenInfo;
+  yqt: TokenInfo;
+  qt: TokenInfo;
+  secondsAgo: number;
+  secondsAgoLiquidation: number;
+  oracle: PendleOracle;
+  pendlePtLpOracle: PendlePtLpOracle;
+  secondaryPoolOracle: IPriceOracle;
+  pendleMarket: PendleMarketV3;
+}
+
+export async function createPendleCaseEzETH27Jun2024(): Promise<PendleOracleCaseParams> {
+  const camelotPoolFactory = '0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B';
+  const pt = <TokenInfo>{
+    address: '0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34',
+    symbol: 'PT-ezETH-27JUN2024',
+    decimals: 18,
+  };
+
+  const sy = <TokenInfo>{
+    address: '0x0dE802e3D6Cc9145A150bBDc8da9F988a98c5202',
+    symbol: 'SY-ezETH',
+    decimals: 18,
+  };
+
+  const yqt = <TokenInfo>{
+    address: '0x2416092f143378750bb29b79eD961ab195CcEea5',
+    symbol: 'ezETH',
+    decimals: 18,
+  };
+
+  const qt = <TokenInfo>{
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    symbol: 'WETH',
+    decimals: 18,
+  };
+
+  const secondsAgo = 100;
+  const secondsAgoLiquidation = 1000;
+  const pendleMarket = '0x5E03C94Fc5Fb2E21882000A96Df0b63d2c4312e2';
+  const pendlePtLpOracle = '0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187';
+  const camelotPool = '0xaa45265a94c93802be9511e426933239117e658f';
+  const secondaryPoolOracle = await (await ethers.getContractFactory('AlgebraTickOracle')).deploy(camelotPoolFactory);
+  await secondaryPoolOracle.setOptions(qt.address, yqt.address, secondsAgo, secondsAgoLiquidation);
+
+  const oracle = await (await ethers.getContractFactory('PendleOracle')).deploy(pendlePtLpOracle);
+  await oracle.setPair(
+    qt.address,
+    pt.address,
+    pendleMarket,
+    secondaryPoolOracle.address,
+    yqt.address,
+    secondsAgo,
+    secondsAgoLiquidation
+  );
+
+  return {
+    oracle,
+    pt,
+    qt,
+    secondaryPoolOracle,
+    secondsAgo,
+    secondsAgoLiquidation,
+    sy,
+    yqt,
+    pendleMarket: await ethers.getContractAt('PendleMarketV3', pendleMarket),
+    pendlePtLpOracle: await ethers.getContractAt('PendlePtLpOracle', pendlePtLpOracle),
+  };
 }
