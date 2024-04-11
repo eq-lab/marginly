@@ -17,6 +17,8 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     uint16 secondsAgoLiquidation;
     address yieldToken;
     address secondaryPoolOracle;
+    uint8 ptDecimals;
+    uint8 syDecimals;
   }
 
   error ZeroPrice();
@@ -27,7 +29,7 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
   mapping(address => mapping(address => OracleParams)) public getParams;
 
   uint256 private constant X96ONE = 2 ** 96;
-  uint256 private constant ONE = 10 ** 18;
+  uint256 private constant PRICE_DECIMALS = 18;
 
   constructor(address _pendle) {
     pendle = PendlePtLpOracle(_pendle);
@@ -52,17 +54,24 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     ) {
       revert ZeroAddress();
     }
+
+    (IStandardizedYield _SY, , ) = PendleMarketV3(pendleMarket).readTokens();
+    uint8 ptDecimals = IERC20Metadata(baseToken).decimals();
+    uint8 syDecimals = IERC20Metadata(address(_SY)).decimals();
+
     getParams[quoteToken][baseToken] = OracleParams({
       pendleMarket: pendleMarket,
       secondsAgo: secondsAgo,
       secondsAgoLiquidation: secondsAgoLiquidation,
       yieldToken: yieldToken,
-      secondaryPoolOracle: secondaryPoolOracle
+      secondaryPoolOracle: secondaryPoolOracle,
+      ptDecimals: ptDecimals,
+      syDecimals: syDecimals
     });
-    (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied) = pendle
-      .getOracleState(pendleMarket, secondsAgo);
 
-    // todo: check Pendle oracle is initialized - https://docs.pendle.finance/Developers/Integration/HowToIntegratePtAndLpOracle#third-initialize-the-oracle
+    // todo: check Pendle oracle is initialized? - https://docs.pendle.finance/Developers/Integration/HowToIntegratePtAndLpOracle#third-initialize-the-oracle
+    // (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied) = pendle
+    //      .getOracleState(pendleMarket, secondsAgo);
   }
 
   function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256) {
@@ -84,13 +93,14 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     OracleParams storage poolParams = getParams[quoteToken][baseToken];
     if (poolParams.pendleMarket == address(0)) revert ZeroAddress();
 
+    // pendle.getPtToSyRate() returns price with 18 decimals
     uint256 pendlePriceX96 = Math.mulDiv(
       pendle.getPtToSyRate(
         poolParams.pendleMarket,
         isMargincallPrice ? poolParams.secondsAgoLiquidation : poolParams.secondsAgo
       ),
       X96ONE,
-      ONE
+      10 ** (PRICE_DECIMALS + poolParams.ptDecimals - poolParams.syDecimals)
     );
 
     // PT - base token
@@ -115,6 +125,7 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
       );
     }
 
+    // todo: use tokens decimals in denominator?
     priceX96 = Math.mulDiv(pendlePriceX96, secondaryPoolPriceX96, X96ONE);
   }
 }

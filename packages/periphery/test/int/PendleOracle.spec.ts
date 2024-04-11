@@ -1,11 +1,8 @@
-import { ethers, network } from 'hardhat';
+import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { AlgebraTickOracle, PendleOracle, IERC20, IPriceOracle, PendlePtLpOracle } from '../../typechain-types';
 import { BigNumber } from 'ethers';
-import { createPendleCaseEzETH27Jun2024, PendleOracleCaseParams, TokenInfo } from '../shared/fixtures';
-import { loadFixture, reset } from '@nomicfoundation/hardhat-network-helpers';
-import { moveTimeOnFork } from '../shared/utils';
-import * as net from 'net';
+import { createPendleCaseEzETH27Jun2024, PendleOracleCaseParams } from '../shared/fixtures';
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 
 // Details:
 // 1) Pendle market: PT / SY. (PT-ezETH-27JUN2024 / SY-ezETH)
@@ -79,87 +76,8 @@ async function fetchPrices(
 }
 
 describe('Pendle PT oracle (PendleOracle)', () => {
-  // it('PT-ezETH-27Jun2024 / WETH. Current prices', async () => {
-  //   const caseParams = await loadFixture(createPendleCaseEzETH27Jun2024);
-  //
-  //   const {
-  //     actualBalancePrice,
-  //     actualMargincallPrice,
-  //     balancePriceFromPendlePtLpOracle,
-  //     margincallPriceFromPendlePtLpOracle,
-  //     balancePriceFromSecondaryOracle,
-  //     margincallPriceFromSecondaryOracle,
-  //   } = await fetchPrices(caseParams);
-  //
-  //   const expectedBalancePrice = balancePriceFromPendlePtLpOracle.mul(balancePriceFromSecondaryOracle).div(one);
-  //   const expectedMargincallPrice = margincallPriceFromPendlePtLpOracle
-  //     .mul(margincallPriceFromSecondaryOracle)
-  //     .div(one);
-  //
-  //   // todo: нужно учитывать decimals
-  //   console.log(`\nBalance price:`);
-  //   printPrices(
-  //     actualBalancePrice,
-  //     balancePriceFromPendlePtLpOracle,
-  //     balancePriceFromSecondaryOracle,
-  //     expectedBalancePrice
-  //   );
-  //   console.log(`\nMargincall price:`);
-  //   printPrices(
-  //     actualMargincallPrice,
-  //     margincallPriceFromPendlePtLpOracle,
-  //     margincallPriceFromSecondaryOracle,
-  //     expectedMargincallPrice
-  //   );
-  //
-  //   expect(actualBalancePrice).to.be.closeTo(expectedBalancePrice, BigNumber.from(1000));
-  //   expect(actualMargincallPrice).to.be.closeTo(expectedMargincallPrice, BigNumber.from(1000));
-  // });
-
-  // it('PT-ezETH-27Jun2024 / WETH. Prices before maturity', async () => {
-  //   const caseParams = await loadFixture(createPendleCaseEzETH27Jun2024);
-  //   const block = 199904000;
-  //   await reset(undefined, block);
-  //   const gg = await ethers.provider.getBlockNumber();
-  //   console.log(`Block: ${gg}`);
-  //   const {
-  //     actualBalancePrice,
-  //     actualMargincallPrice,
-  //     balancePriceFromPendlePtLpOracle,
-  //     margincallPriceFromPendlePtLpOracle,
-  //     balancePriceFromSecondaryOracle,
-  //     margincallPriceFromSecondaryOracle,
-  //   } = await fetchPrices(caseParams);
-  //
-  //   const expectedBalancePrice = balancePriceFromPendlePtLpOracle.mul(balancePriceFromSecondaryOracle).div(one);
-  //   const expectedMargincallPrice = margincallPriceFromPendlePtLpOracle
-  //     .mul(margincallPriceFromSecondaryOracle)
-  //     .div(one);
-  //
-  //   // todo: нужно учитывать decimals
-  //   console.log(`\nBalance price:`);
-  //   printPrices(
-  //     actualBalancePrice,
-  //     balancePriceFromPendlePtLpOracle,
-  //     balancePriceFromSecondaryOracle,
-  //     expectedBalancePrice
-  //   );
-  //   console.log(`\nMargincall price:`);
-  //   printPrices(
-  //     actualMargincallPrice,
-  //     margincallPriceFromPendlePtLpOracle,
-  //     margincallPriceFromSecondaryOracle,
-  //     expectedMargincallPrice
-  //   );
-  //
-  //   expect(actualBalancePrice).to.be.closeTo(expectedBalancePrice, BigNumber.from(1000));
-  //   expect(actualMargincallPrice).to.be.closeTo(expectedMargincallPrice, BigNumber.from(1000));
-  // });
-
-  it('PT-ezETH-27Jun2024 / WETH. Prices after maturity', async () => {
+  it('PT-ezETH-27Jun2024 / WETH. Current prices', async () => {
     const caseParams = await loadFixture(createPendleCaseEzETH27Jun2024);
-    const maturityTimestampSec = 1719446400;
-    await moveTimeOnFork(maturityTimestampSec + 100);
 
     const {
       actualBalancePrice,
@@ -174,7 +92,7 @@ describe('Pendle PT oracle (PendleOracle)', () => {
     const expectedMargincallPrice = margincallPriceFromPendlePtLpOracle
       .mul(margincallPriceFromSecondaryOracle)
       .div(one);
-    // todo: нужно учитывать decimals
+
     console.log(`\nBalance price:`);
     printPrices(
       actualBalancePrice,
