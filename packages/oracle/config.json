@@ -316,27 +316,27 @@
       "updatePriceJobs": [
         {
           "poolMockId": "fweth-usdc",
-          "periodMs": 60000
+          "periodMs": 300000
         },
         {
           "poolMockId": "btc-usdc",
-          "periodMs": 60000
+          "periodMs": 300000
         },
         {
           "poolMockId": "arb-usdc",
-          "periodMs": 60000
+          "periodMs": 300000
         },
         {
           "poolMockId": "gmx-usdc",
-          "periodMs": 60000
+          "periodMs": 300000
         },
         {
           "poolMockId": "pendle-eth",
-          "periodMs": 60000
+          "periodMs": 300000
         },
         {
           "poolMockId": "rdnt-eth",
-          "periodMs": 60000
+          "periodMs": 300000
         }
       ]
     },
