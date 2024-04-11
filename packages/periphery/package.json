@@ -40,6 +40,7 @@
     "@marginly/router": "^0.1.0",
     "@chainlink/contracts": "~0.8.0",
     "@pythnetwork/pyth-sdk-solidity": "^2.3.0",
+    "@pendle/core-v2": "^4.4.4",
     "mocha-chai-jest-snapshot": "^1.1.4",
     "chai": "^4.3.7",
     "ethers": "^5.7.2",
