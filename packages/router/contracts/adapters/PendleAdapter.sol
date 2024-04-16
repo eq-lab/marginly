@@ -6,6 +6,7 @@ import '@pendle/core-v2/contracts/interfaces/IPMarket.sol';
 import '@pendle/core-v2/contracts/core/StandardizedYield/PYIndex.sol';
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '../interfaces/IMarginlyRouter.sol';
 
@@ -24,12 +25,14 @@ contract PendleAdapter {
     IStandardizedYield sy;
     IPPrincipalToken pt;
     IPYieldToken yt;
+    address ib;
     address uniswapV3;
   }
 
   struct PoolData {
     address pendleMarket;
     address uniswapV3LikePool;
+    address ib;
   }
 
   struct PoolInput {
@@ -121,8 +124,15 @@ contract PendleAdapter {
 
     if (ptToAccount > 0) {
       // this clause is realized in case of exactOutput with pt tokens as output
-      // we need to get sy tokens from uniswapV3 pool and send them to pendle
-      _uniswapV3LikeSwap(msg.sender, poolData.uniswapV3LikePool, data.tokenIn < data.syToken, syToAccount, _data);
+      // we need to get ib tokens from uniswapV3 pool, wrap them to sy and send them to pendle
+      (, uint256 ibAmountOut) = _uniswapV3LikeSwap(
+        address(this),
+        poolData.uniswapV3LikePool,
+        data.tokenIn < poolData.ib,
+        syToAccount,
+        _data
+      );
+      _pendleMintSy(getMarketData(poolData), msg.sender, ibAmountOut);
     } else if (syToAccount > 0) {
       // this clause is realized in case of exactOutput with pt tokens as input
       // we need to send pt tokens from tx initiator to finalize the swap
@@ -147,15 +157,17 @@ contract PendleAdapter {
       IMarginlyRouter(data.initiator).adapterCallback(msg.sender, uint256(amount0Delta), data.data);
     } else if (amount1Delta > 0) {
       // this clause is realized in case of exactOutput with pt tokens as input
-      // we need to trigger pendle pt -> sy exactOutput swap
+      // we need to trigger pendle pt -> sy exactOutput swap and then unwrap sy to ib
       require(tokenIn < data.syToken);
-      _pendleApproxSwapPtForExactSy(
-        getMarketData(poolData),
-        poolData.uniswapV3LikePool,
+      PendleMarketData memory marketData = getMarketData(poolData);
+      uint256 syAmountOut = _pendleApproxSwapPtForExactSy(
+        marketData,
+        address(this),
         uint256(amount1Delta),
         data.maxAmountIn,
         _data
       );
+      _pendleRedeemSy(marketData, msg.sender, syAmountOut);
     } else {
       revert();
     }
@@ -177,7 +189,15 @@ contract PendleAdapter {
   function getMarketData(PoolData memory poolData) private view returns (PendleMarketData memory) {
     IPMarket market = IPMarket(poolData.pendleMarket);
     (IStandardizedYield sy, IPPrincipalToken pt, IPYieldToken yt) = market.readTokens();
-    return PendleMarketData({market: market, sy: sy, pt: pt, yt: yt, uniswapV3: poolData.uniswapV3LikePool});
+    return
+      PendleMarketData({
+        market: market,
+        sy: sy,
+        pt: pt,
+        yt: yt,
+        ib: poolData.ib,
+        uniswapV3: poolData.uniswapV3LikePool
+      });
   }
 
   function _swapExactInputPreMaturity(
@@ -189,28 +209,29 @@ contract PendleAdapter {
     uint256 minAmountOut,
     bytes calldata data
   ) private returns (uint256 amountOut) {
-    uint256 syAmountOut;
     if (tokenIn == address(marketData.pt)) {
       // pt to pendle -> sy to uniswap -> tokenOut to recipient
       IMarginlyRouter(msg.sender).adapterCallback(address(marketData.market), amountIn, data);
-      (syAmountOut, ) = marketData.market.swapExactPtForSy(marketData.uniswapV3, amountIn, '');
+      (uint256 syAmountOut, ) = marketData.market.swapExactPtForSy(marketData.uniswapV3, amountIn, '');
+      uint256 ibAmountOut = _pendleRedeemSy(marketData, marketData.uniswapV3, syAmountOut);
       (, amountOut) = _uniswapV3LikeSwap(
         recipient,
         marketData.uniswapV3,
         address(marketData.sy) < tokenOut,
-        int256(syAmountOut),
+        int256(ibAmountOut),
         ''
       );
     } else if (tokenOut == address(marketData.pt)) {
       // tokenIn to uniswap -> sy to pendle -> pt to recipient
       IMarginlyRouter(msg.sender).adapterCallback(address(marketData.uniswapV3), amountIn, data);
-      (, syAmountOut) = _uniswapV3LikeSwap(
+      (, uint256 ibAmountOut) = _uniswapV3LikeSwap(
         address(marketData.market),
         marketData.uniswapV3,
         tokenIn < address(marketData.sy),
         int256(amountIn),
         ''
       );
+      uint256 syAmountOut = _pendleMintSy(marketData, marketData.uniswapV3, ibAmountOut);
       amountOut = _pendleApproxSwapExactSyForPt(marketData, recipient, syAmountOut, minAmountOut);
     } else {
       revert();
@@ -383,5 +404,24 @@ contract PendleAdapter {
 
     (uint256 syOut, ) = marketData.market.swapExactPtForSy(recipient, ptAmountIn, data);
     if (syOut < syAmountOut) revert();
+  }
+
+  function _pendleMintSy(
+    PendleMarketData memory marketData,
+    address receiver,
+    uint256 ibTokenIn
+  ) private returns (uint256 netSyOut) {
+    // _safeApproveInf(inp.tokenMintSy, SY);
+    // TransferHelper.safeApprove(ibToken, sy, ibTokenIn);
+    // setting `minSyOut` value as ibTokenIn (1:1 swap)
+    netSyOut = IStandardizedYield(marketData.sy).deposit(receiver, marketData.ib, ibTokenIn, ibTokenIn);
+  }
+
+  function _pendleRedeemSy(
+    PendleMarketData memory marketData,
+    address receiver,
+    uint256 netSyIn
+  ) private returns (uint256 netTokenRedeemed) {
+    netTokenRedeemed = IStandardizedYield(marketData.sy).redeem(receiver, netSyIn, marketData.ib, 0, true);
   }
 }
