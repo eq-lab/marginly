@@ -44,7 +44,7 @@ contract PendleAdapter {
   struct CallbackData {
     address tokenIn;
     address tokenOut;
-    address syToken;
+    address ibToken;
     address initiator;
     uint256 maxAmountIn;
     bytes data;
@@ -58,15 +58,15 @@ contract PendleAdapter {
   uint160 private constant MIN_SQRT_RATIO = 4295128739;
   uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
-  mapping(address => mapping(address => PoolData)) getPoolData;
+  mapping(address => mapping(address => PoolData)) public getPoolData;
 
   constructor(PoolInput[] memory poolsData) {
     PoolInput memory input;
     uint256 length = poolsData.length;
     for (uint256 i; i < length; ) {
       input = poolsData[i];
-      getPoolData[input.tokenA][input.tokenA] = input.poolData;
-      getPoolData[input.tokenB][input.tokenB] = input.poolData;
+      getPoolData[input.tokenA][input.tokenB] = input.poolData;
+      getPoolData[input.tokenB][input.tokenA] = input.poolData;
       emit NewPair(input.tokenA, input.tokenB, input.poolData.pendleMarket, input.poolData.uniswapV3LikePool);
 
       unchecked {
@@ -153,12 +153,12 @@ contract PendleAdapter {
     if (amount0Delta > 0) {
       // this clause is realized in case of exactOutput with pt tokens as output
       // we need to send tokenIn to uniswapV3 to finalize both tokenIn -> sy and sy -> pt swaps
-      require(tokenIn < data.syToken);
+      require(tokenIn < data.ibToken);
       IMarginlyRouter(data.initiator).adapterCallback(msg.sender, uint256(amount0Delta), data.data);
     } else if (amount1Delta > 0) {
       // this clause is realized in case of exactOutput with pt tokens as input
       // we need to trigger pendle pt -> sy exactOutput swap and then unwrap sy to ib
-      require(tokenIn < data.syToken);
+      require(tokenIn < data.ibToken);
       PendleMarketData memory marketData = getMarketData(poolData);
       uint256 syAmountOut = _pendleApproxSwapPtForExactSy(
         marketData,
@@ -173,8 +173,8 @@ contract PendleAdapter {
     }
 
     (bool isExactInput, uint256 amountToPay) = amount0Delta > 0
-      ? (tokenIn < data.syToken, uint256(amount0Delta))
-      : (data.syToken < tokenIn, uint256(amount1Delta));
+      ? (tokenIn < data.ibToken, uint256(amount0Delta))
+      : (data.ibToken < tokenIn, uint256(amount1Delta));
 
     require(isExactInput);
 
@@ -217,7 +217,7 @@ contract PendleAdapter {
       (, amountOut) = _uniswapV3LikeSwap(
         recipient,
         marketData.uniswapV3,
-        address(marketData.sy) < tokenOut,
+        address(marketData.ib) < tokenOut,
         int256(ibAmountOut),
         ''
       );
@@ -227,7 +227,7 @@ contract PendleAdapter {
       (, uint256 ibAmountOut) = _uniswapV3LikeSwap(
         address(marketData.market),
         marketData.uniswapV3,
-        tokenIn < address(marketData.sy),
+        tokenIn < address(marketData.ib),
         int256(amountIn),
         ''
       );
@@ -250,7 +250,7 @@ contract PendleAdapter {
     CallbackData memory swapCallbackData = CallbackData({
       tokenIn: tokenIn,
       tokenOut: tokenOut,
-      syToken: address(marketData.sy),
+      ibToken: address(marketData.ib),
       initiator: msg.sender,
       maxAmountIn: maxAmountIn,
       data: data
@@ -264,7 +264,7 @@ contract PendleAdapter {
       _uniswapV3LikeSwap(
         recipient,
         marketData.uniswapV3,
-        address(marketData.sy) < tokenOut,
+        address(marketData.ib) < tokenOut,
         -int256(amountOut),
         abi.encode(swapCallbackData)
       );
@@ -292,7 +292,7 @@ contract PendleAdapter {
       (, amountOut) = _uniswapV3LikeSwap(
         recipient,
         marketData.uniswapV3,
-        address(marketData.sy) < tokenOut,
+        address(marketData.ib) < tokenOut,
         int256(syAmountOut),
         ''
       );
@@ -316,7 +316,7 @@ contract PendleAdapter {
     CallbackData memory swapCallbackData = CallbackData({
       tokenIn: tokenIn,
       tokenOut: tokenOut,
-      syToken: address(marketData.sy),
+      ibToken: address(marketData.ib),
       initiator: msg.sender,
       maxAmountIn: maxAmountIn,
       data: data
