@@ -420,8 +420,7 @@ contract PendleAdapter {
     address recipient,
     uint256 ibIn
   ) private returns (uint256 syMinted) {
-    // _safeApproveInf(inp.tokenMintSy, SY);
-    // TransferHelper.safeApprove(ibToken, sy, ibIn);
+    TransferHelper.safeApprove(marketData.ib, address(marketData.sy), ibIn);
     // setting `minSyOut` value as ibIn (1:1 swap)
     syMinted = IStandardizedYield(marketData.sy).deposit(recipient, marketData.ib, ibIn, ibIn);
   }
