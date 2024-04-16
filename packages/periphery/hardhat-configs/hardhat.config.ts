@@ -12,6 +12,13 @@ const config = {
       },
     },
   },
+  paths: {
+    root: '../',
+    sources: './contracts',
+    tests: './test',
+    cache: './cache',
+    artifacts: './artifacts',
+  },
   networks: {
     polygonMumbai: {
       url: 'https://rpc.ankr.com/polygon_mumbai',
@@ -54,8 +61,8 @@ const config = {
     except: ['Mock', 'Test', 'Lib'],
   },
   docgen: {
-    outputDir: './docs',
-    templates: '../contracts/docgen-templates',
+    outputDir: '../docs',
+    templates: '../../contracts/docgen-templates',
     clear: true,
     pages: 'files',
     exclude: ['test'],

@@ -527,7 +527,129 @@ export async function createPendleCaseEzETH27Jun2024(): Promise<PendleOracleCase
     secondaryPoolOracle.address,
     yqt.address,
     secondsAgo,
-    secondsAgoLiquidation
+    secondsAgoLiquidation,
+    true
+  );
+
+  return {
+    oracle,
+    pt,
+    qt,
+    secondaryPoolOracle,
+    secondsAgo,
+    secondsAgoLiquidation,
+    sy,
+    yqt,
+    pendleMarket: await ethers.getContractAt('PendleMarketV3', pendleMarket),
+    pendlePtLpOracle: await ethers.getContractAt('PendlePtLpOracle', pendlePtLpOracle),
+  };
+}
+
+export async function createPendleCaseWeETH27Jun2024(): Promise<PendleOracleCaseParams> {
+  const uniswapPoolFactory = '0x1F98431c8aD98523631AE4a59f267346ea31F984';
+  const pt = <TokenInfo>{
+    address: '0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4',
+    symbol: 'PT-weETH-27JUN2024',
+    decimals: 18,
+  };
+
+  const sy = <TokenInfo>{
+    address: '0xa6C895EB332E91c5b3D00B7baeEAae478cc502DA',
+    symbol: 'SY-weETH',
+    decimals: 18,
+  };
+
+  const yqt = <TokenInfo>{
+    address: '0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe',
+    symbol: 'weETH',
+    decimals: 18,
+  };
+
+  const qt = <TokenInfo>{
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    symbol: 'WETH',
+    decimals: 18,
+  };
+
+  const secondsAgo = 100;
+  const secondsAgoLiquidation = 1000;
+  const pendleMarket = '0x952083cde7aaa11AB8449057F7de23A970AA8472';
+  const pendlePtLpOracle = '0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187';
+  const uniswapPool = '0x14353445c8329Df76e6f15e9EAD18fA2D45A8BB6';
+  const uniswapPoolFee = 100;
+  const secondaryPoolOracle = await (await ethers.getContractFactory('UniswapV3TickOracle')).deploy(uniswapPoolFactory);
+  await secondaryPoolOracle.setOptions(qt.address, yqt.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee);
+
+  const oracle = await (await ethers.getContractFactory('PendleOracle')).deploy(pendlePtLpOracle);
+  await oracle.setPair(
+    qt.address,
+    pt.address,
+    pendleMarket,
+    secondaryPoolOracle.address,
+    yqt.address,
+    secondsAgo,
+    secondsAgoLiquidation,
+    true
+  );
+
+  return {
+    oracle,
+    pt,
+    qt,
+    secondaryPoolOracle,
+    secondsAgo,
+    secondsAgoLiquidation,
+    sy,
+    yqt,
+    pendleMarket: await ethers.getContractAt('PendleMarketV3', pendleMarket),
+    pendlePtLpOracle: await ethers.getContractAt('PendlePtLpOracle', pendlePtLpOracle),
+  };
+}
+
+export async function createPendleCaseRsETH27Jun2024(): Promise<PendleOracleCaseParams> {
+  const camelotPoolFactory = '0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B';
+  const pt = <TokenInfo>{
+    address: '0xAFD22F824D51Fb7EeD4778d303d4388AC644b026',
+    symbol: 'PT-rsETH-27JUN2024',
+    decimals: 18,
+  };
+
+  const sy = <TokenInfo>{
+    address: '0xf176fB51F4eB826136a54FDc71C50fCd2202E272',
+    symbol: 'SY-rsETH',
+    decimals: 18,
+  };
+
+  const yqt = <TokenInfo>{
+    address: '0x4186BFC76E2E237523CBC30FD220FE055156b41F',
+    symbol: 'rsETH',
+    decimals: 18,
+  };
+
+  const qt = <TokenInfo>{
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    symbol: 'WETH',
+    decimals: 18,
+  };
+
+  const secondsAgo = 100;
+  const secondsAgoLiquidation = 1000;
+  const pendleMarket = '0x6Ae79089b2CF4be441480801bb741A531d94312b';
+  const pendlePtLpOracle = '0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187';
+  const camelotPool = '0xb355ccE5CBAF411bd56e3b092F5AA10A894083ae';
+  const secondaryPoolOracle = await (await ethers.getContractFactory('AlgebraTickOracle')).deploy(camelotPoolFactory);
+  await secondaryPoolOracle.setOptions(qt.address, yqt.address, secondsAgo, secondsAgoLiquidation);
+
+  const oracle = await (await ethers.getContractFactory('PendleOracle')).deploy(pendlePtLpOracle);
+  await oracle.setPair(
+    qt.address,
+    pt.address,
+    pendleMarket,
+    secondaryPoolOracle.address,
+    yqt.address,
+    secondsAgo,
+    secondsAgoLiquidation,
+    true
   );
 
   return {
