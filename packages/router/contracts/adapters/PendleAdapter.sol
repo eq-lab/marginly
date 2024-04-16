@@ -262,8 +262,6 @@ contract PendleAdapter {
         abi.encode(swapCallbackData)
       );
     }
-
-    if (amountOut < minAmountOut) revert InsufficientAmount();
   }
 
   function _swapExactOutputPreMaturity(
@@ -300,8 +298,6 @@ contract PendleAdapter {
       // call pendle -> swapCallback triggers uniswapV3 tokenIn to sy swap -> completing pendle sy to pt swap
       (amountIn, ) = marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
     }
-
-    if (amountIn > maxAmountIn) revert TooMuchRequested();
   }
 
   function _swapExactInputPostMaturity(
@@ -314,16 +310,25 @@ contract PendleAdapter {
   ) private returns (uint256 amountOut) {
     if (tokenIn == address(marketData.pt)) {
       // pt redeem -> sy to uniswap -> tokenOut to recipient
-      IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
+      IMarginlyRouter(msg.sender).adapterCallback(address(marketData.yt), amountIn, data);
+      uint256 syAmountOut = marketData.yt.redeemPY(address(this));
 
-      uint256 syAmountOut = marketData.yt.redeemPY(marketData.uniswapV3);
+      CallbackData memory swapCallbackData = CallbackData({
+        isExactInput: true,
+        toIb: false,
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        initiator: msg.sender,
+        maxAmountIn: 0,
+        data: data
+      });
 
       (, amountOut) = _uniswapV3LikeSwap(
         recipient,
         marketData.uniswapV3,
         address(marketData.ib) < tokenOut,
         int256(syAmountOut),
-        ''
+        abi.encode(swapCallbackData)
       );
     } else {
       // sy to pt swap is not possible after maturity
