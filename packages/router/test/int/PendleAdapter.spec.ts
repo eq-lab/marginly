@@ -1,5 +1,11 @@
 import { ethers } from 'hardhat';
-import { ERC20, MarginlyRouter, MarginlyRouter__factory, PendleAdapter, PendleAdapter__factory } from '../../typechain-types';
+import {
+  ERC20,
+  MarginlyRouter,
+  MarginlyRouter__factory,
+  PendleAdapter,
+  PendleAdapter__factory,
+} from '../../typechain-types';
 import { constructSwap, Dex, SWAP_ONE } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, keccak256, parseUnits } from 'ethers/lib/utils';
@@ -33,7 +39,6 @@ export enum ArbMainnetERC20BalanceOfSlot {
   PTWEETH = '0000000000000000000000000000000000000000000000000000000000000000',
 }
 
-
 describe('Pendle swap', () => {
   let ptToken: ERC20;
   let weth: ERC20;
@@ -41,7 +46,7 @@ describe('Pendle swap', () => {
   let pendleAdapter: PendleAdapter;
   let user: SignerWithAddress;
   let owner: SignerWithAddress;
-  before(async () => {
+  beforeEach(async () => {
     [owner, user] = await ethers.getSigners();
     ptToken = await ethers.getContractAt('ERC20', '0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4');
     weth = await ethers.getContractAt('ERC20', '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1');
@@ -63,10 +68,15 @@ describe('Pendle swap', () => {
 
     const balance = parseUnits('1', 18);
     await setTokenBalance(weth.address, ArbMainnetERC20BalanceOfSlot.WETH, EthAddress.parse(user.address), balance);
-    await setTokenBalance(ptToken.address, ArbMainnetERC20BalanceOfSlot.PTWEETH, EthAddress.parse(user.address), balance);
+    await setTokenBalance(
+      ptToken.address,
+      ArbMainnetERC20BalanceOfSlot.PTWEETH,
+      EthAddress.parse(user.address),
+      balance
+    );
   });
 
-  it.only('weth to pt exact input', async () => {
+  it('weth to pt exact input', async () => {
     const ptBalanceBefore = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`);
     const wethBalanceBefore = await weth.balanceOf(user.address);
@@ -74,7 +84,9 @@ describe('Pendle swap', () => {
 
     const swapCalldata = constructSwap([Dex.Pendle], [SWAP_ONE]);
     await weth.connect(user).approve(router.address, wethBalanceBefore);
-    await router.connect(user).swapExactInput(swapCalldata, weth.address, ptToken.address, wethBalanceBefore, wethBalanceBefore.mul(9).div(10));
+    await router
+      .connect(user)
+      .swapExactInput(swapCalldata, weth.address, ptToken.address, wethBalanceBefore, wethBalanceBefore.mul(9).div(10));
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
@@ -117,6 +129,21 @@ describe('Pendle swap', () => {
   });
 
   it('pt to weth exact output', async () => {
+    const ptBalanceBefore = await ptToken.balanceOf(user.address);
+    console.log(`ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    const wethBalanceBefore = await weth.balanceOf(user.address);
+    console.log(`wethBalanceBefore: ${formatUnits(wethBalanceBefore, await weth.decimals())} ${await weth.symbol()}`);
 
+    const swapCalldata = constructSwap([Dex.Pendle], [SWAP_ONE]);
+    const wethOut = ptBalanceBefore.div(2);
+    await ptToken.connect(user).approve(router.address, ptBalanceBefore);
+    await router
+      .connect(user)
+      .swapExactOutput(swapCalldata, ptToken.address, weth.address, wethOut.mul(11).div(10), wethOut);
+
+    const ptBalanceAfter = await ptToken.balanceOf(user.address);
+    console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    const wethBalanceAfter = await weth.balanceOf(user.address);
+    console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
   });
 });
