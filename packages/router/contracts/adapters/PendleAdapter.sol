@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
+import '@openzeppelin/contracts/utils/math/Math.sol';
+
 import '@pendle/core-v2/contracts/router/base/MarketApproxLib.sol';
 import '@pendle/core-v2/contracts/interfaces/IPMarket.sol';
 import '@pendle/core-v2/contracts/core/StandardizedYield/PYIndex.sol';
@@ -177,13 +179,23 @@ contract PendleAdapter {
       if (data.toIb) {
         // this clause is realized in case of exactOutput with pt tokens as input
         // we need to trigger pendle pt -> sy exactOutput swap and then unwrap sy to ib
-        uint256 syAmountOut = _pendleApproxSwapPtForExactSy(
-          marketData,
-          address(this),
-          amountToPay,
-          data.maxAmountIn,
-          _data
-        );
+        uint256 syAmountOut;
+        if (marketData.yt.isExpired()) {
+          // https://github.com/pendle-finance/pendle-core-v2-public/blob/bc27b10c33ac16d6e1936a9ddd24d536b00c96a4/contracts/core/YieldContractsV2/PendleYieldTokenV2.sol#L301
+          uint256 index = marketData.yt.pyIndexCurrent();
+          uint256 transferAmount = Math.mulDiv(amountToPay, index, 1e18, Math.Rounding.Up);
+
+          IMarginlyRouter(data.initiator).adapterCallback(address(marketData.yt), transferAmount, data.data);
+          syAmountOut = marketData.yt.redeemPY(address(this));
+        } else {
+          syAmountOut = _pendleApproxSwapPtForExactSy(
+            marketData,
+            address(this),
+            amountToPay,
+            data.maxAmountIn,
+            _data
+          );
+        }
         _pendleRedeemSy(marketData, msg.sender, syAmountOut);
       } else {
         // this clause is realized in case of exactOutput with pt tokens as output
@@ -341,12 +353,11 @@ contract PendleAdapter {
     address recipient,
     address tokenIn,
     address tokenOut,
-    uint256 amountOut,
     uint256 maxAmountIn,
+    uint256 amountOut,
     bytes calldata data
   ) private returns (uint256 amountIn) {
     if (tokenIn == address(marketData.pt)) {
-      // call pendle -> swapCallback triggers uniswapV3 tokenIn/sy swap -> completing pendle swap
       CallbackData memory swapCallbackData = CallbackData({
         isExactInput: false,
         toIb: true,
@@ -356,7 +367,14 @@ contract PendleAdapter {
         maxAmountIn: maxAmountIn,
         data: data
       });
-      (amountIn, ) = marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
+      // call uniswap -> uniswapV3SwapCallback triggers pendle pt to sy swap -> completing uniswap sy to tokenOut swap
+      (amountIn, ) = _uniswapV3LikeSwap(
+        recipient,
+        marketData.uniswapV3,
+        address(marketData.ib) < tokenOut,
+        -int256(amountOut),
+        abi.encode(swapCallbackData)
+      );
     } else {
       // sy to pt swap is not possible after maturity
       revert Forbidden();

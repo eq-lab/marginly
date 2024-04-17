@@ -233,7 +233,7 @@ describe.only('Pendle swap post maturity', () => {
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
   });
 
-  it.only('pt to weth exact input', async () => {
+  it('pt to weth exact input', async () => {
     const ptBalanceBefore = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`);
     const wethBalanceBefore = await weth.balanceOf(user.address);
