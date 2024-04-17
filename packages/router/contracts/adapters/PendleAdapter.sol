@@ -125,33 +125,25 @@ contract PendleAdapter {
     PoolData memory poolData = _getPoolDataSafe(data.tokenIn, data.tokenOut);
     require(msg.sender == poolData.pendleMarket);
 
-    if (data.isExactInput) {
-      if (ptToAccount > 0) {
-        // this clause is realized in case of exactInput with pt tokens as output
-        // we need to wrap ib to sy and send them to pendle
-        _pendleMintSy(_getMarketData(poolData), msg.sender, uint256(-syToAccount));
-      } else {
-        // this clause is realized in case of exactInput with pt tokens as input
-        // we need to send pt tokens from tx router to finalize the swap
-        IMarginlyRouter(data.router).adapterCallback(msg.sender, uint256(-ptToAccount), data.adapterCallbackData);
-      }
+    if (syToAccount > 0) {
+      // this clause is realized in case of both exactInput and exactOutput with pt tokens as input
+      // we need to send pt tokens from router-call initiator to finalize the swap
+      IMarginlyRouter(data.router).adapterCallback(msg.sender, uint256(-ptToAccount), data.adapterCallbackData);
+    } else if (data.isExactInput) {
+      // this clause is realized in case of exactInput with pt tokens as output
+      // we need to redeem ib tokens from pt and transfer them to uniswap
+      _pendleMintSy(_getMarketData(poolData), msg.sender, uint256(-syToAccount));
     } else {
-      if (ptToAccount > 0) {
-        // this clause is realized in case of exactOutput with pt tokens as output
-        // we need to get ib tokens from uniswapV3 pool, wrap them to sy and send them to pendle
-        (, uint256 ibAmountOut) = _uniswapV3LikeSwap(
-          address(this),
-          poolData.uniswapV3LikePool,
-          data.tokenIn < poolData.ib,
-          syToAccount,
-          _data
-        );
-        _pendleMintSy(_getMarketData(poolData), msg.sender, ibAmountOut);
-      } else {
-        // this clause is realized in case of exactOutput with pt tokens as input
-        // we need to send pt tokens from tx router to finalize the swap
-        IMarginlyRouter(data.router).adapterCallback(msg.sender, uint256(-ptToAccount), data.adapterCallbackData);
-      }
+      // this clause is realized in case of exactOutput with pt tokens as output
+      // we need to get ib tokens from uniswapV3 pool, wrap them to sy and send them to pendle
+      (, uint256 ibAmountOut) = _uniswapV3LikeSwap(
+        address(this),
+        poolData.uniswapV3LikePool,
+        data.tokenIn < poolData.ib,
+        syToAccount,
+        _data
+      );
+      _pendleMintSy(_getMarketData(poolData), msg.sender, ibAmountOut);
     }
   }
 
@@ -166,32 +158,29 @@ contract PendleAdapter {
     PendleMarketData memory marketData = _getMarketData(poolData);
     uint256 amountToPay = amount0Delta > 0 ? uint256(amount0Delta) : uint256(amount1Delta);
 
-    if (data.isExactInput) {
-      if (data.tokenOut == address(marketData.pt)) {
-        IMarginlyRouter(data.router).adapterCallback(msg.sender, amountToPay, data.adapterCallbackData);
-      } else {
-        _pendleRedeemSy(marketData, marketData.uniswapV3, amountToPay);
-      }
+    if (tokenOut == address(marketData.pt)) {
+      // this clause is realized in case of both exactInput and exactOutput with pt tokens as output
+      // we need to send tokenIn to uniswapV3 to finalize both tokenIn -> sy and sy -> pt swaps
+      IMarginlyRouter(data.router).adapterCallback(msg.sender, amountToPay, data.adapterCallbackData);
+    } else if (data.isExactInput) {
+      // this clause is realized in case of exactInput with pt tokens as input
+      // we need to trigger pendle pt -> sy exactOutput swap and then unwrap sy to ib
+      _pendleRedeemSy(marketData, msg.sender, amountToPay);
     } else {
-      if (tokenIn == address(marketData.pt)) {
-        // this clause is realized in case of exactOutput with pt tokens as input
-        // we need to trigger pendle pt -> sy exactOutput swap and then unwrap sy to ib
-        uint256 syAmountOut;
-        if (marketData.yt.isExpired()) {
-          // https://github.com/pendle-finance/pendle-core-v2-public/blob/bc27b10c33ac16d6e1936a9ddd24d536b00c96a4/contracts/core/YieldContractsV2/PendleYieldTokenV2.sol#L301
-          uint256 index = marketData.yt.pyIndexCurrent();
-          uint256 transferPtAmount = Math.mulDiv(amountToPay, index, PENDLE_ONE, Math.Rounding.Up);
+      // this clause is realized in case of exactOutput with pt tokens as input
+      // before the maturity we need to trigger pendle pt -> sy exactOutput swap and then unwrap sy to ib
+      // after the maturity we need to redeem sy tokens and then unwrap them to ib
+      uint256 syAmountOut;
+      if (marketData.yt.isExpired()) {
+        // https://github.com/pendle-finance/pendle-core-v2-public/blob/bc27b10c33ac16d6e1936a9ddd24d536b00c96a4/contracts/core/YieldContractsV2/PendleYieldTokenV2.sol#L301
+        uint256 index = marketData.yt.pyIndexCurrent();
+        uint256 transferPtAmount = Math.mulDiv(amountToPay, index, PENDLE_ONE, Math.Rounding.Up);
 
-          syAmountOut = _redeemPY(marketData.yt, data.router, transferPtAmount, data.adapterCallbackData);
-        } else {
-          syAmountOut = _pendleApproxSwapPtForExactSy(marketData, address(this), amountToPay, data.approxLimit, _data);
-        }
-        _pendleRedeemSy(marketData, msg.sender, syAmountOut);
+        syAmountOut = _redeemPY(marketData.yt, data.router, transferPtAmount, data.adapterCallbackData);
       } else {
-        // this clause is realized in case of exactOutput with pt tokens as output
-        // we need to send tokenIn to uniswapV3 to finalize both tokenIn -> sy and sy -> pt swaps
-        IMarginlyRouter(data.router).adapterCallback(msg.sender, amountToPay, data.adapterCallbackData);
+        syAmountOut = _pendleApproxSwapPtForExactSy(marketData, address(this), amountToPay, data.approxLimit, _data);
       }
+      _pendleRedeemSy(marketData, msg.sender, syAmountOut);
     }
   }
 
