@@ -149,7 +149,7 @@ describe('Pendle swap pre maturity', () => {
   });
 });
 
-describe.only('Pendle swap post maturity', () => {
+describe('Pendle swap post maturity', () => {
   let ptToken: ERC20;
   let weth: ERC20;
   let router: MarginlyRouter;
