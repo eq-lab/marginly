@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import '@pendle/core-v2/contracts/router/base/MarketApproxLib.sol';
 import '@pendle/core-v2/contracts/interfaces/IPMarket.sol';
@@ -12,11 +13,18 @@ import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 import '../interfaces/IMarginlyRouter.sol';
 
-contract PendleAdapter {
+contract PendleAdapter is Ownable2Step {
   using PYIndexLib for IPYieldToken;
 
-  event NewPair(address indexed token0, address indexed token1, address pendleMarket, address uniswapV3LikePool);
+  event NewPair(
+    address indexed token0,
+    address indexed token1,
+    address pendleMarket,
+    address uniswapV3LikePool,
+    address ibToken
+  );
 
+  error WrongPoolInput();
   error UnknownPool();
   error InsufficientAmount();
   error TooMuchRequested();
@@ -64,18 +72,11 @@ contract PendleAdapter {
   mapping(address => mapping(address => PoolData)) public getPoolData;
 
   constructor(PoolInput[] memory poolsData) {
-    PoolInput memory input;
-    uint256 length = poolsData.length;
-    for (uint256 i; i < length; ) {
-      input = poolsData[i];
-      getPoolData[input.tokenA][input.tokenB] = input.poolData;
-      getPoolData[input.tokenB][input.tokenA] = input.poolData;
-      emit NewPair(input.tokenA, input.tokenB, input.poolData.pendleMarket, input.poolData.uniswapV3LikePool);
+    _addPools(poolsData);
+  }
 
-      unchecked {
-        ++i;
-      }
-    }
+  function addPools(PoolInput[] calldata poolsData) external onlyOwner {
+    _addPools(poolsData);
   }
 
   function swapExactInput(
@@ -453,5 +454,38 @@ contract PendleAdapter {
   ) private returns (uint256 syRedeemed) {
     IMarginlyRouter(router).adapterCallback(address(yt), ptAmount, adapterCallbackData);
     syRedeemed = yt.redeemPY(address(this));
+  }
+
+  function _addPools(PoolInput[] memory poolsData) private {
+    PoolInput memory input;
+    uint256 length = poolsData.length;
+    for (uint256 i; i < length; ) {
+      input = poolsData[i];
+
+      if (
+        input.tokenA == address(0) ||
+        input.tokenB == address(0) ||
+        input.poolData.pendleMarket == address(0) ||
+        input.poolData.uniswapV3LikePool == address(0) ||
+        input.poolData.ib == address(0)
+      ) revert WrongPoolInput();
+
+      (, IPPrincipalToken pt, ) = IPMarket(input.poolData.pendleMarket).readTokens();
+      if (input.tokenA != address(pt) && input.tokenB != address(pt)) revert WrongPoolInput();
+
+      getPoolData[input.tokenA][input.tokenB] = input.poolData;
+      getPoolData[input.tokenB][input.tokenA] = input.poolData;
+      emit NewPair(
+        input.tokenA,
+        input.tokenB,
+        input.poolData.pendleMarket,
+        input.poolData.uniswapV3LikePool,
+        input.poolData.ib
+      );
+
+      unchecked {
+        ++i;
+      }
+    }
   }
 }
