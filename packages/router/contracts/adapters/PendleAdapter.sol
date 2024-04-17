@@ -65,8 +65,9 @@ contract PendleAdapter is Ownable2Step {
     address ibToken
   );
 
+  error ApproximationFailed();
   error WrongPoolInput();
-  error UnknownPool();
+  error UnknownPair();
   error InsufficientAmount();
   error TooMuchRequested();
   error Forbidden();
@@ -187,7 +188,7 @@ contract PendleAdapter is Ownable2Step {
 
   function _getPoolDataSafe(address tokenA, address tokenB) private view returns (PoolData memory poolData) {
     poolData = getPoolData[tokenA][tokenB];
-    if (poolData.pendleMarket == address(0)) revert();
+    if (poolData.pendleMarket == address(0)) revert UnknownPair();
   }
 
   function _getMarketData(PoolData memory poolData) private view returns (PendleMarketData memory) {
@@ -396,7 +397,7 @@ contract PendleAdapter is Ownable2Step {
     );
 
     (uint256 actualSyAmountIn, ) = marketData.market.swapSyForExactPt(recipient, ptAmountOut, data);
-    require(actualSyAmountIn <= syAmountIn);
+    if(actualSyAmountIn > syAmountIn) revert ApproximationFailed();
   }
 
   function _pendleApproxSwapPtForExactSy(
@@ -421,10 +422,10 @@ contract PendleAdapter is Ownable2Step {
       block.timestamp,
       approx
     );
-    if (ptAmountIn > maxPtAmountIn) revert();
+    if (ptAmountIn > maxPtAmountIn) revert ApproximationFailed();
 
     (actualSyAmountOut, ) = marketData.market.swapExactPtForSy(recipient, ptAmountIn, data);
-    if (actualSyAmountOut < syAmountOut) revert();
+    if (actualSyAmountOut < syAmountOut) revert ApproximationFailed();
   }
 
   function _pendleMintSy(
