@@ -16,20 +16,6 @@ import '../interfaces/IMarginlyRouter.sol';
 contract PendleAdapter is Ownable2Step {
   using PYIndexLib for IPYieldToken;
 
-  event NewPair(
-    address indexed token0,
-    address indexed token1,
-    address pendleMarket,
-    address uniswapV3LikePool,
-    address ibToken
-  );
-
-  error WrongPoolInput();
-  error UnknownPool();
-  error InsufficientAmount();
-  error TooMuchRequested();
-  error Forbidden();
-
   struct PendleMarketData {
     IPMarket market;
     IStandardizedYield sy;
@@ -70,6 +56,20 @@ contract PendleAdapter is Ownable2Step {
   uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
   mapping(address => mapping(address => PoolData)) public getPoolData;
+
+  event NewPair(
+    address indexed token0,
+    address indexed token1,
+    address pendleMarket,
+    address uniswapV3LikePool,
+    address ibToken
+  );
+
+  error WrongPoolInput();
+  error UnknownPool();
+  error InsufficientAmount();
+  error TooMuchRequested();
+  error Forbidden();
 
   constructor(PoolInput[] memory poolsData) {
     _addPools(poolsData);
@@ -225,7 +225,7 @@ contract PendleAdapter is Ownable2Step {
     if (tokenIn == address(marketData.pt)) {
       // pt to pendle -> sy to ib unwrap -> ib to uniswap -> tokenOut to recipient
       IMarginlyRouter(msg.sender).adapterCallback(address(marketData.market), amountIn, data);
-      (uint256 syAmountOut, ) = marketData.market.swapExactPtForSy(address(this), amountIn, '');
+      (uint256 syAmountOut, ) = marketData.market.swapExactPtForSy(address(this), amountIn, new bytes(0));
 
       (, amountOut) = _uniswapV3LikeSwap(
         recipient,
