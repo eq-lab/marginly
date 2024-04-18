@@ -199,7 +199,7 @@ describe('Pendle swap post maturity', () => {
     const tx = router
       .connect(user)
       .swapExactInput(swapCalldata, weth.address, ptToken.address, wethBalanceBefore, wethBalanceBefore.mul(9).div(10));
-    await expect(tx).to.be.revertedWithCustomError(pendleAdapter, 'Forbidden');
+    await expect(tx).to.be.revertedWithCustomError(pendleAdapter, 'NotSupported');
 
     console.log('This swap is forbidden after maturity');
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
@@ -222,7 +222,7 @@ describe('Pendle swap post maturity', () => {
     const tx = router
       .connect(user)
       .swapExactOutput(swapCalldata, weth.address, ptToken.address, wethBalanceBefore, ptOut);
-    await expect(tx).to.be.revertedWithCustomError(pendleAdapter, 'Forbidden');
+    await expect(tx).to.be.revertedWithCustomError(pendleAdapter, 'NotSupported');
 
     console.log('This swap is forbidden after maturity');
     const ptBalanceAfter = await ptToken.balanceOf(user.address);

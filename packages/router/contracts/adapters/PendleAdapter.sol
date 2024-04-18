@@ -11,9 +11,10 @@ import '@pendle/core-v2/contracts/core/StandardizedYield/PYIndex.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
+import '../interfaces/IMarginlyAdapter.sol';
 import '../interfaces/IMarginlyRouter.sol';
 
-contract PendleAdapter is Ownable2Step {
+contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
   using PYIndexLib for IPYieldToken;
 
   struct PendleMarketData {
@@ -66,11 +67,8 @@ contract PendleAdapter is Ownable2Step {
   );
 
   error ApproximationFailed();
-  error WrongPoolInput();
   error UnknownPair();
-  error InsufficientAmount();
-  error TooMuchRequested();
-  error Forbidden();
+  error WrongPoolInput();
 
   constructor(PoolInput[] memory poolsData) {
     _addPools(poolsData);
@@ -317,7 +315,7 @@ contract PendleAdapter is Ownable2Step {
       );
     } else {
       // sy to pt swap is not possible after maturity
-      revert Forbidden();
+      revert NotSupported();
     }
   }
 
@@ -349,7 +347,7 @@ contract PendleAdapter is Ownable2Step {
       );
     } else {
       // sy to pt swap is not possible after maturity
-      revert Forbidden();
+      revert NotSupported();
     }
   }
 
