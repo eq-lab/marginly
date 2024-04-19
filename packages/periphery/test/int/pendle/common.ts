@@ -5,14 +5,15 @@ import { ethers } from 'hardhat';
 export const oneX96 = BigNumber.from(2).pow(96);
 export const one = BigNumber.from(10).pow(18);
 
-export function printTokenSymbols(caseParams: PendleOracleCaseParams) {
+export function printPendleTokenSymbols(caseParams: PendleOracleCaseParams) {
   console.log(`\n\nTokens names:`);
   console.log(`  PT  = ${caseParams.pt.symbol}`);
   console.log(`  SY  = ${caseParams.sy.symbol}`);
   console.log(`  YQT = ${caseParams.yqt.symbol}`);
   console.log(`  QT  = ${caseParams.qt.symbol}`);
 }
-export function printPrices(
+
+export function printPendlePrices(
   actualPrice: BigNumber,
   priceFromPendlePtLpOracle: BigNumber,
   priceFromSecondaryOracle: BigNumber,
@@ -26,14 +27,14 @@ export function printPrices(
   console.log(`  Delta: ${ethers.utils.formatEther(priceDelta)}`);
 }
 
-export async function fetchPrices(
+export async function fetchPendlePrices(
   params: PendleOracleCaseParams,
   blockTag?: number
 ): Promise<{
   actualBalancePrice: BigNumber;
   actualMargincallPrice: BigNumber;
-  balancePriceFromPendlePtLpOracle: BigNumber;
-  margincallPriceFromPendlePtLpOracle: BigNumber;
+  balancePtToSyPrice: BigNumber;
+  margincallPtToSyPrice: BigNumber;
   balancePriceFromSecondaryOracle: BigNumber;
   margincallPriceFromSecondaryOracle: BigNumber;
 }> {
@@ -45,12 +46,12 @@ export async function fetchPrices(
   )
     .mul(one)
     .div(oneX96);
-  const balancePriceFromPendlePtLpOracle = await params.pendlePtLpOracle.getPtToSyRate(
+  const balancePtToSyPrice = await params.pendlePtLpOracle.getPtToSyRate(
     params.pendleMarket.address,
     params.secondsAgo,
     { blockTag }
   );
-  const margincallPriceFromPendlePtLpOracle = await params.pendlePtLpOracle.getPtToSyRate(
+  const margincallPtToSyPrice = await params.pendlePtLpOracle.getPtToSyRate(
     params.pendleMarket.address,
     params.secondsAgoLiquidation,
     { blockTag }
@@ -69,9 +70,9 @@ export async function fetchPrices(
   return {
     actualBalancePrice,
     actualMargincallPrice,
-    balancePriceFromPendlePtLpOracle,
+    balancePtToSyPrice,
     balancePriceFromSecondaryOracle,
-    margincallPriceFromPendlePtLpOracle,
+    margincallPtToSyPrice,
     margincallPriceFromSecondaryOracle,
   };
 }
