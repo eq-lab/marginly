@@ -18,6 +18,13 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     uint8 ptSyDecimalsDelta;
   }
 
+  uint256 private constant X96ONE = 2 ** 96;
+  uint8 private constant PRICE_DECIMALS = 18;
+  uint256 private constant PRICE_ONE = 10 ** PRICE_DECIMALS;
+
+  IPPtLpOracle public immutable pendle;
+  mapping(address => mapping(address => OracleParams)) public getParams;
+
   error ZeroPrice();
   error ZeroAddress();
   error WrongValue();
@@ -25,13 +32,6 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
   error PairAlreadyExist();
   error UnknownPair();
   error PendlePtLpOracleIsNotInitialized(uint16);
-
-  IPPtLpOracle public immutable pendle;
-  mapping(address => mapping(address => OracleParams)) public getParams;
-
-  uint256 private constant X96ONE = 2 ** 96;
-  uint8 private constant PRICE_DECIMALS = 18;
-  uint256 private constant PRICE_ONE = 10 ** PRICE_DECIMALS;
 
   constructor(address _pendle) {
     if (_pendle == address(0)) revert ZeroAddress();
@@ -142,7 +142,8 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     // 1.0 SY == 1.0 YQT
     // secondary pool: YQT / QT
 
-    // getPtToSyRate() and getPtToAssetRate() returns price with 18 decimals
+    // getPtToSyRate() returns price with 18 decimals
+    // after maturity getPtToSyRate() returns price != 1.0, so using PRICE_ONE when expired
     uint256 pendlePrice;
     if (IPMarket(poolParams.pendleMarket).isExpired()) {
       pendlePrice = PRICE_ONE;
