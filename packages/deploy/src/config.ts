@@ -48,7 +48,8 @@ export type PriceOracleDeployConfig =
   | UniswapV3TickOracleDeployConfig
   | UniswapV3DoubleDeployOracleConfig
   | ChainlinkOracleDeployConfig
-  | PythOracleDeployConfig;
+  | PythOracleDeployConfig
+  | PendleOracleDeployConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -153,6 +154,21 @@ export interface PythOracleDeployConfig {
   settings: PairPythOracleDeployConfig[];
 }
 
+export interface PendleOracleDeployConfig {
+  type: 'pendle';
+  id: string;
+  pendlePtLpOracle: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    secondaryPoolOracleId: string;
+    ibTokenId: string;
+    pendleMarket: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+  }[];
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -169,6 +185,10 @@ export function isChainlinkOracleConfig(config: PriceOracleDeployConfig): config
 
 export function isPythOracleConfig(config: PriceOracleDeployConfig): config is PythOracleDeployConfig {
   return config.type === 'pyth';
+}
+
+export function isPendleOracleConfig(config: PendleOracleDeployConfig): config is PendleOracleDeployConfig {
+  return config.type === 'pendle';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {
@@ -276,6 +296,9 @@ export interface MarginlyDeployConfig {
       tokenAId: string;
       tokenBId: string;
       poolAddress: string;
+      ibTokenId?: string;
+      pendleMarket?: string;
+      slippage?: number;
     }[];
   }[];
   marginlyFactory: {
@@ -287,6 +310,7 @@ export interface MarginlyDeployConfig {
     id: string;
     uniswapPoolId: string;
     baseTokenId: string;
+    quoteTokenId: string;
     priceOracleId: string;
     defaultSwapCallData: number;
     params: {
@@ -300,9 +324,9 @@ export interface MarginlyDeployConfig {
     };
   }[];
   marginlyKeeper: {
-    aavePoolAddressesProvider: {
-      address?: string;
-      allowCreateMock?: boolean;
+    aaveKeeper?: {
+      aavePoolAddressesProvider: string;
     };
+    uniswapKeeper?: boolean;
   };
 }
