@@ -24,12 +24,14 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     IPYieldToken yt;
     address ib;
     address uniswapV3;
+    uint8 slippage;
   }
 
   struct PoolData {
     address pendleMarket;
     address uniswapV3LikePool;
     address ib;
+    uint8 slippage;
   }
 
   struct PoolInput {
@@ -49,8 +51,7 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
 
   uint256 private constant PENDLE_ONE = 1e18;
   uint256 private constant EPSILON = 1e15;
-  uint256 private constant ONE_PLUS_SLIPPAGE = 120;
-  uint256 private constant ONE_MINUS_SLIPPAGE = 80;
+  uint256 private constant ONE = 100;
   uint256 private constant MAX_ITERATIONS = 10;
 
   uint160 private constant MIN_SQRT_RATIO = 4295128739;
@@ -63,7 +64,8 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     address indexed token1,
     address pendleMarket,
     address uniswapV3LikePool,
-    address ibToken
+    address ibToken,
+    uint8 slippage
   );
 
   error ApproximationFailed();
@@ -199,7 +201,8 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
         pt: pt,
         yt: yt,
         ib: poolData.ib,
-        uniswapV3: poolData.uniswapV3LikePool
+        uniswapV3: poolData.uniswapV3LikePool,
+        slippage: poolData.slippage
       });
   }
 
@@ -378,9 +381,10 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     uint256 minPtAmountOut,
     bytes memory data
   ) private returns (uint256 ptAmountOut) {
+    uint8 slippage = marketData.slippage;
     ApproxParams memory approx = ApproxParams({
       guessMin: minPtAmountOut,
-      guessMax: (minPtAmountOut * ONE_PLUS_SLIPPAGE) / ONE_MINUS_SLIPPAGE,
+      guessMax: (minPtAmountOut * (ONE + slippage)) / (ONE - slippage),
       guessOffchain: 0,
       maxIteration: MAX_ITERATIONS,
       eps: EPSILON
@@ -395,7 +399,7 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     );
 
     (uint256 actualSyAmountIn, ) = marketData.market.swapSyForExactPt(recipient, ptAmountOut, data);
-    if(actualSyAmountIn > syAmountIn) revert ApproximationFailed();
+    if (actualSyAmountIn > syAmountIn) revert ApproximationFailed();
   }
 
   function _pendleApproxSwapPtForExactSy(
@@ -405,8 +409,9 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     uint256 maxPtAmountIn,
     bytes memory data
   ) private returns (uint256 actualSyAmountOut) {
+    uint8 slippage = marketData.slippage;
     ApproxParams memory approx = ApproxParams({
-      guessMin: (maxPtAmountIn * ONE_MINUS_SLIPPAGE) / ONE_PLUS_SLIPPAGE,
+      guessMin: (maxPtAmountIn * (ONE - slippage)) / (ONE + slippage),
       guessMax: maxPtAmountIn,
       guessOffchain: 0,
       maxIteration: MAX_ITERATIONS,
@@ -466,7 +471,8 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
         input.tokenB == address(0) ||
         input.poolData.pendleMarket == address(0) ||
         input.poolData.uniswapV3LikePool == address(0) ||
-        input.poolData.ib == address(0)
+        input.poolData.ib == address(0) ||
+        input.poolData.slippage >= ONE
       ) revert WrongPoolInput();
 
       (, IPPrincipalToken pt, ) = IPMarket(input.poolData.pendleMarket).readTokens();
@@ -479,7 +485,8 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
         input.tokenB,
         input.poolData.pendleMarket,
         input.poolData.uniswapV3LikePool,
-        input.poolData.ib
+        input.poolData.ib,
+        input.poolData.slippage
       );
 
       unchecked {
