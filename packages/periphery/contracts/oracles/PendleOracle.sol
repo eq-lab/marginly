@@ -143,16 +143,11 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     // secondary pool: YQT / QT
 
     // getPtToSyRate() returns price with 18 decimals
-    // after maturity getPtToSyRate() returns price != 1.0, so using PRICE_ONE when expired
-    uint256 pendlePrice;
-    if (IPMarket(poolParams.pendleMarket).isExpired()) {
-      pendlePrice = PRICE_ONE;
-    } else {
-      pendlePrice = pendle.getPtToSyRate(
-        poolParams.pendleMarket,
-        isMargincallPrice ? poolParams.secondsAgoLiquidation : poolParams.secondsAgo
-      );
-    }
+    // after maturity getPtToSyRate() returns price != 1.0
+    uint256 pendlePrice = pendle.getPtToSyRate(
+      poolParams.pendleMarket,
+      isMargincallPrice ? poolParams.secondsAgoLiquidation : poolParams.secondsAgo
+    );
 
     if (isMargincallPrice) {
       priceX96 = Math.mulDiv(

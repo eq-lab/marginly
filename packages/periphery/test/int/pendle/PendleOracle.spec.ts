@@ -111,21 +111,28 @@ describe('Pendle PT oracle after maturity (PendleOracle)', () => {
     const {
       actualBalancePrice,
       actualMargincallPrice,
+      balancePtToSyPrice,
+      margincallPtToSyPrice,
       balancePriceFromSecondaryOracle,
       margincallPriceFromSecondaryOracle,
     } = await fetchPendlePrices(caseParams);
 
-    const expectedBalancePrice = balancePriceFromSecondaryOracle;
-    const expectedMargincallPrice = margincallPriceFromSecondaryOracle;
+    const expectedBalancePrice = balancePtToSyPrice.mul(balancePriceFromSecondaryOracle).div(one);
+    const expectedMargincallPrice = margincallPtToSyPrice.mul(margincallPriceFromSecondaryOracle).div(one);
 
     printPendleTokenSymbols(caseParams);
 
     console.log(`\nBalance price:`);
-    printPendlePrices(actualBalancePrice, one, balancePriceFromSecondaryOracle, expectedBalancePrice);
+    printPendlePrices(actualBalancePrice, balancePtToSyPrice, balancePriceFromSecondaryOracle, expectedBalancePrice);
     console.log(`\nMargincall price:`);
-    printPendlePrices(actualMargincallPrice, one, margincallPriceFromSecondaryOracle, expectedMargincallPrice);
+    printPendlePrices(
+      actualMargincallPrice,
+      margincallPtToSyPrice,
+      margincallPriceFromSecondaryOracle,
+      expectedMargincallPrice
+    );
 
-    expect(actualBalancePrice).to.be.equal(expectedBalancePrice);
-    expect(actualMargincallPrice).to.be.equal(expectedMargincallPrice);
+    expect(actualBalancePrice).to.be.closeTo(expectedBalancePrice, BigNumber.from(1000));
+    expect(actualMargincallPrice).to.be.closeTo(expectedMargincallPrice, BigNumber.from(1000));
   });
 });
