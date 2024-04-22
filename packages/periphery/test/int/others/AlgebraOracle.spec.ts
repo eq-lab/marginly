@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import bn from 'bignumber.js';
 import { BigNumber } from 'ethers';
-import { AlgebraTickOracle, AlgebraTickOracleDouble } from '../../typechain-types/contracts/oracles';
+import { AlgebraTickOracle, AlgebraTickOracleDouble } from '../../../typechain-types/contracts/oracles';
 
 function toHumanPrice(priceX96: BigNumber, decimalsDiff: number) {
   const one = bn(2 ** 96);
