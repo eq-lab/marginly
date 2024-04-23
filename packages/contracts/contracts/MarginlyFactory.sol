@@ -6,7 +6,6 @@ import '@openzeppelin/contracts/proxy/Clones.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
 
 import './interfaces/IMarginlyFactory.sol';
-import './interfaces/IPriceOracle.sol';
 import './dataTypes/MarginlyParams.sol';
 import './libraries/Errors.sol';
 

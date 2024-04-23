@@ -36,6 +36,9 @@ contract MarginlyPool is IMarginlyPool {
   /// @dev Denominator of fee value
   uint24 private constant WHOLE_ONE = 1e6;
 
+  /// @dev Min available leverage
+  uint8 private constant MIN_LEVERAGE = 2;
+
   /// @inheritdoc IMarginlyPool
   address public override factory;
 
@@ -178,11 +181,11 @@ contract MarginlyPool is IMarginlyPool {
 
   function _setParameters(MarginlyParams memory _params) private {
     if (
-      _params.interestRate > 1_000_000 ||
-      _params.fee > 1_000_000 ||
-      _params.swapFee > 1_000_000 ||
-      _params.mcSlippage > 1_000_000 ||
-      _params.maxLeverage < 2 ||
+      _params.interestRate > WHOLE_ONE ||
+      _params.fee > WHOLE_ONE ||
+      _params.swapFee > WHOLE_ONE ||
+      _params.mcSlippage > WHOLE_ONE ||
+      _params.maxLeverage < MIN_LEVERAGE ||
       _params.quoteLimit == 0 ||
       _params.positionMinAmount == 0
     ) revert Errors.WrongValue();
@@ -1567,6 +1570,7 @@ contract MarginlyPool is IMarginlyPool {
     uint256 swapCalldata
   ) external payable override lock {
     if (call == CallType.ReceivePosition) {
+      if (amount2 < 0) revert Errors.WrongValue();
       receivePosition(receivePositionAddress, amount1, uint256(amount2));
       return;
     } else if (call == CallType.EmergencyWithdraw) {

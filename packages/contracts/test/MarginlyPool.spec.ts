@@ -468,9 +468,9 @@ describe('MarginlyPool.Base', () => {
 
       const baseDepositFirst = 1000;
       // making sure flip is tested on short position (deposit won't cover all the position debt)
-      expect(
-        positionBefore.discountedBaseAmount.mul(await marginlyPool.baseDebtCoeff()).div(FP96.one)
-      ).to.be.gt(baseDepositFirst);
+      expect(positionBefore.discountedBaseAmount.mul(await marginlyPool.baseDebtCoeff()).div(FP96.one)).to.be.gt(
+        baseDepositFirst
+      );
       const longAmount = 5000;
       await marginlyPool
         .connect(signer)
@@ -495,7 +495,11 @@ describe('MarginlyPool.Base', () => {
       const baseDebtDelta = positionBefore.discountedBaseAmount;
       expect(discountedBaseDebtBefore.sub(discountedBaseDebtAfter)).to.be.eq(baseDebtDelta);
 
-      const quoteDebtDelta = price.mul(longAmount).div(quoteDebtCoeff).mul(1e6 + swapFee).div(1e6);
+      const quoteDebtDelta = price
+        .mul(longAmount)
+        .div(quoteDebtCoeff)
+        .mul(1e6 + swapFee)
+        .div(1e6);
       expect(discountedQuoteDebtAfter.sub(discountedQuoteDebtBefore)).to.be.eq(quoteDebtDelta);
       expect(positionAfter.discountedQuoteAmount).to.be.eq(quoteDebtDelta);
 
@@ -779,9 +783,9 @@ describe('MarginlyPool.Base', () => {
 
       const quoteDepositSecond = 10000;
       // making sure flip is tested on long position (deposit won't cover all the position debt)
-      expect(
-        positionBefore.discountedQuoteAmount.mul(await marginlyPool.quoteDebtCoeff()).div(FP96.one)
-      ).to.be.gt(quoteDepositSecond);
+      expect(positionBefore.discountedQuoteAmount.mul(await marginlyPool.quoteDebtCoeff()).div(FP96.one)).to.be.gt(
+        quoteDepositSecond
+      );
       const shortAmount = 50000;
       await marginlyPool
         .connect(signer)
@@ -810,10 +814,10 @@ describe('MarginlyPool.Base', () => {
       expect(heapPositionBefore[1].account).to.be.eq(signer.address);
       expect(heapPositionAfter[1].account).to.be.not.eq(signer.address);
       expect(positionAfter._type).to.be.eq(PositionType.Short);
-      
+
       const quoteDebtDelta = positionBefore.discountedQuoteAmount;
       expect(discountedQuoteDebtBefore.sub(discountedQuoteDebtAfter)).to.be.eq(quoteDebtDelta);
-      
+
       const baseDebtDelta = BigNumber.from(shortAmount).mul(FP96.one).div(baseDebtCoeff);
       expect(discountedBaseDebtAfter.sub(discountedBaseDebtBefore)).to.be.eq(baseDebtDelta);
       expect(positionAfter.discountedBaseAmount).to.be.eq(baseDebtDelta);
@@ -2266,9 +2270,10 @@ describe('MarginlyPool.Base', () => {
 
       expect(positionAfter._type).to.be.eq(PositionType.Short);
       expect(positionAfter.discountedBaseAmount).to.be.eq(baseDebtDelta);
-      expect(
-        positionAfter.discountedQuoteAmount.sub(positionBefore.discountedQuoteAmount)
-      ).to.be.closeTo(quoteCollDelta, 1);
+      expect(positionAfter.discountedQuoteAmount.sub(positionBefore.discountedQuoteAmount)).to.be.closeTo(
+        quoteCollDelta,
+        1
+      );
     });
 
     it('Long with flip', async () => {
@@ -2317,7 +2322,11 @@ describe('MarginlyPool.Base', () => {
         .add(longAmount)
         .mul(FP96.one)
         .div(baseCollCoeff);
-      const quoteDebtDelta = BigNumber.from(longAmount).mul(price).div(quoteDebtCoeff).mul(1e6 + swapFee).div(1e6);
+      const quoteDebtDelta = BigNumber.from(longAmount)
+        .mul(price)
+        .div(quoteDebtCoeff)
+        .mul(1e6 + swapFee)
+        .div(1e6);
       const quoteCollDelta = BigNumber.from(longerQuoteAmount).mul(FP96.one).div(quoteCollCoeff);
 
       expect(discountedBaseCollateralAfter.sub(discountedBaseCollateralBefore)).to.be.eq(baseCollDelta);
@@ -2813,5 +2822,12 @@ describe('MarginlyPool.Base', () => {
     const expectedSystemLeverageLong = 
       realBaseCollateralInQuote.mul(FP96.one).div(realBaseCollateralInQuote.sub(realQuoteDebt));
     expect((await marginlyPool.systemLeverage()).longX96).to.be.eq(expectedSystemLeverageLong);
+  });
+
+  it('should fail if receivePosition is called with a negative amount2 parameter', async () => {
+    const { marginlyPool } = await loadFixture(createMarginlyPool);
+    await expect(
+      marginlyPool.execute(CallType.ReceivePosition, 0, -1, 0, false, ZERO_ADDRESS, uniswapV3Swapdata())
+    ).to.be.revertedWithCustomError(marginlyPool, 'WrongValue');
   });
 });
