@@ -602,6 +602,15 @@ contract MarginlyPool is IMarginlyPool {
       discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(realAmountToWithdraw);
     }
 
+    if (_type == PositionType.Long) {
+      uint256 realQuoteDebt = quoteDebtCoeff.mul(positionQuoteDebt);
+      // margin = (baseColl - baseCollDelta) - quoteDebt / price < minAmount
+      // minAmount + quoteDebt / price > baseColl - baseCollDelta
+      if (basePrice.recipMul(realQuoteDebt).add(params.positionMinAmount) > realBaseAmount.sub(realAmountToWithdraw)) {
+        revert Errors.LessThanMinimalAmount();
+      }
+    }
+
     position.discountedBaseAmount = positionBaseAmount.sub(discountedBaseCollateralDelta);
     discountedBaseCollateral = discountedBaseCollateral.sub(discountedBaseCollateralDelta);
 
@@ -650,6 +659,15 @@ contract MarginlyPool is IMarginlyPool {
       // partial withdraw
       realAmountToWithdraw = realAmount;
       discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(realAmountToWithdraw);
+    }
+
+    if (_type == PositionType.Short) {
+      uint256 realBaseDebt = baseDebtCoeff.mul(positionBaseDebt);
+      // margin = (quoteColl - quoteCollDelta) - baseDebt * price < minAmount * price
+      // (minAmount + baseDebt) * price > quoteColl - quoteCollDelta
+      if (basePrice.mul(realBaseDebt.add(params.positionMinAmount)) > realQuoteAmount.sub(realAmountToWithdraw)) {
+        revert Errors.LessThanMinimalAmount();
+      }
     }
 
     position.discountedQuoteAmount = positionQuoteAmount.sub(discountedQuoteCollateralDelta);
@@ -782,10 +800,16 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position,
     uint256 swapCalldata
   ) private {
-    if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
-
     // this function guaranties the position is gonna be either Short or Lend with 0 base balance
     sellBaseForQuote(position, limitPriceX96, swapCalldata);
+
+    uint256 positionDisBaseDebt = position.discountedBaseAmount;
+    uint256 positionDisQuoteCollateral = position.discountedQuoteAmount;
+
+    {
+      uint256 currentQuoteCollateral = calcRealQuoteCollateral(positionDisQuoteCollateral, positionDisBaseDebt);
+      if (currentQuoteCollateral < basePrice.mul(params.positionMinAmount)) revert Errors.LessThanMinimalAmount();
+    }
 
     // quoteOutMinimum is defined by user input limitPriceX96
     uint256 quoteOutMinimum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
@@ -798,13 +822,13 @@ contract MarginlyPool is IMarginlyPool {
     if (newPoolQuoteBalance(realQuoteCollateralChange) > params.quoteLimit) revert Errors.ExceedsLimit();
 
     uint256 discountedBaseDebtChange = baseDebtCoeff.recipMul(realBaseAmount);
-    position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseDebtChange);
+    position.discountedBaseAmount = positionDisBaseDebt.add(discountedBaseDebtChange);
     discountedBaseDebt = discountedBaseDebt.add(discountedBaseDebtChange);
 
     uint256 discountedQuoteChange = quoteCollateralCoeff.recipMul(
       realQuoteCollateralChange.add(quoteDelevCoeff.mul(discountedBaseDebtChange))
     );
-    position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteChange);
+    position.discountedQuoteAmount = positionDisQuoteCollateral.add(discountedQuoteChange);
     discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteChange);
     chargeFee(realSwapFee);
 
@@ -831,11 +855,18 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position,
     uint256 swapCalldata
   ) private {
-    if (realBaseAmount < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
     if (basePrice.mul(newPoolBaseBalance(realBaseAmount)) > params.quoteLimit) revert Errors.ExceedsLimit();
 
     // this function guaranties the position is gonna be either Long or Lend with 0 quote balance
     sellQuoteForBase(position, limitPriceX96, swapCalldata);
+
+    uint256 positionDisQuoteDebt = position.discountedQuoteAmount;
+    uint256 positionDisBaseCollateral = position.discountedBaseAmount;
+
+    {
+      uint256 currentBaseCollateral = calcRealBaseCollateral(positionDisBaseCollateral, positionDisQuoteDebt);
+      if (currentBaseCollateral < params.positionMinAmount) revert Errors.LessThanMinimalAmount();
+    }
 
     // realQuoteInMaximum is defined by user input limitPriceX96
     uint256 realQuoteInMaximum = Math.mulDiv(limitPriceX96, realBaseAmount, FP96.Q96);
@@ -846,13 +877,13 @@ contract MarginlyPool is IMarginlyPool {
     chargeFee(realSwapFee);
 
     uint256 discountedQuoteDebtChange = quoteDebtCoeff.recipMul(realQuoteAmount.add(realSwapFee));
-    position.discountedQuoteAmount = position.discountedQuoteAmount.add(discountedQuoteDebtChange);
+    position.discountedQuoteAmount = positionDisQuoteDebt.add(discountedQuoteDebtChange);
     discountedQuoteDebt = discountedQuoteDebt.add(discountedQuoteDebtChange);
 
     uint256 discountedBaseCollateralChange = baseCollateralCoeff.recipMul(
       realBaseAmount.add(baseDelevCoeff.mul(discountedQuoteDebtChange))
     );
-    position.discountedBaseAmount = position.discountedBaseAmount.add(discountedBaseCollateralChange);
+    position.discountedBaseAmount = positionDisBaseCollateral.add(discountedBaseCollateralChange);
     discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseCollateralChange);
 
     if (position._type == PositionType.Lend) {
