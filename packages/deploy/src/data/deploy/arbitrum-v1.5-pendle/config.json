@@ -36,7 +36,7 @@
         {
           "quoteTokenId": "weth",
           "baseTokenId": "weeth",
-          "secondsAgo": "30 min",
+          "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.01%"
         }
@@ -53,7 +53,7 @@
           "pendleMarket": "0x952083cde7aaa11ab8449057f7de23a970aa8472",
           "secondaryPoolOracleId": "uniswapV3Oracle",
           "ibTokenId": "weeth",
-          "secondsAgo": "30 min",
+          "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec"
         }
       ]
@@ -72,13 +72,13 @@
       "priceOracleId": "pendleOracle",
       "defaultSwapCallData": "17",
       "params": {
-        "interestRate": "5.4%",
+        "interestRate": "3%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1.0%",
         "positionMinAmount": "0.001",
-        "quoteLimit": "10_000_000"
+        "quoteLimit": "200"
       }
     }
   ],
@@ -109,5 +109,9 @@
       ]
     }
   ],
-  "marginlyKeeper": {}
+  "marginlyKeeper": {
+    "aaveKeeper": {
+      "aavePoolAddressesProvider": "0xa97684ead0e402dc232d5a977953df7ecbab3cdb"
+    }
+  }
 }

@@ -270,7 +270,7 @@ async function processMarginly(
   };
 }
 
-async function processKeeper(
+async function processAaveKeeper(
   logger: Logger,
   keeperDeployer: KeeperDeployer,
   config: StrictMarginlyDeployConfig
@@ -371,20 +371,20 @@ export async function deployMarginly(
       deployedPriceOracles
     );
 
-    // let marginlyKeeperDeployResult: DeployResult | null = null;
-    // let keeperUniswapV3DeployResult: DeployResult | null = null;
-    // if (
-    //   config.marginlyKeeper.aavePoolAddressesProvider.address &&
-    //   config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock
-    // ) {
-    //   marginlyKeeperDeployResult = await processKeeper(logger, keeperDeployer, config);
-    //   keeperUniswapV3DeployResult = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
-    // }
+    let aaveKeeperDeployResult: DeployResult | null = null;
+    if (config.marginlyKeeper.aaveKeeper) {
+      aaveKeeperDeployResult = await processAaveKeeper(logger, keeperDeployer, config);
+    }
+
+    let uniswapV3Keeper: DeployResult | null = null;
+    if (config.marginlyKeeper.uniswapKeeper) {
+      uniswapV3Keeper = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
+    }
 
     return {
       marginlyPools: deployedMarginlyPools,
-      marginlyKeeper: undefined,
-      marginlyKeeperUniswapV3: undefined,
+      aaveKeeperDeployResult: aaveKeeperDeployResult ? { address: aaveKeeperDeployResult.address } : undefined,
+      uniswapV3Keeper: uniswapV3Keeper ? { address: uniswapV3Keeper.address } : undefined,
     };
   } finally {
     const balanceAfter = await signer.getBalance();
