@@ -96,10 +96,6 @@ contract AlgebraTickOracleDouble is IPriceOracle, Ownable2Step {
     return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
   }
 
-  function decode(bytes memory options) private pure returns (OracleParams memory) {
-    return abi.decode(options, (OracleParams));
-  }
-
   function getPoolAddress(address tokenA, address tokenB) private view returns (address pool) {
     pool = IAlgebraFactory(factory).poolByPair(tokenA, tokenB);
     if (pool == address(0)) revert UnknownPool();
