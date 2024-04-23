@@ -43,9 +43,9 @@ describe('PythOracle', () => {
     const ethUsdPriceId = '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace';
 
     const usdFake = '0x0000000000000000000000000000000000000000';
-
-    await oracle.setPair(usdFake, wbtc, wbtcUsdPriceId);
-    await oracle.setPair(usdFake, weth, ethUsdPriceId);
+    const maxPriceAge = 120;
+    await oracle.setPair(usdFake, wbtc, wbtcUsdPriceId, maxPriceAge);
+    await oracle.setPair(usdFake, weth, ethUsdPriceId, maxPriceAge);
     await oracle.setCompositePair(weth, usdFake, wbtc);
 
     const balancePrice = await oracle.getBalancePrice(weth, wbtc);
@@ -63,8 +63,8 @@ describe('PythOracle', () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const usdFake = '0x0000000000000000000000000000000000000000';
     const ethUsdPriceId = '0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace';
-
-    await oracle.setPair(usdFake, weth, ethUsdPriceId);
+    const maxPriceAge = 120;
+    await oracle.setPair(usdFake, weth, ethUsdPriceId, maxPriceAge);
 
     const balancePrice = await oracle.getBalancePrice(usdFake, weth);
     const mcPrice = await oracle.getMargincallPrice(usdFake, weth);
