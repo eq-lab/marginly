@@ -1,4 +1,5 @@
 import { ethers } from 'hardhat';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 import {
   SwapPoolRegistry,
   TestUniswapPool,
@@ -10,6 +11,7 @@ import {
   MockChainlink,
   TestAlgebraPool,
   TestAlgebraFactory,
+  MockSequencerFeed,
 } from '../../typechain-types';
 import {
   AlgebraTickOracle,
@@ -297,6 +299,7 @@ export async function createSomePythCompositeOracle() {
 export type ChainlinkOracleData = {
   oracle: ChainlinkOracle;
   chainlink: MockChainlink;
+  sequencerFeed: MockSequencerFeed;
   decimals: number;
   quoteToken: string;
   baseToken: string;
@@ -309,13 +312,19 @@ async function createChainlinkOracle(
 ): Promise<ChainlinkOracleData> {
   const factory = await ethers.getContractFactory('MockChainlink');
   const mockChainlink = await factory.deploy(decimals);
+  await mockChainlink.setUpdatedAt(await time.latest());
+
+  const mockSequencerFeed = await (await ethers.getContractFactory('MockSequencerFeed')).deploy();
 
   const oracleFactory = await ethers.getContractFactory('ChainlinkOracle');
-  const oracle = await oracleFactory.deploy();
-  await oracle.setPair(quoteToken, baseToken, mockChainlink.address);
+  const oracle = await oracleFactory.deploy(mockSequencerFeed.address);
+  const maxPriceAge = 86400; // 1 day
+
+  await oracle.setPair(quoteToken, baseToken, mockChainlink.address, maxPriceAge);
   return {
     oracle,
     chainlink: mockChainlink,
+    sequencerFeed: mockSequencerFeed,
     decimals,
     quoteToken,
     baseToken,
@@ -333,6 +342,7 @@ export type ChainlinkCompositeOracleData = {
   oracle: ChainlinkOracle;
   quoteChainlink: MockChainlink;
   baseChainlink: MockChainlink;
+  sequencerFeed: MockSequencerFeed;
   quoteDecimals: number;
   baseDecimals: number;
   quoteToken: string;
@@ -350,16 +360,23 @@ async function createChainlinkCompositeOracle(
   const factory = await ethers.getContractFactory('MockChainlink');
   const mockQuoteChainlink = await factory.deploy(quoteDecimals);
   const mockBaseChainlink = await factory.deploy(baseDecimals);
+  const currentTime = await time.latest();
+  await mockBaseChainlink.setUpdatedAt(currentTime);
+  await mockQuoteChainlink.setUpdatedAt(currentTime);
+
+  const mockSequencerFeed = await (await ethers.getContractFactory('MockSequencerFeed')).deploy();
 
   const oracleFactory = await ethers.getContractFactory('ChainlinkOracle');
-  const oracle = await oracleFactory.deploy();
-  await oracle.setPair(intermediateToken, quoteToken, mockQuoteChainlink.address);
-  await oracle.setPair(intermediateToken, baseToken, mockBaseChainlink.address);
+  const oracle = await oracleFactory.deploy(mockSequencerFeed.address);
+  const maxPriceAge = 86400; // 1 day
+  await oracle.setPair(intermediateToken, quoteToken, mockQuoteChainlink.address, maxPriceAge);
+  await oracle.setPair(intermediateToken, baseToken, mockBaseChainlink.address, maxPriceAge);
   await oracle.setCompositePair(quoteToken, intermediateToken, baseToken);
   return {
     oracle,
     quoteChainlink: mockQuoteChainlink,
     baseChainlink: mockBaseChainlink,
+    sequencerFeed: mockSequencerFeed,
     quoteDecimals,
     baseDecimals,
     quoteToken,

@@ -11,8 +11,20 @@ import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 import './CompositeOracle.sol';
 
 contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausable {
+  error WrongValue();
+  error StalePrice();
+  error SequencerIsDown();
+
+  address public immutable sequencerFeed;
+
+  /// @dev Sequencer feed should be provided for L2 chains, use address(0) for L1 chains
+  constructor(address _sequencerFeed) {
+    sequencerFeed = _sequencerFeed;
+  }
+
   struct OracleParams {
     AggregatorV3Interface dataFeed;
+    uint32 maxPriceAge;
   }
 
   mapping(address => mapping(address => OracleParams)) public getParams;
@@ -21,11 +33,20 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
   /// @param quoteToken - address of quote token, address(0) if token is not erc-20 (e.g. USD)
   /// @param baseToken - address of base token, address(0) if token is not erc-20 (e.g. USD)
   /// @param dataFeed - address of chainlink data feed
-  function setPair(address quoteToken, address baseToken, address dataFeed) external onlyOwner {
+  /// @param maxPriceAge - max age of price, if price is older than max age, price is stale and cannot be used
+  function setPair(address quoteToken, address baseToken, address dataFeed, uint32 maxPriceAge) external onlyOwner {
+    if (maxPriceAge == 0) revert WrongValue();
+
     _setCommonPair(quoteToken, baseToken);
 
-    getParams[quoteToken][baseToken] = OracleParams({dataFeed: AggregatorV3Interface(dataFeed)});
-    getParams[baseToken][quoteToken] = OracleParams({dataFeed: AggregatorV3Interface(dataFeed)});
+    getParams[quoteToken][baseToken] = OracleParams({
+      dataFeed: AggregatorV3Interface(dataFeed),
+      maxPriceAge: maxPriceAge
+    });
+    getParams[baseToken][quoteToken] = OracleParams({
+      dataFeed: AggregatorV3Interface(dataFeed),
+      maxPriceAge: maxPriceAge
+    });
   }
 
   /// @notice Set up oracle for composition quoteToken/intermediateToken and baseToken/intermediateToken to get the final price baseToken/quoteToken
@@ -46,16 +67,16 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
   }
 
   function getRationalPrice(address quoteToken, address baseToken) internal view override returns (uint256, uint256) {
+    if (sequencerFeed != address(0)) {
+      (, int sequencerAnswer, , , ) = AggregatorV3Interface(sequencerFeed).latestRoundData();
+      if (sequencerAnswer != 0) revert SequencerIsDown();
+    }
+
     OracleParams memory params = getParams[quoteToken][baseToken];
 
-    (
-      ,
-      /* uint80 roundID */ int answer /* uint startedAt */ /* uint timeStamp */ /* uint80 answeredInRound */,
-      ,
-      ,
-
-    ) = params.dataFeed.latestRoundData();
-    if (answer < 0) revert InvalidPrice();
+    (, int answer, , uint updatedAt, ) = params.dataFeed.latestRoundData();
+    if (updatedAt < (block.timestamp - params.maxPriceAge)) revert StalePrice();
+    if (answer <= 0) revert InvalidPrice();
 
     uint8 decimals = params.dataFeed.decimals();
 

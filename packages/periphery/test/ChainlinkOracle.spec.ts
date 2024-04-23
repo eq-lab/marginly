@@ -62,6 +62,40 @@ describe('ChainlinkOracle prices', () => {
     });
   }
 
+  it('setPair should fail when wrong maxPriceAge provided', async () => {
+    const { oracle } = await loadFixture(createSomeChainlinkOracle);
+
+    const token1 = '0x0000000000000000000000000000000000000001';
+    const token2 = '0x0000000000000000000000000000000000000002';
+    const dataFeed = '0x000000000000000000000000000000000000000f';
+
+    await expect(oracle.setPair(token1, token2, dataFeed, 0)).to.be.revertedWithCustomError(oracle, 'WrongValue');
+  });
+
+  it('getPrice should fail when price is stale', async () => {
+    const { oracle, chainlink, quoteToken, baseToken } = await loadFixture(createSomeChainlinkOracle);
+
+    await chainlink.setUpdatedAt(0);
+
+    await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(oracle, 'StalePrice');
+    await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(oracle, 'StalePrice');
+  });
+
+  it('getPrice should fail when sequencer is down', async () => {
+    const { oracle, quoteToken, baseToken, sequencerFeed } = await loadFixture(createSomeChainlinkOracle);
+
+    await sequencerFeed.setAnswer(1);
+
+    await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
+      oracle,
+      'SequencerIsDown'
+    );
+    await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
+      oracle,
+      'SequencerIsDown'
+    );
+  });
+
   it('only owner could pause contract', async () => {
     const { oracle } = await loadFixture(createSomeChainlinkOracle);
     const [owner, notOwner] = await ethers.getSigners();
