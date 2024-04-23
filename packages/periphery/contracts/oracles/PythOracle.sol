@@ -12,8 +12,10 @@ import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 import './CompositeOracle.sol';
 
 contract PythOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausable {
+  error WrongValue();
   struct OracleParams {
     bytes32 tokenPriceId;
+    uint32 maxPriceAge;
   }
 
   IPyth public immutable pyth;
@@ -27,11 +29,14 @@ contract PythOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausable {
   /// @param quoteToken - address of quote token, address(0) if token is not erc-20 (e.g. USD)
   /// @param baseToken - address of base token, address(0) if token is not erc-20 (e.g. USD)
   /// @param tokenPriceId - pyth price id
-  function setPair(address quoteToken, address baseToken, bytes32 tokenPriceId) external onlyOwner {
+  /// @param maxPriceAge - max age of price, if price is older than max age, price is stale and cannot be used
+  function setPair(address quoteToken, address baseToken, bytes32 tokenPriceId, uint32 maxPriceAge) external onlyOwner {
+    if (maxPriceAge == 0) revert WrongValue();
+
     _setCommonPair(quoteToken, baseToken);
 
-    getParams[quoteToken][baseToken] = OracleParams({tokenPriceId: tokenPriceId});
-    getParams[baseToken][quoteToken] = OracleParams({tokenPriceId: tokenPriceId});
+    getParams[quoteToken][baseToken] = OracleParams({tokenPriceId: tokenPriceId, maxPriceAge: maxPriceAge});
+    getParams[baseToken][quoteToken] = OracleParams({tokenPriceId: tokenPriceId, maxPriceAge: maxPriceAge});
   }
 
   /// @notice Set up oracle for composition quoteToken/intermediateToken and baseToken/intermediateToken to get the final price baseToken/quoteToken
@@ -54,7 +59,7 @@ contract PythOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausable {
   function getRationalPrice(address quoteToken, address baseToken) internal view override returns (uint256, uint256) {
     OracleParams memory params = getParams[quoteToken][baseToken];
 
-    PythStructs.Price memory currentPrice = pyth.getPrice(params.tokenPriceId);
+    PythStructs.Price memory currentPrice = pyth.getPriceNoOlderThan(params.tokenPriceId, params.maxPriceAge);
 
     int expo = currentPrice.expo;
     bool isNegativeExpo = expo < 0;

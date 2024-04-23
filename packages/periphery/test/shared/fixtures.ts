@@ -236,7 +236,8 @@ async function createPythOracle(quoteToken: string, baseToken: string, pythId: s
 
   const oracleFactory = await ethers.getContractFactory('PythOracle');
   const oracle = await oracleFactory.deploy(mockPyth.address);
-  await oracle.setPair(quoteToken, baseToken, pythId);
+  const maxPriceAge = 86400; // 1 day
+  await oracle.setPair(quoteToken, baseToken, pythId, maxPriceAge);
   return {
     oracle,
     pyth: mockPyth,
@@ -274,8 +275,9 @@ async function createPythCompositeOracle(
 
   const oracleFactory = await ethers.getContractFactory('PythOracle');
   const oracle = await oracleFactory.deploy(mockPyth.address);
-  await oracle.setPair(intermediateToken, quoteToken, quotePythId);
-  await oracle.setPair(intermediateToken, baseToken, basePythId);
+  const maxPriceAge = 86400; // 1 day
+  await oracle.setPair(intermediateToken, quoteToken, quotePythId, maxPriceAge);
+  await oracle.setPair(intermediateToken, baseToken, basePythId, maxPriceAge);
   await oracle.setCompositePair(quoteToken, intermediateToken, baseToken);
   return {
     oracle,
