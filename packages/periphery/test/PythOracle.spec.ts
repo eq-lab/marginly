@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 import { createSomePythCompositeOracle, createSomePythOracle } from './shared/fixtures';
@@ -8,7 +8,8 @@ describe('PythOracle prices', () => {
   for (const getPrice of ['getBalancePrice', 'getMargincallPrice']) {
     it(`${getPrice} negative exponent forward`, async () => {
       const { oracle, pyth, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
-      await pyth.setPrice(pythId, 5, -1); // 0.5
+      const currentTime = await time.latest();
+      await pyth.setPrice(pythId, 5, -1, currentTime); // 0.5
 
       const quoteDecimals = await (await ethers.getContractAt('IERC20Metadata', quoteToken)).decimals();
       const baseDecimals = await (await ethers.getContractAt('IERC20Metadata', baseToken)).decimals();
@@ -23,7 +24,8 @@ describe('PythOracle prices', () => {
 
     it(`${getPrice} negative exponent backward`, async () => {
       const { oracle, pyth, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
-      await pyth.setPrice(pythId, 5, -1); // 0.5
+      const currentTime = await time.latest();
+      await pyth.setPrice(pythId, 5, -1, currentTime); // 0.5
 
       const quoteDecimals = await (await ethers.getContractAt('IERC20Metadata', quoteToken)).decimals();
       const baseDecimals = await (await ethers.getContractAt('IERC20Metadata', baseToken)).decimals();
@@ -38,7 +40,8 @@ describe('PythOracle prices', () => {
 
     it(`${getPrice} non-negative exponent forward`, async () => {
       const { oracle, pyth, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
-      await pyth.setPrice(pythId, 4, 0); // 4
+      const currentTime = await time.latest();
+      await pyth.setPrice(pythId, 4, 0, currentTime); // 4
 
       const quoteDecimals = await (await ethers.getContractAt('IERC20Metadata', quoteToken)).decimals();
       const baseDecimals = await (await ethers.getContractAt('IERC20Metadata', baseToken)).decimals();
@@ -53,7 +56,8 @@ describe('PythOracle prices', () => {
 
     it(`${getPrice} non-negative exponent backward`, async () => {
       const { oracle, pyth, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
-      await pyth.setPrice(pythId, 4, 0); // 4
+      const currentTime = await time.latest();
+      await pyth.setPrice(pythId, 4, 0, currentTime); // 4
 
       const quoteDecimals = await (await ethers.getContractAt('IERC20Metadata', quoteToken)).decimals();
       const baseDecimals = await (await ethers.getContractAt('IERC20Metadata', baseToken)).decimals();
@@ -70,8 +74,9 @@ describe('PythOracle prices', () => {
       const { oracle, pyth, quoteToken, baseToken, quotePythId, basePythId } = await loadFixture(
         createSomePythCompositeOracle
       );
-      await pyth.setPrice(quotePythId, 2000, 0);
-      await pyth.setPrice(basePythId, 40000, 0);
+      const currentTime = await time.latest();
+      await pyth.setPrice(quotePythId, 2000, 0, currentTime);
+      await pyth.setPrice(basePythId, 40000, 0, currentTime);
 
       const quoteDecimals = await (await ethers.getContractAt('IERC20Metadata', quoteToken)).decimals();
       const baseDecimals = await (await ethers.getContractAt('IERC20Metadata', baseToken)).decimals();
@@ -86,7 +91,8 @@ describe('PythOracle prices', () => {
 
     it(`${getPrice} should fail when contract paused`, async () => {
       const { oracle, pyth, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
-      await pyth.setPrice(pythId, 5, -1); // 0.5
+      const currentTime = await time.latest();
+      await pyth.setPrice(pythId, 5, -1, currentTime); // 0.5
 
       await oracle.pause();
       await expect((oracle as any)[getPrice](quoteToken, baseToken)).to.be.revertedWith('Pausable: paused');
@@ -94,7 +100,21 @@ describe('PythOracle prices', () => {
       await oracle.unpause();
       await (oracle as any)[getPrice](quoteToken, baseToken);
     });
+
+    it('getPrice should fail when price is stale', async () => {
+      const { oracle, pyth, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
+      const publishTime = (await time.latest()) - 86400;
+      await pyth.setPrice(pythId, 4, 0, publishTime); // 4
+
+      await expect((oracle as any)[getPrice](quoteToken, baseToken)).to.be.revertedWithCustomError(pyth, 'StalePrice');
+    });
   }
+
+  it('setPair should fail when maxPriceAge param is zero', async () => {
+    const { oracle, pythId, quoteToken, baseToken } = await loadFixture(createSomePythOracle);
+
+    expect(oracle.setPair(quoteToken, baseToken, pythId, 0)).to.be.revertedWithCustomError(oracle, 'WrongValue');
+  });
 
   it('only owner could pause contract', async () => {
     const { oracle } = await loadFixture(createSomePythOracle);
