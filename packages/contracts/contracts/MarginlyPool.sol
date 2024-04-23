@@ -311,6 +311,11 @@ contract MarginlyPool is IMarginlyPool {
   function deleverageShort(uint256 realQuoteCollateral, uint256 realBaseDebt) private {
     quoteDelevCoeff = quoteDelevCoeff.add(FP96.fromRatio(realQuoteCollateral, discountedBaseDebt));
     baseDebtCoeff = baseDebtCoeff.sub(FP96.fromRatio(realBaseDebt, discountedBaseDebt));
+
+    // this error is highly unlikely to occur and requires lots of big whales liquidations prior to it
+    // however if it happens, the ways to fix what seems like a pool deadlock are 'receivePosition' and 'balanceSync'
+    if (baseDebtCoeff.inner < FP96.halfPrecision().inner) revert Errors.BigPrecisionLoss();
+
     emit Deleverage(PositionType.Short, realQuoteCollateral, realBaseDebt);
   }
 
@@ -320,6 +325,11 @@ contract MarginlyPool is IMarginlyPool {
   function deleverageLong(uint256 realBaseCollateral, uint256 realQuoteDebt) private {
     baseDelevCoeff = baseDelevCoeff.add(FP96.fromRatio(realBaseCollateral, discountedQuoteDebt));
     quoteDebtCoeff = quoteDebtCoeff.sub(FP96.fromRatio(realQuoteDebt, discountedQuoteDebt));
+
+    // this error is highly unlikely to occur and requires lots of big whales liquidations prior to it
+    // however if it happens, the ways to fix what seems like a pool deadlock are 'receivePosition' and 'balanceSync'
+    if (quoteDebtCoeff.inner < FP96.halfPrecision().inner) revert Errors.BigPrecisionLoss();
+
     emit Deleverage(PositionType.Long, realBaseCollateral, realQuoteDebt);
   }
 
@@ -452,11 +462,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param amount Amount of base token to deposit
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function depositBase(
-    uint256 amount,
-    FP96.FixedPoint memory basePrice,
-    Position storage position
-  ) private {
+  function depositBase(uint256 amount, FP96.FixedPoint memory basePrice, Position storage position) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
     if (position._type == PositionType.Uninitialized) {
@@ -515,10 +521,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @notice Deposit quote token
   /// @param amount Amount of quote token
   /// @param position msg.sender position
-  function depositQuote(
-    uint256 amount,
-    Position storage position
-  ) private {
+  function depositQuote(uint256 amount, Position storage position) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
     if (position._type == PositionType.Uninitialized) {
