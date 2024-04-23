@@ -245,7 +245,9 @@ async function createPythOracle(quoteToken: string, baseToken: string, pythId: s
 }
 
 export async function createSomePythOracle() {
-  return createPythOracle(Tokens.USDC, Tokens.TBTC, PythIds.TBTC);
+  const usdc = await (await ethers.getContractFactory('TestERC20')).deploy('USDC', 'USDC', 6);
+  const tbtc = await (await ethers.getContractFactory('TestERC20')).deploy('TBTC', 'TBTC', 18);
+  return createPythOracle(usdc.address, tbtc.address, PythIds.TBTC);
 }
 
 export type PythCompositeOracleData = {
@@ -285,7 +287,11 @@ async function createPythCompositeOracle(
 }
 
 export async function createSomePythCompositeOracle() {
-  return createPythCompositeOracle(Tokens.WETH, Tokens.USDC, Tokens.WBTC, PythIds.ETH, PythIds.BTC);
+  const usdc = await (await ethers.getContractFactory('TestERC20')).deploy('USDC', 'USDC', 6);
+  const weth = await (await ethers.getContractFactory('TestERC20')).deploy('WETH', 'WETH', 18);
+  const wbtc = await (await ethers.getContractFactory('TestERC20')).deploy('WBTC', 'WBTC', 8);
+
+  return createPythCompositeOracle(weth.address, usdc.address, wbtc.address, PythIds.ETH, PythIds.BTC);
 }
 
 export type ChainlinkOracleData = {
@@ -317,7 +323,10 @@ async function createChainlinkOracle(
 }
 
 export async function createSomeChainlinkOracle() {
-  return createChainlinkOracle(Tokens.USDC, Tokens.TBTC, 8);
+  const usdc = await (await ethers.getContractFactory('TestERC20')).deploy('USDC', 'USDC', 6);
+  const tbtc = await (await ethers.getContractFactory('TestERC20')).deploy('TBTC', 'TBTC', 18);
+
+  return createChainlinkOracle(usdc.address, tbtc.address, 8);
 }
 
 export type ChainlinkCompositeOracleData = {
@@ -360,7 +369,11 @@ async function createChainlinkCompositeOracle(
 }
 
 export async function createSomeChainlinkCompositeOracle() {
-  return createChainlinkCompositeOracle(Tokens.WETH, Tokens.USDC, Tokens.WBTC, 18, 8);
+  const usdc = await (await ethers.getContractFactory('TestERC20')).deploy('USDC', 'USDC', 6);
+  const weth = await (await ethers.getContractFactory('TestERC20')).deploy('WETH', 'WETH', 18);
+  const wbtc = await (await ethers.getContractFactory('TestERC20')).deploy('WBTC', 'WBTC', 8);
+
+  return createChainlinkCompositeOracle(weth.address, usdc.address, wbtc.address, 18, 8);
 }
 
 export type AlgebraOracleData = {
