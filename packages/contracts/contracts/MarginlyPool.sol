@@ -1228,8 +1228,7 @@ contract MarginlyPool is IMarginlyPool {
 
     updateHeap(position);
 
-    updateSystemLeverageShort(basePrice);
-    updateSystemLeverageLong(basePrice);
+    updateSystemLeverages(basePrice);
 
     delete positions[badPositionAddress];
 
@@ -1410,6 +1409,11 @@ contract MarginlyPool is IMarginlyPool {
     systemLeverage.shortX96 = leverageX96 < maxLeverageX96 ? leverageX96 : maxLeverageX96;
   }
 
+  function updateSystemLeverages(FP96.FixedPoint memory basePrice) private {
+    updateSystemLeverageLong(basePrice);
+    updateSystemLeverageShort(basePrice);
+  }
+
   /// @dev Wraps ETH into WETH if need and makes transfer from `payer`
   function wrapAndTransferFrom(address token, address payer, uint256 value) private {
     if (msg.value >= value) {
@@ -1533,6 +1537,7 @@ contract MarginlyPool is IMarginlyPool {
 
     (bool callerMarginCalled, FP96.FixedPoint memory basePrice) = reinit();
     if (callerMarginCalled) {
+      updateSystemLeverages(basePrice);
       return;
     }
 
@@ -1540,6 +1545,7 @@ contract MarginlyPool is IMarginlyPool {
 
     if (positionHasBadLeverage(position, basePrice)) {
       liquidate(msg.sender, position, basePrice);
+      updateSystemLeverages(basePrice);
       return;
     }
 
@@ -1576,8 +1582,7 @@ contract MarginlyPool is IMarginlyPool {
 
     updateHeap(position);
 
-    updateSystemLeverageLong(basePrice);
-    updateSystemLeverageShort(basePrice);
+    updateSystemLeverages(basePrice);
   }
 
   function getTimestamp() internal view virtual returns (uint256) {
