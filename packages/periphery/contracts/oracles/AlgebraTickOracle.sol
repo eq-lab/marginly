@@ -36,6 +36,7 @@ contract AlgebraTickOracle is IPriceOracle, Ownable2Step {
     uint16 secondsAgoLiquidation
   ) external onlyOwner {
     if (secondsAgo == 0 || secondsAgoLiquidation == 0) revert WrongValue();
+    if (secondsAgo < secondsAgoLiquidation) revert WrongValue();
 
     OracleParams storage currentParams = getParams[quoteToken][baseToken];
     if (!currentParams.initialized) {
