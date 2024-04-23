@@ -452,11 +452,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @param amount Amount of base token to deposit
   /// @param basePrice current oracle base price, got by getBasePrice() method
   /// @param position msg.sender position
-  function depositBase(
-    uint256 amount,
-    FP96.FixedPoint memory basePrice,
-    Position storage position
-  ) private {
+  function depositBase(uint256 amount, FP96.FixedPoint memory basePrice, Position storage position) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
     if (position._type == PositionType.Uninitialized) {
@@ -515,10 +511,7 @@ contract MarginlyPool is IMarginlyPool {
   /// @notice Deposit quote token
   /// @param amount Amount of quote token
   /// @param position msg.sender position
-  function depositQuote(
-    uint256 amount,
-    Position storage position
-  ) private {
+  function depositQuote(uint256 amount, Position storage position) private {
     if (amount == 0) revert Errors.ZeroAmount();
 
     if (position._type == PositionType.Uninitialized) {
@@ -1198,6 +1191,9 @@ contract MarginlyPool is IMarginlyPool {
       }
 
       discountedBaseDebt = discountedBaseDebt.sub(discountedBaseDebtDelta);
+      discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteDelevCoeff.mul(discountedBaseDebtDelta));
+      discountedQuoteCollateral -= discountedQuoteCollateralDelta;
+      position.discountedQuoteAmount -= discountedQuoteCollateralDelta;
     } else {
       uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmount);
       discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseCollateralDelta);
@@ -1225,6 +1221,9 @@ contract MarginlyPool is IMarginlyPool {
       }
 
       discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteDebtDelta);
+      discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseDelevCoeff.mul(discountedQuoteDebtDelta));
+      discountedBaseCollateral -= discountedBaseCollateralDelta;
+      position.discountedBaseAmount -= discountedBaseCollateralDelta;
     }
 
     updateHeap(position);
