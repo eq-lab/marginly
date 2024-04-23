@@ -85,15 +85,18 @@ describe('Pendle swap pre maturity', () => {
     console.log(`wethBalanceBefore: ${formatUnits(wethBalanceBefore, await weth.decimals())} ${await weth.symbol()}`);
 
     const swapCalldata = constructSwap([Dex.Pendle], [SWAP_ONE]);
-    await weth.connect(user).approve(router.address, wethBalanceBefore);
+    const wethSwapAmount = wethBalanceBefore;
+    await weth.connect(user).approve(router.address, wethSwapAmount);
     await router
       .connect(user)
-      .swapExactInput(swapCalldata, weth.address, ptToken.address, wethBalanceBefore, wethBalanceBefore.mul(9).div(10));
+      .swapExactInput(swapCalldata, weth.address, ptToken.address, wethSwapAmount, wethSwapAmount.mul(9).div(10));
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceAfter).to.be.greaterThan(ptBalanceBefore);
     const wethBalanceAfter = await weth.balanceOf(user.address);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceBefore.sub(wethBalanceAfter)).to.be.eq(wethSwapAmount);
   });
 
   it('weth to pt exact output', async () => {
@@ -109,8 +112,10 @@ describe('Pendle swap pre maturity', () => {
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceAfter.sub(ptBalanceBefore)).to.be.eq(ptOut);
     const wethBalanceAfter = await weth.balanceOf(user.address);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceBefore).to.be.greaterThan(wethBalanceAfter);
   });
 
   it('pt to weth exact input', async () => {
@@ -126,8 +131,10 @@ describe('Pendle swap pre maturity', () => {
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceBefore.sub(ptBalanceAfter)).to.be.eq(ptIn);
     const wethBalanceAfter = await weth.balanceOf(user.address);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceAfter).to.be.greaterThan(wethBalanceBefore);
   });
 
   it('pt to weth exact output', async () => {
@@ -138,15 +145,18 @@ describe('Pendle swap pre maturity', () => {
 
     const swapCalldata = constructSwap([Dex.Pendle], [SWAP_ONE]);
     const wethOut = ptBalanceBefore.div(2);
-    await ptToken.connect(user).approve(router.address, ptBalanceBefore);
+    const maxPtIn = wethOut.mul(115).div(100);
+    await ptToken.connect(user).approve(router.address, maxPtIn);
     await router
       .connect(user)
       .swapExactOutput(swapCalldata, ptToken.address, weth.address, wethOut.mul(11).div(10), wethOut);
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceBefore).to.be.greaterThan(ptBalanceAfter);
     const wethBalanceAfter = await weth.balanceOf(user.address);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceAfter.sub(wethBalanceBefore)).to.be.eq(wethOut);
   });
 });
 
@@ -205,11 +215,11 @@ describe('Pendle swap post maturity', () => {
 
     console.log('This swap is forbidden after maturity');
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
-    expect(ptBalanceAfter).to.be.eq(ptBalanceBefore);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceAfter).to.be.eq(ptBalanceBefore);
     const wethBalanceAfter = await weth.balanceOf(user.address);
-    expect(wethBalanceAfter).to.be.eq(wethBalanceBefore);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceAfter).to.be.eq(wethBalanceBefore);
   });
 
   it('weth to pt exact output, forbidden', async () => {
@@ -228,11 +238,11 @@ describe('Pendle swap post maturity', () => {
 
     console.log('This swap is forbidden after maturity');
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
-    expect(ptBalanceAfter).to.be.eq(ptBalanceBefore);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceAfter).to.be.eq(ptBalanceBefore);
     const wethBalanceAfter = await weth.balanceOf(user.address);
-    expect(wethBalanceAfter).to.be.eq(wethBalanceBefore);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceAfter).to.be.eq(wethBalanceBefore);
   });
 
   it('pt to weth exact input', async () => {
@@ -248,8 +258,10 @@ describe('Pendle swap post maturity', () => {
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceBefore.sub(ptBalanceAfter)).to.be.eq(ptIn);
     const wethBalanceAfter = await weth.balanceOf(user.address);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceAfter).to.be.greaterThan(wethBalanceBefore);
   });
 
   it('pt to weth exact output', async () => {
@@ -267,7 +279,9 @@ describe('Pendle swap post maturity', () => {
 
     const ptBalanceAfter = await ptToken.balanceOf(user.address);
     console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
+    expect(ptBalanceBefore).to.be.greaterThan(ptBalanceAfter);
     const wethBalanceAfter = await weth.balanceOf(user.address);
     console.log(`wethBalanceAfter: ${formatUnits(wethBalanceAfter, await weth.decimals())} ${await weth.symbol()}`);
+    expect(wethBalanceAfter.sub(wethBalanceBefore)).to.be.eq(wethOut);
   });
 });
