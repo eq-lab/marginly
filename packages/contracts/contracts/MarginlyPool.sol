@@ -311,6 +311,11 @@ contract MarginlyPool is IMarginlyPool {
   function deleverageShort(uint256 realQuoteCollateral, uint256 realBaseDebt) private {
     quoteDelevCoeff = quoteDelevCoeff.add(FP96.fromRatio(realQuoteCollateral, discountedBaseDebt));
     baseDebtCoeff = baseDebtCoeff.sub(FP96.fromRatio(realBaseDebt, discountedBaseDebt));
+
+    // this error is highly unlikely to occur and requires lots of big whales liquidations prior to it
+    // however if it happens, the ways to fix what seems like a pool deadlock are 'receivePosition' and 'balanceSync'
+    if (baseDebtCoeff.inner < FP96.halfPrecision().inner) revert Errors.BigPrecisionLoss();
+
     emit Deleverage(PositionType.Short, realQuoteCollateral, realBaseDebt);
   }
 
@@ -320,6 +325,11 @@ contract MarginlyPool is IMarginlyPool {
   function deleverageLong(uint256 realBaseCollateral, uint256 realQuoteDebt) private {
     baseDelevCoeff = baseDelevCoeff.add(FP96.fromRatio(realBaseCollateral, discountedQuoteDebt));
     quoteDebtCoeff = quoteDebtCoeff.sub(FP96.fromRatio(realQuoteDebt, discountedQuoteDebt));
+
+    // this error is highly unlikely to occur and requires lots of big whales liquidations prior to it
+    // however if it happens, the ways to fix what seems like a pool deadlock are 'receivePosition' and 'balanceSync'
+    if (quoteDebtCoeff.inner < FP96.halfPrecision().inner) revert Errors.BigPrecisionLoss();
+
     emit Deleverage(PositionType.Long, realBaseCollateral, realQuoteDebt);
   }
 
