@@ -58,6 +58,7 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
   uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
   mapping(address => mapping(address => PoolData)) public getPoolData;
+  uint256 private callbackAmountIn;
 
   event NewPair(
     address indexed token0,
@@ -130,7 +131,9 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     if (syToAccount > 0) {
       // this clause is realized in case of both exactInput and exactOutput with pt tokens as input
       // we need to send pt tokens from router-call initiator to finalize the swap
-      IMarginlyRouter(data.router).adapterCallback(msg.sender, uint256(-ptToAccount), data.adapterCallbackData);
+      uint256 ptAmountIn = uint256(-ptToAccount);
+      if (!data.isExactInput) callbackAmountIn = ptAmountIn;
+      IMarginlyRouter(data.router).adapterCallback(msg.sender, ptAmountIn, data.adapterCallbackData);
     } else if (data.isExactInput) {
       // this clause is realized in case of exactInput with pt tokens as output
       // we need to redeem ib tokens from pt and transfer them to uniswap
@@ -163,6 +166,7 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     if (tokenOut == address(marketData.pt)) {
       // this clause is realized in case of both exactInput and exactOutput with pt tokens as output
       // we need to send tokenIn to uniswapV3 to finalize both tokenIn -> sy and sy -> pt swaps
+      if (!data.isExactInput) callbackAmountIn = amountToPay;
       IMarginlyRouter(data.router).adapterCallback(msg.sender, amountToPay, data.adapterCallbackData);
     } else if (data.isExactInput) {
       // this clause is realized in case of exactInput with pt tokens as input
@@ -177,6 +181,7 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
         // https://github.com/pendle-finance/pendle-core-v2-public/blob/bc27b10c33ac16d6e1936a9ddd24d536b00c96a4/contracts/core/YieldContractsV2/PendleYieldTokenV2.sol#L301
         uint256 index = marketData.yt.pyIndexCurrent();
         uint256 transferPtAmount = Math.mulDiv(amountToPay, index, PENDLE_ONE, Math.Rounding.Up);
+        callbackAmountIn = transferPtAmount;
 
         syAmountOut = _redeemPY(marketData.yt, data.router, transferPtAmount, data.adapterCallbackData);
       } else {
@@ -284,8 +289,10 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
       );
     } else {
       // call pendle -> swapCallback triggers uniswapV3 tokenIn to ib swap -> completing pendle sy to pt swap
-      (amountIn, ) = marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
+      marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
     }
+
+    amountIn = _getAmountIn();
   }
 
   function _swapExactInputPostMaturity(
@@ -341,7 +348,7 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
         adapterCallbackData: data
       });
       // call uniswap -> uniswapV3SwapCallback triggers pendle pt to sy swap -> completing uniswap ib to tokenOut swap
-      (amountIn, ) = _uniswapV3LikeSwap(
+      _uniswapV3LikeSwap(
         recipient,
         marketData.uniswapV3,
         address(marketData.ib) < tokenOut,
@@ -352,6 +359,8 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
       // sy to pt swap is not possible after maturity
       revert NotSupported();
     }
+
+    amountIn = _getAmountIn();
   }
 
   function _uniswapV3LikeSwap(
@@ -458,6 +467,11 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
   ) private returns (uint256 syRedeemed) {
     IMarginlyRouter(router).adapterCallback(address(yt), ptAmount, adapterCallbackData);
     syRedeemed = yt.redeemPY(address(this));
+  }
+
+  function _getAmountIn() private returns (uint256 amountIn) {
+    amountIn = callbackAmountIn;
+    delete callbackAmountIn;
   }
 
   function _addPools(PoolInput[] memory poolsData) private {
