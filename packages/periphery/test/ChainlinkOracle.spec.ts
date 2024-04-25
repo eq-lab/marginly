@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
 import { BigNumber } from 'ethers';
 import { createSomeChainlinkCompositeOracle, createSomeChainlinkOracle } from './shared/fixtures';
 import { ethers } from 'hardhat';
@@ -84,7 +84,7 @@ describe('ChainlinkOracle prices', () => {
   it('getPrice should fail when sequencer is down', async () => {
     const { oracle, quoteToken, baseToken, sequencerFeed } = await loadFixture(createSomeChainlinkOracle);
 
-    await sequencerFeed.setAnswer(1);
+    await sequencerFeed.setAnswer(1, 0);
 
     await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
       oracle,
@@ -93,6 +93,40 @@ describe('ChainlinkOracle prices', () => {
     await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
       oracle,
       'SequencerIsDown'
+    );
+  });
+
+  it('getPrice should fail when sequencer grace period is not over', async () => {
+    const { oracle, quoteToken, baseToken, sequencerFeed, chainlink } = await loadFixture(createSomeChainlinkOracle);
+    await chainlink.setPrice(5n * 10n ** (BigInt(18) - 1n)); // 0.5
+    const currentTimestamp = await time.latest();
+
+    await sequencerFeed.setAnswer(0, currentTimestamp);
+    await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
+      oracle,
+      'SequencerGracePeriodNotOver'
+    );
+    await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
+      oracle,
+      'SequencerGracePeriodNotOver'
+    );
+
+    await sequencerFeed.setAnswer(0, currentTimestamp - (await oracle.sequencerGracePeriod()).toNumber());
+    await oracle.getMargincallPrice(quoteToken, baseToken);
+    await oracle.getBalancePrice(quoteToken, baseToken);
+  });
+
+  it('only owner could change sequencer grace period', async () => {
+    const { oracle } = await loadFixture(createSomeChainlinkOracle);
+    const [owner, notOwner] = await ethers.getSigners();
+
+    await oracle.connect(owner).updateSequencerGracePeriod(0);
+
+    await expect(oracle.connect(notOwner).updateSequencerGracePeriod(1)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    );
+    await expect(oracle.connect(notOwner).updateSequencerGracePeriod(1)).to.be.revertedWith(
+      'Ownable: caller is not the owner'
     );
   });
 
