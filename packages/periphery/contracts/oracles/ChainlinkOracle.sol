@@ -14,8 +14,13 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
   error WrongValue();
   error StalePrice();
   error SequencerIsDown();
+  error SequencerGracePeriodNotOver();
 
+  /// @dev address(0) means that sequncer feed is not provided and should not be checked for up and grace period
   address public immutable sequencerFeed;
+
+  /// @dev zero value means that there is no grace period since sequncer is up
+  uint256 public sequencerGracePeriod = 900; // 15 minutes by default
 
   /// @dev Sequencer feed should be provided for L2 chains, use address(0) for L1 chains
   constructor(address _sequencerFeed) {
@@ -58,6 +63,10 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
     _setCompositePair(quoteToken, intermediateToken, baseToken);
   }
 
+  function updateSequencerGracePeriod(uint256 _sequencerGracePeriod) external onlyOwner {
+    sequencerGracePeriod = _sequencerGracePeriod;
+  }
+
   function getBalancePrice(address quoteToken, address baseToken) external view whenNotPaused returns (uint256) {
     return _getPrice(quoteToken, baseToken);
   }
@@ -68,8 +77,16 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
 
   function getRationalPrice(address quoteToken, address baseToken) internal view override returns (uint256, uint256) {
     if (sequencerFeed != address(0)) {
-      (, int sequencerAnswer, , , ) = AggregatorV3Interface(sequencerFeed).latestRoundData();
+      (, int sequencerAnswer, uint256 sequencerStartedAt, , ) = AggregatorV3Interface(sequencerFeed).latestRoundData();
+
+      // sequencerAnswer == 0: Sequencer is up
+      // sequencerAnswer == 1: Sequencer is down
       if (sequencerAnswer != 0) revert SequencerIsDown();
+
+      // Make sure the grace period has passed after the
+      // sequencer is back up.
+      uint256 timeSinceUp = block.timestamp - sequencerStartedAt;
+      if (timeSinceUp < sequencerGracePeriod) revert SequencerGracePeriodNotOver();
     }
 
     OracleParams memory params = getParams[quoteToken][baseToken];
