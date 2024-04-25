@@ -12,10 +12,6 @@
       "address": "0xB3007462BAe7Cd5CB3CaB799B97Dab157283e2f0",
       "txHash": "0xf7c80b365df35c0425a5301ba1160d44013447b96cc096dcfd69a06d504bed49"
     },
-    "PendleAdapter_17": {
-      "address": "0x0507c8810A1755b321A19e6Ea1F2996BA1C74b42",
-      "txHash": "0x8ac285f81109a8b2730f447beb62ba2f5df508f7d57b5047e5991646b0955240"
-    },
     "MarginlyRouter": {
       "address": "0x1eE74263c21C1Cab248944233eBA806D0F67e4E4",
       "txHash": "0x671ac40c6b56920eb6c717ad6abbc668e79c57b36e4bf94ae993769f58a28ae1"
@@ -35,6 +31,10 @@
     "marginlyKeeper": {
       "address": "0x14adE4DA23049b0dB1368e36555Cdf79745FAd7c",
       "txHash": "0x3f26687da14439598cb0bd340b835ae41254db35eb13c786c7af2e123d559316"
+    },
+    "PendleAdapter_17": {
+      "address": "0x0ef17ba7F450dd331d9BA9fe83681Eac9D852111",
+      "txHash": "0x8e632b08968cf72bf2fb873f33357a3424147cf9123f6452a93918d40f5e0ac7"
     }
   }
 }
