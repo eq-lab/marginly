@@ -209,7 +209,7 @@ describe('MarginlyPool.Shutdown', () => {
       .connect(shorter2)
       .execute(CallType.DepositQuote, quoteAmountToDeposit, 0, price, false, ZERO_ADDRESS, uniswapV3Swapdata());
 
-    const longAmountDeposit = 10;
+    const longAmountDeposit = 20;
     const longAmount = 50;
     await marginlyPool
       .connect(longer1)
