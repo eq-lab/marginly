@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { createMarginlyRouter } from './shared/fixtures';
+import { createMarginlyRouter } from '../shared/fixtures';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
-import { constructSwap, Dex, SWAP_ONE } from './shared/utils';
-import { AdapterStorage__factory } from '../typechain-types';
+import { constructSwap, Dex, SWAP_ONE } from '../shared/utils';
+import { AdapterStorage__factory } from '../../typechain-types';
 
 describe('MarginlyRouter UniswapV3', () => {
   it('swapExactInput 0 to 1, success', async () => {
@@ -706,7 +706,9 @@ describe('MarginlyRouter DodoV1', () => {
     expect(await token1.balanceOf(user.address)).to.be.equal(amountToSwap);
 
     const swapCalldata = constructSwap([Dex.DodoV1], [SWAP_ONE]);
-    await marginlyRouter.connect(user).swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, minAmountOut);
+    await marginlyRouter
+      .connect(user)
+      .swapExactInput(swapCalldata, token1.address, token0.address, amountToSwap, minAmountOut);
 
     expect(await token1.balanceOf(user.address)).to.be.equal(0);
     const expectedAmount = BigNumber.from(amountToSwap).div(price);
