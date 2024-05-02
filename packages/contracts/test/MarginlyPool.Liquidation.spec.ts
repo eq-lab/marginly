@@ -200,6 +200,7 @@ describe('MarginlyPool.Liquidation', () => {
 
     const newPosition = await marginlyPool.positions(receiver.address);
     const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
+    const baseDebtCoeff = await marginlyPool.baseDebtCoeff();
     const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
 
     expect(newPosition._type).to.be.equal(1); // Lend position
@@ -210,9 +211,9 @@ describe('MarginlyPool.Liquidation', () => {
     );
 
     const expectedDiscountedBaseAmount = BigNumber.from(baseAmount)
+      .sub(beforeLiquidationPosition.discountedBaseAmount.mul(baseDebtCoeff).div(FP96.one))
       .mul(FP96.one)
-      .div(baseCollateralCoeff)
-      .sub(beforeLiquidationPosition.discountedBaseAmount);
+      .div(baseCollateralCoeff);
     expect(newPosition.discountedBaseAmount).to.be.equal(expectedDiscountedBaseAmount);
 
     //assert aggregates
@@ -296,6 +297,7 @@ describe('MarginlyPool.Liquidation', () => {
 
     const newPosition = await marginlyPool.positions(receiver.address);
     const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
+    const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
     const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
 
     expect(newPosition._type).to.be.equal(1); // Lend position
@@ -305,9 +307,9 @@ describe('MarginlyPool.Liquidation', () => {
       beforeLiquidationPosition.discountedBaseAmount.add(expectedDiscountedBaseAmountDelta)
     ); // should receive bad position collateral
     const expectedDiscountedQuoteAmount = BigNumber.from(quoteAmount)
+      .sub(beforeLiquidationPosition.discountedQuoteAmount.mul(quoteDebtCoeff).div(FP96.one))
       .mul(FP96.one)
-      .div(quoteCollateralCoeff)
-      .sub(beforeLiquidationPosition.discountedQuoteAmount);
+      .div(quoteCollateralCoeff);
     expect(newPosition.discountedQuoteAmount).to.be.equal(expectedDiscountedQuoteAmount);
 
     //assert aggregates
@@ -482,7 +484,7 @@ describe('MarginlyPool.Liquidation', () => {
     expect(liquidatedPosition.discountedQuoteAmount).to.be.equal(0);
 
     const newPosition = await marginlyPool.positions(receiver.address);
-    const quoteCollateralCoeff = await marginlyPool.quoteCollateralCoeff();
+    const quoteDebtCoeff = await marginlyPool.quoteDebtCoeff();
     const baseCollateralCoeff = await marginlyPool.baseCollateralCoeff();
 
     expect(newPosition._type).to.be.equal(3); // Long position
@@ -494,7 +496,7 @@ describe('MarginlyPool.Liquidation', () => {
     expect(newPosition.discountedBaseAmount).to.be.equal(expectedBaseAmount); // should receive bad position collateral
 
     const expectedDiscountedQuoteAmount = beforeLiquidationPosition.discountedQuoteAmount.sub(
-      BigNumber.from(quoteAmount).mul(FP96.one).div(quoteCollateralCoeff)
+      BigNumber.from(quoteAmount).mul(FP96.one).div(quoteDebtCoeff)
     );
     expect(newPosition.discountedQuoteAmount).to.be.equal(expectedDiscountedQuoteAmount);
 

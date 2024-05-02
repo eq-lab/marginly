@@ -53,9 +53,9 @@ contract MintableERC20 is IMintableERC20 {
         uint256 currentAllowance = allowance(owner, spender);
         if (currentAllowance != type(uint256).max) {
             require(currentAllowance >= amount, "ERC20: insufficient allowance");
-        unchecked {
-            _approve(owner, spender, currentAllowance - amount);
-        }
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
         }
     }
 
@@ -103,9 +103,9 @@ contract MintableERC20 is IMintableERC20 {
 
         uint256 fromBalance = _balances[from];
         require(fromBalance >= amount, "ERC20: transfer amount exceeds balance");
-    unchecked {
-        _balances[from] = fromBalance - amount;
-    }
+        unchecked {
+            _balances[from] = fromBalance - amount;
+        }
         _balances[to] += amount;
     }
 }

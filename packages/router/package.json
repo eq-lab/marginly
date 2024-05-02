@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test ./test/*.spec.ts",
+    "test": "hardhat test ./test/unit/*.spec.ts",
+    "test:int": "REPORT_GAS=true hardhat test --config hardhat-fork.config.ts ./test/int/*.spec.ts",
     "lint:write": "prettier --write ./contracts ./test",
     "docgen": "hardhat docgen"
   },

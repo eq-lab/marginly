@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import './TickMathLib.sol';
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle
