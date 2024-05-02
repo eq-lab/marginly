@@ -2,30 +2,7 @@ import { ethers } from 'hardhat';
 import bn from 'bignumber.js';
 import { BigNumber } from 'ethers';
 import { ChainlinkOracle } from '../../typechain-types/contracts/oracles';
-
-function toHumanPrice(priceX96: BigNumber, decimalsDiff: number) {
-  const one = bn(2 ** 96);
-
-  const multiplier = bn(10).pow(decimalsDiff);
-  return bn(priceX96.toString()).times(multiplier).div(one.toString()).toString();
-}
-
-function printPrices(balancePrice: BigNumber, mcPrice: BigNumber, decimalsDiff: number) {
-  console.log(`Balance price is ${toHumanPrice(balancePrice, decimalsDiff)}  (${balancePrice})`);
-  console.log(`MC price is ${toHumanPrice(mcPrice, decimalsDiff)} (${mcPrice})`);
-}
-
-async function getDecimals(contractAddress: string): Promise<number> {
-  const abi = ['function decimals() view returns (uint8)'];
-  const contract = new ethers.Contract(contractAddress, abi, ethers.provider);
-  return await contract.decimals();
-}
-
-async function getDecimalsDiff(quoteToken: string, baseToken: string): Promise<number> {
-  const baseDecimals = await getDecimals(baseToken);
-  const quoteDecimals = await getDecimals(quoteToken);
-  return baseDecimals - quoteDecimals;
-}
+import { getDecimalsDiff, printPrices } from '../shared/common';
 
 describe('ChainlinkOracle', () => {
   let oracle: ChainlinkOracle;

@@ -9,36 +9,9 @@ import {
 } from '../../typechain-types';
 import { constructSwap, Dex, SWAP_ONE } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
-import { formatUnits, keccak256, parseUnits } from 'ethers/lib/utils';
-import { BigNumber } from 'ethers';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-
-// TODO remove me after all the merges are resolved
-function getAccountBalanceStorageSlot(account: EthAddress, tokenMappingSlot: string): string {
-  return keccak256('0x' + account.toString().slice(2).padStart(64, '0') + tokenMappingSlot);
-}
-
-// TODO remove me after all the merges are resolved
-export async function setTokenBalance(
-  tokenAddress: string,
-  balanceOfSlotAddress: string,
-  account: EthAddress,
-  newBalance: BigNumber
-) {
-  const balanceOfStorageSlot = getAccountBalanceStorageSlot(account, balanceOfSlotAddress);
-
-  await ethers.provider.send('hardhat_setStorageAt', [
-    tokenAddress,
-    balanceOfStorageSlot,
-    ethers.utils.hexlify(ethers.utils.zeroPad(newBalance.toHexString(), 32)),
-  ]);
-}
-
-// TODO remove me after all the merges are resolved
-export enum ArbMainnetERC20BalanceOfSlot {
-  WETH = '0000000000000000000000000000000000000000000000000000000000000033',
-  PTWEETH = '0000000000000000000000000000000000000000000000000000000000000000',
-}
+import { ArbMainnetERC20BalanceOfSlot, setTokenBalance } from '../shared/tokens';
 
 describe('Pendle swap pre maturity', () => {
   let ptToken: ERC20;

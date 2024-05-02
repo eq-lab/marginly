@@ -15,19 +15,14 @@ contract TestCurveEMAPool {
   }
 
   function coins(uint256 coinId) external view returns (address) {
-    require(coinId < 2, "coinId must be 0 or 1");
+    require(coinId < 2, 'coinId must be 0 or 1');
     if (coinId == 0) {
       return _coin0;
     }
     return _coin1;
   }
 
-  function setPrices(
-    uint256 last_price,
-    uint256 ema_price,
-    uint256 price_oracle
-  ) external
-  {
+  function setPrices(uint256 last_price, uint256 ema_price, uint256 price_oracle) external {
     _last_price = last_price;
     _ema_price = ema_price;
     _price_oracle = price_oracle;

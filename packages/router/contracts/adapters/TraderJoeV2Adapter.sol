@@ -28,7 +28,7 @@ contract TraderJoeV2Adapter is AdapterStorage {
     bool swapForY = tokenOut == tokenY;
 
     if (amountIn > type(uint128).max) revert PrecisionLoss();
-    
+
     uint256 amountInLeft;
     (amountInLeft, amountOut, ) = pool.getSwapOut(uint128(amountIn), swapForY);
     if (amountInLeft != 0) revert NonZeroSwapAmountLeft();
@@ -52,11 +52,11 @@ contract TraderJoeV2Adapter is AdapterStorage {
     if (amountOut > type(uint128).max) revert PrecisionLoss();
 
     uint256 amountOutLeft;
-    (amountIn, amountOutLeft,) = pool.getSwapIn(uint128(amountOut), swapForY);
+    (amountIn, amountOutLeft, ) = pool.getSwapIn(uint128(amountOut), swapForY);
     if (amountOutLeft != 0) revert NonZeroSwapAmountLeft();
     if (amountIn > maxAmountIn) revert TooMuchRequested();
     IMarginlyRouter(msg.sender).adapterCallback(address(pool), amountIn, data);
-    
+
     // Trader joe has some calculation inaccuracy, so the actual amountOut can differ from the requested one
     // Receiving tokenOut here and transferring amountOut to the recipient is to prevent router `WrongAmountOut` error
     (uint256 amountXOut, uint256 amountYOut) = decode(pool.swap(swapForY, address(this)));
@@ -75,19 +75,19 @@ contract TraderJoeV2Adapter is AdapterStorage {
 }
 
 interface ILBPair {
-    function getTokenX() external view returns (IERC20 tokenX);
+  function getTokenX() external view returns (IERC20 tokenX);
 
-    function getTokenY() external view returns (IERC20 tokenY);
+  function getTokenY() external view returns (IERC20 tokenY);
 
-    function getSwapIn(uint128 amountOut, bool swapForY)
-        external
-        view
-        returns (uint128 amountIn, uint128 amountOutLeft, uint128 fee);
+  function getSwapIn(
+    uint128 amountOut,
+    bool swapForY
+  ) external view returns (uint128 amountIn, uint128 amountOutLeft, uint128 fee);
 
-    function getSwapOut(uint128 amountIn, bool swapForY)
-        external
-        view
-        returns (uint128 amountInLeft, uint128 amountOut, uint128 fee);
+  function getSwapOut(
+    uint128 amountIn,
+    bool swapForY
+  ) external view returns (uint128 amountInLeft, uint128 amountOut, uint128 fee);
 
-    function swap(bool swapForY, address to) external returns (bytes32 amountsOut);
+  function swap(bool swapForY, address to) external returns (bytes32 amountsOut);
 }

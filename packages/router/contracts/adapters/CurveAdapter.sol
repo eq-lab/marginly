@@ -18,21 +18,12 @@ contract CurveAdapter is AdapterStorage {
     bytes calldata data
   ) external returns (uint256 amountOut) {
     address poolAddress = getPoolSafe(tokenIn, tokenOut);
-    int128 tokenInIndex = ICurvePool(poolAddress).coins(0) == tokenIn
-      ? int128(0)
-      : int128(1);
+    int128 tokenInIndex = ICurvePool(poolAddress).coins(0) == tokenIn ? int128(0) : int128(1);
 
     // move all input tokens from router to this adapter
     IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
 
-    amountOut = _swapExactInput(
-      poolAddress,
-      recipient,
-      tokenIn,
-      tokenInIndex,
-      amountIn,
-      minAmountOut
-    );
+    amountOut = _swapExactInput(poolAddress, recipient, tokenIn, tokenInIndex, amountIn, minAmountOut);
 
     if (amountOut < minAmountOut) revert InsufficientAmount();
   }
@@ -47,9 +38,7 @@ contract CurveAdapter is AdapterStorage {
   ) external returns (uint256 amountIn) {
     address poolAddress = getPoolSafe(tokenIn, tokenOut);
 
-    int128 tokenInIndex = ICurvePool(poolAddress).coins(0) == tokenIn
-      ? int128(0)
-      : int128(1);
+    int128 tokenInIndex = ICurvePool(poolAddress).coins(0) == tokenIn ? int128(0) : int128(1);
 
     // move all input tokens from router to this adapter
     IMarginlyRouter(msg.sender).adapterCallback(address(this), maxAmountIn, data);
@@ -64,7 +53,7 @@ contract CurveAdapter is AdapterStorage {
       amountOut
     );
 
-    if (actualAmountOut < amountOut){
+    if (actualAmountOut < amountOut) {
       revert TooMuchRequested();
     }
 
@@ -82,14 +71,7 @@ contract CurveAdapter is AdapterStorage {
     // last arg minAmountOut is zero because we made worst allowed by user swap
     // and an additional swap with whichever output only improves it,
     // so the tx shouldn't be reverted
-    uint256 excessiveAmountIn = _swapExactInput(
-      poolAddress,
-      recipient,
-      tokenOut,
-      1 - tokenInIndex,
-      deltaAmountOut,
-      0
-    );
+    uint256 excessiveAmountIn = _swapExactInput(poolAddress, recipient, tokenOut, 1 - tokenInIndex, deltaAmountOut, 0);
 
     amountIn = maxAmountIn - excessiveAmountIn;
   }
@@ -104,13 +86,6 @@ contract CurveAdapter is AdapterStorage {
   ) private returns (uint256 amountOut) {
     SafeERC20.forceApprove(IERC20(tokenIn), poolAddress, amountIn);
 
-    amountOut = ICurvePool(poolAddress)
-      .exchange(
-        tokenInIndex,
-        1 - tokenInIndex,
-        amountIn,
-        minAmountOut,
-        recipient
-    );
+    amountOut = ICurvePool(poolAddress).exchange(tokenInIndex, 1 - tokenInIndex, amountIn, minAmountOut, recipient);
   }
 }

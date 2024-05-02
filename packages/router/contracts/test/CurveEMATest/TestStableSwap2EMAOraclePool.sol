@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
-import "../../adapters/interfaces/ICurvePool.sol";
+import '../../adapters/interfaces/ICurvePool.sol';
 
 contract TestStableSwap2EMAOraclePool is ICurvePool {
   address public token0;
@@ -22,16 +22,10 @@ contract TestStableSwap2EMAOraclePool is ICurvePool {
     price = _price;
   }
 
-  function exchange(
-    int128 i,
-    int128 j,
-    uint256 _dx,
-    uint256 _min_dy,
-    address _receiver
-  ) external returns (uint256 dy) {
+  function exchange(int128 i, int128 j, uint256 _dx, uint256 _min_dy, address _receiver) external returns (uint256 dy) {
     dy = get_dy(i, j, _dx);
 
-    if (dy < _min_dy) revert("dy < _min_dy");
+    if (dy < _min_dy) revert('dy < _min_dy');
 
     TransferHelper.safeTransferFrom(i == 0 ? token0 : token1, msg.sender, address(this), _dx);
     TransferHelper.safeTransfer(j == 0 ? token0 : token1, _receiver, dy);
@@ -47,7 +41,7 @@ contract TestStableSwap2EMAOraclePool is ICurvePool {
   }
 
   function get_dy(int128 i, int128 j, uint256 dx) public view returns (uint256 dy) {
-    if (i == j || i > 1 || j > 1) revert("wrong indexes");
+    if (i == j || i > 1 || j > 1) revert('wrong indexes');
     if (i == 0) {
       dy = Math.mulDiv(dx, PRICE_ONE, price);
     } else {

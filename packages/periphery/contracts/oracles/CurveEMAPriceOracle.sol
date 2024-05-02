@@ -10,12 +10,15 @@ interface IERC20 {
 }
 
 interface ICurve {
-    function last_price() external view returns (uint256);
-    function ema_price() external view returns (uint256);
-    /// @notice price have 18 decimals even if the tokens have different decimals,
-    /// or both tokens have same decimals != 18
-    function price_oracle() external view returns (uint256);
-    function coins(uint256 coinId) external view returns (address);
+  function last_price() external view returns (uint256);
+
+  function ema_price() external view returns (uint256);
+
+  /// @notice price have 18 decimals even if the tokens have different decimals,
+  /// or both tokens have same decimals != 18
+  function price_oracle() external view returns (uint256);
+
+  function coins(uint256 coinId) external view returns (address);
 }
 
 contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
@@ -43,14 +46,14 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
 
     address coin0 = ICurve(pool).coins(0);
     address coin1 = ICurve(pool).coins(1);
-    
+
     if (coin0 != baseToken && coin1 != baseToken) revert InvalidTokenAddress();
     if (coin0 != quoteToken && coin1 != quoteToken) revert InvalidTokenAddress();
 
     uint8 baseDecimals = IERC20(baseToken).decimals();
     uint8 quoteDecimals = IERC20(quoteToken).decimals();
 
-    bool isForwardOrder =  coin0 == quoteToken;
+    bool isForwardOrder = coin0 == quoteToken;
     if (isForwardOrder && PRICE_DECIMALS + baseDecimals < quoteDecimals) {
       revert ExtremeDecimals();
     }
@@ -69,46 +72,41 @@ contract CurveEMAPriceOracle is IPriceOracle, Ownable2Step {
   }
 
   function removePool(address quoteToken, address baseToken) external onlyOwner {
-    delete(getParams[quoteToken][baseToken]);
+    delete (getParams[quoteToken][baseToken]);
   }
 
   /// @notice Returns price as X96 value
-  function getBalancePrice(
-    address quoteToken,
-    address baseToken
-  ) external view returns (uint256)
-  {
+  function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256) {
     return _getPriceX96(quoteToken, baseToken);
   }
 
   /// @notice Returns margin call price as X96 value
-  function getMargincallPrice(
-    address quoteToken,
-    address baseToken
-  ) external view returns (uint256)
-  {
+  function getMargincallPrice(address quoteToken, address baseToken) external view returns (uint256) {
     return _getPriceX96(quoteToken, baseToken);
   }
 
-  function _getPriceX96(
-    address quoteToken,
-    address baseToken
-  ) private view returns (uint256 priceX96)
-  {
+  function _getPriceX96(address quoteToken, address baseToken) private view returns (uint256 priceX96) {
     if (quoteToken == address(0)) revert ZeroAddress();
     if (baseToken == address(0)) revert ZeroAddress();
-    
+
     OracleParams storage poolParams = getParams[quoteToken][baseToken];
     if (poolParams.pool == address(0)) revert ZeroAddress();
-    
+
     uint256 price = ICurve(poolParams.pool).price_oracle();
     if (price == 0) revert ZeroPrice();
 
     if (poolParams.isForwardOrder) {
-      priceX96 = Math.mulDiv(price, X96ONE, 10**(PRICE_DECIMALS + poolParams.baseDecimals - poolParams.quoteDecimals));
-
+      priceX96 = Math.mulDiv(
+        price,
+        X96ONE,
+        10 ** (PRICE_DECIMALS + poolParams.baseDecimals - poolParams.quoteDecimals)
+      );
     } else {
-      priceX96 = Math.mulDiv(10**(PRICE_DECIMALS + poolParams.quoteDecimals - poolParams.baseDecimals), X96ONE, price);
+      priceX96 = Math.mulDiv(
+        10 ** (PRICE_DECIMALS + poolParams.quoteDecimals - poolParams.baseDecimals),
+        X96ONE,
+        price
+      );
     }
   }
 }

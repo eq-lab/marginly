@@ -1,34 +1,9 @@
 import { ethers } from 'hardhat';
-import bn from 'bignumber.js';
-import { BigNumber } from 'ethers';
 import { time, setBalance } from '@nomicfoundation/hardhat-network-helpers';
 import { UniswapV2Oracle } from '../../typechain-types/contracts/oracles';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-
-function toHumanPrice(priceX96: BigNumber, decimalsDiff: number) {
-  const one = bn(2 ** 96);
-
-  const multiplier = bn(10).pow(decimalsDiff);
-  return bn(priceX96.toString()).times(multiplier).div(one.toString()).toString();
-}
-
-function printPrices(balancePrice: BigNumber, mcPrice: BigNumber, decimalsDiff: number) {
-  console.log(`Balance price is ${toHumanPrice(balancePrice, decimalsDiff)}  (${balancePrice})`);
-  console.log(`MC price is ${toHumanPrice(mcPrice, decimalsDiff)} (${mcPrice})`);
-}
-
-async function getDecimals(contractAddress: string): Promise<number> {
-  const abi = ['function decimals() view returns (uint8)'];
-  const contract = new ethers.Contract(contractAddress, abi, ethers.provider);
-  return await contract.decimals();
-}
-
-async function getDecimalsDiff(quoteToken: string, baseToken: string): Promise<number> {
-  const baseDecimals = await getDecimals(baseToken);
-  const quoteDecimals = await getDecimals(quoteToken);
-  return baseDecimals - quoteDecimals;
-}
+import { printPrices } from '../shared/common';
 
 async function initSystem(
   uniswapV2Factory: string,

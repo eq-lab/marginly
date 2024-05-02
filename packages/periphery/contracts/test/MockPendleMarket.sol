@@ -73,11 +73,7 @@ contract MockPendleMarket is IPMarketV3 {
 
   function increaseObservationsCardinalityNext(uint16 /* cardinalityNext */) external pure {}
 
-  function readTokens()
-    external
-    view
-    returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT)
-  {
+  function readTokens() external view returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT) {
     _SY = IStandardizedYield(sy);
     _PT = IPPrincipalToken(pt);
     _YT = IPYieldToken(yt);
