@@ -11,6 +11,8 @@ library FP96 {
   uint8 internal constant RESOLUTION = 96;
   /// @dev Denominator for FixedPoint number
   uint256 internal constant Q96 = 0x1000000000000000000000000;
+  /// @dev Represents Q96 number with half precision
+  uint256 internal constant Q48 = 0x1000000000000;
   /// @dev Maximum value of FixedPoint number
   uint256 internal constant INNER_MAX = type(uint256).max;
   /// @dev Representation for FixedPoint number
@@ -21,6 +23,11 @@ library FP96 {
   /// @dev Returns one in FixedPoint representation
   function one() internal pure returns (FixedPoint memory result) {
     result.inner = Q96;
+  }
+
+  /// @dev Returns with  in FixedPoint representation
+  function halfPrecision() internal pure returns (FixedPoint memory result) {
+    result.inner = Q48;
   }
 
   /// @dev Returns zero in FixedPoint representation

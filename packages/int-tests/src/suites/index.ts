@@ -44,6 +44,7 @@ import DodoV2MarginlyAdapter from '../contract-api/DodoV2MarginlyAdapter';
 import { parseUnits } from 'ethers/lib/utils';
 import MarginlyKeeperUniswapV3, { MarginlyKeeperUniswapV3Contract } from '../contract-api/MarginlyKeeperUniswapV3';
 import { keeperUniswapV3 } from './keeperUniswapV3';
+import UniswapV3TickOracle from '../contract-api/UniswapV3TickOracle';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -166,12 +167,21 @@ async function initializeTestSystem(
   const swapRouter = await MarginlyRouter.deploy(routerConstructorInput, treasury);
   logger.info(`swap router: ${swapRouter.address}`);
 
+  const priceOracle = await UniswapV3TickOracle.deploy(uniswapFactory.address, treasury);
+  logger.info(`price oracle: ${priceOracle.address}`);
+
+  const secondsAgo = 1800;
+  const secondsAgoLiquidation = 5;
+  const uniswapPoolFee = 500;
+  await priceOracle.connect(treasury).setOptions(
+    usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee
+  );
+
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
   logger.info(`marginly pool implementation: ${marginlyPoolImplementation.address}`);
 
   const marginlyFactory = await MarginlyFactory.deploy(
     marginlyPoolImplementation.address,
-    uniswapFactory.address,
     swapRouter.address,
     FeeHolder,
     weth.address,
@@ -186,20 +196,26 @@ async function initializeTestSystem(
     fee: 20000, // 2%
     maxLeverage: 20n,
     swapFee: 1000, // 0.1%
-    priceSecondsAgo: 900n, // 15 min
-    priceSecondsAgoMC: 60n, // 1 min
     positionSlippage: 20000, // 2%
     mcSlippage: 50000, //5%
     positionMinAmount: 10000000000000000n, // 0,01 ETH
     quoteLimit: 10n ** 12n * 10n ** 6n,
   };
+
+  const defaultSwapCallData = 0;
   const gasReporter = new GasReporter(suiteName);
-  await gasReporter.saveGasUsage(
+  const txReceipt = await gasReporter.saveGasUsage(
     'factory.createPool',
-    marginlyFactory.createPool(usdc.address, weth.address, 500n, initialParams)
+    marginlyFactory.createPool(usdc.address, weth.address, priceOracle.address, defaultSwapCallData, initialParams)
   );
 
-  const marginlyAddress = await marginlyFactory.getPool(weth.address, usdc.address, 500n);
+  const poolCreatedEvents = txReceipt.events?.filter((x) => x.event === 'PoolCreated');
+  if (!poolCreatedEvents || poolCreatedEvents.length === 0 || !poolCreatedEvents[0].args) {
+    throw new Error('PoolCreated event is not found');
+  }
+  const marginlyAddress = poolCreatedEvents[0].args[4];
+
+  //const marginlyAddress = await marginlyFactory.getPool(weth.address, usdc.address, 500n);
   const marginlyPool = MarginlyPool.connect(marginlyAddress, provider);
   logger.info(`marginly <> uniswap: ${marginlyPool.address} <> ${uniswap.address}`);
 

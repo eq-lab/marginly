@@ -132,6 +132,12 @@ const defsRamsesMarginlyAdapter = genDefinitions(
   { ignoreImportError: true }
 );
 writeFileSync(`./src/contract-api/RamsesAdapter.ts`, defsRamsesMarginlyAdapter);
+const defsUniswapV3TickOracle = genDefinitions(
+  require(`@marginly/periphery/artifacts/contracts/oracles/UniswapV3TickOracle.sol/UniswapV3TickOracle.json`),
+  `@marginly/periphery/artifacts/contracts/oracles/UniswapV3TickOracle.sol/UniswapV3TickOracle.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/UniswapV3TickOracle.ts`, defsUniswapV3TickOracle);
 
 // const defsAavePoolAddressesProvider = genDefinitions(
 //   require(`@aave/core-v3/artifacts/contracts/protocol/configuration/PoolAddressesProvider.sol/PoolAddressesProvider.json`),

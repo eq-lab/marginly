@@ -63,7 +63,7 @@ contract MarginlyKeeperUniswapV3 is IUniswapV3FlashCallback {
       collateralToken = baseToken;
     } else if (baseToken == asset) {
       SafeERC20.forceApprove(IERC20(baseToken), address(marginlyPool), amount);
-      marginlyPool.execute(CallType.ReceivePosition, 0, amount, 0, false, positionToLiquidate, 0);
+      marginlyPool.execute(CallType.ReceivePosition, 0, int256(amount), 0, false, positionToLiquidate, 0);
       collateralToken = quoteToken;
     } else {
       revert('Wrong asset');

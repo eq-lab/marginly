@@ -1,0 +1,175 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://goerli-rollup.arbitrum.io/rpc"
+  },
+  "connection": {
+    "assertChainId": 421613,
+    "ethOptions": {
+      "gasLimit": "15000000"
+    }
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "fweth",
+      "name": "Fake Wrapped ETH",
+      "symbol": "FWETH",
+      "decimals": 18
+    },
+    {
+      "type": "mintable",
+      "id": "usdc",
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    {
+      "type": "mintable",
+      "id": "wbtc",
+      "name": "Wrapped BTC",
+      "symbol": "WBTC",
+      "decimals": 8
+    },
+    {
+      "type": "mintable",
+      "id": "arb",
+      "name": "Arbitrum",
+      "symbol": "ARB",
+      "decimals": 18
+    }
+  ],
+  "prices": [
+    {
+      "id": "eth-usdc",
+      "label": "eth/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDC).price"
+    },
+    {
+      "id": "btc-usdc",
+      "label": "btc/usdc",
+      "type": "http-get",
+      "direction": "forward",
+      "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDC).price"
+    },
+    {
+      "id": "arb-usdc",
+      "label": "arb/usdc",
+      "type": "composite",
+      "sources": [
+        {
+          "type": "http-get",
+          "label": "arb/usdt",
+          "direction": "forward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=ARBUSDT).price"
+        },
+        {
+          "type": "http-get",
+          "label": "usdt/usdc",
+          "direction": "backward",
+          "query": "json(https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT).price"
+        }
+      ]
+    }
+  ],
+  "uniswap": {
+    "type": "mock",
+    "oracle": "0xa1Cc678Ff30Fe601023Dbe6b62271fbf26E4760f",
+    "weth9TokenId": "weth",
+    "priceLogSize": 60,
+    "pools": [
+      {
+        "id": "fweth-usdc",
+        "tokenAId": "fweth",
+        "tokenBId": "usdc",
+        "fee": "0.1%",
+        "tokenABalance": "1_000_000_000",
+        "tokenBBalance": "2_000_000_000_000",
+        "priceId": "eth-usdc",
+        "priceBaseTokenId": "fweth"
+      },
+      {
+        "id": "wbtc-usdc",
+        "tokenAId": "wbtc",
+        "tokenBId": "usdc",
+        "fee": "0.1%",
+        "tokenABalance": "8_000_000",
+        "tokenBBalance": "2_000_000_000_000",
+        "priceId": "btc-usdc",
+        "priceBaseTokenId": "wbtc"
+      }
+    ]
+  },
+  "priceOracles": [
+    {
+      "id": "uniswapV3TickOracle-1",
+      "type": "uniswapV3",
+      "settings": [
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "fweth",
+          "secondsAgo": "5 sec",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.1%"
+        }
+      ]
+    },
+    {
+      "id": "uniswapV3TickDoubleOracle-2",
+      "type": "uniswapV3Double",
+      "settings": [
+        {
+          "quoteTokenId": "fweth",
+          "baseTokenId": "wbtc",
+          "intermediateTokenId": "usdc",
+          "secondsAgo": "5 sec",
+          "secondsAgoLiquidation": "5 sec",
+          "baseTokenPairFee": "0.1%",
+          "quoteTokenPairFee": "0.1%"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0xfee4F33f95ec3E63a774fCfa80171Ca2d76428A1",
+    "techPositionOwner": "0xaaaaE8DD2F7d0b31e8464C65F8D8721CD231b0D6",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "fweth-usdc",
+      "uniswapPoolId": "fweth-usdc",
+      "baseTokenId": "fweth",
+      "priceOracleId": "uniswapV3TickOracle-1",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "5.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "100_000_000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": []
+    }
+  ],
+  "marginlyKeeper": {
+    "aavePoolAddressesProvider": {
+      "allowCreateMock": "true"
+    }
+  }
+}

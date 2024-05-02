@@ -10,7 +10,13 @@ contract UniswapV3FactoryMock is NoDelegateCall {
   mapping(uint24 => int24) public feeAmountTickSpacing;
   mapping(address => mapping(address => mapping(uint24 => address))) public getPool;
 
-  event PoolCreated(address indexed token0, address indexed token1, uint24 fee, address indexed pool);
+  event PoolCreated(
+    address indexed token0,
+    address indexed token1,
+    uint24 indexed fee,
+    int24 tickSpacing,
+    address pool
+  );
 
   constructor() {
     owner = msg.sender;
@@ -29,12 +35,22 @@ contract UniswapV3FactoryMock is NoDelegateCall {
     pool = deploy(oracle, token0, token1, fee);
     getPool[token0][token1][fee] = pool;
     getPool[token1][token0][fee] = pool;
-    emit PoolCreated(token0, token1, fee, pool);
+    emit PoolCreated(token0, token1, fee, 0, pool);
   }
 
   function deploy(address oracle, address token0, address token1, uint24 fee) private returns (address pool) {
     pool = address(
       new UniswapV3PoolMock{salt: keccak256(abi.encode(token0, token1, fee))}(msg.sender, oracle, token0, token1, fee)
     );
+  }
+
+  function addPool(address pool) external {
+    require(msg.sender == owner, 'NO');
+
+    address token0 = UniswapV3PoolMock(pool).token0();
+    address token1 = UniswapV3PoolMock(pool).token1();
+    uint24 fee = UniswapV3PoolMock(pool).fee();
+    getPool[token0][token1][fee] = pool;
+    getPool[token1][token0][fee] = pool;
   }
 }

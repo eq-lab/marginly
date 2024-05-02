@@ -33,7 +33,7 @@
     "fs-extra": "^11.1.0",
     "commander": "^8.1.0",
     "ethers": "^5.7.2",
-    "ganache": "^7.7.3",
+    "ganache": "^7.9.2",
     "prompts": "^2.4.2",
     "read": "^2.0.0"
   }

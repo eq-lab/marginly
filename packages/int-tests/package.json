@@ -33,7 +33,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "start": "bash -c 'yarn ts-node ./src/index.ts \"$*\" | pino-pretty ; ( exit ${PIPESTATUS[0]} )' --",
-    "gen": "cd ../contracts && yarn compile && cd ../router && yarn compile && cd ../int-tests && ts-node ./src/gen.ts && prettier --write ./src/contract-api",
+    "gen": "cd ../contracts && yarn compile && cd ../router && yarn compile && cd ../periphery && yarn compile && cd ../int-tests && ts-node ./src/gen.ts && prettier --write ./src/contract-api",
     "build": "tsc",
     "lint:write": "prettier --write ./src",
     "lint": "prettier --check ./src"

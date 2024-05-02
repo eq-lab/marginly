@@ -44,6 +44,133 @@ export function isMarginlyDeployConfigMintableToken(
   return token.type === 'mintable';
 }
 
+export type PriceOracleDeployConfig =
+  | UniswapV3TickOracleDeployConfig
+  | UniswapV3DoubleDeployOracleConfig
+  | ChainlinkOracleDeployConfig
+  | PythOracleDeployConfig;
+
+export interface UniswapV3TickOracleDeployConfig {
+  type: 'uniswapV3';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+    uniswapFee: string;
+  }[];
+}
+
+export interface UniswapV3DoubleDeployOracleConfig {
+  type: 'uniswapV3Double';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    intermediateTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+    baseTokenPairFee: string;
+    quoteTokenPairFee: string;
+  }[];
+}
+
+export interface SinglePairChainlinkOracleDeployConfig {
+  type: 'single';
+  quoteTokenId: string;
+  baseTokenId: string;
+  aggregatorV3: string;
+}
+
+export interface DoublePairChainlinkOracleDeployConfig {
+  type: 'double';
+  quoteTokenId: string;
+  baseTokenId: string;
+  intermediateTokenId: string;
+  quoteAggregatorV3: string;
+  baseAggregatorV3: string;
+}
+
+export type PairChainlinkOracleDeployConfig =
+  | SinglePairChainlinkOracleDeployConfig
+  | DoublePairChainlinkOracleDeployConfig;
+
+export function isSinglePairChainlinkOracleDeployConfig(
+  config: PairChainlinkOracleDeployConfig
+): config is SinglePairChainlinkOracleDeployConfig {
+  return config.type === 'single';
+}
+
+export function isDoublePairChainlinkOracleDeployConfig(
+  config: PairChainlinkOracleDeployConfig
+): config is DoublePairChainlinkOracleDeployConfig {
+  return config.type === 'double';
+}
+
+export interface ChainlinkOracleDeployConfig {
+  type: 'chainlink';
+  id: string;
+  settings: PairChainlinkOracleDeployConfig[];
+}
+
+export interface SinglePairPythOracleDeployConfig {
+  type: 'single';
+  quoteTokenId: string;
+  baseTokenId: string;
+  pythPriceId: string;
+}
+
+export interface DoublePairPythOracleDeployConfig {
+  type: 'double';
+  quoteTokenId: string;
+  baseTokenId: string;
+  intermediateTokenId: string;
+  basePythPriceId: string;
+  quotePythPriceId: string;
+}
+
+export type PairPythOracleDeployConfig = SinglePairPythOracleDeployConfig | DoublePairPythOracleDeployConfig;
+
+export function isSinglePairPythOracleDeployConfig(
+  config: PairPythOracleDeployConfig
+): config is SinglePairPythOracleDeployConfig {
+  return config.type === 'single';
+}
+
+export function isDoublePairPythOracleDeployConfig(
+  config: PairPythOracleDeployConfig
+): config is DoublePairPythOracleDeployConfig {
+  return config.type === 'double';
+}
+
+export interface PythOracleDeployConfig {
+  type: 'pyth';
+  id: string;
+  pyth: string;
+  settings: PairPythOracleDeployConfig[];
+}
+
+export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
+  return config.type === 'uniswapV3';
+}
+
+export function isUniswapV3DoubleOracleConfig(
+  config: PriceOracleDeployConfig
+): config is UniswapV3DoubleDeployOracleConfig {
+  return config.type === 'uniswapV3Double';
+}
+
+export function isChainlinkOracleConfig(config: PriceOracleDeployConfig): config is ChainlinkOracleDeployConfig {
+  return config.type === 'chainlink';
+}
+
+export function isPythOracleConfig(config: PriceOracleDeployConfig): config is PythOracleDeployConfig {
+  return config.type === 'pyth';
+}
+
 interface MarginlyDeployConfigUniswapGenuine {
   type: 'genuine' | undefined;
   factory: string;
@@ -51,6 +178,7 @@ interface MarginlyDeployConfigUniswapGenuine {
     id: string;
     tokenAId: string;
     tokenBId: string;
+    factory: string;
     fee: string;
     allowCreate: boolean;
     assertAddress?: string;
@@ -139,6 +267,7 @@ export interface MarginlyDeployConfig {
   tokens: MarginlyDeployConfigToken[];
   prices: RootPriceConfig[];
   uniswap: MarginlyDeployConfigUniswap;
+  priceOracles: PriceOracleDeployConfig[];
   adapters: {
     dexId: number;
     adapterName: string;
@@ -158,13 +287,13 @@ export interface MarginlyDeployConfig {
     id: string;
     uniswapPoolId: string;
     baseTokenId: string;
+    priceOracleId: string;
+    defaultSwapCallData: number;
     params: {
       interestRate: string;
       fee: string;
       maxLeverage: string;
       swapFee: string;
-      priceAgo: string;
-      priceAgoMC: string;
       mcSlippage: string;
       positionMinAmount: string;
       quoteLimit: string;

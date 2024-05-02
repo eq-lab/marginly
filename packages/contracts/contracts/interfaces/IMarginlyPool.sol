@@ -73,6 +73,46 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
     uint256 baseDiscountedDelta
   );
 
+  /// @dev Emitted when user sell all the base tokens from position before Short
+  /// @param user User
+  /// @param baseDelta amount of base token sold
+  /// @param quoteDelta amount of quote tokens received
+  /// @param discountedBaseCollateralDelta discounted delta amount of base tokens decreased collateral
+  /// @param discountedQuoteCollateralDelta discounted amount of quote tokens increased collateral
+  event SellBaseForQuote(
+    address indexed user,
+    uint256 baseDelta,
+    uint256 quoteDelta,
+    uint256 discountedBaseCollateralDelta,
+    uint256 discountedQuoteCollateralDelta
+  );
+
+  /// @dev Emitted when user sell all the quote tokens from position before Long
+  /// @param user User
+  /// @param quoteDelta amount of quote tokens sold
+  /// @param baseDelta amount of base token received
+  /// @param discountedQuoteCollateralDelta discounted amount of quote tokens decreased collateral
+  /// @param discountedBaseCollateralDelta discounted delta amount of base tokens increased collateral
+  event SellQuoteForBase(
+    address indexed user,
+    uint256 quoteDelta,
+    uint256 baseDelta,
+    uint256 discountedQuoteCollateralDelta,
+    uint256 discountedBaseCollateralDelta
+  );
+
+  /// @dev Emitted if long position sold base for quote
+  /// @param user User
+  /// @param realQuoteDebtDelta real value of quote debt repaid
+  /// @param discountedQuoteDebtDelta discounted value of quote debt repaid
+  event QuoteDebtRepaid(address indexed user, uint256 realQuoteDebtDelta, uint256 discountedQuoteDebtDelta);
+
+  /// @dev Emitted if short position sold quote for base
+  /// @param user User
+  /// @param realBaseDebtDelta real value of base debt repaid
+  /// @param discountedBaseDebtDelta discounted value of base debt repaid
+  event BaseDebtRepaid(address indexed user, uint256 realBaseDebtDelta, uint256 discountedBaseDebtDelta);
+
   /// @dev Emitted when user closed position
   /// @param user User
   /// @param token Collateral token
@@ -125,9 +165,9 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   function initialize(
     address quoteToken,
     address baseToken,
-    bool quoteTokenIsToken0,
-    address uniswapPool,
-    MarginlyParams memory _params
+    address priceOracle,
+    uint32 defaultSwapCallData,
+    MarginlyParams calldata params
   ) external;
 
   /// @notice Returns the address of quote token from pool
@@ -136,16 +176,22 @@ interface IMarginlyPool is IMarginlyPoolOwnerActions {
   /// @notice Returns the address of base token from pool
   function baseToken() external view returns (address token);
 
-  /// @notice Returns the address of associated uniswap pool
-  function uniswapPool() external view returns (address pool);
+  /// @notice Returns the address of price oracle
+  function priceOracle() external view returns (address);
+
+  /// @notice Returns default swap call data
+  function defaultSwapCallData() external view returns (uint32);
 
   /// @notice Returns address of Marginly factory
   function factory() external view returns (address);
 
+  /// @notice Return current value of base price used in all calculations (e.g. leverage)
+  function getBasePrice() external view returns (FP96.FixedPoint memory);
+
   function execute(
     CallType call,
     uint256 amount1,
-    uint256 amount2,
+    int256 amount2,
     uint256 limitPriceX96,
     bool unwrapWETH,
     address receivePositionAddress,

@@ -5,24 +5,26 @@ import './MarginlyPool.sol';
 import './libraries/Errors.sol';
 
 contract FullMarginlyPool is MarginlyPool {
+  bool public initialized = false;
+
   constructor(
     address _quoteToken,
     address _baseToken,
-    bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceOracle,
     MarginlyParams memory _params
-  ) MarginlyPool() {
-    _initializeMarginlyPool(_quoteToken, _baseToken, _quoteTokenIsToken0, _uniswapPool, _params);
-  }
+  ) MarginlyPool() {}
 
   function initialize(
     address _quoteToken,
     address _baseToken,
-    bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceOracle,
+    uint32 _defaultSwapCallData,
     MarginlyParams calldata _params
   ) external override {
-    if (factory != address(0)) revert Errors.Forbidden();
+    if (initialized) revert Errors.Forbidden();
+
+    _initializeMarginlyPool(_quoteToken, _baseToken, _priceOracle, _defaultSwapCallData, _params);
+    initialized = true;
   }
 
   function getParams()
@@ -30,8 +32,6 @@ contract FullMarginlyPool is MarginlyPool {
     view
     returns (
       uint8 maxLeverage,
-      uint16 priceSecondsAgo,
-      uint16 priceSecondsAgoMC,
       uint24 interestRate,
       uint24 swapFee,
       uint24 mcSlippage,
@@ -40,8 +40,6 @@ contract FullMarginlyPool is MarginlyPool {
     )
   {
     maxLeverage = params.maxLeverage;
-    priceSecondsAgo = params.priceSecondsAgo;
-    priceSecondsAgoMC = params.priceSecondsAgoMC;
     interestRate = params.interestRate;
     swapFee = params.swapFee;
     mcSlippage = params.mcSlippage;

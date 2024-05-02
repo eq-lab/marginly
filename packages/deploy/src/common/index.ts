@@ -84,7 +84,7 @@ export interface MarginlyDeploymentMarginlyPool {
 export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
   marginlyKeeper?: { address: string };
-  marginlyKeeperUniswapV3: { address: string };
+  marginlyKeeperUniswapV3?: { address: string };
 }
 
 export function mergeMarginlyDeployments(
@@ -129,11 +129,6 @@ export function mergeMarginlyDeployments(
   });
 
   return mergedDeployment;
-}
-
-export function getMarginlyKeeperAddress(stateStore: StateStore): string | undefined {
-  const deployState = stateStore.getById('marginlyKeeper');
-  return deployState ? deployState.address : undefined;
 }
 
 export class TimeSpan {

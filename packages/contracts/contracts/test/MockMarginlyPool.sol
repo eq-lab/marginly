@@ -11,6 +11,7 @@ contract MockMarginlyPool is IMarginlyPool {
   address public override quoteToken;
   address public override baseToken;
   address public override factory;
+  uint32 public override defaultSwapCallData;
 
   address private badPositionAddress;
   uint256 private quoteAmount;
@@ -41,8 +42,8 @@ contract MockMarginlyPool is IMarginlyPool {
   function initialize(
     address _quoteToken,
     address _baseToken,
-    bool _quoteTokenIsToken0,
-    address _uniswapPool,
+    address _priceOracle,
+    uint32 _defaultSwapCallData,
     MarginlyParams memory _params
   ) external {}
 
@@ -52,14 +53,12 @@ contract MockMarginlyPool is IMarginlyPool {
 
   function setRecoveryMode(bool set) external {}
 
-  function uniswapPool() external pure returns (address pool) {}
-
-  function quoteTokenIsToken0() external pure returns (bool) {}
+  function priceOracle() external pure returns (address) {}
 
   function execute(
     CallType call,
     uint256 amount1,
-    uint256 amount2,
+    int256 amount2,
     uint256 limitPriceX96,
     bool unwrapWETH,
     address receivePositionAddress,
@@ -69,7 +68,7 @@ contract MockMarginlyPool is IMarginlyPool {
       require(receivePositionAddress == badPositionAddress);
 
       IERC20(quoteToken).transferFrom(msg.sender, address(this), amount1);
-      IERC20(baseToken).transferFrom(msg.sender, address(this), amount2);
+      IERC20(baseToken).transferFrom(msg.sender, address(this), uint256(amount2));
     } else if (call == CallType.WithdrawBase) {
       if (positionType == PositionType.Short) {
         IERC20(baseToken).transfer(msg.sender, dust);
@@ -86,4 +85,6 @@ contract MockMarginlyPool is IMarginlyPool {
   }
 
   function sweepETH() external {}
+
+  function getBasePrice() external view returns (FP96.FixedPoint memory) {}
 }

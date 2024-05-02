@@ -159,9 +159,10 @@ export async function keeperUniswapV3(sut: SystemUnderTest) {
     quoteCollateralCoeffX96: BigNumber.from(quoteCollateralCoeff),
     quoteDebtCoeffX96: BigNumber.from(quoteDebtCoeff),
   };
-
-  const longerDebtAmount = await getDebtAmount(marginlyPool, longer.address, basePriceX96, poolCoeffs);
-  const shorterDebtAmount = await getDebtAmount(marginlyPool, shorter.address, basePriceX96, poolCoeffs);
+  
+  // get 1% more than calculated debt value
+  const longerDebtAmount = (await getDebtAmount(marginlyPool, longer.address, basePriceX96, poolCoeffs)).mul(101).div(100);
+  const shorterDebtAmount = (await getDebtAmount(marginlyPool, shorter.address, basePriceX96, poolCoeffs)).mul(101).div(100);
 
   const liquidator = accounts[4];
 

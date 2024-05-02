@@ -25,9 +25,6 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
   /// @notice Technical position address
   address public immutable override techPositionOwner;
 
-  /// @inheritdoc IMarginlyFactory
-  mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
-
   constructor(
     address _uniswapFactory,
     address _swapRouter,
@@ -54,32 +51,17 @@ contract FullMarginlyFactory is IMarginlyFactory, Ownable2Step {
   function createPool(
     address quoteToken,
     address baseToken,
-    uint24 uniswapFee,
+    address priceOracle,
+    uint32 defaultSwapCallData,
     MarginlyParams calldata params
   ) external override onlyOwner returns (address pool) {
     if (quoteToken == baseToken) revert Errors.Forbidden();
+    if (priceOracle == address(0)) revert Errors.WrongValue();
 
-    address existingPool = getPool[quoteToken][baseToken][uniswapFee];
-    if (existingPool != address(0)) revert Errors.PoolAlreadyCreated();
-    address uniswapPool = IUniswapV3Factory(uniswapFactory).getPool(quoteToken, baseToken, uniswapFee);
-    if (uniswapPool == address(0)) revert Errors.UniswapPoolNotFound();
+    pool = address(new FullMarginlyPool(quoteToken, baseToken, priceOracle, params));
+    IMarginlyPool(pool).initialize(quoteToken, baseToken, priceOracle, defaultSwapCallData, params);
 
-    // https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L41
-    bool quoteTokenIsToken0 = quoteToken < baseToken;
-
-    pool = address(
-      new FullMarginlyPool{salt: keccak256(abi.encode(uniswapPool))}(
-        quoteToken,
-        baseToken,
-        quoteTokenIsToken0,
-        uniswapPool,
-        params
-      )
-    );
-
-    getPool[quoteToken][baseToken][uniswapFee] = pool;
-    getPool[baseToken][quoteToken][uniswapFee] = pool;
-    emit PoolCreated(quoteToken, baseToken, uniswapPool, quoteTokenIsToken0, pool);
+    emit PoolCreated(quoteToken, baseToken, priceOracle, defaultSwapCallData, pool);
   }
 
   /// @inheritdoc IMarginlyFactory

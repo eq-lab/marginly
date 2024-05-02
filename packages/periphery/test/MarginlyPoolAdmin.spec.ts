@@ -10,10 +10,11 @@ import {
   UniswapV3DexIndex,
 } from './shared/utils';
 import { ethers } from 'hardhat';
-import { PoolInputStruct, AdapterInputStruct } from '../typechain-types/contracts/MarginlyAdmin';
+import { PoolInputStruct, AdapterInputStruct } from '../typechain-types/contracts/admin/MarginlyAdmin';
 import { ZERO_ADDRESS } from './shared/fixtures';
 
-describe('MarginlyPoolAdmin', () => {
+//MarginlyPoolAdmin not supported
+describe.skip('MarginlyPoolAdmin', () => {
   it('createPool', async () => {
     const { marginlyPoolAdmin, marginlyFactory, uniswapFactory } = await loadFixture(createMarginlyPoolAdmin);
 
