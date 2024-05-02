@@ -41,6 +41,9 @@ const config = {
     artioTestnet: {
       url: 'https://artio.rpc.berachain.com',
     },
+    blastSepolia: {
+      url: 'https://sepolia.blast.io',
+    },
   },
   etherscan: {
     apiKey: {
@@ -50,6 +53,7 @@ const config = {
       arbitrumSepolia: process.env.API_KEY,
       x1Testnet: process.env.API_KEY,
       artioTestnet: 'artio_testnet',
+      blastSepolia: 'blast_sepolia',
     },
     customChains: [
       {
@@ -74,6 +78,14 @@ const config = {
         urls: {
           apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
           browserURL: 'https://artio.beratrail.io',
+        }
+      },
+      {
+        network: 'blastSepolia',
+        chainId: 168587773,
+        urls: {
+          apiURL: 'https://api.routescan.io/v2/network/testnet/evm/168587773/etherscan',
+          browserURL: 'https://testnet.blastscan.io',
         },
       },
     ],
