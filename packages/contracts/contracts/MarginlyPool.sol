@@ -37,7 +37,7 @@ contract MarginlyPool is IMarginlyPool {
   uint24 private constant WHOLE_ONE = 1e6;
 
   /// @dev Min available leverage
-  uint8 private constant MIN_LEVERAGE = 2;
+  uint8 private constant MIN_LEVERAGE = 1;
 
   /// @inheritdoc IMarginlyPool
   address public override factory;
@@ -813,6 +813,7 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position,
     uint256 swapCalldata
   ) private {
+    revert Errors.Forbidden();
     // this function guaranties the position is gonna be either Short or Lend with 0 base balance
     sellBaseForQuote(position, limitPriceX96, swapCalldata);
 
