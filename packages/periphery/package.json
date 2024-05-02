@@ -9,10 +9,11 @@
     "typechain-types"
   ],
   "scripts": {
-    "compile": "hardhat compile",
-    "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts",
-    "test:coverage": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat coverage  --testfiles './test/*.spec.ts'",
-    "test:int": "REPORT_GAS=true hardhat test --config hardhat-fork.config.ts ./test/int/*.spec.ts",
+    "compile": "hardhat compile --config ./hardhat-configs/hardhat.config.ts",
+    "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts --config ./hardhat-configs/hardhat.config.ts",
+    "test:coverage": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat coverage --testfiles './test/*.spec.ts'",
+    "test:int": "REPORT_GAS=true hardhat test --config ./hardhat-configs/fork.config.ts ./test/int/others/*.spec.ts",
+    "test:int:pendle": "REPORT_GAS=true hardhat test --config ./hardhat-configs/fork-pendle.config.ts ./test/int/pendle/PendleOracle.spec.ts",
     "lint:write": "prettier --write ./contracts ./test",
     "docgen": "hardhat docgen"
   },
@@ -42,6 +43,7 @@
     "@marginly/router": "^0.1.0",
     "@chainlink/contracts": "~0.8.0",
     "@pythnetwork/pyth-sdk-solidity": "^2.3.0",
+    "@pendle/core-v2": "^4.4.4",
     "mocha-chai-jest-snapshot": "^1.1.4",
     "chai": "^4.3.7",
     "ethers": "^5.7.2",

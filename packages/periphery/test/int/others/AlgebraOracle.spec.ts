@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
-import { AlgebraTickOracle, AlgebraTickOracleDouble } from '../../typechain-types/contracts/oracles';
-import { getDecimalsDiff, printPrices } from '../shared/common';
+import { AlgebraTickOracle, AlgebraTickOracleDouble } from '../../../typechain-types/contracts/oracles';
+import { getDecimalsDiff, printPrices } from '../../shared/common';
 
 describe('Camelot oracle (AlgebraTickOracle)', () => {
   let oracle: AlgebraTickOracle;
