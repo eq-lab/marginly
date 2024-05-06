@@ -152,7 +152,15 @@ contract PendleAdapter is IMarginlyAdapter, Ownable2Step {
     }
   }
 
+  function algebraSwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {
+    _uniswapV3SwapCallback(amount0Delta, amount1Delta, _data);
+  }
+
   function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {
+    _uniswapV3SwapCallback(amount0Delta, amount1Delta, _data);
+  }
+
+  function _uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) private {
     require(amount0Delta > 0 || amount1Delta > 0);
 
     CallbackData memory data = abi.decode(_data, (CallbackData));

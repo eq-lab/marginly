@@ -49,7 +49,9 @@ export type PriceOracleDeployConfig =
   | UniswapV3DoubleDeployOracleConfig
   | ChainlinkOracleDeployConfig
   | PythOracleDeployConfig
-  | PendleOracleDeployConfig;
+  | PendleOracleDeployConfig
+  | AlgebraTickOracleDeployConfig
+  | AlgebraDoubleDeployOracleConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -76,6 +78,32 @@ export interface UniswapV3DoubleDeployOracleConfig {
     secondsAgoLiquidation: string;
     baseTokenPairFee: string;
     quoteTokenPairFee: string;
+  }[];
+}
+
+export interface AlgebraTickOracleDeployConfig {
+  type: 'algebra';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+    uniswapFee: string;
+  }[];
+}
+
+export interface AlgebraDoubleDeployOracleConfig {
+  type: 'algebraDouble';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    intermediateTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
   }[];
 }
 
@@ -187,8 +215,18 @@ export function isPythOracleConfig(config: PriceOracleDeployConfig): config is P
   return config.type === 'pyth';
 }
 
-export function isPendleOracleConfig(config: PendleOracleDeployConfig): config is PendleOracleDeployConfig {
+export function isPendleOracleConfig(config: PriceOracleDeployConfig): config is PendleOracleDeployConfig {
   return config.type === 'pendle';
+}
+
+export function isAlgebraOracleConfig(config: PriceOracleDeployConfig): config is AlgebraTickOracleDeployConfig {
+  return config.type === 'algebra';
+}
+
+export function isAlgebraDoubleOracleConfig(
+  config: PriceOracleDeployConfig
+): config is AlgebraDoubleDeployOracleConfig {
+  return config.type === 'algebraDouble';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {

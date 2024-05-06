@@ -10,6 +10,19 @@ describe('Camelot oracle (AlgebraTickOracle)', () => {
     oracle = await factory.deploy(camelotFactory);
   });
 
+  it('usde-usdc', async () => {
+    const usde = '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34';
+    const usdc = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+
+    await oracle.setOptions(usdc, usde, 1800, 5);
+
+    const balancePrice = await oracle.getBalancePrice(usdc, usde);
+    const mcPrice = await oracle.getMargincallPrice(usdc, usde);
+
+    const decimalsDiff = await getDecimalsDiff(usdc, usde);
+    printPrices(balancePrice, mcPrice, decimalsDiff);
+  });
+
   it('grail-weth', async () => {
     const weth = '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1';
     const grail = '0x3d9907F9a368ad0a51Be60f7Da3b97cf940982D8';

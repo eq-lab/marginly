@@ -1,4 +1,6 @@
 import {
+  AlgebraDoubleOracleConfig,
+  AlgebraOracleConfig,
   ChainlinkOracleConfig,
   isDoublePairChainlinkOracleConfig,
   isDoublePairPythOracleConfig,
@@ -272,6 +274,101 @@ export class PriceOracleDeployer extends BaseDeployer {
         setting.secondsAgo.toSeconds(),
         setting.secondsAgoLiquidation.toSeconds()
       );
+    }
+
+    return deploymentResult;
+  }
+
+  public async deployAlgebraOracle(
+    config: AlgebraOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'AlgebraTickOracle',
+      [config.factory.toString()],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      const secondsAgo = setting.secondsAgo.toSeconds();
+      const secondsAgoLiquidation = setting.secondsAgoLiquidation.toSeconds();
+
+      const currentParams: OracleParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+      if (
+        !currentParams.initialized ||
+        !secondsAgo.eq(currentParams.secondsAgo) ||
+        !secondsAgoLiquidation.eq(currentParams.secondsAgoLiquidation)
+      ) {
+        this.logger.log(`Set oracle ${config.id} options`);
+
+        await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), secondsAgo, secondsAgoLiquidation);
+      }
+
+      this.logger.log(`Check oracle ${config.id}`);
+
+      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`BalancePrice is ${balancePrice}`);
+
+      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+    }
+
+    return deploymentResult;
+  }
+
+  public async deployAlgebraDoubleOracle(
+    config: AlgebraDoubleOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'AlgebraTickOracleDouble',
+      [config.factory.toString()],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
+
+      const secondsAgo = setting.secondsAgo.toSeconds();
+      const secondsAgoLiquidation = setting.secondsAgoLiquidation.toSeconds();
+
+      const currentParams: OracleDoubleParams = await priceOracle.getParamsEncoded(
+        quoteToken.toString(),
+        baseToken.toString()
+      );
+
+      if (
+        !currentParams.initialized ||
+        !currentParams.secondsAgo.eq(secondsAgo) ||
+        !currentParams.secondsAgoLiquidation.eq(secondsAgoLiquidation) ||
+        currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
+      ) {
+        this.logger.log(`Set oracle ${config.id} options`);
+        await priceOracle.setOptions(
+          quoteToken.toString(),
+          baseToken.toString(),
+          secondsAgo,
+          secondsAgoLiquidation,
+          intermediateToken.toString()
+        );
+      }
+
+      this.logger.log(`Check oracle ${config.id}`);
+
+      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`BalancePrice is ${balancePrice}`);
+
+      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
     }
 
     return deploymentResult;

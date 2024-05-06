@@ -1,6 +1,6 @@
 import * as ethers from 'ethers';
 import { EthAddress } from '@marginly/common';
-import { MarginlyDeployConfig } from './config';
+import { isAlgebraOracleConfig, MarginlyDeployConfig } from './config';
 import { Logger } from './logger';
 import { MarginlyDeployment, MarginlyDeploymentMarginlyPool, printDeployState, StateStore, using } from './common';
 import { TokenRepository } from './TokenRepository';
@@ -18,6 +18,8 @@ import {
   isPythOracle,
   KeeperUniswapV3Deployer,
   isPendleOracle,
+  isAlgebraDoubleOracle,
+  isAlgebraOracle,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -137,7 +139,7 @@ async function processPriceOracles(
           priceOracle,
           tokenRepository
         );
-        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
+        printDeployState(`UniswapV3 price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
       } else if (isUniswapV3DoubleOracle(priceOracle)) {
@@ -145,7 +147,7 @@ async function processPriceOracles(
           priceOracle,
           tokenRepository
         );
-        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
+        printDeployState(`UniswapV3Double price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
       } else if (isChainlinkOracle(priceOracle)) {
@@ -153,13 +155,23 @@ async function processPriceOracles(
           priceOracle,
           tokenRepository
         );
-        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
+        printDeployState(`ChainLink price oracle ${priceOracle.id}`, deploymentResult, logger);
       } else if (isPythOracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployAndConfigurePythOracle(priceOracle, tokenRepository);
-        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
+        printDeployState(`Pyth price oracle ${priceOracle.id}`, deploymentResult, logger);
       } else if (isPendleOracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployAndConfigurePendleOracle(priceOracle, tokenRepository);
-        printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
+        printDeployState(`Pendle price oracle ${priceOracle.id}`, deploymentResult, logger);
+
+        deployedPriceOracles.set(priceOracle.id, deploymentResult);
+      } else if (isAlgebraOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployAlgebraOracle(priceOracle, tokenRepository);
+        printDeployState(`Algebra price oracle ${priceOracle.id}`, deploymentResult, logger);
+
+        deployedPriceOracles.set(priceOracle.id, deploymentResult);
+      } else if (isAlgebraDoubleOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployAlgebraDoubleOracle(priceOracle, tokenRepository);
+        printDeployState(`AlgebraDoule price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
       } else {

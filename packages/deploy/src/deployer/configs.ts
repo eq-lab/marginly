@@ -2,6 +2,8 @@ import { MarginlyConfigExistingToken, MarginlyConfigMintableToken, MarginlyConfi
 import { EthAddress, RationalNumber } from '@marginly/common';
 import {
   EthConnectionConfig,
+  isAlgebraDoubleOracleConfig,
+  isAlgebraOracleConfig,
   isChainlinkOracleConfig,
   isDoublePairChainlinkOracleDeployConfig,
   isDoublePairPythOracleDeployConfig,
@@ -212,7 +214,9 @@ export type PriceOracleConfig =
   | UniswapV3TickDoubleOracleConfig
   | ChainlinkOracleConfig
   | PythOracleConfig
-  | PendleOracleConfig;
+  | PendleOracleConfig
+  | AlgebraOracleConfig
+  | AlgebraDoubleOracleConfig;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -239,6 +243,31 @@ export interface UniswapV3TickDoubleOracleConfig {
     secondsAgoLiquidation: TimeSpan;
     baseTokenPairFee: RationalNumber;
     quoteTokenPairFee: RationalNumber;
+  }[];
+}
+
+export interface AlgebraOracleConfig {
+  id: string;
+  type: 'algebra';
+  factory: EthAddress;
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
+  }[];
+}
+
+export interface AlgebraDoubleOracleConfig {
+  id: string;
+  type: 'algebraDouble';
+  factory: EthAddress;
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    intermediateToken: MarginlyConfigToken;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
   }[];
 }
 
@@ -350,6 +379,14 @@ export function isPythOracle(config: PriceOracleConfig): config is PythOracleCon
 
 export function isPendleOracle(config: PriceOracleConfig): config is PendleOracleConfig {
   return config.type === 'pendle';
+}
+
+export function isAlgebraOracle(config: PriceOracleConfig): config is AlgebraOracleConfig {
+  return config.type === 'algebra';
+}
+
+export function isAlgebraDoubleOracle(config: PriceOracleConfig): config is AlgebraDoubleOracleConfig {
+  return config.type === 'algebraDouble';
 }
 
 export class StrictMarginlyDeployConfig {
@@ -764,6 +801,55 @@ export class StrictMarginlyDeployConfig {
               secondaryPoolOracleId: x.secondaryPoolOracleId,
             };
           }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isAlgebraOracleConfig(priceOracleConfig)) {
+        const strictConfig: AlgebraOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            secondsAgo: TimeSpan.parse(x.secondsAgo),
+            secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
+          })),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isAlgebraDoubleOracleConfig(priceOracleConfig)) {
+        const strictConfig: AlgebraDoubleOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            intermediateToken:
+              tokens.get(x.intermediateTokenId) ||
+              (() => {
+                throw new Error(`Interm token not found by id ${x.baseTokenId}`);
+              })(),
+            secondsAgo: TimeSpan.parse(x.secondsAgo),
+            secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
+          })),
         };
 
         priceOracles.set(priceOracleId, strictConfig);

@@ -24,6 +24,24 @@
       "address": "0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe",
       "assertSymbol": "weETH",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-usde-29aug2024",
+      "address": "0xad853EB4fB3Fe4a66CdFCD7b75922a0494955292",
+      "assertSymbol": "PT-USDe-29AUG2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usde",
+      "address": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34",
+      "assertSymbol": "USDe",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc",
+      "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
     }
   ],
   "prices": [],
@@ -43,6 +61,19 @@
       ]
     },
     {
+      "id": "algebraOracle",
+      "type": "algebra",
+      "factory": "0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B",
+      "settings": [
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "usde",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
+    },
+    {
       "id": "pendleOracle",
       "type": "pendle",
       "pendlePtLpOracle": "0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187",
@@ -53,6 +84,15 @@
           "pendleMarket": "0x952083cde7aaa11ab8449057f7de23a970aa8472",
           "secondaryPoolOracleId": "uniswapV3Oracle",
           "ibTokenId": "weeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "pt-usde-29aug2024",
+          "pendleMarket": "0x2dfaf9a5e4f293bceede49f2dba29aacdd88e0c4",
+          "secondaryPoolOracleId": "algebraOracle",
+          "ibTokenId": "usde",
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -80,20 +120,25 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "200"
       }
+    },
+    {
+      "id": "pt-usde-29aug2024-usdc",
+      "baseTokenId": "pt-usde-29aug2024",
+      "quoteTokenId": "usdc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "17",
+      "params": {
+        "interestRate": "3%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "0%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "100000"
+      }
     }
   ],
   "adapters": [
-    {
-      "dexId": 0,
-      "adapterName": "UniswapV3Adapter",
-      "pools": [
-        {
-          "tokenAId": "weeth",
-          "tokenBId": "weth",
-          "poolAddress": "0x14353445c8329df76e6f15e9ead18fa2d45a8bb6"
-        }
-      ]
-    },
     {
       "dexId": 17,
       "adapterName": "PendleAdapter",
@@ -105,6 +150,14 @@
           "slippage": "20",
           "tokenAId": "pt-weeth-27jun2024",
           "tokenBId": "weth"
+        },
+        {
+          "pendleMarket": "0x2dfaf9a5e4f293bceede49f2dba29aacdd88e0c4",
+          "poolAddress": "0xc23f308cf1bfa7efffb592920a619f00990f8d74",
+          "ibTokenId": "usde",
+          "slippage": "20",
+          "tokenAId": "pt-usde-29aug2024",
+          "tokenBId": "usdc"
         }
       ]
     }
