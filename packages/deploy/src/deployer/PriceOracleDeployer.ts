@@ -1,10 +1,10 @@
-import { EthAddress } from '@marginly/common';
 import {
   ChainlinkOracleConfig,
   isDoublePairChainlinkOracleConfig,
   isDoublePairPythOracleConfig,
   isSinglePairChainlinkOracleConfig,
   isSinglePairPythOracleConfig,
+  PendleOracleConfig,
   PythOracleConfig,
   UniswapV3TickDoubleOracleConfig,
   UniswapV3TickOracleConfig,
@@ -231,6 +231,47 @@ export class PriceOracleDeployer extends BaseDeployer {
       } else {
         throw new Error('Unknown pair type');
       }
+    }
+
+    return deploymentResult;
+  }
+
+  public async deployAndConfigurePendleOracle(
+    config: PendleOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'PendleOracle',
+      [config.pendlePtLpOracle.toString()],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+    for (const setting of config.settings) {
+      //find secondary oracle among deployed oracles
+      const secondaryPoolOracle = this.stateStore.getById(`priceOracle_${setting.secondaryPoolOracleId}`);
+      if (!secondaryPoolOracle) {
+        throw new Error(`Secondary pool oracle ${setting.secondaryPoolOracleId} not found`);
+      }
+
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      const { address: ibToken } = tokenRepository.getTokenInfo(setting.ibToken.id);
+
+      const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+
+      if (currentParams.secondsAgo != 0) continue; // oracle already initialized
+
+      await priceOracle.setPair(
+        quoteToken.toString(),
+        baseToken.toString(),
+        setting.pendleMarket.toString(),
+        secondaryPoolOracle.address,
+        ibToken.toString(),
+        setting.secondsAgo.toSeconds(),
+        setting.secondsAgoLiquidation.toSeconds()
+      );
     }
 
     return deploymentResult;

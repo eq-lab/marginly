@@ -1,0 +1,11 @@
+{
+  "marginlyPools": [
+    {
+      "id": "pt-weeth-27jun2024-weth",
+      "address": "0x8CEdCF8b62458E48819e9F5101846aFaef4Eb40E"
+    }
+  ],
+  "aaveKeeperDeployResult": {
+    "address": "0x14adE4DA23049b0dB1368e36555Cdf79745FAd7c"
+  }
+}

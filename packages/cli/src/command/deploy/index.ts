@@ -361,9 +361,6 @@ function updateDeploymentFile(deploymentFile: string, currentDeployment: Marginl
     logger.log('Deployment file not found. Creating new one');
     existingDeployment = {
       marginlyPools: [],
-      marginlyKeeperUniswapV3: {
-        address: '',
-      },
     };
   }
 
