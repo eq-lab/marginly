@@ -1,6 +1,9 @@
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
 import 'solidity-docgen';
+import { config as dotEnvConfig } from 'dotenv';
+
+dotEnvConfig();
 
 const config = {
   solidity: {
