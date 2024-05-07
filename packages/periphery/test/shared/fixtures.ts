@@ -708,6 +708,65 @@ export async function createPendleCaseWeETH27Jun2024(): Promise<PendleOracleCase
   };
 }
 
+export async function createPendleCaseUSDe29Aug2024(): Promise<PendleOracleCaseParams> {
+  const camelotFactory = '0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B';
+  const pt = <TokenInfo>{
+    address: '0xad853EB4fB3Fe4a66CdFCD7b75922a0494955292',
+    symbol: 'PT-USDe-29AUG2024',
+    decimals: 18,
+  };
+
+  const sy = <TokenInfo>{
+    address: '0xb3C24D9dcCC2Ec5f778742389ffe448E295B84e0',
+    symbol: 'SY-USDe',
+    decimals: 18,
+  };
+
+  const yqt = <TokenInfo>{
+    address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+    symbol: 'USDe',
+    decimals: 18,
+  };
+
+  const qt = <TokenInfo>{
+    address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+    symbol: 'USDC',
+    decimals: 6,
+  };
+
+  const secondsAgo = 1000;
+  const secondsAgoLiquidation = 100;
+  const pendleMarket = '0x2dfaf9a5e4f293bceede49f2dba29aacdd88e0c4';
+  const pendlePtLpOracle = '0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187';
+  // const uniswapPool = '0x14353445c8329Df76e6f15e9EAD18fA2D45A8BB6';
+  const secondaryPoolOracle = await (await ethers.getContractFactory('AlgebraTickOracle')).deploy(camelotFactory);
+  await secondaryPoolOracle.setOptions(qt.address, yqt.address, secondsAgo, secondsAgoLiquidation);
+
+  const oracle = await (await ethers.getContractFactory('PendleOracle')).deploy(pendlePtLpOracle);
+  await oracle.setPair(
+    qt.address,
+    pt.address,
+    pendleMarket,
+    secondaryPoolOracle.address,
+    yqt.address,
+    secondsAgo,
+    secondsAgoLiquidation
+  );
+
+  return {
+    oracle,
+    pt,
+    qt,
+    secondaryPoolOracle,
+    secondsAgo,
+    secondsAgoLiquidation,
+    sy,
+    yqt,
+    pendleMarket: await ethers.getContractAt('PendleMarketV3', pendleMarket),
+    pendlePtLpOracle: await ethers.getContractAt('PendlePtLpOracle', pendlePtLpOracle),
+  };
+}
+
 export async function createPendleCaseRsETH27Jun2024(): Promise<PendleOracleCaseParams> {
   const camelotPoolFactory = '0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B';
   const pt = <TokenInfo>{
