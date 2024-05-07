@@ -110,12 +110,12 @@
       "baseTokenId": "pt-weeth-27jun2024",
       "quoteTokenId": "weth",
       "priceOracleId": "pendleOracle",
-      "defaultSwapCallData": "17",
+      "defaultSwapCallData": "18350081",
       "params": {
         "interestRate": "3%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
-        "fee": "2%",
+        "fee": "1.25%",
         "mcSlippage": "1.0%",
         "positionMinAmount": "0.001",
         "quoteLimit": "200"
@@ -126,12 +126,12 @@
       "baseTokenId": "pt-usde-29aug2024",
       "quoteTokenId": "usdc",
       "priceOracleId": "pendleOracle",
-      "defaultSwapCallData": "17",
+      "defaultSwapCallData": "18350081",
       "params": {
         "interestRate": "3%",
         "maxLeverage": "20",
         "swapFee": "0.1%",
-        "fee": "0%",
+        "fee": "1.25%",
         "mcSlippage": "1.0%",
         "positionMinAmount": "1",
         "quoteLimit": "100000"
