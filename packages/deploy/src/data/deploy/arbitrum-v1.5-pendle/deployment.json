@@ -2,11 +2,11 @@
   "marginlyPools": [
     {
       "id": "pt-usde-29aug2024-usdc",
-      "address": "0x58c7B46049Bf2a1F0B4DDB6A7569BbBA77E7751a"
+      "address": "0x79C37E226834Dc6BfB04Ba0b60f823515c32f50D"
     },
     {
       "id": "pt-weeth-27jun2024-weth",
-      "address": "0x5a6bE167569263281fefEf429D46664fD35D6810"
+      "address": "0xcf848A30153506617B07207D2B3d054D4Fb72EBC"
     }
   ],
   "aaveKeeperDeployResult": {

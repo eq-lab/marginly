@@ -20,25 +20,25 @@
       "address": "0x8ed4F2Aa306e548ACb4215D85e6E6f69e2d61B0A",
       "txHash": "0x8e1ba42f3fae8b26e0f68095a03b0aec2825567c9722a371997ab32513d2e54b"
     },
-    "marginlyPoolImplementation": {
-      "address": "0x97ECE7E40Aef3D3De9638f1EF3C3384271F78D7f",
-      "txHash": "0xf19aa7174b29f0b8ba39a2bfb7642ebed7701d5ae284738dd2ce8f57515c2177"
-    },
-    "marginlyFactory": {
-      "address": "0x23Aa99EffE8720fA65C36A18d03417592558069C",
-      "txHash": "0xd728e54cce5f456a2e0b51f4244bba08b53bfa56e2436a0c2a0b8fb0d091e117"
-    },
-    "marginlyPool_pt-weeth-27jun2024-weth": {
-      "address": "0x5a6bE167569263281fefEf429D46664fD35D6810",
-      "txHash": "0xf3a5349d23a67d280b17a5fd9a3da0d46f4da4d90d31a1380c47b9530f18cb43"
-    },
-    "marginlyPool_pt-usde-29aug2024-usdc": {
-      "address": "0x58c7B46049Bf2a1F0B4DDB6A7569BbBA77E7751a",
-      "txHash": "0x95d4f42d0b75df6f64841adea47b8ac3678a44f032d5a0c9e3ecf6f29929db68"
-    },
     "marginlyKeeper": {
       "address": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0",
       "txHash": "0xa74a1b0f62cf014093d175a530651fbed7edada23fe45ef3a657bc9057760dc9"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x00DED21835df8B0975c51C04f52d4E1e0a3eea66",
+      "txHash": "0x06c378a18ec39194bdb01939913967f769a40ec179c9ddf7d225e784134ac821"
+    },
+    "marginlyFactory": {
+      "address": "0x537A3417Fe03e28F4E9640Bece70887a6938ff92",
+      "txHash": "0xa66406ef18ba22379c3fc23ac384ad4055a4206f4b014726e09ce6fbe01e0e0b"
+    },
+    "marginlyPool_pt-weeth-27jun2024-weth": {
+      "address": "0xcf848A30153506617B07207D2B3d054D4Fb72EBC",
+      "txHash": "0x24b538796201c76b50b37d97942e162992d0e2102465f57deae1ab5c110925eb"
+    },
+    "marginlyPool_pt-usde-29aug2024-usdc": {
+      "address": "0x79C37E226834Dc6BfB04Ba0b60f823515c32f50D",
+      "txHash": "0xd6fcc2cb2154c5a7b55b7fbf3627138c633e4eb0a87ebd402a30151e0cd4289e"
     }
   }
 }
