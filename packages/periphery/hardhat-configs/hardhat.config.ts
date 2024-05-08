@@ -35,11 +35,15 @@ const config = {
     artioTestnet: {
       url: 'https://artio.rpc.berachain.com',
     },
+    mainnet: {
+      url: 'https://ethereum-rpc.publicnode.com',
+    },
   },
   etherscan: {
     apiKey: {
       arbitrumOne: process.env.API_KEY,
       artioTestnet: 'artio_testnet',
+      mainnet: process.env.ETH_API_KEY,
     },
     customChains: [
       {

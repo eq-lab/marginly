@@ -30,13 +30,17 @@ const config = {
     arbitrumSepolia: {
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
     },
+    mainnet: {
+      url: 'https://ethereum-rpc.publicnode.com',
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.API_KEY,
       arbitrumGoerli: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
-      artio_testnet: "artio_testnet"
+      artio_testnet: 'artio_testnet',
+      mainnet: process.env.ETH_API_KEY,
     },
     customChains: [
       {
@@ -48,13 +52,13 @@ const config = {
         },
       },
       {
-        network: "artio_testnet",
+        network: 'artio_testnet',
         chainId: 80085,
         urls: {
-          apiURL: "https://api.routescan.io/v2/network/testnet/evm/80085/etherscan",
-          browserURL: "https://artio.beratrail.io"
-        }
-      }
+          apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
+          browserURL: 'https://artio.beratrail.io',
+        },
+      },
     ],
   },
   mocha: {

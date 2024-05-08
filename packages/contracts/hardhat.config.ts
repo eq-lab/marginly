@@ -44,6 +44,9 @@ const config = {
     blastSepolia: {
       url: 'https://sepolia.blast.io',
     },
+    mainnet: {
+      url: 'https://ethereum-rpc.publicnode.com',
+    },
   },
   etherscan: {
     apiKey: {
@@ -54,6 +57,7 @@ const config = {
       x1Testnet: process.env.API_KEY,
       artioTestnet: 'artio_testnet',
       blastSepolia: 'blast_sepolia',
+      mainnet: process.env.ETH_API_KEY,
     },
     customChains: [
       {
@@ -78,7 +82,7 @@ const config = {
         urls: {
           apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
           browserURL: 'https://artio.beratrail.io',
-        }
+        },
       },
       {
         network: 'blastSepolia',
