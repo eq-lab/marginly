@@ -1,5 +1,6 @@
 name: Keeper Image CI
 on:
+
   push:
     branches:
       - 'keeper-releases-v1.5'
@@ -53,13 +54,19 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           no-cache: true
 
-  deployment-blast:
+  deployment:
     if: github.ref == 'refs/heads/keeper-releases-v1.5'
     needs: build-image
     runs-on: 'ubuntu-latest'
     environment: production
+    strategy:
+      matrix:
+        config: 
+          - blast
+          - ethereum
+          - arb-one
     env:
-      SERVICE_NAME: 'keeper-blast'
+      SERVICE_NAME: keeper-${{ matrix.config }}
       PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
       NAMESPACE: ${{ secrets.NAMESPACE }}
     steps:
@@ -80,7 +87,7 @@ jobs:
         run: |
           cat <<EOF >extraEnv.yml
           extraEnv:
-            MARGINLY_KEEPER_CONFIG: "config.blast.json"
+            MARGINLY_KEEPER_CONFIG: "config.${{ matrix.config }}.json"
             MARGINLY_KEEPER_LOG_LEVEL: "3"
             MARGINLY_KEEPER_LOG_FORMAT: "json"
           EOF
