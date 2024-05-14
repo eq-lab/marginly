@@ -39,6 +39,7 @@ contract AlgebraTickOracleDouble is IPriceOracle, Ownable2Step {
     address intermediateToken
   ) external onlyOwner {
     if (secondsAgo == 0 || secondsAgoLiquidation == 0) revert WrongValue();
+    if (secondsAgo < secondsAgoLiquidation) revert WrongValue();
 
     OracleParams storage currentParams = getParams[quoteToken][baseToken];
     if (currentParams.initialized) {
@@ -93,10 +94,6 @@ contract AlgebraTickOracleDouble is IPriceOracle, Ownable2Step {
     uint256 sqrtPrice = TickMathLib.getSqrtRatioAtTick(resultingTick);
 
     return Math.mulDiv(sqrtPrice, sqrtPrice, X96ONE);
-  }
-
-  function decode(bytes memory options) private pure returns (OracleParams memory) {
-    return abi.decode(options, (OracleParams));
   }
 
   function getPoolAddress(address tokenA, address tokenB) private view returns (address pool) {

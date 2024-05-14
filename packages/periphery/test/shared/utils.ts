@@ -221,3 +221,8 @@ export async function attachAdapterStorage(address: string): Promise<UniswapV3Ad
   );
   return uniswapV3Adapter.attach(address);
 }
+
+export async function moveTimeOnFork(timestamp: number) {
+  await ethers.provider.send('evm_setNextBlockTimestamp', [timestamp]);
+  await ethers.provider.send('evm_mine', []);
+}

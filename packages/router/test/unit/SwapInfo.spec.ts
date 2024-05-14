@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { createTestSwapInfo } from './shared/fixtures';
-import { constructSwap, Dex, SWAP_ONE } from './shared/utils';
+import { createTestSwapInfo } from '../shared/fixtures';
+import { constructSwap, Dex, SWAP_ONE } from '../shared/utils';
 
 describe('SwapInfo decoding', () => {
   it('default', async () => {

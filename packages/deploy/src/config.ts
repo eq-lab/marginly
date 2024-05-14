@@ -53,6 +53,7 @@ export type PriceOracleDeployConfig =
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
   id: string;
+  factory: string;
   settings: {
     quoteTokenId: string;
     baseTokenId: string;
@@ -65,6 +66,7 @@ export interface UniswapV3TickOracleDeployConfig {
 export interface UniswapV3DoubleDeployOracleConfig {
   type: 'uniswapV3Double';
   id: string;
+  factory: string;
   settings: {
     quoteTokenId: string;
     baseTokenId: string;
@@ -92,13 +94,19 @@ export interface DoublePairChainlinkOracleDeployConfig {
   baseAggregatorV3: string;
 }
 
-export type PairChainlinkOracleDeployConfig = SinglePairChainlinkOracleDeployConfig | DoublePairChainlinkOracleDeployConfig;
+export type PairChainlinkOracleDeployConfig =
+  | SinglePairChainlinkOracleDeployConfig
+  | DoublePairChainlinkOracleDeployConfig;
 
-export function isSinglePairChainlinkOracleDeployConfig(config: PairChainlinkOracleDeployConfig): config is SinglePairChainlinkOracleDeployConfig {
+export function isSinglePairChainlinkOracleDeployConfig(
+  config: PairChainlinkOracleDeployConfig
+): config is SinglePairChainlinkOracleDeployConfig {
   return config.type === 'single';
 }
 
-export function isDoublePairChainlinkOracleDeployConfig(config: PairChainlinkOracleDeployConfig): config is DoublePairChainlinkOracleDeployConfig {
+export function isDoublePairChainlinkOracleDeployConfig(
+  config: PairChainlinkOracleDeployConfig
+): config is DoublePairChainlinkOracleDeployConfig {
   return config.type === 'double';
 }
 
@@ -126,11 +134,15 @@ export interface DoublePairPythOracleDeployConfig {
 
 export type PairPythOracleDeployConfig = SinglePairPythOracleDeployConfig | DoublePairPythOracleDeployConfig;
 
-export function isSinglePairPythOracleDeployConfig(config: PairPythOracleDeployConfig): config is SinglePairPythOracleDeployConfig {
+export function isSinglePairPythOracleDeployConfig(
+  config: PairPythOracleDeployConfig
+): config is SinglePairPythOracleDeployConfig {
   return config.type === 'single';
 }
 
-export function isDoublePairPythOracleDeployConfig(config: PairPythOracleDeployConfig): config is DoublePairPythOracleDeployConfig {
+export function isDoublePairPythOracleDeployConfig(
+  config: PairPythOracleDeployConfig
+): config is DoublePairPythOracleDeployConfig {
   return config.type === 'double';
 }
 
@@ -166,6 +178,7 @@ interface MarginlyDeployConfigUniswapGenuine {
     id: string;
     tokenAId: string;
     tokenBId: string;
+    factory: string;
     fee: string;
     allowCreate: boolean;
     assertAddress?: string;

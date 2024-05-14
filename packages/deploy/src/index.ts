@@ -132,7 +132,7 @@ async function processUniswap(
   mockTokenDeployer: MockTokenDeployer,
   marginlyDeployer: MarginlyDeployer,
   config: StrictMarginlyDeployConfig
-): Promise<{ uniswapFactoryAddress: EthAddress; routerPools: RouterPool[] }> {
+): Promise<{ routerPools: RouterPool[] }> {
   return await using(logger.beginScope('Process uniswap'), async () => {
     const routerPools: RouterPool[] = [];
 
@@ -149,7 +149,7 @@ async function processUniswap(
           pool: pool.assertAddress!,
         });
         const uniswapPoolDeploymentResult = await uniswapV3Deployer.getOrCreateUniswapPoolGenuine(
-          uniswapConfig.factory,
+          pool.factory,
           pool,
           tokenRepository
         );
@@ -157,7 +157,6 @@ async function processUniswap(
       }
 
       return {
-        uniswapFactoryAddress: config.uniswap.factory,
         routerPools,
       };
     } else if (isMarginlyConfigUniswapMock(config.uniswap)) {
@@ -344,7 +343,6 @@ async function processPriceOracles(
   logger: Logger,
   priceOracleDeployer: PriceOracleDeployer,
   config: StrictMarginlyDeployConfig,
-  uniswapFactoryAddress: EthAddress,
   tokenRepository: ITokenRepository
 ): Promise<Map<string, DeployResult>> {
   return await using(logger.beginScope(`Process price oracles`), async () => {
@@ -354,7 +352,6 @@ async function processPriceOracles(
       if (isUniswapV3Oracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployAndConfigureUniswapV3TickOracle(
           priceOracle,
-          uniswapFactoryAddress,
           tokenRepository
         );
         printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
@@ -363,7 +360,6 @@ async function processPriceOracles(
       } else if (isUniswapV3DoubleOracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployAndConfigureUniswapV3TickDoubleOracle(
           priceOracle,
-          uniswapFactoryAddress,
           tokenRepository
         );
         printDeployState(`Price oracle ${priceOracle.id}`, deploymentResult, logger);
@@ -404,7 +400,11 @@ async function processMarginlyRouter(
         adapter.marginlyAdapterParams,
         adapter.balancerVault
       );
-      printDeployState('Marginly adapter', marginlyAdapterDeployResult, logger);
+      printDeployState(
+        `Marginly adapter dexId:${adapter.dexId} name:${adapter.name}`,
+        marginlyAdapterDeployResult,
+        logger
+      );
 
       adapterDeployResults.push({
         dexId: adapter.dexId,
@@ -562,7 +562,7 @@ export async function deployMarginly(
   try {
     const tokenRepository = await processTokens(logger, provider, mockTokenDeployer, config);
 
-    const { uniswapFactoryAddress } = await processUniswap(
+    await processUniswap(
       logger,
       signer,
       tokenRepository,
@@ -572,13 +572,7 @@ export async function deployMarginly(
       config
     );
 
-    const deployedPriceOracles = await processPriceOracles(
-      logger,
-      priceOracleDeployer,
-      config,
-      uniswapFactoryAddress,
-      tokenRepository
-    );
+    const deployedPriceOracles = await processPriceOracles(logger, priceOracleDeployer, config, tokenRepository);
 
     const marginlyRouterDeployResult = await processMarginlyRouter(
       logger,
@@ -596,14 +590,22 @@ export async function deployMarginly(
       deployedPriceOracles
     );
 
-    const marginlyKeeperDeployResult = await processKeeper(logger, keeperDeployer, config);
-
-    const keeperUniswapV3DeployResult = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
+    let marginlyKeeperDeployResult: DeployResult | null = null;
+    let keeperUniswapV3DeployResult: DeployResult | null = null;
+    if (
+      config.marginlyKeeper.aavePoolAddressesProvider.address &&
+      config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock
+    ) {
+      marginlyKeeperDeployResult = await processKeeper(logger, keeperDeployer, config);
+      keeperUniswapV3DeployResult = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
+    }
 
     return {
       marginlyPools: deployedMarginlyPools,
-      marginlyKeeper: { address: marginlyKeeperDeployResult.address },
-      marginlyKeeperUniswapV3: { address: keeperUniswapV3DeployResult.address },
+      marginlyKeeper:
+        marginlyKeeperDeployResult !== null ? { address: marginlyKeeperDeployResult!.address } : undefined,
+      marginlyKeeperUniswapV3:
+        keeperUniswapV3DeployResult !== null ? { address: keeperUniswapV3DeployResult!.address } : undefined,
     };
   } finally {
     const balanceAfter = await signer.getBalance();

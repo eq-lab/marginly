@@ -16,6 +16,8 @@ export const Dex = {
   Ramses: 10,
   DodoV1: 11,
   DodoV2: 12,
+  Curve: 13,
+  Pendle: 14,
 };
 
 export function constructSwap(dex: number[], ratios: number[]): BigNumber {

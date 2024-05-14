@@ -2,14 +2,17 @@ import { MarginlyConfigExistingToken, MarginlyConfigMintableToken, MarginlyConfi
 import { EthAddress, RationalNumber } from '@marginly/common';
 import {
   EthConnectionConfig,
-  isChainlinkOracleConfig, isDoublePairChainlinkOracleDeployConfig, isDoublePairPythOracleDeployConfig,
+  isChainlinkOracleConfig,
+  isDoublePairChainlinkOracleDeployConfig,
+  isDoublePairPythOracleDeployConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
   isMarginlyDeployConfigSwapPoolRegistry,
   isMarginlyDeployConfigUniswapGenuine,
   isMarginlyDeployConfigUniswapMock,
   isPythOracleConfig,
-  isSinglePairChainlinkOracleDeployConfig, isSinglePairPythOracleDeployConfig,
+  isSinglePairChainlinkOracleDeployConfig,
+  isSinglePairPythOracleDeployConfig,
   isUniswapV3DoubleOracleConfig,
   isUniswapV3OracleConfig,
   MarginlyDeployConfig,
@@ -25,6 +28,7 @@ import { BigNumber } from 'ethers';
 export interface MarginlyConfigUniswapPoolGenuine {
   type: 'genuine';
   id: string;
+  factory: EthAddress;
   tokenA: MarginlyConfigToken;
   tokenB: MarginlyConfigToken;
   fee: RationalNumber;
@@ -34,7 +38,6 @@ export interface MarginlyConfigUniswapPoolGenuine {
 
 export interface MarginlyConfigUniswapGenuine {
   type: 'genuine';
-  factory: EthAddress;
   pools: MarginlyConfigUniswapPoolGenuine[];
 }
 
@@ -191,6 +194,7 @@ export type PriceOracleConfig =
 export interface UniswapV3TickOracleConfig {
   id: string;
   type: 'uniswapV3';
+  factory: EthAddress;
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
@@ -203,6 +207,7 @@ export interface UniswapV3TickOracleConfig {
 export interface UniswapV3TickDoubleOracleConfig {
   id: string;
   type: 'uniswapV3Double';
+  factory: EthAddress;
   settings: {
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
@@ -232,11 +237,15 @@ export interface DoublePairChainlinkOracleConfig {
 
 export type PairChainlinkOracleConfig = SinglePairChainlinkOracleConfig | DoublePairChainlinkOracleConfig;
 
-export function isSinglePairChainlinkOracleConfig(config: PairChainlinkOracleConfig): config is SinglePairChainlinkOracleConfig {
+export function isSinglePairChainlinkOracleConfig(
+  config: PairChainlinkOracleConfig
+): config is SinglePairChainlinkOracleConfig {
   return config.type === 'single';
 }
 
-export function isDoublePairChainlinkOracleConfig(config: PairChainlinkOracleConfig): config is DoublePairChainlinkOracleConfig {
+export function isDoublePairChainlinkOracleConfig(
+  config: PairChainlinkOracleConfig
+): config is DoublePairChainlinkOracleConfig {
   return config.type === 'double';
 }
 
@@ -410,6 +419,7 @@ export class StrictMarginlyDeployConfig {
           tokenA,
           tokenB,
           fee,
+          factory: EthAddress.parse(rawPool.factory),
           allowCreate: rawPool.allowCreate,
           assertAddress: assertAddress,
         };
@@ -418,7 +428,6 @@ export class StrictMarginlyDeployConfig {
       }
       uniswap = {
         type: 'genuine',
-        factory: EthAddress.parse(config.uniswap.factory),
         pools: genuinePools,
       };
     } else if (isMarginlyDeployConfigUniswapMock(config.uniswap)) {
@@ -633,17 +642,6 @@ export class StrictMarginlyDeployConfig {
       });
     }
 
-    if (
-      (config.marginlyKeeper.aavePoolAddressesProvider.address &&
-        config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock) ||
-      (!config.marginlyKeeper.aavePoolAddressesProvider.address &&
-        !config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock)
-    ) {
-      throw new Error(
-        `Config error. You should either provide address of aavePoolAddressesProvider or set flag allowCreateMock`
-      );
-    }
-
     const adapters: MarginlyConfigAdapter[] = [];
 
     for (const adapter of config.adapters) {
@@ -719,6 +717,7 @@ export class StrictMarginlyDeployConfig {
         const strictConfig: UniswapV3TickOracleConfig = {
           id: priceOracleId,
           type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
             quoteToken:
               tokens.get(x.quoteTokenId) ||
@@ -741,6 +740,7 @@ export class StrictMarginlyDeployConfig {
         const strictConfig: UniswapV3TickDoubleOracleConfig = {
           id: priceOracleId,
           type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
             quoteToken:
               tokens.get(x.quoteTokenId) ||
@@ -804,12 +804,12 @@ export class StrictMarginlyDeployConfig {
                     throw new Error(`Intermediate token not found by id ${x.intermediateTokenId}`);
                   })(),
                 baseAggregatorV3: EthAddress.parse(x.baseAggregatorV3),
-                quoteAggregatorV3: EthAddress.parse(x.quoteAggregatorV3)
+                quoteAggregatorV3: EthAddress.parse(x.quoteAggregatorV3),
               } as DoublePairChainlinkOracleConfig;
             } else {
               throw new Error(`Unknown pair type at index ${i} on ${priceOracleConfig.id}`);
             }
-          })
+          }),
         };
 
         priceOracles.set(priceOracleId, strictConfig);
@@ -835,7 +835,7 @@ export class StrictMarginlyDeployConfig {
                   (() => {
                     throw new Error(`Base token not found by id ${x.baseTokenId}`);
                   })(),
-                pythPriceId: x.pythPriceId as `0x{string}`
+                pythPriceId: x.pythPriceId as `0x{string}`,
               } as SinglePairPythOracleConfig;
             } else if (isDoublePairPythOracleDeployConfig(x)) {
               if (!ethers.utils.isHexString(x.basePythPriceId, 32)) {
@@ -863,12 +863,12 @@ export class StrictMarginlyDeployConfig {
                     throw new Error(`Base token not found by id ${x.intermediateTokenId}`);
                   })(),
                 basePythPriceId: x.basePythPriceId as `0x{string}`,
-                quotePythPriceId: x.quotePythPriceId as `0x{string}`
+                quotePythPriceId: x.quotePythPriceId as `0x{string}`,
               } as DoublePairPythOracleConfig;
             } else {
               throw new Error(`Unknown pair type at index ${i} on ${priceOracleConfig.id}`);
             }
-          })
+          }),
         };
 
         priceOracles.set(priceOracleId, strictConfig);

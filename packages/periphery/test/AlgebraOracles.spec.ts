@@ -106,6 +106,12 @@ describe('AlgebraTickOracle tech methods', () => {
 
     await expect(oracle.setOptions(quoteToken, baseToken, 900, 5)).to.be.revertedWithCustomError(oracle, 'UnknownPool');
   });
+
+  it('oracle initialization should fail when secondsAgoLiquidation > secondsAgo', async () => {
+    const { oracle, baseToken, quoteToken } = await loadFixture(createAlgebraTickOracleForward);
+
+    await expect(oracle.setOptions(quoteToken, baseToken, 5, 900)).to.be.revertedWithCustomError(oracle, 'WrongValue');
+  });
 });
 
 describe('AlgebraTickOracleDouble prices', () => {
@@ -400,5 +406,16 @@ describe('AlgebraTickOracleDouble tech methods', () => {
     await expect(
       oracle.setOptions(otherQuoteToken, baseToken, 900, 5, intermediateToken)
     ).to.be.revertedWithCustomError(oracle, 'UnknownPool');
+  });
+
+  it('oracle initialization should fail when secondsAgoLiquidation > secondsAgo', async () => {
+    const { oracle, algebraFactory, baseToken, quoteToken, intermediateToken } = await loadFixture(
+      createAlgebraTickOracleDoubleIBQ
+    );
+
+    await expect(oracle.setOptions(quoteToken, baseToken, 5, 900, intermediateToken)).to.be.revertedWithCustomError(
+      oracle,
+      'WrongValue'
+    );
   });
 });

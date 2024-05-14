@@ -2,14 +2,13 @@
 pragma solidity 0.8.19;
 
 import '@cryptoalgebra/v1.9-core/contracts/interfaces/pool/IAlgebraPoolDerivedState.sol';
-import './TickMathLib.sol';
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle
 library AlgebraOracleLib {
   error ZeroSeconds();
 
-  /// @dev Copied from Algebra V1.9 https://github.com/cryptoalgebra/AlgebraV1.9/blob/main/src/periphery/contracts/libraries/WeightedDataStorageLibrary.sol
+  /// @dev Based on DataStorageLibrary.consult() from Algebra V1.9 https://github.com/cryptoalgebra/AlgebraV1.9/blob/main/src/periphery/contracts/libraries/DataStorageLibrary.sol
   function getArithmeticMeanTick(address pool, uint32 period) internal view returns (int24 arithmeticMeanTick) {
     if (period == 0) revert ZeroSeconds();
 

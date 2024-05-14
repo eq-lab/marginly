@@ -1,16 +1,17 @@
 import { parseEther, parseUnits } from 'ethers/lib/utils';
 import { ethers } from 'hardhat';
-import { IMarginlyAdapter, MarginlyRouter } from '../../typechain-types';
-import { TestERC20Token } from '../../typechain-types/contracts/test/TestERC20.sol';
-import { RouterTestUniswapV3Pool } from '../../typechain-types/contracts/test/UniswapV3Test/TestUniswapV3Pool.sol';
-import { RouterTestUniswapV2Pair } from '../../typechain-types/contracts/test/UniswapV2Test/TestUniswapV2Pair.sol';
-import { TestVault } from '../../typechain-types/contracts/test/BalancerTest/TestVault.sol';
-import { TestWooPPV2 } from '../../typechain-types/contracts/test/WooFi/TestWooPool.sol';
-import { TestDodoV1Pool } from '../../typechain-types/contracts/test/Dodo/V1/TestDodoV1Pool.sol';
-import { TestDodoV2Pool } from '../../typechain-types/contracts/test/Dodo/V2/TestDodoV2Pool.sol';
-import { TestBalancerPool } from '../../typechain-types/contracts/test/BalancerTest/TestBalancerPool';
-import { TestSwapInfo } from '../../typechain-types/contracts/test/TestSwapInfo';
+import { CurveAdapter, IMarginlyAdapter, MarginlyRouter, TestStableSwap2EMAOraclePool } from '../../typechain-types';
+import { TestERC20Token } from '../../typechain-types';
+import { RouterTestUniswapV3Pool } from '../../typechain-types';
+import { RouterTestUniswapV2Pair } from '../../typechain-types';
+import { TestVault } from '../../typechain-types';
+import { TestWooPPV2 } from '../../typechain-types';
+import { TestDodoV1Pool } from '../../typechain-types';
+import { TestDodoV2Pool } from '../../typechain-types';
+import { TestBalancerPool } from '../../typechain-types';
+import { TestSwapInfo } from '../../typechain-types';
 import { Dex } from './utils';
+import { BigNumber } from 'ethers';
 
 export interface UniswapPoolInfo {
   token0: TestERC20Token;
@@ -21,7 +22,7 @@ export interface UniswapPoolInfo {
 }
 
 export async function createToken(name: string, symbol: string): Promise<TestERC20Token> {
-  const [_, signer] = await ethers.getSigners();
+  const [, signer] = await ethers.getSigners();
   const factory = await ethers.getContractFactory('TestERC20Token');
   const tokenContract = await factory.deploy(name, symbol);
   await signer.sendTransaction({
@@ -233,4 +234,61 @@ export async function createMarginlyRouter(): Promise<{
 
 export async function createTestSwapInfo(): Promise<TestSwapInfo> {
   return await (await ethers.getContractFactory('TestSwapInfo')).deploy();
+}
+
+async function createCurveAdapterInner(inverse: boolean): Promise<{
+  router: MarginlyRouter;
+  adapter: CurveAdapter;
+  pool: TestStableSwap2EMAOraclePool;
+  token0: TestERC20Token;
+  token1: TestERC20Token;
+}> {
+  const token0 = await createToken('Token0', 'TK0');
+  const token1 = await createToken('Token1', 'TK1');
+  const pool = await (
+    await ethers.getContractFactory('TestStableSwap2EMAOraclePool')
+  ).deploy(token0.address, token1.address);
+
+  await token0.mint(pool.address, BigNumber.from(10).pow(20));
+  await token1.mint(pool.address, BigNumber.from(10).pow(20));
+
+  const adapterInput = [
+    {
+      token0: inverse ? token1.address : token0.address,
+      token1: inverse ? token0.address : token1.address,
+      pool: pool.address,
+    },
+  ];
+  const adapter = await (await ethers.getContractFactory('CurveAdapter')).deploy(adapterInput);
+
+  const router = await (
+    await ethers.getContractFactory('MarginlyRouter')
+  ).deploy([
+    {
+      dexIndex: Dex.Curve,
+      adapter: adapter.address,
+    },
+  ]);
+
+  return { router, adapter, pool, token0, token1 };
+}
+
+export async function createCurveAdapter(): Promise<{
+  router: MarginlyRouter;
+  adapter: CurveAdapter;
+  pool: TestStableSwap2EMAOraclePool;
+  token0: TestERC20Token;
+  token1: TestERC20Token;
+}> {
+  return await createCurveAdapterInner(false);
+}
+
+export async function createCurveAdapterInverse(): Promise<{
+  router: MarginlyRouter;
+  adapter: CurveAdapter;
+  pool: TestStableSwap2EMAOraclePool;
+  token0: TestERC20Token;
+  token1: TestERC20Token;
+}> {
+  return await createCurveAdapterInner(true);
 }
