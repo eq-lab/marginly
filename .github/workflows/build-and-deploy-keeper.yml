@@ -64,7 +64,7 @@ jobs:
         config: 
           - blast
           - ethereum
-          - arb-one
+          - arbitrum-one
     env:
       SERVICE_NAME: keeper-${{ matrix.config }}
       PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
