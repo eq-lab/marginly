@@ -14,6 +14,7 @@ env:
   LIMIT_CPU: '500m'
   LIMIT_MEMORY: '512Mi'
   HELM_REPOSITORY: 'eq-lab/devops-helm-charts-deploy'
+  RELEASE_NUM: "v1.5"
 
 jobs:
   build-image:
@@ -66,7 +67,7 @@ jobs:
           - ethereum
           - arbitrum-one
     env:
-      SERVICE_NAME: keeper-${{ matrix.config }}
+      SERVICE_NAME: keeper-${{ matrix.config }}-${{ env.RELEASE_NUM }}
       PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
       NAMESPACE: ${{ secrets.NAMESPACE }}
     steps:
@@ -100,9 +101,9 @@ jobs:
       - name: 'deploy'
         run: |
           ls -la 
-          helm upgrade -i $SERVICE_NAME \
+          helm upgrade -i ${SERVICE_NAME} \
             -n $NAMESPACE \
-            --set fullnameOverride=$SERVICE_NAME \
+            --set fullnameOverride=${SERVICE_NAME} \
             --set image.repository=$REGISTRY \
             --set image.name=$REGISTRY/$IMAGE_NAME \
             --set image.tag=${{ needs.build-image.outputs.output_tag }} \
