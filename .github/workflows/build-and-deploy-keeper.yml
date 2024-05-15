@@ -66,7 +66,7 @@ jobs:
           - ethereum
           - arbitrum-one
     env:
-      SERVICE_NAME: "keeper-${{ matrix.config }}-v1.5"
+      SERVICE_NAME: "keeper-${{ matrix.config }}-v15"
       PK: ${{ secrets.MARGINLY_KEEPER_ARBITRUM_PRIVATE_KEY }}
       NAMESPACE: ${{ secrets.NAMESPACE }}
     steps:
