@@ -1,6 +1,6 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://rpc.blast.io"
+    "ethNodeUri": "https://rpc.ankr.com/blast"
   },
   "connection": {
     "ethOptions": {
