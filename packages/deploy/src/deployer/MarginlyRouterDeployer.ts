@@ -20,7 +20,7 @@ export class MarginlyRouterDeployer extends BaseDeployer {
     balancerVault?: EthAddress
   ): Promise<DeployResult> {
     let args: any[];
-    if (isPendleAdapter(pools[0])) {
+    if (pools.length > 0 && isPendleAdapter(pools[0])) {
       args = [
         pools.map((x) => {
           const locConfig = x as PendleAdapterParam;

@@ -36,13 +36,6 @@ type OracleDoubleParams = {
   intermediateToken: string;
 };
 
-type CurveOracleParams = {
-  pool: string;
-  isForwardOrder: boolean;
-  baseDecimals: BigNumber;
-  quoteDecimals: BigNumber;
-};
-
 export class PriceOracleDeployer extends BaseDeployer {
   private readonly readMarginlyPeripheryOracleContract;
 
@@ -384,7 +377,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
   public async deployCurveOracle(config: CurveOracleConfig, tokenRepository: ITokenRepository): Promise<DeployResult> {
     const deploymentResult = this.deploy(
-      'CurveEMAPriceOracle',
+      'CurveOracle',
       [],
       `priceOracle_${config.id}`,
       this.readMarginlyPeripheryOracleContract
@@ -400,7 +393,46 @@ export class PriceOracleDeployer extends BaseDeployer {
     console.log(`Quote token: ${quoteToken.toString()}`);
     console.log(`Base token: ${baseToken.toString()}`);
 
-    await priceOracle.addPool(config.curve.toString(), quoteToken.toString(), baseToken.toString());
+    const abi = [
+      'function price_oracle() external view returns (uint256)',
+      'function price_oracle(uint256 i) external view returns (uint256)',
+      'function N_COINS() external view returns (uint256)',
+      'function coins(uint256 coinId) external view returns (address)',
+    ];
+    const pool = new ethers.Contract(config.curve.toString(), abi, this.provider);
+
+    let moreThanTwoTokens = false;
+    try {
+      await pool.coins(2);
+      moreThanTwoTokens = true;
+    } catch (e) {}
+
+    if (moreThanTwoTokens) {
+      throw new Error(`Curve pools with more than two tokens are not allowed. Pool id: ${config.id}`);
+    }
+
+    let priceOracleMethodHaveArg: boolean | undefined = undefined;
+    try {
+      await pool['price_oracle()']();
+      priceOracleMethodHaveArg = false;
+    } catch (e) {}
+
+    if (priceOracleMethodHaveArg === undefined) {
+      try {
+        await pool['price_oracle(uint256)'](0);
+        priceOracleMethodHaveArg = true;
+      } catch (e) {}
+    }
+    if (priceOracleMethodHaveArg === undefined) {
+      throw new Error(`Curve pool has neither 'price_oracle()' nor 'price_oracle(uin256 i)' methods`);
+    }
+
+    await priceOracle.addPool(
+      config.curve.toString(),
+      quoteToken.toString(),
+      baseToken.toString(),
+      priceOracleMethodHaveArg
+    );
 
     this.logger.log(`Check oracle ${config.id}`);
     const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
