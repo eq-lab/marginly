@@ -48,7 +48,11 @@ export type PriceOracleDeployConfig =
   | UniswapV3TickOracleDeployConfig
   | UniswapV3DoubleDeployOracleConfig
   | ChainlinkOracleDeployConfig
-  | PythOracleDeployConfig;
+  | PythOracleDeployConfig
+  | PendleOracleDeployConfig
+  | AlgebraTickOracleDeployConfig
+  | AlgebraDoubleDeployOracleConfig
+  | CurveOracleDeployConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -75,6 +79,32 @@ export interface UniswapV3DoubleDeployOracleConfig {
     secondsAgoLiquidation: string;
     baseTokenPairFee: string;
     quoteTokenPairFee: string;
+  }[];
+}
+
+export interface AlgebraTickOracleDeployConfig {
+  type: 'algebra';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+    uniswapFee: string;
+  }[];
+}
+
+export interface AlgebraDoubleDeployOracleConfig {
+  type: 'algebraDouble';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    intermediateTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
   }[];
 }
 
@@ -153,6 +183,31 @@ export interface PythOracleDeployConfig {
   settings: PairPythOracleDeployConfig[];
 }
 
+export interface PendleOracleDeployConfig {
+  type: 'pendle';
+  id: string;
+  pendlePtLpOracle: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    secondaryPoolOracleId: string;
+    ibTokenId: string;
+    pendleMarket: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+  }[];
+}
+
+export interface CurveOracleDeployConfig {
+  type: 'curve';
+  id: string;
+  curve: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+  };
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -169,6 +224,24 @@ export function isChainlinkOracleConfig(config: PriceOracleDeployConfig): config
 
 export function isPythOracleConfig(config: PriceOracleDeployConfig): config is PythOracleDeployConfig {
   return config.type === 'pyth';
+}
+
+export function isPendleOracleConfig(config: PriceOracleDeployConfig): config is PendleOracleDeployConfig {
+  return config.type === 'pendle';
+}
+
+export function isAlgebraOracleConfig(config: PriceOracleDeployConfig): config is AlgebraTickOracleDeployConfig {
+  return config.type === 'algebra';
+}
+
+export function isAlgebraDoubleOracleConfig(
+  config: PriceOracleDeployConfig
+): config is AlgebraDoubleDeployOracleConfig {
+  return config.type === 'algebraDouble';
+}
+
+export function isCurveOracleConfig(config: CurveOracleDeployConfig): config is CurveOracleDeployConfig {
+  return config.type === 'curve';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {
@@ -276,6 +349,9 @@ export interface MarginlyDeployConfig {
       tokenAId: string;
       tokenBId: string;
       poolAddress: string;
+      ibTokenId?: string;
+      pendleMarket?: string;
+      slippage?: number;
     }[];
   }[];
   marginlyFactory: {
@@ -287,6 +363,7 @@ export interface MarginlyDeployConfig {
     id: string;
     uniswapPoolId: string;
     baseTokenId: string;
+    quoteTokenId: string;
     priceOracleId: string;
     defaultSwapCallData: number;
     params: {
@@ -300,9 +377,9 @@ export interface MarginlyDeployConfig {
     };
   }[];
   marginlyKeeper: {
-    aavePoolAddressesProvider: {
-      address?: string;
-      allowCreateMock?: boolean;
+    aaveKeeper?: {
+      aavePoolAddressesProvider: string;
     };
+    uniswapKeeper?: boolean;
   };
 }

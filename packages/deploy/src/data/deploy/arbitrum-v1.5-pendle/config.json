@@ -1,0 +1,170 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://arb1.arbitrum.io/rpc"
+  },
+  "connection": {
+    "assertChainId": 42161,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-weeth-27jun2024",
+      "address": "0x1c27ad8a19ba026adabd615f6bc77158130cfbe4",
+      "assertSymbol": "PT-weETH-27JUN2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "weeth",
+      "address": "0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe",
+      "assertSymbol": "weETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-usde-29aug2024",
+      "address": "0xad853EB4fB3Fe4a66CdFCD7b75922a0494955292",
+      "assertSymbol": "PT-USDe-29AUG2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usde",
+      "address": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34",
+      "assertSymbol": "USDe",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc",
+      "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
+    }
+  ],
+  "prices": [],
+  "priceOracles": [
+    {
+      "id": "uniswapV3Oracle",
+      "type": "uniswapV3",
+      "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      "settings": [
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "weeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.01%"
+        }
+      ]
+    },
+    {
+      "id": "algebraOracle",
+      "type": "algebra",
+      "factory": "0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B",
+      "settings": [
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "usde",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
+    },
+    {
+      "id": "pendleOracle",
+      "type": "pendle",
+      "pendlePtLpOracle": "0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187",
+      "settings": [
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-weeth-27jun2024",
+          "pendleMarket": "0x952083cde7aaa11ab8449057f7de23a970aa8472",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "weeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "pt-usde-29aug2024",
+          "pendleMarket": "0x2dfaf9a5e4f293bceede49f2dba29aacdd88e0c4",
+          "secondaryPoolOracleId": "algebraOracle",
+          "ibTokenId": "usde",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
+    "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "pt-weeth-27jun2024-weth",
+      "baseTokenId": "pt-weeth-27jun2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "3%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "1.25%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "200"
+      }
+    },
+    {
+      "id": "pt-usde-29aug2024-usdc",
+      "baseTokenId": "pt-usde-29aug2024",
+      "quoteTokenId": "usdc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "3%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "1.25%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "100000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 17,
+      "adapterName": "PendleAdapter",
+      "pools": [
+        {
+          "pendleMarket": "0x952083cde7aaa11ab8449057f7de23a970aa8472",
+          "poolAddress": "0x14353445c8329df76e6f15e9ead18fa2d45a8bb6",
+          "ibTokenId": "weeth",
+          "slippage": "20",
+          "tokenAId": "pt-weeth-27jun2024",
+          "tokenBId": "weth"
+        },
+        {
+          "pendleMarket": "0x2dfaf9a5e4f293bceede49f2dba29aacdd88e0c4",
+          "poolAddress": "0xc23f308cf1bfa7efffb592920a619f00990f8d74",
+          "ibTokenId": "usde",
+          "slippage": "20",
+          "tokenAId": "pt-usde-29aug2024",
+          "tokenBId": "usdc"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {
+    "aaveKeeper": {
+      "aavePoolAddressesProvider": "0xa97684ead0e402dc232d5a977953df7ecbab3cdb"
+    }
+  }
+}
