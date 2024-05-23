@@ -1,0 +1,19 @@
+{
+  "marginlyPools": [
+    {
+      "id": "pt-usde-25jul2024-usdt",
+      "address": "0xbd4a9ca12c5f3c12d1378843c0b91585475aed51"
+    },
+    {
+      "id": "pt-weeth-26dec2024-weth",
+      "address": "0xa77C2275C1F403056c7F73B44df69E374C299dd7"
+    },
+    {
+      "id": "pt-weeth-27jun2024-weth",
+      "address": "0xE45FD040dCaF59276Be6AAC6A3C14e4707381AAC"
+    }
+  ],
+  "aaveKeeperDeployResult": {
+    "address": "0x623342afe5C8cA6a090F8F09399c2713107EEccF"
+  }
+}
