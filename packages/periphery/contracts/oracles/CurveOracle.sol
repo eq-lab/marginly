@@ -40,6 +40,7 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
 
   error ZeroPrice();
   error ZeroAddress();
+  error PairAlreadyExist();
   error InvalidTokenAddress();
   error ExtremeDecimals();
 
@@ -57,6 +58,8 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
     if (baseToken == address(0)) revert ZeroAddress();
     if (quoteToken == address(0)) revert ZeroAddress();
     if (quoteToken == baseToken) revert InvalidTokenAddress();
+
+    if (getParams[quoteToken][baseToken].pool != address(0)) revert PairAlreadyExist();
 
     address coin0 = ICurve(pool).coins(0);
     address coin1 = ICurve(pool).coins(1);
@@ -87,10 +90,6 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
     });
 
     getParams[quoteToken][baseToken] = params;
-  }
-
-  function removePool(address quoteToken, address baseToken) external onlyOwner {
-    delete (getParams[quoteToken][baseToken]);
   }
 
   /// @notice Returns price as X96 value

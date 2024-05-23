@@ -6,6 +6,7 @@ import {
   createCurveEMAOracleWithoutAddingPool,
   createCurveNGOracleBackward,
   createCurveNGOracleForward,
+  createCurveNGOracleWithoutAddingPool,
 } from './shared/fixtures';
 import { BigNumber, constants } from 'ethers';
 import { ethers } from 'hardhat';
@@ -156,31 +157,12 @@ describe('CurveEMAPriceOracle', () => {
     await expect(
       oracle.addPool(pool.address, quoteToken.address, baseToken.address, true)
     ).to.be.revertedWithoutReason();
-  });
 
-  it('remove pool rights', async () => {
-    const [, user] = await ethers.getSigners();
-    const {
-      oracle: oracleOwnerConnected,
-      pool,
-      quoteToken,
-      baseToken,
-    } = await loadFixture(createCurveEMAOracleBackward);
+    await oracle.addPool(pool.address, quoteToken.address, baseToken.address, false);
 
-    const quoteDecimals = await quoteToken.decimals();
-    const baseDecimals = await baseToken.decimals();
-
-    const paramsBefore = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
-    assertOracleParamsIsFilled(paramsBefore, pool.address, false, false, baseDecimals, quoteDecimals);
-
-    const oracleUserConnected = oracleOwnerConnected.connect(user);
-    await expect(oracleUserConnected.removePool(quoteToken.address, baseToken.address)).to.be.revertedWith(
-      'Ownable: caller is not the owner'
-    );
-
-    await oracleOwnerConnected.removePool(quoteToken.address, baseToken.address);
-    const paramsAfter = await oracleOwnerConnected.getParams(quoteToken.address, baseToken.address);
-    assertOracleParamsIsEmpty(paramsAfter);
+    await expect(
+      oracle.addPool(pool.address, quoteToken.address, baseToken.address, false)
+    ).to.be.revertedWithCustomError(oracle, 'PairAlreadyExist');
   });
 });
 
@@ -241,5 +223,26 @@ describe('CurveOracle for CurveStableSwapNG', () => {
       oracle,
       'ZeroPrice'
     );
+  });
+
+  it('add pool invalid', async () => {
+    const { oracle, pool, quoteToken, baseToken, anotherToken } = await loadFixture(
+      createCurveNGOracleWithoutAddingPool
+    );
+    await expect(
+      oracle.addPool(pool.address, baseToken.address, anotherToken.address, true)
+    ).to.be.revertedWithCustomError(oracle, 'InvalidTokenAddress');
+    await expect(
+      oracle.addPool(pool.address, anotherToken.address, quoteToken.address, true)
+    ).to.be.revertedWithCustomError(oracle, 'InvalidTokenAddress');
+    await expect(
+      oracle.addPool(pool.address, quoteToken.address, baseToken.address, false)
+    ).to.be.revertedWithoutReason();
+
+    await oracle.addPool(pool.address, quoteToken.address, baseToken.address, true);
+
+    await expect(
+      oracle.addPool(pool.address, quoteToken.address, baseToken.address, true)
+    ).to.be.revertedWithCustomError(oracle, 'PairAlreadyExist');
   });
 });
