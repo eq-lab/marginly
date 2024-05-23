@@ -33,7 +33,7 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
   struct OracleParams {
     address pool;
     bool isToken0Quote;
-    bool priceOracleMethodHaveArg;
+    bool priceOracleMethodHasArg;
     uint8 baseDecimals;
     uint8 quoteDecimals;
   }
@@ -51,7 +51,7 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
     address pool,
     address quoteToken,
     address baseToken,
-    bool priceOracleMethodHaveArg
+    bool priceOracleMethodHasArg
   ) external onlyOwner {
     if (pool == address(0)) revert ZeroAddress();
     if (baseToken == address(0)) revert ZeroAddress();
@@ -75,18 +75,18 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
       revert ExtremeDecimals();
     }
 
+    // price request testing
+    _getPriceRaw(pool, priceOracleMethodHasArg);
+
     OracleParams memory params = OracleParams({
       pool: pool,
       isToken0Quote: isToken0Quote,
-      priceOracleMethodHaveArg: priceOracleMethodHaveArg,
+      priceOracleMethodHasArg: priceOracleMethodHasArg,
       baseDecimals: baseDecimals,
       quoteDecimals: quoteDecimals
     });
 
     getParams[quoteToken][baseToken] = params;
-
-    // price request testing
-    _getPriceX96(quoteToken, baseToken);
   }
 
   function removePool(address quoteToken, address baseToken) external onlyOwner {
@@ -110,15 +110,7 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
     OracleParams storage poolParams = getParams[quoteToken][baseToken];
     if (poolParams.pool == address(0)) revert ZeroAddress();
 
-    uint256 price;
-    if (poolParams.priceOracleMethodHaveArg) {
-      // get token_1 / token_0 price
-      price = ICurve(poolParams.pool).price_oracle(0);
-    } else {
-      price = ICurve(poolParams.pool).price_oracle();
-    }
-
-    if (price == 0) revert ZeroPrice();
+    uint256 price = _getPriceRaw(poolParams.pool, poolParams.priceOracleMethodHasArg);
 
     if (poolParams.isToken0Quote) {
       priceX96 = Math.mulDiv(
@@ -133,5 +125,15 @@ contract CurveOracle is IPriceOracle, Ownable2Step {
         price
       );
     }
+  }
+
+  function _getPriceRaw(address pool, bool priceOracleMethodHasArg) private view returns (uint256 price) {
+    if (priceOracleMethodHasArg) {
+      // get token_1 / token_0 price
+      price = ICurve(pool).price_oracle(0);
+    } else {
+      price = ICurve(pool).price_oracle();
+    }
+    if (price == 0) revert ZeroPrice();
   }
 }

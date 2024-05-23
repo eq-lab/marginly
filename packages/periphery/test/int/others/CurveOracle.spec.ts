@@ -30,7 +30,7 @@ async function fetchCurvePrices(
 
   let expectedBalancePrice: BigNumber;
 
-  if (params.priceOracleMethodHaveArg) {
+  if (params.priceOracleMethodHasArg) {
     expectedBalancePrice = await params.pool['price_oracle(uint256)'](0, { blockTag });
   } else {
     expectedBalancePrice = await params.pool['price_oracle()']({ blockTag });

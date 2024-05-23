@@ -29,13 +29,13 @@ function assertOracleParamsIsFilled(
   oracleParams: {
     pool: string;
     isToken0Quote: boolean;
-    priceOracleMethodHaveArg: boolean;
+    priceOracleMethodHasArg: boolean;
     baseDecimals: number;
     quoteDecimals: number;
   },
   actualPool: string,
   isToken0Quote: boolean,
-  priceOracleMethodHaveArg: boolean,
+  priceOracleMethodHasArg: boolean,
   baseDecimals: number,
   quoteDecimals: number
 ) {
@@ -43,7 +43,7 @@ function assertOracleParamsIsFilled(
   expect(oracleParams.baseDecimals).to.be.equal(baseDecimals);
   expect(oracleParams.quoteDecimals).to.be.equal(quoteDecimals);
   expect(oracleParams.isToken0Quote).to.be.equal(isToken0Quote);
-  expect(oracleParams.priceOracleMethodHaveArg).to.be.equal(priceOracleMethodHaveArg);
+  expect(oracleParams.priceOracleMethodHasArg).to.be.equal(priceOracleMethodHasArg);
 }
 
 describe('CurveEMAPriceOracle', () => {

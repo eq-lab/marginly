@@ -34,7 +34,7 @@ import {
   UniswapV3TickOracleDouble,
 } from '../../typechain-types';
 import { one, oneX96 } from '../int/pendle/common';
-import { BigNumber, Contract, ContractFactory } from 'ethers';
+import { BigNumber, ContractFactory } from 'ethers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -1067,7 +1067,7 @@ export interface CurveOracleCaseParams {
   baseToken: TokenInfo;
   quoteToken: TokenInfo;
   oracle: CurveOracle;
-  priceOracleMethodHaveArg: boolean;
+  priceOracleMethodHasArg: boolean;
   isToken0QuoteToken: boolean;
 }
 
@@ -1094,7 +1094,7 @@ export async function createCurveCaseFrxEthWeth(): Promise<CurveOracleCaseParams
     baseToken,
     quoteToken,
     oracle,
-    priceOracleMethodHaveArg: false,
+    priceOracleMethodHasArg: false,
     isToken0QuoteToken: true,
   };
 }
@@ -1122,7 +1122,7 @@ export async function createCurveCaseCrvUsdUsdc(): Promise<CurveOracleCaseParams
     baseToken,
     quoteToken,
     oracle,
-    priceOracleMethodHaveArg: true,
+    priceOracleMethodHasArg: true,
     isToken0QuoteToken: false,
   };
 }
