@@ -1,6 +1,6 @@
 import * as ethers from 'ethers';
 import { EthAddress } from '@marginly/common';
-import { isAlgebraOracleConfig, MarginlyDeployConfig } from './config';
+import { MarginlyDeployConfig } from './config';
 import { Logger } from './logger';
 import { MarginlyDeployment, MarginlyDeploymentMarginlyPool, printDeployState, StateStore, using } from './common';
 import { TokenRepository } from './TokenRepository';
@@ -234,6 +234,11 @@ async function processMarginly(
   marginlyRouterDeployResult: DeployResult,
   deployedPriceOracles: Map<string, DeployResult>
 ) {
+  if (config.marginlyPools.length === 0) {
+    return {
+      deployedMarginlyPools: [],
+    };
+  }
   const marginlyPoolImplDeployResult = await using(
     logger.beginScope('Deploy marginly pool implementation'),
     async () => {
@@ -360,7 +365,6 @@ export async function deployMarginly(
     marginlyDeployer,
     priceOracleDeployer,
     keeperDeployer,
-    uniswapV3Deployer,
     mockTokenDeployer,
     marginlyRouterDeployer,
     keeperUniswapV3Deployer,

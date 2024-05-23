@@ -10,9 +10,6 @@ import {
   isDoublePairPythOracleDeployConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
-  isMarginlyDeployConfigSwapPoolRegistry,
-  isMarginlyDeployConfigUniswapGenuine,
-  isMarginlyDeployConfigUniswapMock,
   isPendleOracleConfig,
   isPythOracleConfig,
   isSinglePairChainlinkOracleDeployConfig,
@@ -366,11 +363,11 @@ export interface PendleOracleConfig {
 export interface CurveOracleConfig {
   id: string;
   type: 'curve';
-  curve: EthAddress;
   settings: {
+    pool: EthAddress;
     quoteToken: MarginlyConfigToken;
     baseToken: MarginlyConfigToken;
-  };
+  }[];
 }
 
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
@@ -870,23 +867,24 @@ export class StrictMarginlyDeployConfig {
 
         priceOracles.set(priceOracleId, strictConfig);
       } else if (isCurveOracleConfig(priceOracleConfig)) {
-        const quoteToken = tokens.get(priceOracleConfig.settings.quoteTokenId);
-        const baseToken = tokens.get(priceOracleConfig.settings.baseTokenId);
-        if (quoteToken === undefined) {
-          throw new Error(`Quote token not found by id ${priceOracleConfig.settings.quoteTokenId}`);
-        }
-        if (baseToken === undefined) {
-          throw new Error(`Base token not found by id ${priceOracleConfig.settings.baseTokenId}`);
-        }
-
         const strictConfig: CurveOracleConfig = {
           id: priceOracleId,
           type: priceOracleConfig.type,
-          curve: EthAddress.parse(priceOracleConfig.curve),
-          settings: {
-            quoteToken,
-            baseToken,
-          },
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              pool: EthAddress.parse(x.pool),
+              quoteToken:
+                tokens.get(x.quoteTokenId) ||
+                (() => {
+                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                })(),
+              baseToken:
+                tokens.get(x.baseTokenId) ||
+                (() => {
+                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                })(),
+            };
+          }),
         };
 
         priceOracles.set(priceOracleId, strictConfig);

@@ -201,11 +201,11 @@ export interface PendleOracleDeployConfig {
 export interface CurveOracleDeployConfig {
   type: 'curve';
   id: string;
-  curve: string;
   settings: {
+    pool: string;
     quoteTokenId: string;
     baseTokenId: string;
-  };
+  }[];
 }
 
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
