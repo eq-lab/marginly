@@ -1,0 +1,83 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.ankr.com/arbitrum"
+  },
+  "connection": {
+    "assertChainId": 42161,
+    "ethOptions": {
+      "gasPrice": 10000000
+    }
+  },
+  "tokens": [
+    {
+      "id": "eusd",
+      "address": "0x12275DCB9048680c4Be40942eA4D92c74C63b844",
+      "assertSymbol": "eUSD",
+      "assertDecimals": 18
+    },
+    {
+      "id": "rgusd",
+      "address": "0x96a993f06951B01430523D0D5590192d650EBf3e",
+      "assertSymbol": "rgUSD",
+      "assertDecimals": 18
+    },
+    {
+      "id": "weth",
+      "address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    }
+  ],
+  "prices": [],
+  "priceOracles": [
+    {
+      "id": "curve-oracle",
+      "type": "curve",
+      "settings": [
+        {
+          "pool": "0xbdf44492aC1C81b1Bd9B9A8B075026d3E8A3225a",
+          "quoteTokenId": "rgusd",
+          "baseTokenId": "eusd"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0x21D4693e811ed5E63BCF3A3EC93D85271A8d4f64",
+    "techPositionOwner": "0x21D4693e811ed5E63BCF3A3EC93D85271A8d4f64",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "eusd-rgusd",
+      "baseTokenId": "eusd",
+      "quoteTokenId": "rgusd",
+      "priceOracleId": "curve-oracle",
+      "defaultSwapCallData": "19398657",
+      "params": {
+        "interestRate": "3%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "0.1%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "2000000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 18,
+      "adapterName": "CurveAdapter",
+      "pools": [
+        {
+          "type": "general",
+          "tokenAId": "eusd",
+          "tokenBId": "rgusd",
+          "poolAddress": "0xbdf44492aC1C81b1Bd9B9A8B075026d3E8A3225a"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {}
+}
