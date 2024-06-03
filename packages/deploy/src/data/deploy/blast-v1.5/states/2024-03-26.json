@@ -64,6 +64,13 @@
     "marginlyPool_weth-usdb-500": {
       "address": "0xA24D9FB1CA3909DaaAF62503c766680d087E72B9",
       "txHash": "0x31be1456ccce7d74a63ac54e0ac79f9cd8400b4eabfb858bb97e76612a69cdfd"
+    },
+    "uniswapPool_usde-usdb": {
+      "address": "0x8C1bb76510D6873a4A156A9Cb394E74A3783BDB5"
+    },
+    "marginlyPool_usde-usdb": {
+      "address": "0xc91D6032d72796b9a0558Ab9ef45C100c9fDe1f8",
+      "txHash": "0x744e512ab5bc6dbee3f582af0b1ef7c997b673f680cc82b535ffb2af9d63e637"
     }
   }
 }

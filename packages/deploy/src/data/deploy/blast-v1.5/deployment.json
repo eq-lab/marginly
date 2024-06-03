@@ -5,6 +5,10 @@
       "address": "0xb312D61915c878938fcE09D13DD3006c6835b3e5"
     },
     {
+      "id": "usde-usdb",
+      "address": "0xc91D6032d72796b9a0558Ab9ef45C100c9fDe1f8"
+    },
+    {
       "id": "weth-usdb",
       "address": "0x1f06e6e226bE4F0a66B7f8b1007997DC9De1eBC7"
     },

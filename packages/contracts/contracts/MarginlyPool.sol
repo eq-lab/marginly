@@ -1166,65 +1166,69 @@ contract MarginlyPool is IMarginlyPool {
     Position storage position = positions[msg.sender];
     if (position._type != PositionType.Uninitialized) revert Errors.PositionInitialized();
 
-    FP96.FixedPoint memory basePrice = getBasePrice();
-
     accrueInterest();
-    syncBaseBalance();
-    syncQuoteBalance(basePrice);
-
-    uint256 discountedQuoteAmount = quoteCollateralCoeff.recipMul(quoteAmount);
-    uint256 discountedBaseAmount = baseCollateralCoeff.recipMul(baseAmount);
-
     Position storage badPosition = positions[badPositionAddress];
 
+    FP96.FixedPoint memory basePrice = getBasePrice();
     if (!positionHasBadLeverage(badPosition, basePrice)) revert Errors.NotLiquidatable();
 
+    uint32 heapIndex = badPosition.heapPosition - 1;
+
     // previous require guarantees that position is either long or short
-
     if (badPosition._type == PositionType.Short) {
-      discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteAmount);
-      position.discountedQuoteAmount = badPosition.discountedQuoteAmount.add(discountedQuoteAmount);
+      uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteAmount);
+      discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
+      position.discountedQuoteAmount = badPosition.discountedQuoteAmount.add(discountedQuoteCollateralDelta);
 
-      uint32 heapIndex = badPosition.heapPosition - 1;
-      if (discountedBaseAmount >= badPosition.discountedBaseAmount) {
-        discountedBaseDebt = discountedBaseDebt.sub(badPosition.discountedBaseAmount);
+      uint256 badPositionBaseDebt = baseDebtCoeff.mul(badPosition.discountedBaseAmount);
+      uint256 discountedBaseDebtDelta;
+      if (baseAmount >= badPositionBaseDebt) {
+        discountedBaseDebtDelta = badPosition.discountedBaseAmount;
+
+        uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmount.sub(badPositionBaseDebt));
+        position.discountedBaseAmount = discountedBaseCollateralDelta;
+        discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseCollateralDelta);
 
         position._type = PositionType.Lend;
-        position.discountedBaseAmount = discountedBaseAmount.sub(badPosition.discountedBaseAmount);
-
-        discountedBaseCollateral = discountedBaseCollateral.add(position.discountedBaseAmount);
 
         shortHeap.remove(positions, heapIndex);
       } else {
         position._type = PositionType.Short;
         position.heapPosition = heapIndex + 1;
-        position.discountedBaseAmount = badPosition.discountedBaseAmount.sub(discountedBaseAmount);
-        discountedBaseDebt = discountedBaseDebt.sub(discountedBaseAmount);
+        discountedBaseDebtDelta = baseDebtCoeff.recipMul(baseAmount);
+        position.discountedBaseAmount = badPosition.discountedBaseAmount.sub(discountedBaseDebtDelta);
 
         shortHeap.updateAccount(heapIndex, msg.sender);
       }
-    } else {
-      discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseAmount);
-      position.discountedBaseAmount = badPosition.discountedBaseAmount.add(discountedBaseAmount);
 
-      uint32 heapIndex = badPosition.heapPosition - 1;
-      if (discountedQuoteAmount >= badPosition.discountedQuoteAmount) {
-        discountedQuoteDebt = discountedQuoteDebt.sub(badPosition.discountedQuoteAmount);
+      discountedBaseDebt = discountedBaseDebt.sub(discountedBaseDebtDelta);
+    } else {
+      uint256 discountedBaseCollateralDelta = baseCollateralCoeff.recipMul(baseAmount);
+      discountedBaseCollateral = discountedBaseCollateral.add(discountedBaseCollateralDelta);
+      position.discountedBaseAmount = badPosition.discountedBaseAmount.add(discountedBaseCollateralDelta);
+
+      uint256 badPositionQuoteDebt = quoteDebtCoeff.mul(badPosition.discountedQuoteAmount);
+      uint256 discountedQuoteDebtDelta;
+      if (quoteAmount >= badPositionQuoteDebt) {
+        discountedQuoteDebtDelta = badPosition.discountedQuoteAmount;
+
+        uint256 discountedQuoteCollateralDelta = quoteCollateralCoeff.recipMul(quoteAmount.sub(badPositionQuoteDebt));
+        position.discountedQuoteAmount = discountedQuoteCollateralDelta;
+        discountedQuoteCollateral = discountedQuoteCollateral.add(discountedQuoteCollateralDelta);
 
         position._type = PositionType.Lend;
-        position.discountedQuoteAmount = discountedQuoteAmount.sub(badPosition.discountedQuoteAmount);
-
-        discountedQuoteCollateral = discountedQuoteCollateral.add(position.discountedQuoteAmount);
 
         longHeap.remove(positions, heapIndex);
       } else {
         position._type = PositionType.Long;
         position.heapPosition = heapIndex + 1;
-        position.discountedQuoteAmount = badPosition.discountedQuoteAmount.sub(discountedQuoteAmount);
-        discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteAmount);
+        discountedQuoteDebtDelta = quoteDebtCoeff.recipMul(quoteAmount);
+        position.discountedQuoteAmount = badPosition.discountedQuoteAmount.sub(discountedQuoteDebtDelta);
 
         longHeap.updateAccount(heapIndex, msg.sender);
       }
+
+      discountedQuoteDebt = discountedQuoteDebt.sub(discountedQuoteDebtDelta);
     }
 
     updateHeap(position);

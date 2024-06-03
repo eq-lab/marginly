@@ -5,7 +5,7 @@
   "connection": {
     "assertChainId": 81457,
     "ethOptions": {
-      "gasPrice": 300
+      "gasPrice": 20000000
     }
   },
   "tokens": [
@@ -25,6 +25,12 @@
       "id": "musd",
       "address": "0x837fE561e9C5DFa73F607fDa679295DBC2Be5E40",
       "assertSymbol": "MUSD",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usde",
+      "address": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
+      "assertSymbol": "USDe",
       "assertDecimals": 18
     }
   ],
@@ -61,6 +67,16 @@
         "allowCreate": false,
         "assertAddress": "0x77e149741b4aa14511324e4b554845063ed038bd",
         "factory": "0x48d0F09710794313f33619c95147F34458BF7C3b"
+      },
+      {
+        "id": "usde-usdb",
+        "description": "Thruster",
+        "tokenAId": "usdb",
+        "tokenBId": "usde",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0x8c1bb76510d6873a4a156a9cb394e74a3783bdb5",
+        "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
       }
     ]
   },
@@ -87,6 +103,13 @@
         {
           "quoteTokenId": "usdb",
           "baseTokenId": "weth",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "usdb",
+          "baseTokenId": "usde",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.05%"
@@ -162,6 +185,22 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "10_000_000"
       }
+    },
+    {
+      "id": "usde-usdb",
+      "uniswapPoolId": "usde-usdb",
+      "baseTokenId": "usde",
+      "priceOracleId": "thrusterOracleV2",
+      "defaultSwapCallData": "23592961",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "2.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "10_000_000"
+      }
     }
   ],
   "adapters": [
@@ -198,6 +237,11 @@
           "tokenAId": "usdb",
           "tokenBId": "weth",
           "poolAddress": "0x7f0db0d77d0694f29c3f940b5b1f589fff6ef2e0"
+        },
+        {
+          "tokenAId": "usdb",
+          "tokenBId": "usde",
+          "poolAddress": "0x8c1bb76510d6873a4a156a9cb394e74a3783bdb5"
         }
       ]
     },
