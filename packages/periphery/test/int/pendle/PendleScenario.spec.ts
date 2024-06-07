@@ -51,7 +51,7 @@ export enum ArbMainnetERC20BalanceOfSlot {
   PTWEETH = '0000000000000000000000000000000000000000000000000000000000000000',
 }
 
-describe.only('Pendle farming marginly pool', () => {
+describe('Pendle farming marginly pool', () => {
   it('PT-weETH-27JUN2024 / WETH', async () => {
     console.log('Setting up pool');
     const { oracle } = await loadFixture(createPendleCaseWeETH27Jun2024);
@@ -244,7 +244,7 @@ describe.only('Pendle farming marginly pool', () => {
       .execute(CallType.WithdrawBase, wethDeposit, 0, 0, false, ethers.constants.AddressZero, 0);
   });
 
-  it.only('PT-USDe-29AUG2024 / USDC', async () => {
+  it('PT-USDe-29AUG2024 / USDC', async () => {
     console.log('Setting up pool');
     const { oracle } = await loadFixture(createPendleCaseUSDe29Aug2024);
 
