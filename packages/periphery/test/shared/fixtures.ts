@@ -13,8 +13,6 @@ import {
   TestAlgebraFactory,
   PendleOracle,
   IPriceOracle,
-  PendleMarketV3,
-  PendlePtLpOracle,
   IPPtLpOracle,
   IPMarketV3,
   TestUniswapV2Factory,
@@ -23,6 +21,7 @@ import {
   TestCurveEMAPool,
   MintableERC20,
   MockSequencerFeed,
+  PendleMarketOracle,
 } from '../../typechain-types';
 import {
   AlgebraTickOracle,
@@ -1055,4 +1054,96 @@ export async function createUniswapV2OracleWithPairsAndObservations(): Promise<U
   }
 
   return oracleData;
+}
+
+export interface PendleMarketOracleCaseParams {
+  pt: TokenInfo;
+  sy: MintableERC20;
+  ib: TokenInfo;
+  secondsAgo: number;
+  secondsAgoLiquidation: number;
+  oracle: PendleMarketOracle;
+  pendlePtLpOracle: IPPtLpOracle;
+  pendleMarket: IPMarketV3;
+}
+
+export async function createPendleMarketOracleWithoutPairs(): Promise<PendleMarketOracleCaseParams> {
+  const mintableErc20Factory = await ethers.getContractFactory('MintableERC20');
+  const ptContract = await mintableErc20Factory.deploy('PT', 'PT', 18);
+  const syContract = await mintableErc20Factory.deploy('SY', 'SY', 18);
+  const ytContract = await mintableErc20Factory.deploy('YT', 'YT', 18);
+  const ibContract = await mintableErc20Factory.deploy('IB', 'IB', 18);
+
+  const pt = <TokenInfo>{
+    address: ptContract.address,
+    symbol: 'PT',
+    decimals: 18,
+  };
+
+  const sy = <TokenInfo>{
+    address: syContract.address,
+    symbol: 'SY',
+    decimals: 18,
+  };
+
+  const ib = <TokenInfo>{
+    address: ibContract.address,
+    symbol: 'IB',
+    decimals: 18,
+  };
+
+  // 0.93
+  const ptToAssetRate = one.mul(93).div(100);
+  // 0.91
+  const lpToAssetRate = one.mul(91).div(100);
+  // 0.88
+  const ptToSyRate = one.mul(88).div(100);
+  // 0.85
+  const lpToSyRate = one.mul(85).div(100);
+
+  const pendlePtLpOracle = await (
+    await ethers.getContractFactory('TestPendlePtLpOracle')
+  ).deploy(ptToAssetRate, lpToAssetRate, ptToSyRate, lpToSyRate);
+
+  const currentBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
+  const expiryTimestamp = currentBlock.timestamp + 10 * 24 * 60 * 60;
+
+  const pendleMarket = await (
+    await ethers.getContractFactory('MockPendleMarket')
+  ).deploy(ptContract.address, syContract.address, ytContract.address, expiryTimestamp);
+
+  const secondsAgo = 900;
+  const secondsAgoLiquidation = 5;
+  const oracle = await (await ethers.getContractFactory('PendleMarketOracle')).deploy(pendlePtLpOracle.address);
+
+  return {
+    oracle,
+    pt,
+    ib,
+    secondsAgo,
+    secondsAgoLiquidation,
+    sy: syContract,
+    pendleMarket: pendleMarket as unknown as IPMarketV3,
+    pendlePtLpOracle,
+  };
+}
+
+export async function createPendleMarketOracle(): Promise<PendleMarketOracleCaseParams> {
+  const caseParams = await createPendleMarketOracleWithoutPairs();
+  await caseParams.oracle.setPair(
+    caseParams.ib.address,
+    caseParams.pt.address,
+    caseParams.pendleMarket.address,
+    caseParams.secondsAgo,
+    caseParams.secondsAgoLiquidation
+  );
+
+  return caseParams;
+}
+
+export async function createPendleMarketOracleAfterMaturity(): Promise<PendleMarketOracleCaseParams> {
+  const caseParams = await createPendleMarketOracle();
+  await ethers.provider.send('evm_increaseTime', [12 * 24 * 60 * 60]);
+  await ethers.provider.send('evm_mine', []);
+  return caseParams;
 }
