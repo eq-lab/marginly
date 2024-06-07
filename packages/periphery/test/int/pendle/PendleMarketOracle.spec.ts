@@ -9,21 +9,21 @@ describe('Pendle PT-ezETH-27JUN2024 / ezETH oracle before maturity (PendleOracle
       symbol: 'PT-ezETH-27JUN2024',
       decimals: 18,
     };
-  
+
     const ib = <TokenInfo>{
       address: '0x2416092f143378750bb29b79eD961ab195CcEea5',
       symbol: 'ezETH',
       decimals: 18,
     };
-  
+
     const secondsAgo = 1000;
     const secondsAgoLiquidation = 100;
     const pendleMarket = '0x5E03C94Fc5Fb2E21882000A96Df0b63d2c4312e2';
     const pendlePtLpOracle = '0x1Fd95db7B7C0067De8D45C0cb35D59796adfD187';
-  
+
     const oracle = await (await ethers.getContractFactory('PendleMarketOracle')).deploy(pendlePtLpOracle);
     await oracle.setPair(ib.address, pt.address, pendleMarket, secondsAgo, secondsAgoLiquidation);
-  
+
     return {
       oracle,
       pt,
@@ -40,7 +40,7 @@ describe('Pendle PT-ezETH-27JUN2024 / ezETH oracle before maturity (PendleOracle
     const balancePrice = await oracle.getBalancePrice(ib.address, pt.address);
     const margincallPrice = await oracle.getMargincallPrice(ib.address, pt.address);
 
-    console.log(`balancePrice: ${balancePrice} (${})`);
+    console.log(`balancePrice: ${balancePrice}`);
     console.log(`margincallPrice: ${margincallPrice}`);
 
     const balancePriceInverted = await oracle.getBalancePrice(pt.address, ib.address);
@@ -50,5 +50,3 @@ describe('Pendle PT-ezETH-27JUN2024 / ezETH oracle before maturity (PendleOracle
     console.log(`margincallPriceInverted: ${margincallPriceInverted}`);
   });
 });
-
-
