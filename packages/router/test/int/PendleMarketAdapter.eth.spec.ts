@@ -12,6 +12,7 @@ import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { EthereumMainnetERC20BalanceOfSlot, setTokenBalance } from '../shared/tokens';
+import { BigNumber } from 'ethers';
 
 async function initializeRouterEthSUSDe(): Promise<{
   ptToken: ERC20;
@@ -27,8 +28,8 @@ async function initializeRouterEthSUSDe(): Promise<{
   const poolInput = {
     pendleMarket: '0x107a2e3cd2bb9a32b9ee2e4d51143149f8367eba',
     slippage: 20,
-    tokenA: ptToken.address,
-    tokenB: sUsde.address,
+    ptToken: ptToken.address,
+    ibToken: sUsde.address,
   };
   const pendleAdapter = await new PendleMarketAdapter__factory().connect(owner).deploy([poolInput]);
   const routerInput = {
@@ -180,10 +181,21 @@ describe('Pendle PT-sUSDE - sUSDE', () => {
       );
       expect(sUsdeBalanceAfter.sub(sUsdeBalanceBefore)).to.be.eq(sUSDeOut);
 
-      const sUsdeBalanceAdapter = await sUsde.balanceOf(pendleAdapter.address);
+      const sUsdeBalanceOwner = await sUsde.balanceOf(owner.address);
       console.log(
-        `sUsdeBalanceAdapter: ${formatUnits(sUsdeBalanceAdapter, await sUsde.decimals())} ${await sUsde.symbol()}`
+        `sUsdeBalanceOwner: ${formatUnits(sUsdeBalanceOwner, await sUsde.decimals())}  ${await sUsde.symbol()}`
       );
+
+      await pendleAdapter.connect(owner).redeemDust(ptToken.address, sUsde.address, owner.address);
+
+      const sUsdeBalanceOwnerAfterRedeem = await sUsde.balanceOf(owner.address);
+      console.log(
+        `sUsdeBalanceOwnerAfterRedeem: ${formatUnits(
+          sUsdeBalanceOwnerAfterRedeem,
+          await sUsde.decimals()
+        )} ${await sUsde.symbol()}`
+      );
+      expect(sUsdeBalanceOwnerAfterRedeem).to.be.greaterThanOrEqual(BigNumber.from(0));
     });
   });
 

@@ -28,15 +28,14 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
 
   struct PoolData {
     address pendleMarket;
-    address ib;
     uint8 slippage;
   }
 
   struct PoolInput {
     address pendleMarket;
     uint8 slippage;
-    address tokenA;
-    address tokenB;
+    address ptToken;
+    address ibToken;
   }
 
   struct CallbackData {
@@ -52,9 +51,8 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
   uint256 private constant MAX_ITERATIONS = 10;
 
   mapping(address => mapping(address => PoolData)) public getPoolData;
-  uint256 private callbackAmountIn;
 
-  event NewPair(address indexed token0, address indexed token1, address pendleMarket, address ibToken, uint8 slippage);
+  event NewPair(address indexed ptToken, address indexed ibToken, address pendleMarket, uint8 slippage);
 
   error ApproximationFailed();
   error UnknownPair();
@@ -68,8 +66,12 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
     _addPools(poolsData);
   }
 
-  function sweepDust(address token) external onlyOwner {
-    TransferHelper.safeTransfer(token, msg.sender, IERC20(token).balanceOf(address(this)));
+  /// @dev During swap Pt to exact SY before maturity a little amount of SY might stay at the adapter contract
+  function redeemDust(address tokenA, address tokenB, address recipient) external onlyOwner {
+    PoolData memory poolData = getPoolData[tokenA][tokenB];
+    PendleMarketData memory marketData = _getMarketData(poolData, tokenA, tokenB);
+
+    _pendleRedeemSy(marketData, recipient, IERC20(address(marketData.sy)).balanceOf(address(this)));
   }
 
   function swapExactInput(
@@ -81,7 +83,7 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
     bytes calldata data
   ) external returns (uint256 amountOut) {
     PoolData memory poolData = _getPoolDataSafe(tokenIn, tokenOut);
-    PendleMarketData memory marketData = _getMarketData(poolData);
+    PendleMarketData memory marketData = _getMarketData(poolData, tokenIn, tokenOut);
 
     if (marketData.yt.isExpired()) {
       amountOut = _swapExactInputPostMaturity(marketData, recipient, tokenIn, amountIn, data);
@@ -101,7 +103,7 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
     bytes calldata data
   ) external returns (uint256 amountIn) {
     PoolData memory poolData = _getPoolDataSafe(tokenIn, tokenOut);
-    PendleMarketData memory marketData = _getMarketData(poolData);
+    PendleMarketData memory marketData = _getMarketData(poolData, tokenIn, tokenOut);
 
     if (marketData.yt.isExpired()) {
       amountIn = _swapExactOutputPostMaturity(marketData, recipient, tokenIn, amountOut, data);
@@ -128,7 +130,7 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
       // this clause is realized when pt tokens is output
       // we need to redeem ib tokens from pt and transfer them to pendle
       IMarginlyRouter(data.router).adapterCallback(address(this), uint256(-syToAccount), data.adapterCallbackData);
-      _pendleMintSy(_getMarketData(poolData), msg.sender, uint256(-syToAccount));
+      _pendleMintSy(_getMarketData(poolData, data.tokenIn, data.tokenOut), msg.sender, uint256(-syToAccount));
     }
   }
 
@@ -137,10 +139,15 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
     if (poolData.pendleMarket == address(0)) revert UnknownPair();
   }
 
-  function _getMarketData(PoolData memory poolData) private view returns (PendleMarketData memory) {
+  function _getMarketData(
+    PoolData memory poolData,
+    address tokenA,
+    address tokenB
+  ) private view returns (PendleMarketData memory) {
     IPMarket market = IPMarket(poolData.pendleMarket);
     (IStandardizedYield sy, IPPrincipalToken pt, IPYieldToken yt) = market.readTokens();
-    return PendleMarketData({market: market, sy: sy, pt: pt, yt: yt, ib: poolData.ib, slippage: poolData.slippage});
+    address ibToken = address(pt) == tokenA ? tokenB : tokenA;
+    return PendleMarketData({market: market, sy: sy, pt: pt, yt: yt, ib: ibToken, slippage: poolData.slippage});
   }
 
   function _swapExactInputPreMaturity(
@@ -194,7 +201,7 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
     if (tokenIn == address(marketData.pt)) {
       // approx Pt to Sy -> in callback send Pt to PendleMarket
       // then unwrap Sy to Ib and send to recepient
-      (uint256 syAmountOut, uint256 ptAmountIn) = _pendleApproxSwapPtForExactSy(
+      (, uint256 ptAmountIn) = _pendleApproxSwapPtForExactSy(
         marketData,
         address(this),
         amountOut,
@@ -204,9 +211,6 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
       amountIn = ptAmountIn;
       // use amountOut here, because actualSyAmountOut a little bit more than amountOut
       _pendleRedeemSy(marketData, recipient, amountOut);
-
-      uint256 dust = syAmountOut - amountOut;
-      if (dust > 0) _pendleRedeemSy(marketData, address(this), dust);
     } else {
       // Sy to Pt -> in callback unwrap Sy to Ib and send to pendle market
       (amountIn, ) = marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
@@ -341,27 +345,22 @@ contract PendleMarketAdapter is IMarginlyAdapter, Ownable2Step {
       input = poolsData[i];
 
       if (
-        input.tokenA == address(0) ||
-        input.tokenB == address(0) ||
+        input.ptToken == address(0) ||
+        input.ibToken == address(0) ||
         input.pendleMarket == address(0) ||
         input.slippage >= ONE
       ) revert WrongPoolInput();
 
-      (, IPPrincipalToken pt, ) = IPMarket(input.pendleMarket).readTokens();
-      address ib;
-      if (input.tokenA == address(pt)) {
-        ib = input.tokenB;
-      } else if (input.tokenB == address(pt)) {
-        ib = input.tokenA;
-      } else {
-        revert WrongPoolInput();
-      }
-      PoolData memory poolData = PoolData({pendleMarket: input.pendleMarket, ib: ib, slippage: input.slippage});
+      (IStandardizedYield sy, IPPrincipalToken pt, ) = IPMarket(input.pendleMarket).readTokens();
+      if (input.ptToken != address(pt)) revert WrongPoolInput();
+      if (!sy.isValidTokenIn(input.ibToken) || !sy.isValidTokenOut(input.ibToken)) revert WrongPoolInput();
 
-      getPoolData[input.tokenA][input.tokenB] = poolData;
-      getPoolData[input.tokenB][input.tokenA] = poolData;
+      PoolData memory poolData = PoolData({pendleMarket: input.pendleMarket, slippage: input.slippage});
 
-      emit NewPair(input.tokenA, input.tokenB, input.pendleMarket, ib, input.slippage);
+      getPoolData[input.ptToken][input.ibToken] = poolData;
+      getPoolData[input.ibToken][input.ptToken] = poolData;
+
+      emit NewPair(input.ptToken, input.ibToken, input.pendleMarket, input.slippage);
 
       unchecked {
         ++i;

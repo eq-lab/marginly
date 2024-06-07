@@ -12,6 +12,7 @@ import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ArbMainnetERC20BalanceOfSlot, setTokenBalance } from '../shared/tokens';
+import { BigNumber } from 'ethers';
 
 // Arbitrum Ether.fi PT eETH / weETH
 
@@ -29,8 +30,8 @@ async function initializeRouterArbWeEth(): Promise<{
   const poolInput = {
     pendleMarket: '0xf9f9779d8ff604732eba9ad345e6a27ef5c2a9d6',
     slippage: 30,
-    tokenA: ptToken.address,
-    tokenB: weETH.address,
+    ptToken: ptToken.address,
+    ibToken: weETH.address,
   };
   const pendleAdapter = await new PendleMarketAdapter__factory().connect(owner).deploy([poolInput]);
   const routerInput = {
@@ -39,7 +40,7 @@ async function initializeRouterArbWeEth(): Promise<{
   };
   const router = await new MarginlyRouter__factory().connect(owner).deploy([routerInput]);
 
-  const balance = parseUnits('1', 18);
+  const balance = parseUnits('0.5', 18);
   await setTokenBalance(weETH.address, ArbMainnetERC20BalanceOfSlot.WEETH, EthAddress.parse(user.address), balance);
   await setTokenBalance(ptToken.address, ArbMainnetERC20BalanceOfSlot.PTWEETH, EthAddress.parse(user.address), balance);
 
@@ -171,10 +172,21 @@ describe('Pendle PT-weETH - weETH', () => {
       );
       expect(weETHBalanceAfter.sub(weETHBalanceBefore)).to.be.eq(weETHOut);
 
-      const weETHBalanceAdapter = await weETH.balanceOf(pendleAdapter.address);
+      const weETHBalanceOwner = await weETH.balanceOf(owner.address);
       console.log(
-        `weETHBalanceAdapter: ${formatUnits(weETHBalanceAdapter, await weETH.decimals())} ${await weETH.symbol()}`
+        `weETHBalanceOwner: ${formatUnits(weETHBalanceOwner, await weETH.decimals())}  ${await weETH.symbol()}`
       );
+
+      await pendleAdapter.connect(owner).redeemDust(ptToken.address, weETH.address, owner.address);
+
+      const weETHBalanceOwnerAfterRedeem = await weETH.balanceOf(owner.address);
+      console.log(
+        `sUsdeBalanceOwnerAfterRedeem: ${formatUnits(
+          weETHBalanceOwnerAfterRedeem,
+          await weETH.decimals()
+        )} ${await weETH.symbol()}`
+      );
+      expect(weETHBalanceOwnerAfterRedeem).to.be.greaterThanOrEqual(BigNumber.from(0));
     });
   });
 
