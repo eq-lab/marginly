@@ -2,7 +2,7 @@ import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
 import 'solidity-docgen';
-import './scripts';
+import '../scripts';
 import { config as dotEnvConfig } from 'dotenv';
 
 dotEnvConfig();
@@ -16,6 +16,13 @@ const config = {
         runs: 100_000,
       },
     },
+  },
+  paths: {
+    root: '../',
+    sources: './contracts',
+    tests: './test',
+    cache: './cache',
+    artifacts: './artifacts',
   },
   networks: {
     polygonMumbai: {
