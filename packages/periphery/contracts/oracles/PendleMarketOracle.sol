@@ -103,6 +103,7 @@ contract PendleMarketOracle is IPriceOracle, Ownable2Step {
     uint16 secondsAgo,
     uint16 secondsAgoLiquidation
   ) external onlyOwner {
+    if (secondsAgoLiquidation == 0) revert WrongValue();
     if (secondsAgo < secondsAgoLiquidation) revert WrongValue();
 
     OracleParams memory oracleParams = getParams[quoteToken][baseToken];
