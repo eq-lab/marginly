@@ -5,7 +5,7 @@
   "connection": {
     "assertChainId": 81457,
     "ethOptions": {
-      "gasPrice": 20000000
+      "gasPrice": 31880557
     }
   },
   "tokens": [
@@ -31,6 +31,12 @@
       "id": "usde",
       "address": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
       "assertSymbol": "USDe",
+      "assertDecimals": 18
+    },
+    {
+      "id": "susde",
+      "address": "0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2",
+      "assertSymbol": "sUSDe",
       "assertDecimals": 18
     }
   ],
@@ -77,6 +83,16 @@
         "allowCreate": false,
         "assertAddress": "0x8c1bb76510d6873a4a156a9cb394e74a3783bdb5",
         "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
+      },
+      {
+        "id": "susde-usdb",
+        "description": "Thruster",
+        "tokenAId": "susde",
+        "tokenBId": "usdb",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0x5FA8702D9987B9Da17002c0Eb31B3a29d4A4ec2f",
+        "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
       }
     ]
   },
@@ -92,6 +108,13 @@
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.3%"
+        },
+        {
+          "quoteTokenId": "usdb",
+          "baseTokenId": "susde",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
         }
       ]
     },
@@ -201,6 +224,22 @@
         "positionMinAmount": "1",
         "quoteLimit": "10_000_000"
       }
+    },
+    {
+      "id": "susde-usdb",
+      "uniswapPoolId": "susde-usdb",
+      "baseTokenId": "susde",
+      "priceOracleId": "thrusterOracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "2.5%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "2.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "500_000"
+      }
     }
   ],
   "adapters": [
@@ -213,6 +252,11 @@
           "tokenAId": "usdb",
           "tokenBId": "weth",
           "poolAddress": "0xf00DA13d2960Cf113edCef6e3f30D92E52906537"
+        },
+        {
+          "tokenAId": "susde",
+          "tokenBId": "usdb",
+          "poolAddress": "0x5FA8702D9987B9Da17002c0Eb31B3a29d4A4ec2f"
         }
       ]
     },
