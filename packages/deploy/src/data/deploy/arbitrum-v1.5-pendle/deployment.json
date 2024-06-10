@@ -1,8 +1,16 @@
 {
   "marginlyPools": [
     {
+      "id": "pt-ezeth-26sep2024-ezeth",
+      "address": "0x44579419E975f4d59eaA0876f2EdCA7F2531821A"
+    },
+    {
       "id": "pt-usde-29aug2024-usdc",
       "address": "0x79C37E226834Dc6BfB04Ba0b60f823515c32f50D"
+    },
+    {
+      "id": "pt-weeth-26sep2024-weeth",
+      "address": "0x3ad4F88aF401bf5F4F2fE35718139cacC82410d7"
     },
     {
       "id": "pt-weeth-27jun2024-weth",
