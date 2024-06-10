@@ -9,11 +9,12 @@
     "typechain-types"
   ],
   "scripts": {
-    "compile": "hardhat compile",
-    "test": "hardhat test ./test/unit/*.spec.ts",
-    "test:int": "REPORT_GAS=true hardhat test --config hardhat-fork.config.ts ./test/int/*.spec.ts",
+    "compile": "hardhat compile --config ./hardhat-configs/hardhat.config.ts",
+    "test": "hardhat test --config ./hardhat-configs/hardhat.config.ts ./test/unit/*.spec.ts",
+    "test:int-arb": "REPORT_GAS=true hardhat test --config ./hardhat-configs/hardhat-arb-fork.config.ts ./test/int/*.arb.spec.ts",
+    "test:int-eth": "REPORT_GAS=true hardhat test --config ./hardhat-configs/hardhat-eth-fork.config.ts ./test/int/*.eth.spec.ts",
     "lint:write": "prettier --write ./contracts ./test",
-    "docgen": "hardhat docgen"
+    "docgen": "hardhat docgen --config ./hardhat-configs/hardhat.config.ts"
   },
   "author": "EqLab",
   "devDependencies": {
