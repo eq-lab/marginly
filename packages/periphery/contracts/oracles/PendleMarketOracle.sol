@@ -26,6 +26,7 @@ contract PendleMarketOracle is IPriceOracle, Ownable2Step {
   error ZeroPrice();
   error ZeroAddress();
   error WrongValue();
+  error WrongIbSyDecimals();
   error WrongPtAddress();
   error WrongIbTokenAddress();
   error PairAlreadyExist();
@@ -74,6 +75,10 @@ contract PendleMarketOracle is IPriceOracle, Ownable2Step {
 
     uint8 ptDecimals = IERC20Metadata(baseToken).decimals();
     uint8 syDecimals = IERC20Metadata(address(sy)).decimals();
+    uint8 ibDecimals = IERC20Metadata(ibToken).decimals();
+
+    //We assume that sy ib ratio is 1:1 and decimals for both tokens are equals
+    if (syDecimals != ibDecimals) revert WrongIbSyDecimals();
 
     OracleParams memory oracleParams = OracleParams({
       pendleMarket: pendleMarket,

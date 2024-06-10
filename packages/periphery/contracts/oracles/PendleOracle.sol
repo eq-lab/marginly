@@ -77,6 +77,7 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     uint8 ptDecimals = IERC20Metadata(baseToken).decimals();
     uint8 syDecimals = IERC20Metadata(address(sy)).decimals();
 
+    //We assume that sy ib ratio is 1:1 and decimals for both tokens are equals
     getParams[quoteToken][baseToken] = OracleParams({
       pendleMarket: pendleMarket,
       secondsAgo: secondsAgo,
