@@ -13,6 +13,8 @@ contract MintableERC20 is IMintableERC20 {
   string private _name;
   string private _symbol;
   uint8 private _decimals;
+  bool private _isValidTokenIn = true;
+  bool private _isValidTokenOut = true;
 
   constructor(string memory symbol, string memory name, uint8 decimals_) {
     _name = name;
@@ -91,5 +93,19 @@ contract MintableERC20 is IMintableERC20 {
       _balances[from] = fromBalance - amount;
     }
     _balances[to] += amount;
+  }
+
+  // part of Pendle IStandardizedYield interface
+  function setIsValidTokenInOut(bool isValidTokenInArg, bool isValidTokenOutArg) external {
+    _isValidTokenIn = isValidTokenInArg;
+    _isValidTokenOut = isValidTokenOutArg;
+  }
+
+  function isValidTokenIn(address) public view virtual returns (bool) {
+    return _isValidTokenIn;
+  }
+
+  function isValidTokenOut(address) public view virtual returns (bool) {
+    return _isValidTokenOut;
   }
 }

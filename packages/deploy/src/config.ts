@@ -50,6 +50,7 @@ export type PriceOracleDeployConfig =
   | ChainlinkOracleDeployConfig
   | PythOracleDeployConfig
   | PendleOracleDeployConfig
+  | PendleMarketOracleDeployConfig
   | AlgebraTickOracleDeployConfig
   | AlgebraDoubleDeployOracleConfig;
 
@@ -197,6 +198,19 @@ export interface PendleOracleDeployConfig {
   }[];
 }
 
+export interface PendleMarketOracleDeployConfig {
+  type: 'pendleMarket';
+  id: string;
+  pendlePtLpOracle: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    pendleMarket: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+  }[];
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -217,6 +231,10 @@ export function isPythOracleConfig(config: PriceOracleDeployConfig): config is P
 
 export function isPendleOracleConfig(config: PriceOracleDeployConfig): config is PendleOracleDeployConfig {
   return config.type === 'pendle';
+}
+
+export function isPendleMarketOracleConfig(config: PriceOracleDeployConfig): config is PendleMarketOracleDeployConfig {
+  return config.type === 'pendleMarket';
 }
 
 export function isAlgebraOracleConfig(config: PriceOracleDeployConfig): config is AlgebraTickOracleDeployConfig {

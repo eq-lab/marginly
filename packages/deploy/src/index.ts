@@ -1,6 +1,6 @@
 import * as ethers from 'ethers';
 import { EthAddress } from '@marginly/common';
-import { isAlgebraOracleConfig, MarginlyDeployConfig } from './config';
+import { MarginlyDeployConfig } from './config';
 import { Logger } from './logger';
 import { MarginlyDeployment, MarginlyDeploymentMarginlyPool, printDeployState, StateStore, using } from './common';
 import { TokenRepository } from './TokenRepository';
@@ -20,6 +20,7 @@ import {
   isPendleOracle,
   isAlgebraDoubleOracle,
   isAlgebraOracle,
+  isPendleMarketOracle,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -162,6 +163,14 @@ async function processPriceOracles(
       } else if (isPendleOracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployAndConfigurePendleOracle(priceOracle, tokenRepository);
         printDeployState(`Pendle price oracle ${priceOracle.id}`, deploymentResult, logger);
+
+        deployedPriceOracles.set(priceOracle.id, deploymentResult);
+      } else if (isPendleMarketOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployAndConfigurePendleMarketOracle(
+          priceOracle,
+          tokenRepository
+        );
+        printDeployState(`PendleMarket price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
       } else if (isAlgebraOracle(priceOracle)) {

@@ -9,7 +9,7 @@ const config = {
       forking: {
         enabled: true,
         url: 'https://arb1.arbitrum.io/rpc',
-        blockNumber: 208704305,
+        blockNumber: 219359826,
       },
     },
   },

@@ -3,7 +3,14 @@ import { BigNumber, Signer } from 'ethers';
 import { StateStore, readMarginlyAdapterContract, readMarginlyRouterContract } from '../common';
 import { ITokenRepository, DeployResult } from '../common/interfaces';
 import { BaseDeployer } from './BaseDeployer';
-import { AdapterParam, MarginlyAdapterParam, PendleAdapterParam, isPendleAdapter } from './configs';
+import {
+  AdapterParam,
+  MarginlyAdapterParam,
+  PendleAdapterParam,
+  PendleMarketAdapterParam,
+  isPendleAdapter,
+  isPendleMarketAdapter,
+} from './configs';
 import { EthOptions } from '../config';
 import { Logger } from '../logger';
 
@@ -33,6 +40,18 @@ export class MarginlyRouterDeployer extends BaseDeployer {
             ],
             tokenRepository.getTokenInfo(locConfig.token0.id).address.toString(),
             tokenRepository.getTokenInfo(locConfig.token1.id).address.toString(),
+          ];
+        }),
+      ];
+    } else if (isPendleMarketAdapter(pools[0])) {
+      args = [
+        pools.map((x) => {
+          const locConfig = x as PendleMarketAdapterParam;
+          return [
+            locConfig.pendleMarket.toString(),
+            locConfig.slippage,
+            tokenRepository.getTokenInfo(locConfig.ptToken.id).address.toString(),
+            tokenRepository.getTokenInfo(locConfig.ibToken.id).address.toString(),
           ];
         }),
       ];

@@ -7,20 +7,18 @@ import '@pendle/core-v2/contracts/oracles/PendlePtLpOracle.sol';
 import '@pendle/core-v2/contracts/core/Market/v3/PendleMarketV3.sol';
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 
-/// @notice Oracle for Pendle PT / underlying token, e.g. PT-ezETH-27JUN2024 / WETH
-contract PendleOracle is IPriceOracle, Ownable2Step {
+/// @dev Oracle to get price from Pendle market Pt to Ib token
+contract PendleMarketOracle is IPriceOracle, Ownable2Step {
   struct OracleParams {
     address pendleMarket;
+    address ibToken;
     uint16 secondsAgo;
     uint16 secondsAgoLiquidation;
-    address ibToken;
-    address secondaryPoolOracle;
     uint8 ptSyDecimalsDelta;
   }
 
   uint256 private constant X96ONE = 2 ** 96;
   uint8 private constant PRICE_DECIMALS = 18;
-  uint256 private constant PRICE_ONE = 10 ** PRICE_DECIMALS;
 
   IPPtLpOracle public immutable pendle;
   mapping(address => mapping(address => OracleParams)) public getParams;
@@ -28,7 +26,9 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
   error ZeroPrice();
   error ZeroAddress();
   error WrongValue();
+  error WrongIbSyDecimals();
   error WrongPtAddress();
+  error WrongIbTokenAddress();
   error PairAlreadyExist();
   error UnknownPair();
   error PendlePtLpOracleIsNotInitialized(uint16);
@@ -39,31 +39,21 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
   }
 
   /// @notice Create token pair oracle price params. Can be called only once per pair.
-  /// @param quoteToken Quote token address e.g. WETH
-  /// @param baseToken PT token e.g. PT-ezETH-27JUN2024
-  /// @param pendleMarket Address of PendleMarket contract
-  /// @param secondaryPoolOracle Address of additional pool oracle which implement IPriceOracle e.g. UniswapV3TickOracle
-  /// @param ibToken Address of stacking/lending token wrapper e.g. ezETH, weETH
+  /// @param quoteToken address of IbToken or PtToken
+  /// @param baseToken address of PtToken or IbToken
+  /// @param pendleMarket Address of PendleMarket contract with PtToken and IbToken
   /// @param secondsAgo Number of seconds in the past from which to calculate the time-weighted means
   /// @param secondsAgoLiquidation Same as `secondsAgo`, but for liquidation case
   function setPair(
     address quoteToken,
     address baseToken,
     address pendleMarket,
-    address secondaryPoolOracle,
-    address ibToken,
     uint16 secondsAgo,
     uint16 secondsAgoLiquidation
   ) external onlyOwner {
     if (secondsAgo == 0 || secondsAgoLiquidation == 0) revert WrongValue();
     if (secondsAgo < secondsAgoLiquidation) revert WrongValue();
-    if (
-      quoteToken == address(0) ||
-      baseToken == address(0) ||
-      pendleMarket == address(0) ||
-      secondaryPoolOracle == address(0) ||
-      ibToken == address(0)
-    ) {
+    if (quoteToken == address(0) || baseToken == address(0) || pendleMarket == address(0)) {
       revert ZeroAddress();
     }
 
@@ -72,24 +62,38 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     _assertOracleIsInitialized(pendleMarket, secondsAgo);
 
     (IStandardizedYield sy, IPPrincipalToken pt, ) = PendleMarketV3(pendleMarket).readTokens();
-    if (baseToken != address(pt)) revert WrongPtAddress();
+    address ibToken;
+    if (baseToken == address(pt)) {
+      ibToken = quoteToken;
+    } else if (quoteToken == address(pt)) {
+      ibToken = baseToken;
+    } else {
+      revert WrongPtAddress();
+    }
+
+    if (!sy.isValidTokenIn(ibToken) || !sy.isValidTokenOut(ibToken)) revert WrongIbTokenAddress();
 
     uint8 ptDecimals = IERC20Metadata(baseToken).decimals();
     uint8 syDecimals = IERC20Metadata(address(sy)).decimals();
+    uint8 ibDecimals = IERC20Metadata(ibToken).decimals();
 
     //We assume that sy ib ratio is 1:1 and decimals for both tokens are equals
-    getParams[quoteToken][baseToken] = OracleParams({
+    if (syDecimals != ibDecimals) revert WrongIbSyDecimals();
+
+    OracleParams memory oracleParams = OracleParams({
       pendleMarket: pendleMarket,
+      ibToken: ibToken,
       secondsAgo: secondsAgo,
       secondsAgoLiquidation: secondsAgoLiquidation,
-      ibToken: ibToken,
-      secondaryPoolOracle: secondaryPoolOracle,
       ptSyDecimalsDelta: PRICE_DECIMALS + ptDecimals - syDecimals
     });
+
+    getParams[quoteToken][baseToken] = oracleParams;
+    getParams[baseToken][quoteToken] = oracleParams;
   }
 
   /// @notice Update `secondsAgo` and `secondsAgoLiquidation` for token pair
-  /// @param quoteToken Quote token address e.g. WETH
+  /// @param quoteToken Quote token address, IbToken e.g. ezETH
   /// @param baseToken PT token e.g. PT-ezETH-27JUN2024
   /// @param secondsAgo Number of seconds in the past from which to calculate the time-weighted means
   /// @param secondsAgoLiquidation Same as `secondsAgo`, but for liquidation case
@@ -99,13 +103,17 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     uint16 secondsAgo,
     uint16 secondsAgoLiquidation
   ) external onlyOwner {
+    if (secondsAgoLiquidation == 0) revert WrongValue();
     if (secondsAgo < secondsAgoLiquidation) revert WrongValue();
 
-    OracleParams storage params = getParams[quoteToken][baseToken];
-    if (params.pendleMarket == address(0)) revert UnknownPair();
+    OracleParams memory oracleParams = getParams[quoteToken][baseToken];
+    if (oracleParams.pendleMarket == address(0)) revert UnknownPair();
 
-    params.secondsAgo = secondsAgo;
-    params.secondsAgoLiquidation = secondsAgoLiquidation;
+    oracleParams.secondsAgo = secondsAgo;
+    oracleParams.secondsAgoLiquidation = secondsAgoLiquidation;
+
+    getParams[quoteToken][baseToken] = oracleParams;
+    getParams[baseToken][quoteToken] = oracleParams;
   }
 
   /// @notice Check Pendle oracle is initialized - https://docs.pendle.finance/Developers/Integration/HowToIntegratePtAndLpOracle#third-initialize-the-oracle
@@ -134,34 +142,13 @@ contract PendleOracle is IPriceOracle, Ownable2Step {
     OracleParams storage poolParams = getParams[quoteToken][baseToken];
     if (poolParams.pendleMarket == address(0)) revert UnknownPair();
 
-    // PT - base token
-    // SY - wrapped yield token
-    // YQT - yield quote token (e.g. ezETH)
-    // QT - quote token (e.g. WETH)
-
-    // Pendle market: PT / SY
-    // 1.0 SY == 1.0 YQT
-    // secondary pool: YQT / QT
-
-    // getPtToSyRate() returns price with 18 decimals
-    // after maturity getPtToSyRate() returns price != 1.0
     uint256 pendlePrice = pendle.getPtToSyRate(
       poolParams.pendleMarket,
       isMargincallPrice ? poolParams.secondsAgoLiquidation : poolParams.secondsAgo
     );
 
-    if (isMargincallPrice) {
-      priceX96 = Math.mulDiv(
-        pendlePrice,
-        IPriceOracle(poolParams.secondaryPoolOracle).getMargincallPrice(quoteToken, poolParams.ibToken),
-        10 ** poolParams.ptSyDecimalsDelta
-      );
-    } else {
-      priceX96 = Math.mulDiv(
-        pendlePrice,
-        IPriceOracle(poolParams.secondaryPoolOracle).getBalancePrice(quoteToken, poolParams.ibToken),
-        10 ** poolParams.ptSyDecimalsDelta
-      );
-    }
+    priceX96 = poolParams.ibToken == quoteToken
+      ? Math.mulDiv(pendlePrice, X96ONE, 10 ** poolParams.ptSyDecimalsDelta)
+      : Math.mulDiv(X96ONE, 10 ** poolParams.ptSyDecimalsDelta, pendlePrice);
   }
 }

@@ -12,6 +12,7 @@ import {
   isMarginlyDeployConfigSwapPoolRegistry,
   isMarginlyDeployConfigUniswapGenuine,
   isMarginlyDeployConfigUniswapMock,
+  isPendleMarketOracleConfig,
   isPendleOracleConfig,
   isPythOracleConfig,
   isSinglePairChainlinkOracleDeployConfig,
@@ -163,7 +164,7 @@ export interface MarginlyConfigMarginlyPool {
   priceOracle: PriceOracleConfig;
 }
 
-export type AdapterParam = MarginlyAdapterParam | PendleAdapterParam;
+export type AdapterParam = MarginlyAdapterParam | PendleAdapterParam | PendleMarketAdapterParam;
 
 export interface MarginlyAdapterParam {
   type: 'general';
@@ -182,8 +183,20 @@ export interface PendleAdapterParam {
   slippage: number;
 }
 
+export interface PendleMarketAdapterParam {
+  type: 'pendleMarket';
+  ptToken: MarginlyConfigToken;
+  ibToken: MarginlyConfigToken;
+  pendleMarket: EthAddress;
+  slippage: number;
+}
+
 export function isPendleAdapter(config: AdapterParam): config is PendleAdapterParam {
   return config.type === 'pendle';
+}
+
+export function isPendleMarketAdapter(config: AdapterParam): config is PendleMarketAdapterParam {
+  return config.type === 'pendleMarket';
 }
 
 export function isGeneralAdapter(config: AdapterParam): config is MarginlyAdapterParam {
@@ -215,6 +228,7 @@ export type PriceOracleConfig =
   | ChainlinkOracleConfig
   | PythOracleConfig
   | PendleOracleConfig
+  | PendleMarketOracleConfig
   | AlgebraOracleConfig
   | AlgebraDoubleOracleConfig;
 
@@ -361,6 +375,19 @@ export interface PendleOracleConfig {
   }[];
 }
 
+export interface PendleMarketOracleConfig {
+  id: string;
+  type: 'pendleMarket';
+  pendlePtLpOracle: EthAddress;
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    pendleMarket: EthAddress;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
+  }[];
+}
+
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
   return config.type === 'uniswapV3';
 }
@@ -379,6 +406,10 @@ export function isPythOracle(config: PriceOracleConfig): config is PythOracleCon
 
 export function isPendleOracle(config: PriceOracleConfig): config is PendleOracleConfig {
   return config.type === 'pendle';
+}
+
+export function isPendleMarketOracle(config: PriceOracleConfig): config is PendleMarketOracleConfig {
+  return config.type === 'pendleMarket';
 }
 
 export function isAlgebraOracle(config: PriceOracleConfig): config is AlgebraOracleConfig {
@@ -543,6 +574,27 @@ export class StrictMarginlyDeployConfig {
             ib: ibToken,
             uniswapV3LikePool: poolAddress,
             pendleMarket: EthAddress.parse(pool.pendleMarket),
+            slippage: pool.slippage,
+          });
+        } else if (adapter.adapterName === 'PendleMarketAdapter') {
+          if (!pool.slippage) {
+            throw new Error(`Slippage is not set for adapter with dexId ${adapter.dexId}`);
+          }
+
+          const token0 = tokens.get(pool.tokenAId);
+          if (token0 === undefined) {
+            throw new Error(`Can not find token0 '${pool.tokenAId}' for adapter with dexId ${adapter.dexId}`);
+          }
+          const token1 = tokens.get(pool.tokenBId);
+          if (token1 === undefined) {
+            throw new Error(`Can not find token1 '${pool.tokenBId}' for adapter with dexId ${adapter.dexId}`);
+          }
+
+          adapterParams.push({
+            type: 'pendleMarket',
+            ptToken: token0,
+            ibToken: token1,
+            pendleMarket: EthAddress.parse(pool.poolAddress),
             slippage: pool.slippage,
           });
         } else {
@@ -799,6 +851,31 @@ export class StrictMarginlyDeployConfig {
               secondsAgo: TimeSpan.parse(x.secondsAgo),
               secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
               secondaryPoolOracleId: x.secondaryPoolOracleId,
+            };
+          }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isPendleMarketOracleConfig(priceOracleConfig)) {
+        const strictConfig: PendleMarketOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          pendlePtLpOracle: EthAddress.parse(priceOracleConfig.pendlePtLpOracle),
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              quoteToken:
+                tokens.get(x.quoteTokenId) ||
+                (() => {
+                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                })(),
+              baseToken:
+                tokens.get(x.baseTokenId) ||
+                (() => {
+                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                })(),
+              pendleMarket: EthAddress.parse(x.pendleMarket),
+              secondsAgo: TimeSpan.parse(x.secondsAgo),
+              secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
             };
           }),
         };

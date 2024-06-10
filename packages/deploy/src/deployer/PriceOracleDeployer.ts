@@ -6,6 +6,7 @@ import {
   isDoublePairPythOracleConfig,
   isSinglePairChainlinkOracleConfig,
   isSinglePairPythOracleConfig,
+  PendleMarketOracleConfig,
   PendleOracleConfig,
   PythOracleConfig,
   UniswapV3TickDoubleOracleConfig,
@@ -271,6 +272,38 @@ export class PriceOracleDeployer extends BaseDeployer {
         setting.pendleMarket.toString(),
         secondaryPoolOracle.address,
         ibToken.toString(),
+        setting.secondsAgo.toSeconds(),
+        setting.secondsAgoLiquidation.toSeconds()
+      );
+    }
+
+    return deploymentResult;
+  }
+
+  public async deployAndConfigurePendleMarketOracle(
+    config: PendleMarketOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'PendleMarketOracle',
+      [config.pendlePtLpOracle.toString()],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+
+    const priceOracle = (await deploymentResult).contract;
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+
+      const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+
+      if (currentParams.secondsAgo != 0) continue; // oracle already initialized
+
+      await priceOracle.setPair(
+        quoteToken.toString(),
+        baseToken.toString(),
+        setting.pendleMarket.toString(),
         setting.secondsAgo.toSeconds(),
         setting.secondsAgoLiquidation.toSeconds()
       );
