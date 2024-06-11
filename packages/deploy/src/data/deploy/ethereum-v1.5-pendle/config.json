@@ -48,6 +48,30 @@
       "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
       "assertSymbol": "USDT",
       "assertDecimals": 6
+    },
+    {
+      "id": "pt-weeth-26sep2024",
+      "address": "0x1c085195437738d73d75DC64bC5A3E098b7f93b1",
+      "assertSymbol": "PT-weETH-26SEP2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-ezeth-26sep2024",
+      "address": "0x248241244356D18f63d0c16082996839ecB0C7bF",
+      "assertSymbol": "PT-ezETH-26SEP2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-ezeth-26dec2024",
+      "address": "0xf7906F274c174A52d444175729E3fa98f9bde285",
+      "assertSymbol": "PT-ezETH-26DEC2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "ezeth",
+      "address": "0xbf5495Efe5DB9ce00f80364C8B423567e58d2110",
+      "assertSymbol": "ezETH",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -106,6 +130,34 @@
           "secondsAgoLiquidation": "5 sec"
         }
       ]
+    },
+    {
+      "id": "pendleMarketOracle",
+      "type": "pendleMarket",
+      "pendlePtLpOracle": "0x66a1096C6366b2529274dF4f5D8247827fe4CEA8",
+      "settings": [
+        {
+          "quoteTokenId": "weeth",
+          "baseTokenId": "pt-weeth-26sep2024",
+          "pendleMarket": "0xc8edd52d0502aa8b4d5c77361d4b3d300e8fc81c",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "ezeth",
+          "baseTokenId": "pt-ezeth-26sep2024",
+          "pendleMarket": "0xcdbd5ff3e03b6828db9c32e2131a60aba5137901",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "ezeth",
+          "baseTokenId": "pt-ezeth-26dec2024",
+          "pendleMarket": "0xd8f12bcde578c653014f27379a6114f67f0e445f",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
     }
   ],
   "marginlyFactory": {
@@ -161,6 +213,54 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "5000000"
       }
+    },
+    {
+      "id": "pt-weeth-26dec2024-weeth",
+      "baseTokenId": "pt-weeth-26sep2024",
+      "quoteTokenId": "weeth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "1000"
+      }
+    },
+    {
+      "id": "pt-ezeth-26sep2024-ezeth",
+      "baseTokenId": "pt-ezeth-26sep2024",
+      "quoteTokenId": "ezeth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "500"
+      }
+    },
+    {
+      "id": "pt-ezeth-26dec2024-ezeth",
+      "baseTokenId": "pt-ezeth-26dec2024",
+      "quoteTokenId": "ezeth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "5000"
+      }
     }
   ],
   "adapters": [
@@ -191,6 +291,30 @@
           "slippage": "20",
           "tokenAId": "pt-usde-25jul2024",
           "tokenBId": "usdt"
+        }
+      ]
+    },
+    {
+      "dexId": 19,
+      "adapterName": "PendleMarketAdapter",
+      "pools": [
+        {
+          "poolAddress": "0xc8edd52d0502aa8b4d5c77361d4b3d300e8fc81c",
+          "slippage": "20",
+          "tokenAId": "pt-weeth-26sep2024",
+          "tokenBId": "weeth"
+        },
+        {
+          "poolAddress": "0xcdbd5ff3e03b6828db9c32e2131a60aba5137901",
+          "slippage": "20",
+          "tokenAId": "pt-ezeth-26sep2024",
+          "tokenBId": "ezeth"
+        },
+        {
+          "poolAddress": "0xd8f12bcde578c653014f27379a6114f67f0e445f",
+          "slippage": "20",
+          "tokenAId": "pt-ezeth-26dec2024",
+          "tokenBId": "ezeth"
         }
       ]
     }

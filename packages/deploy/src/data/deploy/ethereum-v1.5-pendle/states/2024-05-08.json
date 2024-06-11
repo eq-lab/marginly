@@ -39,6 +39,26 @@
     "marginlyKeeper": {
       "address": "0x623342afe5C8cA6a090F8F09399c2713107EEccF",
       "txHash": "0x608ad531bebf83111c47682cb2838d64748fc748536d5d4ee5353f58941e0413"
+    },
+    "priceOracle_pendleMarketOracle": {
+      "address": "0x51941B50c7F7059e9167B60eBFA8578b807b6fbc",
+      "txHash": "0x00c9cf296613ce65e32e0594bd669c0c238d5ec0e18e38ad38f181ec7d8c6645"
+    },
+    "PendleMarketAdapter_19": {
+      "address": "0xb3fEb11B47AfB2B71758273aE7EEBf53A09d0531",
+      "txHash": "0x9906bda5dfb74c3ac333eb1182205208e4fa336fdd943c6dd634a1ec1c344805"
+    },
+    "marginlyPool_pt-weeth-26dec2024-weeth": {
+      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497",
+      "txHash": "0x957a6cee75394b8f3eb802107f5b69f71a9602d02981546d858d3481e3241c2e"
+    },
+    "marginlyPool_pt-ezeth-26sep2024-ezeth": {
+      "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975",
+      "txHash": "0xf9b92a275254860a2845573598837d032498f2d5d2d5db84e83615d69eba6867"
+    },
+    "marginlyPool_pt-ezeth-26dec2024-ezeth": {
+      "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA",
+      "txHash": "0x1fb924038b4ef76b0e318afe052521501c5b652627dbe85dfdd71338849a629b"
     }
   }
 }
