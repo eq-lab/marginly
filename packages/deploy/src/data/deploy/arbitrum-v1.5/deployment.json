@@ -1,0 +1,19 @@
+{
+  "marginlyPools": [
+    {
+      "id": "ethplus-weth",
+      "address": "0xb1Af7B299ABBE4905Bbc80E614f64caCFEfBc96b"
+    },
+    {
+      "id": "knox-eusd",
+      "address": "0x3125e87D2630eb7DADD7F94e2fE05Bd21eE10C4f"
+    },
+    {
+      "id": "usde-usdc",
+      "address": "0x9007A45304Ac6676CEf22ec68c870ae88Af60065"
+    }
+  ],
+  "aaveKeeperDeployResult": {
+    "address": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0"
+  }
+}
