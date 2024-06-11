@@ -234,11 +234,6 @@ async function processMarginly(
   marginlyRouterDeployResult: DeployResult,
   deployedPriceOracles: Map<string, DeployResult>
 ) {
-  if (config.marginlyPools.length === 0) {
-    return {
-      deployedMarginlyPools: [],
-    };
-  }
   const marginlyPoolImplDeployResult = await using(
     logger.beginScope('Deploy marginly pool implementation'),
     async () => {
