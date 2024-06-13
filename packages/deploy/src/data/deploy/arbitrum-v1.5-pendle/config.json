@@ -254,6 +254,7 @@
   "marginlyKeeper": {
     "aaveKeeper": {
       "aavePoolAddressesProvider": "0xa97684ead0e402dc232d5a977953df7ecbab3cdb"
-    }
+    },
+    "uniswapKeeper": true
   }
 }

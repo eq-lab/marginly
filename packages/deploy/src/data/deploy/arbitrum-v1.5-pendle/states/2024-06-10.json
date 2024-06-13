@@ -55,6 +55,10 @@
     "marginlyPool_pt-weeth-26sep2024-weeth": {
       "address": "0x3ad4F88aF401bf5F4F2fE35718139cacC82410d7",
       "txHash": "0xcfe25a3cdff3dad24d91dd285a165e19ab33bfc2c530bb7af5ed0596b741a287"
+    },
+    "marginlyKeeperUniswapV3": {
+      "address": "0x56B10B0aB714c509bA2bB5e8bB4e322Cc05F09A0",
+      "txHash": "0x00fa8b7ac10c1e9efd587ae8e0f6d09ecd8fc925502fe1e2c3321f2d9709652f"
     }
   }
 }

@@ -299,10 +299,7 @@ async function processAaveKeeper(
   const deployedMarginlyKeeper = await using(logger.beginScope('Process MarginlyKeeper'), async () => {
     let aavePoolAddressesProviderAddress: EthAddress;
 
-    if (config.marginlyKeeper.uniswapKeeper) {
-      // deploy uniswap v3 keeper
-      throw new Error('Not implemented');
-    } else if (config.marginlyKeeper.aaveKeeper) {
+    if (config.marginlyKeeper.aaveKeeper) {
       const aavePoolAddressesProvider = keeperDeployer.getAavePoolAddressesProvider(
         config.marginlyKeeper.aaveKeeper.aavePoolAddressProvider
       );
@@ -333,7 +330,7 @@ async function processAaveKeeper(
     }
 
     const deploymentResult = await keeperDeployer.deployMarginlyKeeper(aavePoolAddressesProviderAddress);
-    printDeployState(`Marginly keeper`, deploymentResult, logger);
+    printDeployState(`Aave keeper`, deploymentResult, logger);
     return deploymentResult;
   });
 
@@ -344,8 +341,10 @@ async function processKeeperUniswapV3(
   logger: Logger,
   keeperUniswapV3Deployer: KeeperUniswapV3Deployer
 ): Promise<DeployResult> {
-  const deployResult = await using(logger.beginScope('Process MarginlyKeeper'), async () => {
-    return keeperUniswapV3Deployer.deployKeeper();
+  const deployResult = await using(logger.beginScope('Process UniswapV3Keeper'), async () => {
+    const result = await keeperUniswapV3Deployer.deployKeeper();
+    printDeployState(`UniswapV3keeper`, result, logger);
+    return result;
   });
 
   return deployResult;
