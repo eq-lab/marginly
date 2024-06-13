@@ -59,6 +59,10 @@
     "marginlyPool_pt-ezeth-26dec2024-ezeth": {
       "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA",
       "txHash": "0x1fb924038b4ef76b0e318afe052521501c5b652627dbe85dfdd71338849a629b"
+    },
+    "marginlyKeeperUniswapV3": {
+      "address": "0x9FfD55a972369283D4B8527b6953d38BB8D67316",
+      "txHash": "0x603bd9873fcaf051795031010ce3f345eecac1a8fa5514e5dbeffda0cdea0938"
     }
   }
 }

@@ -1,8 +1,20 @@
 {
   "marginlyPools": [
     {
+      "id": "pt-ezeth-26dec2024-ezeth",
+      "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA"
+    },
+    {
+      "id": "pt-ezeth-26sep2024-ezeth",
+      "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975"
+    },
+    {
       "id": "pt-usde-25jul2024-usdt",
       "address": "0xbd4a9ca12c5f3c12d1378843c0b91585475aed51"
+    },
+    {
+      "id": "pt-weeth-26dec2024-weeth",
+      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497"
     },
     {
       "id": "pt-weeth-26dec2024-weth",
@@ -15,5 +27,8 @@
   ],
   "aaveKeeperDeployResult": {
     "address": "0x623342afe5C8cA6a090F8F09399c2713107EEccF"
+  },
+  "uniswapV3Keeper": {
+    "address": "0x9FfD55a972369283D4B8527b6953d38BB8D67316"
   }
 }
