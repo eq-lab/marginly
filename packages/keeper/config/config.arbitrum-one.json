@@ -8,7 +8,7 @@
     }
   },
   "marginlyKeeperAaveAddress": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0",
-  "marginlyKeeperUniswapV3Address": "",
+  "marginlyKeeperUniswapV3Address": "0x56B10B0aB714c509bA2bB5e8bB4e322Cc05F09A0",
   "marginlyPools": [
     {
       "type": "aave",

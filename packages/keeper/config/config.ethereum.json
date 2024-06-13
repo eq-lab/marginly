@@ -8,6 +8,7 @@
     }
   },
   "marginlyKeeperAaveAddress": "0x623342afe5C8cA6a090F8F09399c2713107EEccF",
+  "marginlyKeeperUniswapV3Address": "",
   "marginlyPools": [
     {
       "type": "aave",
@@ -29,6 +30,30 @@
       "address": "0xbd4a9ca12c5f3c12d1378843c0b91585475aed51",
       "minProfitQuote": "1",
       "minProfitBase": "0.00005"
+    },
+    {
+      "type": "uniswapV3",
+      "description": "pt-weeth-26dec2024/weeth",
+      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497",
+      "flashLoanPools": ["0x7a415b19932c0105c82fdb6b720bb01b0cc2cae3"],
+      "minProfitQuote": "0.0001",
+      "minProfitBase": "0.0001"
+    },
+    {
+      "type": "uniswapV3",
+      "description": "pt-ezeth-26sep2024/ezeth",
+      "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975",
+      "flashLoanPools": ["0xbe80225f09645f172b079394312220637c440a63"],
+      "minProfitQuote": "0.0001",
+      "minProfitBase": "0.0001"
+    },
+    {
+      "type": "uniswapV3",
+      "description": "pt-ezeth-26dec2024/ezeth",
+      "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA",
+      "flashLoanPools": ["0xbe80225f09645f172b079394312220637c440a63"],
+      "minProfitQuote": "0.0001",
+      "minProfitBase": "0.0001"
     }
   ]
 }
