@@ -34,7 +34,7 @@ function encodeLiquidationParams(
   );
 }
 
-describe.only('MarginlyKeeperAlgebra', () => {
+describe('MarginlyKeeperAlgebra', () => {
   it('Should liquidate short bad position', async () => {
     const { keeper, swapRouter, baseToken, marginlyPool, algebraPool } = await loadFixture(createMarginlyKeeperAlgebra);
     const [, badPosition, liquidator] = await ethers.getSigners();
