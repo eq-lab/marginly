@@ -14,6 +14,8 @@ import {
   MockMarginlyFactory,
   MarginlyKeeperUniswapV3,
   MockPriceOracle,
+  MarginlyKeeperAlgebra,
+  TestAlgebraPool,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -491,5 +493,46 @@ export async function createMarginlyKeeperUniswapV3Contract(): Promise<{
     quoteToken,
     marginlyPool,
     uniswapPool,
+  };
+}
+
+export async function createMarginlyKeeperAlgebra(): Promise<{
+  keeper: MarginlyKeeperAlgebra;
+  swapRouter: MockSwapRouter;
+  baseToken: TestERC20;
+  quoteToken: TestERC20;
+  marginlyPool: MockMarginlyPool;
+  algebraPool: TestAlgebraPool;
+}> {
+  const baseToken = await createToken('Base token', 'BT');
+  const quoteToken = await createToken('Quote token', 'QT');
+
+  const swapRouter = await createSwapRouter(quoteToken.address, baseToken.address);
+  const marginlyFactory = await createMockMarginlyFactory(swapRouter.address);
+  const marginlyPool = await createMockMarginlyPool(marginlyFactory.address, quoteToken.address, baseToken.address);
+  const keeper = await (await ethers.getContractFactory('MarginlyKeeperAlgebra')).deploy();
+  const algebraPool = await (
+    await ethers.getContractFactory('TestAlgebraPool')
+  ).deploy(quoteToken.address, baseToken.address);
+
+  const decimals = BigInt(await baseToken.decimals());
+  const mintAmount = 10000000000n * 10n ** decimals;
+
+  await baseToken.mint(marginlyPool.address, mintAmount);
+  await quoteToken.mint(marginlyPool.address, mintAmount);
+
+  await baseToken.mint(swapRouter.address, mintAmount);
+  await quoteToken.mint(swapRouter.address, mintAmount);
+
+  await baseToken.mint(algebraPool.address, mintAmount);
+  await quoteToken.mint(algebraPool.address, mintAmount);
+
+  return {
+    keeper,
+    swapRouter,
+    baseToken,
+    quoteToken,
+    marginlyPool,
+    algebraPool,
   };
 }
