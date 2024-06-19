@@ -25,7 +25,7 @@ contract MarginlyKeeperAlgebra is IAlgebraFlashCallback {
     address marginlyPool;
     address positionToLiquidate;
     address liquidator;
-    address uniswapPool;
+    address algebraPool;
     uint256 minProfit;
     uint256 swapCallData;
   }
@@ -42,7 +42,7 @@ contract MarginlyKeeperAlgebra is IAlgebraFlashCallback {
 
   function algebraFlashCallback(uint256 fee0, uint256 fee1, bytes calldata data) external {
     LiquidationParams memory decodedParams = abi.decode(data, (LiquidationParams));
-    require(msg.sender == address(decodedParams.uniswapPool), 'Caller must be pool');
+    require(msg.sender == address(decodedParams.algebraPool), 'Caller must be pool');
 
     _liquidateAndTakeProfit(fee0 + fee1, decodedParams);
   }
@@ -82,7 +82,7 @@ contract MarginlyKeeperAlgebra is IAlgebraFlashCallback {
     uint256 profit = dust + amountOut - paybackAmount;
     require(profit >= params.minProfit, 'Less than minimum profit');
 
-    IERC20(asset).safeTransfer(params.uniswapPool, paybackAmount);
+    IERC20(asset).safeTransfer(params.algebraPool, paybackAmount);
     IERC20(asset).safeTransfer(params.liquidator, profit);
 
     emit Profit(positionToLiquidate, asset, profit);
