@@ -5,11 +5,15 @@
   "connection": {
     "ethOptions": {}
   },
-  "marginlyKeeperAaveAddress": "0x13d1bD42884585d0D00121E596b3733B47152FeB",
-  "marginlyKeeperUniswapV3Address": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
+  "keepers": {
+    "aave": "0x13d1bD42884585d0D00121E596b3733B47152FeB",
+    "uniswapV3": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
+    "algebra": "0x00000000000000000000000000000000000000001",
+    "balancer": "0x00000000000000000000000000000000000000002"
+  },
   "marginlyPools": [
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0x7D3c686CeaFD6e36198BA2fE96091c9eB5FBbd45",
       "minProfitQuote": "20",
       "minProfitBase": "0.05"

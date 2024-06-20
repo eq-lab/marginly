@@ -26,3 +26,24 @@ export function encodeLiquidationParams(
     [asset, amount, marginlyPool, positionToLiquidate, liquidator, uniswapPool, minProfit, swapCallData]
   );
 }
+
+export function encodeBalancerLiquidationParams(
+  marginlyPool: string,
+  positionToLiquidate: string,
+  liquidator: string,
+  minProfit: BigNumber,
+  swapCallData: BigNumber
+): string {
+  /**
+        address marginlyPool;
+        address positionToLiquidate;
+        address liquidator;
+        uint256 minProfit;
+        uint256 swapCallData;
+       */
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['address', 'address', 'address', 'uint256', 'uint256'],
+    [marginlyPool, positionToLiquidate, liquidator, minProfit, swapCallData]
+  );
+}
