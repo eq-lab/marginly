@@ -23,7 +23,7 @@ contract TestBalancerVault {
     uint256[] memory amounts,
     bytes memory userData
   ) external {
-    uint256 feeAmount = 1000; //0.1% 1000/10000 = 0.001
+    uint256 feeAmount = 1000; //0.1% 1000/_1000_000 = 0.001
     uint256[] memory feeAmounts = new uint256[](tokens.length);
     uint256[] memory preLoanBalances = new uint256[](tokens.length);
 
