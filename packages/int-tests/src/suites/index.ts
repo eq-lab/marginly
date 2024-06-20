@@ -22,7 +22,7 @@ import { shortIncome } from './short_income';
 import { GasReporter } from '../utils/GasReporter';
 import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
-import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
+import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeperAave';
 import { keeperAave } from './keeperAave';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
 import BalancerMarginlyAdapter from '../contract-api/BalancerMarginlyAdapter';

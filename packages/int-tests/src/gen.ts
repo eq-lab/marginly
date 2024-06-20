@@ -63,15 +63,15 @@ const defsMarginlyPool = genDefinitions(
 );
 writeFileSync(`./src/contract-api/MarginlyPool.ts`, defsMarginlyPool);
 
-const defsKeeperContract = genDefinitions(
-  require(`@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json`),
+const defsKeeperAaveContract = genDefinitions(
+  require(`@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeper.sol/MarginlyKeeper.json`),
   `@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json`,
   { ignoreImportError: true }
 );
-writeFileSync(`./src/contract-api/MarginlyKeeper.ts`, defsKeeperContract);
+writeFileSync(`./src/contract-api/MarginlyKeeperAave.ts`, defsKeeperAaveContract);
 
 const defsKeeperUniswapV3Contract = genDefinitions(
-  require(`@marginly/contracts/artifacts/contracts/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json`),
+  require(`@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json`),
   `@marginly/contracts/artifacts/contracts/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json`,
   { ignoreImportError: true }
 );

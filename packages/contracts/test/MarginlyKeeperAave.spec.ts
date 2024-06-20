@@ -5,6 +5,8 @@ import { BigNumber } from 'ethers';
 import { createMarginlyKeeperContract } from './shared/fixtures';
 import { PositionType } from './shared/utils';
 
+const keeperSwapCallData = 0n; // it's ok for unit tests, but it wont work in production
+
 describe('MarginlyKeeperAave', () => {
   it('Should liquidate short bad position', async () => {
     const { marginlyKeeper, swapRouter, baseToken, marginlyPool } = await loadFixture(createMarginlyKeeperContract);
@@ -29,7 +31,6 @@ describe('MarginlyKeeperAave', () => {
     await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, PositionType.Short);
 
     const minProfitETH = 1n * 10n ** (decimals - 2n); // 0.01 ETH
-    const referralCode = 0;
 
     const balanceBefore = await baseToken.balanceOf(liquidator.address);
 
@@ -38,10 +39,10 @@ describe('MarginlyKeeperAave', () => {
       .flashLoan(
         await marginlyPool.baseToken(),
         baseAmount,
-        referralCode,
         marginlyPool.address,
         badPosition.address,
-        minProfitETH
+        minProfitETH,
+        keeperSwapCallData
       );
 
     const balanceAfter = await baseToken.balanceOf(liquidator.address);
@@ -74,7 +75,6 @@ describe('MarginlyKeeperAave', () => {
     await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, PositionType.Long);
 
     const minProfitETH = 100n * 10n ** decimals; // 100 USDC
-    const referralCode = 0;
 
     const balanceBefore = await quoteToken.balanceOf(liquidator.address);
 
@@ -83,10 +83,10 @@ describe('MarginlyKeeperAave', () => {
       .flashLoan(
         await marginlyPool.quoteToken(),
         quoteAmount,
-        referralCode,
         marginlyPool.address,
         badPosition.address,
-        minProfitETH
+        minProfitETH,
+        keeperSwapCallData
       );
 
     const balanceAfter = await quoteToken.balanceOf(liquidator.address);
@@ -117,7 +117,6 @@ describe('MarginlyKeeperAave', () => {
     await marginlyPool.setBadPosition(badPosition.address, quoteAmount, baseAmount, PositionType.Long);
 
     const minProfitETH = 500n * 10n ** decimals; // 500 USDC
-    const referralCode = 0;
 
     await expect(
       marginlyKeeper
@@ -125,10 +124,10 @@ describe('MarginlyKeeperAave', () => {
         .flashLoan(
           await marginlyPool.quoteToken(),
           quoteAmount,
-          referralCode,
           marginlyPool.address,
           badPosition.address,
-          minProfitETH
+          minProfitETH,
+          keeperSwapCallData
         )
     ).to.be.revertedWith('Less than minimum profit');
   });

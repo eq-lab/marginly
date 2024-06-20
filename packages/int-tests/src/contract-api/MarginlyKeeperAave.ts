@@ -14,7 +14,7 @@ import {
   ContractFactory,
 } from 'ethers';
 // @ts-ignore
-import { abi, bytecode } from '@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json';
+import { abi, bytecode } from '@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeper.sol/MarginlyKeeper.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyKeeperInterface extends utils.Interface {

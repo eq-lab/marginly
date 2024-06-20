@@ -60,6 +60,10 @@ function createMarginlyContractDescription(name: string): ContractDescription {
   return require(`@marginly/contracts/artifacts/contracts/${name}.sol/${name}.json`);
 }
 
+function createKeeperContractDescription(name: string): ContractDescription {
+  return require(`@marginly/contracts/artifacts/contracts/keepers/${name}.sol/${name}.json`);
+}
+
 function createOpenZeppelinContractDescription(name: string): ContractDescription {
   return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
 }

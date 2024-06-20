@@ -9,13 +9,13 @@ import {
   MockAavePool,
   MockAavePoolAddressesProvider,
   MockMarginlyPool,
-  MarginlyKeeper,
   MockSwapRouter,
   MockMarginlyFactory,
   MarginlyKeeperUniswapV3,
   MockPriceOracle,
   MarginlyKeeperAlgebra,
   TestAlgebraPool,
+  MarginlyKeeperAave,
 } from '../../typechain-types';
 import { MarginlyParamsStruct } from '../../typechain-types/contracts/MarginlyFactory';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -417,7 +417,7 @@ export async function createSwapRouter(quoteToken: string, baseToken: string): P
 }
 
 export async function createMarginlyKeeperContract(): Promise<{
-  marginlyKeeper: MarginlyKeeper;
+  marginlyKeeper: MarginlyKeeperAave;
   swapRouter: MockSwapRouter;
   baseToken: TestERC20;
   quoteToken: TestERC20;
@@ -443,7 +443,7 @@ export async function createMarginlyKeeperContract(): Promise<{
   await baseToken.mint(aavePool.address, mintAmount);
   await quoteToken.mint(aavePool.address, mintAmount);
 
-  const factory = await ethers.getContractFactory('MarginlyKeeper');
+  const factory = await ethers.getContractFactory('MarginlyKeeperAave');
   const marginlyKeeper = await factory.deploy(addressesProvider.address);
 
   return {
