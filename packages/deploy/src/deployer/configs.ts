@@ -205,6 +205,10 @@ export interface MarginlyConfigMarginlyKeeper {
   };
   aaveMock: boolean;
   uniswapKeeper: boolean;
+  algebraKeeper: boolean;
+  balacerKeeper?: {
+    balancerVault: EthAddress;
+  };
 }
 
 export type PriceOracleConfig =
@@ -595,6 +599,12 @@ export class StrictMarginlyDeployConfig {
         : undefined,
       aaveMock: false,
       uniswapKeeper: config.marginlyKeeper.uniswapKeeper ?? false,
+      algebraKeeper: config.marginlyKeeper.algebraKeeper ?? false,
+      balacerKeeper: config.marginlyKeeper.balancerKeeper
+        ? {
+            balancerVault: EthAddress.parse(config.marginlyKeeper.balancerKeeper.balancerVault),
+          }
+        : undefined,
     };
 
     const wethToken = tokens.get(config.marginlyFactory.wethTokenId);
