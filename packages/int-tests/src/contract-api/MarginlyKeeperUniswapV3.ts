@@ -17,7 +17,7 @@ import {
 import {
   abi,
   bytecode,
-} from '@marginly/contracts/artifacts/contracts/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json';
+} from '@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
 export interface MarginlyKeeperUniswapV3Interface extends utils.Interface {
