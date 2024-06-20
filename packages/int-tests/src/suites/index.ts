@@ -22,7 +22,7 @@ import { shortIncome } from './short_income';
 import { GasReporter } from '../utils/GasReporter';
 import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
-import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeperAave';
+import MarginlyKeeperAave, { MarginlyKeeperAaveContract } from '../contract-api/MarginlyKeeperAave';
 import { keeperAave } from './keeperAave';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
 import BalancerMarginlyAdapter from '../contract-api/BalancerMarginlyAdapter';
@@ -58,7 +58,7 @@ export type SystemUnderTest = {
   swapRouter: MarginlyRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
-  keeperAave: MarginlyKeeperContract;
+  keeperAave: MarginlyKeeperAaveContract;
   keeperUniswapV3: MarginlyKeeperUniswapV3Contract;
   treasury: Wallet;
   accounts: Wallet[];
@@ -173,9 +173,9 @@ async function initializeTestSystem(
   const secondsAgo = 1800;
   const secondsAgoLiquidation = 5;
   const uniswapPoolFee = 500;
-  await priceOracle.connect(treasury).setOptions(
-    usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee
-  );
+  await priceOracle
+    .connect(treasury)
+    .setOptions(usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
   logger.info(`marginly pool implementation: ${marginlyPoolImplementation.address}`);
@@ -220,7 +220,7 @@ async function initializeTestSystem(
   logger.info(`marginly <> uniswap: ${marginlyPool.address} <> ${uniswap.address}`);
 
   const aavePoolAddressesProviderAddress = '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e';
-  const keeperAave = await MarginlyKeeper.deploy(aavePoolAddressesProviderAddress, treasury);
+  const keeperAave = await MarginlyKeeperAave.deploy(aavePoolAddressesProviderAddress, treasury);
   logger.info(`keeperAave: ${keeperAave.address}`);
 
   const keeperUniswapV3 = await MarginlyKeeperUniswapV3.deploy(treasury);
