@@ -64,7 +64,7 @@ const defsMarginlyPool = genDefinitions(
 writeFileSync(`./src/contract-api/MarginlyPool.ts`, defsMarginlyPool);
 
 const defsKeeperAaveContract = genDefinitions(
-  require(`@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeper.sol/MarginlyKeeper.json`),
+  require(`@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperAave.sol/MarginlyKeeperAave.json`),
   `@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json`,
   { ignoreImportError: true }
 );
