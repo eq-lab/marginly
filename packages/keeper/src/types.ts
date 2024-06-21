@@ -95,9 +95,8 @@ export interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
   connection: EthConnectionConfig;
   keepers: {
-    type: KeeperType;
-    address: string;
-  }[];
+    [key in keyof KeeperType]: string;
+  };
   marginlyPools: PoolPositionLiquidationConfig[];
   log?: LogConfig;
 }
