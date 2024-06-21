@@ -9,8 +9,7 @@
     }
   },
   "keepers": {
-    "aave": "0x0000000000000000000000000000000000000000",
-    "uniswapV3": "0x953bCae95340b4f275c357a9d847E36617401f8e",
+    "uniswapV3": "0x953bCae95340b4f275c357a9d847E36617401f8e"
   },
   "marginlyPools": [
     {
