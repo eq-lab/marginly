@@ -59,8 +59,8 @@
       "description": "pt-ezeth-26dec2024/ezeth",
       "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA",
       "flashLoanPools": ["0xbe80225f09645f172b079394312220637c440a63"],
-      "minProfitQuote": "0.0001",
-      "minProfitBase": "0.0001",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
       "swapCallData": "20447233"
     }
   ]
