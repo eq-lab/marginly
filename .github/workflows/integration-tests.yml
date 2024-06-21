@@ -39,6 +39,7 @@ jobs:
             shortEmergency,
             keeperAave,
             keeperUniswapV3,
+            keeperBalancer,
             balanceSync,
             balanceSyncWithdrawBase,
             balanceSyncWithdrawQuote,
