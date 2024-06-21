@@ -77,6 +77,21 @@ const defsKeeperUniswapV3Contract = genDefinitions(
 );
 writeFileSync(`./src/contract-api/MarginlyKeeperUniswapV3.ts`, defsKeeperUniswapV3Contract);
 
+const defsKeeperBalancerContract = genDefinitions(
+  require(`@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperBalancer.sol/MarginlyKeeperBalancer.json`),
+  `@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperBalancer.sol/MarginlyKeeperBalancer.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/MarginlyKeeperBalancer.ts`, defsKeeperBalancerContract);
+
+
+const defsKeeperAlgebraContract = genDefinitions(
+  require(`@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperAlgebra.sol/MarginlyKeeperAlgebra.json`),
+  `@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperAlgebra.sol/MarginlyKeeperAlgebra.json`,
+  { ignoreImportError: true }
+);
+writeFileSync(`./src/contract-api/MarginlyKeeperAlgebra.ts`, defsKeeperAlgebraContract);
+
 const defsMarginlyRouter = genDefinitions(
   require(`@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`),
   `@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json`,

@@ -28,27 +28,8 @@ contract MarginlyKeeperAave is MarginlyKeeper, IFlashLoanSimpleReceiver {
   /// @notice Takes simple flashloan in AAVE v3 protocol to liquidate position in Marginly
   /// @param asset borrow asset
   /// @param amount borrow amount
-  /// @param marginlyPool address of marginly pool
-  /// @param positionToLiquidate address of liquidatable position in Marginly pool
-  /// @param minProfit amount of minimum profit worth in borrow asset
-  function flashLoan(
-    address asset,
-    uint256 amount,
-    address marginlyPool,
-    address positionToLiquidate,
-    uint256 minProfit,
-    uint256 swapCallData
-  ) external {
-    bytes memory params = abi.encode(
-      LiquidationParams({
-        marginlyPool: marginlyPool,
-        positionToLiquidate: positionToLiquidate,
-        minProfit: minProfit,
-        liquidator: msg.sender,
-        swapCallData: swapCallData
-      })
-    );
-
+  /// @param params liquidation params
+  function liquidatePosition(address asset, uint256 amount, bytes calldata params) external {
     POOL.flashLoanSimple(address(this), asset, amount, params, 0);
   }
 
