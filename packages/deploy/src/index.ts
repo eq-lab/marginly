@@ -370,11 +370,11 @@ async function processKeeperBalancer(
   keeperDeployer: KeeperBalancerDeployer,
   config: StrictMarginlyDeployConfig
 ): Promise<DeployResult> {
-  if (!config.marginlyKeeper.balacerKeeper?.balancerVault) {
+  if (!config.marginlyKeeper.balancerKeeper?.balancerVault) {
     throw new Error('Balancer vault address not provided');
   }
 
-  const balancerVault = config.marginlyKeeper.balacerKeeper.balancerVault;
+  const balancerVault = config.marginlyKeeper.balancerKeeper.balancerVault;
   const deployResult = await using(logger.beginScope('Process KeeperUniswapV3'), async () => {
     return keeperDeployer.deployKeeper(balancerVault);
   });
@@ -440,7 +440,7 @@ export async function deployMarginly(
     }
 
     let balancerKeeper: DeployResult | null = null;
-    if (config.marginlyKeeper.balacerKeeper) {
+    if (config.marginlyKeeper.balancerKeeper) {
       balancerKeeper = await processKeeperBalancer(logger, keeperBalancerDeployer, config);
     }
 

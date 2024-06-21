@@ -206,7 +206,7 @@ export interface MarginlyConfigMarginlyKeeper {
   aaveMock: boolean;
   uniswapKeeper: boolean;
   algebraKeeper: boolean;
-  balacerKeeper?: {
+  balancerKeeper?: {
     balancerVault: EthAddress;
   };
 }
@@ -600,7 +600,7 @@ export class StrictMarginlyDeployConfig {
       aaveMock: false,
       uniswapKeeper: config.marginlyKeeper.uniswapKeeper ?? false,
       algebraKeeper: config.marginlyKeeper.algebraKeeper ?? false,
-      balacerKeeper: config.marginlyKeeper.balancerKeeper
+      balancerKeeper: config.marginlyKeeper.balancerKeeper
         ? {
             balancerVault: EthAddress.parse(config.marginlyKeeper.balancerKeeper.balancerVault),
           }
