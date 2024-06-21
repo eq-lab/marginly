@@ -80,10 +80,10 @@ function prepareContractDescriptions(): ContractDescriptions {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
     keepers: {
-      aave: createMarginlyContractDescription('MarginlyKeeper'),
-      uniswapV3: createMarginlyContractDescription('MarginlyKeeperUniswapV3'),
-      algebra: createMarginlyContractDescription('MarginlyKeeperAlgebra'),
-      balancer: createMarginlyContractDescription('MarginlyKeeperBalancer'),
+      aave: createKeeperContractDescription('MarginlyKeeperAave'),
+      uniswapV3: createKeeperContractDescription('MarginlyKeeperUniswapV3'),
+      algebra: createKeeperContractDescription('MarginlyKeeperAlgebra'),
+      balancer: createKeeperContractDescription('MarginlyKeeperBalancer'),
     },
     marginlyPool: createMarginlyContractDescription('MarginlyPool'),
     aavePool: createAaveIPoolContractDescription(),
