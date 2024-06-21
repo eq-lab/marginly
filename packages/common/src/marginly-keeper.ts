@@ -26,13 +26,12 @@ export function encodeLiquidationParams(
     [asset, amount, marginlyPool, positionToLiquidate, liquidator, uniswapPool, minProfit, swapCallData]
   );
 }
-
 export function encodeLiquidationParamsAave(
   marginlyPool: string,
   positionToLiquidate: string,
   liquidator: string,
-  minProfit: bigint,
-  swapCallData: bigint
+  minProfit: BigNumber,
+  swapCallData: BigNumber
 ): string {
   /**
     address marginlyPool;
@@ -52,8 +51,8 @@ export function encodeLiquidationParamsBalancer(
   marginlyPool: string,
   positionToLiquidate: string,
   liquidator: string,
-  minProfit: bigint,
-  swapCallData: bigint
+  minProfit: BigNumber,
+  swapCallData: BigNumber
 ): string {
   /**
  *  

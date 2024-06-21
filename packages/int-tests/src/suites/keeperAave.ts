@@ -163,13 +163,14 @@ export async function keeperAave(sut: SystemUnderTest) {
 
   let balanceBefore = BigNumber.from(await usdc.balanceOf(liquidator.address));
 
-  const swapCallData = 0n;
+  const swapCallData = BigNumber.from(0);
+  const minProfit = BigNumber.from(0);
 
   const longerLiqParams = encodeLiquidationParamsAave(
     marginlyPool.address,
     longer.address,
     liquidator.address,
-    0n,
+    minProfit,
     swapCallData
   );
 
@@ -191,7 +192,7 @@ export async function keeperAave(sut: SystemUnderTest) {
     marginlyPool.address,
     shorter.address,
     liquidator.address,
-    0n,
+    minProfit,
     swapCallData
   );
 

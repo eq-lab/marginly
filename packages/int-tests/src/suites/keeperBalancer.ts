@@ -163,13 +163,14 @@ export async function keeperBalancer(sut: SystemUnderTest) {
 
   let balanceBefore = BigNumber.from(await usdc.balanceOf(liquidator.address));
 
-  const swapCallData = 0n;
+  const swapCallData = BigNumber.from(0);
+  const minProfit = BigNumber.from(0);
 
   const longerLiqParams = encodeLiquidationParamsBalancer(
     marginlyPool.address,
     longer.address,
     liquidator.address,
-    0n,
+    minProfit,
     swapCallData
   );
   const ethOpts = {
@@ -190,7 +191,7 @@ export async function keeperBalancer(sut: SystemUnderTest) {
     marginlyPool.address,
     shorter.address,
     liquidator.address,
-    0n,
+    minProfit,
     swapCallData
   );
 
