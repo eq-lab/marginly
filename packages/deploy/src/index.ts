@@ -302,10 +302,7 @@ async function processAaveKeeper(
   const deployedMarginlyKeeper = await using(logger.beginScope('Process KeeperAave'), async () => {
     let aavePoolAddressesProviderAddress: EthAddress;
 
-    if (config.marginlyKeeper.uniswapKeeper) {
-      // deploy uniswap v3 keeper
-      throw new Error('Not implemented');
-    } else if (config.marginlyKeeper.aaveKeeper) {
+    if (config.marginlyKeeper.aaveKeeper) {
       const aavePoolAddressesProvider = keeperDeployer.getAavePoolAddressesProvider(
         config.marginlyKeeper.aaveKeeper.aavePoolAddressProvider
       );
@@ -336,7 +333,7 @@ async function processAaveKeeper(
     }
 
     const deploymentResult = await keeperDeployer.deployMarginlyKeeper(aavePoolAddressesProviderAddress);
-    printDeployState(`Marginly keeper`, deploymentResult, logger);
+    printDeployState(`Keeper Aave`, deploymentResult, logger);
     return deploymentResult;
   });
 
@@ -348,7 +345,9 @@ async function processKeeperUniswapV3(
   keeperUniswapV3Deployer: KeeperUniswapV3Deployer
 ): Promise<DeployResult> {
   const deployResult = await using(logger.beginScope('Process KeeperUniswapV3'), async () => {
-    return keeperUniswapV3Deployer.deployKeeper();
+    const result = await keeperUniswapV3Deployer.deployKeeper();
+    printDeployState(`Keeper UniswapV3`, result, logger);
+    return result;
   });
 
   return deployResult;
@@ -359,7 +358,9 @@ async function processKeeperAlgebra(
   keeperAlgebraDeployer: KeeperAlgebraDeployer
 ): Promise<DeployResult> {
   const deployResult = await using(logger.beginScope('Process KeeperAlgebra'), async () => {
-    return keeperAlgebraDeployer.deployKeeper();
+    const result = await keeperAlgebraDeployer.deployKeeper();
+    printDeployState(`Keeper Algebra`, result, logger);
+    return result;
   });
 
   return deployResult;
@@ -375,8 +376,10 @@ async function processKeeperBalancer(
   }
 
   const balancerVault = config.marginlyKeeper.balancerKeeper.balancerVault;
-  const deployResult = await using(logger.beginScope('Process KeeperUniswapV3'), async () => {
-    return keeperDeployer.deployKeeper(balancerVault);
+  const deployResult = await using(logger.beginScope('Process KeeperBalancer'), async () => {
+    const result = await keeperDeployer.deployKeeper(balancerVault);
+    printDeployState(`Keeper Balancer`, result, logger);
+    return result;
   });
 
   return deployResult;
