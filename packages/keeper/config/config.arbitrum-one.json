@@ -8,7 +8,9 @@
     }
   },
   "keepers": {
-    "aave": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629"
+    "aave": "0xEd8b77AC3DC53d3528Cd7F2b96B26677025522c3",
+    "uniswapV3": "0x92e65fd9c7d562D88cc5E858ED491f4d86c27bc3",
+    "balancer": "0xA8b50f59Bb61aA8b1bb3cBDee22469ABc7eD5B21"
   },
   "marginlyPools": [
     {

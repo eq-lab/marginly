@@ -14,6 +14,9 @@
     }
   ],
   "aaveKeeperDeployResult": {
-    "address": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0"
+    "address": "0xEd8b77AC3DC53d3528Cd7F2b96B26677025522c3"
+  },
+  "uniswapV3Keeper": {
+    "address": "0x92e65fd9c7d562D88cc5E858ED491f4d86c27bc3"
   }
 }
