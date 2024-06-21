@@ -323,6 +323,9 @@
     "aaveKeeper": {
       "aavePoolAddressesProvider": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e"
     },
-    "uniswapKeeper": true
+    "uniswapKeeper": true,
+    "balancerKeeper": {
+      "balancerVault": "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
+    }
   }
 }

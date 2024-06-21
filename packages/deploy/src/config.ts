@@ -52,7 +52,8 @@ export type PriceOracleDeployConfig =
   | PendleOracleDeployConfig
   | PendleMarketOracleDeployConfig
   | AlgebraTickOracleDeployConfig
-  | AlgebraDoubleDeployOracleConfig;
+  | AlgebraDoubleDeployOracleConfig
+  | CurveOracleDeployConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -79,6 +80,32 @@ export interface UniswapV3DoubleDeployOracleConfig {
     secondsAgoLiquidation: string;
     baseTokenPairFee: string;
     quoteTokenPairFee: string;
+  }[];
+}
+
+export interface AlgebraTickOracleDeployConfig {
+  type: 'algebra';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
+    uniswapFee: string;
+  }[];
+}
+
+export interface AlgebraDoubleDeployOracleConfig {
+  type: 'algebraDouble';
+  id: string;
+  factory: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    intermediateTokenId: string;
+    secondsAgo: string;
+    secondsAgoLiquidation: string;
   }[];
 }
 
@@ -211,6 +238,16 @@ export interface PendleMarketOracleDeployConfig {
   }[];
 }
 
+export interface CurveOracleDeployConfig {
+  type: 'curve';
+  id: string;
+  settings: {
+    pool: string;
+    quoteTokenId: string;
+    baseTokenId: string;
+  }[];
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -245,6 +282,10 @@ export function isAlgebraDoubleOracleConfig(
   config: PriceOracleDeployConfig
 ): config is AlgebraDoubleDeployOracleConfig {
   return config.type === 'algebraDouble';
+}
+
+export function isCurveOracleConfig(config: CurveOracleDeployConfig): config is CurveOracleDeployConfig {
+  return config.type === 'curve';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {
@@ -384,5 +425,9 @@ export interface MarginlyDeployConfig {
       aavePoolAddressesProvider: string;
     };
     uniswapKeeper?: boolean;
+    algebraKeeper?: boolean;
+    balancerKeeper?: {
+      balancerVault: string;
+    };
   };
 }

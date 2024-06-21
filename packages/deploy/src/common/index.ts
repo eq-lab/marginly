@@ -85,6 +85,8 @@ export interface MarginlyDeployment {
   marginlyPools: MarginlyDeploymentMarginlyPool[];
   aaveKeeperDeployResult?: { address: string };
   uniswapV3Keeper?: { address: string };
+  algebraKeeper?: { address: string };
+  balancerKeeper?: { address: string };
 }
 
 export function mergeMarginlyDeployments(
@@ -108,6 +110,8 @@ export function mergeMarginlyDeployments(
     marginlyPools: [...oldDeployment.marginlyPools],
     aaveKeeperDeployResult: newDeployment.aaveKeeperDeployResult,
     uniswapV3Keeper: newDeployment.uniswapV3Keeper,
+    algebraKeeper: newDeployment.algebraKeeper,
+    balancerKeeper: newDeployment.balancerKeeper
   };
 
   for (const marginlyPool of newDeployment.marginlyPools) {

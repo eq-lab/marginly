@@ -6,6 +6,12 @@ export function createMarginlyContractReader(): ContractReader {
   };
 }
 
+export function createKeeperContractReader(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/contracts/artifacts/contracts/keepers/${name}.sol/${name}.json`);
+  };
+}
+
 export function createMarginlyMockContractReader(): ContractReader {
   return (name: string): ContractDescription => {
     return require(`@marginly/contracts/artifacts/contracts/test/${name}.sol/${name}.json`);

@@ -17,11 +17,13 @@ import {
   IPMarketV3,
   TestUniswapV2Factory,
   TestUniswapV2Pair,
-  CurveEMAPriceOracle,
   TestCurveEMAPool,
   MintableERC20,
   MockSequencerFeed,
   PendleMarketOracle,
+  CurveOracle,
+  TestCurveStableSwapNGPool,
+  ICurve,
 } from '../../typechain-types';
 import {
   AlgebraTickOracle,
@@ -31,7 +33,7 @@ import {
   UniswapV3TickOracleDouble,
 } from '../../typechain-types';
 import { one, oneX96 } from '../int/pendle/common';
-import { BigNumber } from 'ethers';
+import { BigNumber, ContractFactory } from 'ethers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -234,9 +236,9 @@ export async function createUniswapV3TickOracleDoubleIBQ() {
   return createUniswapV3TickOracleDouble(Tokens.TOKEN3, Tokens.TOKEN2, Tokens.TOKEN1);
 }
 
-export type CurveEMAOracleData = {
-  oracle: CurveEMAPriceOracle;
-  pool: TestCurveEMAPool;
+export type CurveOracleData = {
+  oracle: CurveOracle;
+  pool: TestCurveEMAPool | TestCurveStableSwapNGPool;
   coin0: string;
   coin1: string;
   quoteToken: MintableERC20;
@@ -244,22 +246,17 @@ export type CurveEMAOracleData = {
   anotherToken: MintableERC20;
 };
 
-async function createCurveEMAOracle(
+async function createCurveOracle(
+  poolFactory: ContractFactory,
   coin0: string,
   coin1: string,
   baseToken: MintableERC20,
   quoteToken: MintableERC20,
   anotherToken: MintableERC20,
+  priceOracleMethodHaveArg: boolean,
   addPool: boolean = true
-): Promise<CurveEMAOracleData> {
-  const poolFactory = await ethers.getContractFactory('TestCurveEMAPool');
+): Promise<CurveOracleData> {
   const pool = await poolFactory.deploy(coin0, coin1);
-
-  const oracleFactory = await ethers.getContractFactory('CurveEMAPriceOracle');
-  const oracle = await oracleFactory.deploy();
-  if (addPool) {
-    await oracle.addPool(pool.address, quoteToken.address, baseToken.address);
-  }
 
   const one = BigNumber.from(10).pow(18);
   await pool.setPrices(
@@ -268,34 +265,101 @@ async function createCurveEMAOracle(
     BigNumber.from(3200).mul(one) // price_oracle
   );
 
+  const oracleFactory = await ethers.getContractFactory('CurveOracle');
+  const oracle = await oracleFactory.deploy();
+  if (addPool) {
+    await oracle.addPool(pool.address, quoteToken.address, baseToken.address, priceOracleMethodHaveArg);
+  }
+
   return { oracle, pool, coin0, coin1, quoteToken, baseToken, anotherToken };
 }
 
-export async function createCurveEMAOracleForward(): Promise<CurveEMAOracleData> {
+export async function createCurveEMAOracleForward(): Promise<CurveOracleData> {
   const tokenFactory = await ethers.getContractFactory('MintableERC20');
   const usdtToken = await tokenFactory.deploy('USDT', 'Tether USD', 6);
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
   const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
-
-  return createCurveEMAOracle(wethToken.address, usdtToken.address, usdtToken, wethToken, anotherToken);
+  const poolFactory = await ethers.getContractFactory('TestCurveEMAPool');
+  return createCurveOracle(
+    poolFactory,
+    wethToken.address,
+    usdtToken.address,
+    usdtToken,
+    wethToken,
+    anotherToken,
+    false
+  );
 }
 
-export async function createCurveEMAOracleBackward(): Promise<CurveEMAOracleData> {
+export async function createCurveEMAOracleBackward(): Promise<CurveOracleData> {
   const tokenFactory = await ethers.getContractFactory('MintableERC20');
   const usdtToken = await tokenFactory.deploy('USDT', 'Tether USD', 6);
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
   const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
-
-  return createCurveEMAOracle(wethToken.address, usdtToken.address, wethToken, usdtToken, anotherToken);
+  const poolFactory = await ethers.getContractFactory('TestCurveEMAPool');
+  return createCurveOracle(
+    poolFactory,
+    wethToken.address,
+    usdtToken.address,
+    wethToken,
+    usdtToken,
+    anotherToken,
+    false
+  );
 }
 
-export async function createCurveEMAOracleWithoutAddingPool(): Promise<CurveEMAOracleData> {
+export async function createCurveEMAOracleWithoutAddingPool(): Promise<CurveOracleData> {
   const tokenFactory = await ethers.getContractFactory('MintableERC20');
   const usdtToken = await tokenFactory.deploy('USDT', 'Tether USD', 6);
   const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
   const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
+  const poolFactory = await ethers.getContractFactory('TestCurveEMAPool');
+  return createCurveOracle(
+    poolFactory,
+    wethToken.address,
+    usdtToken.address,
+    wethToken,
+    usdtToken,
+    anotherToken,
+    false,
+    false
+  );
+}
 
-  return createCurveEMAOracle(wethToken.address, usdtToken.address, wethToken, usdtToken, anotherToken, false);
+export async function createCurveNGOracleForward(): Promise<CurveOracleData> {
+  const tokenFactory = await ethers.getContractFactory('MintableERC20');
+  const usdtToken = await tokenFactory.deploy('USDT', 'Tether USD', 6);
+  const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+  const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
+  const poolFactory = await ethers.getContractFactory('TestCurveStableSwapNGPool');
+  return createCurveOracle(poolFactory, wethToken.address, usdtToken.address, usdtToken, wethToken, anotherToken, true);
+}
+
+export async function createCurveNGOracleBackward(): Promise<CurveOracleData> {
+  const tokenFactory = await ethers.getContractFactory('MintableERC20');
+  const usdtToken = await tokenFactory.deploy('USDT', 'Tether USD', 6);
+  const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+  const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
+  const poolFactory = await ethers.getContractFactory('TestCurveStableSwapNGPool');
+  return createCurveOracle(poolFactory, wethToken.address, usdtToken.address, wethToken, usdtToken, anotherToken, true);
+}
+
+export async function createCurveNGOracleWithoutAddingPool(): Promise<CurveOracleData> {
+  const tokenFactory = await ethers.getContractFactory('MintableERC20');
+  const usdtToken = await tokenFactory.deploy('USDT', 'Tether USD', 6);
+  const wethToken = await tokenFactory.deploy('WETH', 'Wrapped Ether', 18);
+  const anotherToken = await tokenFactory.deploy('USDC', 'Circle USD', 6);
+  const poolFactory = await ethers.getContractFactory('TestCurveStableSwapNGPool');
+  return createCurveOracle(
+    poolFactory,
+    wethToken.address,
+    usdtToken.address,
+    wethToken,
+    usdtToken,
+    anotherToken,
+    true,
+    false
+  );
 }
 
 export type PythOracleData = {
@@ -1146,4 +1210,70 @@ export async function createPendleMarketOracleAfterMaturity(): Promise<PendleMar
   await ethers.provider.send('evm_increaseTime', [12 * 24 * 60 * 60]);
   await ethers.provider.send('evm_mine', []);
   return caseParams;
+}
+
+
+export interface CurveOracleCaseParams {
+  pool: ICurve;
+  baseToken: TokenInfo;
+  quoteToken: TokenInfo;
+  oracle: CurveOracle;
+  priceOracleMethodHasArg: boolean;
+  isToken0QuoteToken: boolean;
+}
+
+export async function createCurveCaseFrxEthWeth(): Promise<CurveOracleCaseParams> {
+  const poolAddress = '0x1DeB3b1cA6afca0FF9C5cE9301950dC98Ac0D523';
+  const baseToken = <TokenInfo>{
+    address: '0x178412e79c25968a32e89b11f63B33F733770c2A',
+    symbol: 'frxETH',
+    decimals: 18,
+  };
+
+  const quoteToken = <TokenInfo>{
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    symbol: 'WETH',
+    decimals: 18,
+  };
+
+  const oracle = await (await ethers.getContractFactory('CurveOracle')).deploy();
+
+  await oracle.addPool(poolAddress, quoteToken.address, baseToken.address, false);
+  const pool = await ethers.getContractAt('ICurve', poolAddress);
+  return {
+    pool,
+    baseToken,
+    quoteToken,
+    oracle,
+    priceOracleMethodHasArg: false,
+    isToken0QuoteToken: true,
+  };
+}
+
+export async function createCurveCaseCrvUsdUsdc(): Promise<CurveOracleCaseParams> {
+  const poolAddress = '0xec090cf6DD891D2d014beA6edAda6e05E025D93d';
+  const baseToken = <TokenInfo>{
+    address: '0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5',
+    symbol: 'crvUSD',
+    decimals: 18,
+  };
+
+  const quoteToken = <TokenInfo>{
+    address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+    symbol: 'USDC',
+    decimals: 6,
+  };
+
+  const oracle = await (await ethers.getContractFactory('CurveOracle')).deploy();
+
+  await oracle.addPool(poolAddress, quoteToken.address, baseToken.address, true);
+  const pool = await ethers.getContractAt('ICurve', poolAddress);
+  return {
+    pool,
+    baseToken,
+    quoteToken,
+    oracle,
+    priceOracleMethodHasArg: true,
+    isToken0QuoteToken: false,
+  };
 }

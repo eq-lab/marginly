@@ -11,16 +11,19 @@ import {
   MarginlyDeployer,
   PriceOracleDeployer,
   UniswapV3Deployer,
-  KeeperDeployer,
+  KeeperAaveDeployer,
   MockTokenDeployer,
   MarginlyRouterDeployer,
   isChainlinkOracle,
   isPythOracle,
   KeeperUniswapV3Deployer,
+  isPendleMarketOracle,
   isPendleOracle,
   isAlgebraDoubleOracle,
   isAlgebraOracle,
-  isPendleMarketOracle,
+  isCurveOracle,
+  KeeperAlgebraDeployer,
+  KeeperBalancerDeployer,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -86,11 +89,13 @@ async function initializeDeployers(
 
     const marginlyDeployer = new MarginlyDeployer(signer, ethOptions, stateStore, logger);
     const priceOracleDeployer = new PriceOracleDeployer(signer, ethOptions, stateStore, logger);
-    const keeperDeployer = new KeeperDeployer(signer, ethOptions, stateStore, logger);
+    const keeperDeployer = new KeeperAaveDeployer(signer, ethOptions, stateStore, logger);
     const uniswapV3Deployer = new UniswapV3Deployer(signer, ethOptions, stateStore, logger);
     const mockTokenDeployer = new MockTokenDeployer(signer, ethOptions, stateStore, logger);
     const marginlyRouterDeployer = new MarginlyRouterDeployer(signer, ethOptions, stateStore, logger);
     const keeperUniswapV3Deployer = new KeeperUniswapV3Deployer(signer, ethOptions, stateStore, logger);
+    const keeperAlgebraDeployer = new KeeperAlgebraDeployer(signer, ethOptions, stateStore, logger);
+    const keeperBalancerDeployer = new KeeperBalancerDeployer(signer, ethOptions, stateStore, logger);
 
     return {
       config,
@@ -102,6 +107,8 @@ async function initializeDeployers(
       mockTokenDeployer,
       marginlyRouterDeployer,
       keeperUniswapV3Deployer,
+      keeperAlgebraDeployer,
+      keeperBalancerDeployer,
     };
   });
 }
@@ -181,6 +188,11 @@ async function processPriceOracles(
       } else if (isAlgebraDoubleOracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployAlgebraDoubleOracle(priceOracle, tokenRepository);
         printDeployState(`AlgebraDoule price oracle ${priceOracle.id}`, deploymentResult, logger);
+
+        deployedPriceOracles.set(priceOracle.id, deploymentResult);
+      } else if (isCurveOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployCurveOracle(priceOracle, tokenRepository);
+        printDeployState(`Curve price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
       } else {
@@ -293,10 +305,10 @@ async function processMarginly(
 
 async function processAaveKeeper(
   logger: Logger,
-  keeperDeployer: KeeperDeployer,
+  keeperDeployer: KeeperAaveDeployer,
   config: StrictMarginlyDeployConfig
 ): Promise<DeployResult> {
-  const deployedMarginlyKeeper = await using(logger.beginScope('Process MarginlyKeeper'), async () => {
+  const deployedMarginlyKeeper = await using(logger.beginScope('Process KeeperAave'), async () => {
     let aavePoolAddressesProviderAddress: EthAddress;
 
     if (config.marginlyKeeper.aaveKeeper) {
@@ -330,7 +342,7 @@ async function processAaveKeeper(
     }
 
     const deploymentResult = await keeperDeployer.deployMarginlyKeeper(aavePoolAddressesProviderAddress);
-    printDeployState(`Aave keeper`, deploymentResult, logger);
+    printDeployState(`Keeper Aave`, deploymentResult, logger);
     return deploymentResult;
   });
 
@@ -341,9 +353,41 @@ async function processKeeperUniswapV3(
   logger: Logger,
   keeperUniswapV3Deployer: KeeperUniswapV3Deployer
 ): Promise<DeployResult> {
-  const deployResult = await using(logger.beginScope('Process UniswapV3Keeper'), async () => {
+  const deployResult = await using(logger.beginScope('Process KeeperUniswapV3'), async () => {
     const result = await keeperUniswapV3Deployer.deployKeeper();
-    printDeployState(`UniswapV3keeper`, result, logger);
+    printDeployState(`Keeper UniswapV3`, result, logger);
+    return result;
+  });
+
+  return deployResult;
+}
+
+async function processKeeperAlgebra(
+  logger: Logger,
+  keeperAlgebraDeployer: KeeperAlgebraDeployer
+): Promise<DeployResult> {
+  const deployResult = await using(logger.beginScope('Process KeeperAlgebra'), async () => {
+    const result = await keeperAlgebraDeployer.deployKeeper();
+    printDeployState(`Keeper Algebra`, result, logger);
+    return result;
+  });
+
+  return deployResult;
+}
+
+async function processKeeperBalancer(
+  logger: Logger,
+  keeperDeployer: KeeperBalancerDeployer,
+  config: StrictMarginlyDeployConfig
+): Promise<DeployResult> {
+  if (!config.marginlyKeeper.balancerKeeper?.balancerVault) {
+    throw new Error('Balancer vault address not provided');
+  }
+
+  const balancerVault = config.marginlyKeeper.balancerKeeper.balancerVault;
+  const deployResult = await using(logger.beginScope('Process KeeperBalancer'), async () => {
+    const result = await keeperDeployer.deployKeeper(balancerVault);
+    printDeployState(`Keeper Balancer`, result, logger);
     return result;
   });
 
@@ -362,10 +406,11 @@ export async function deployMarginly(
     marginlyDeployer,
     priceOracleDeployer,
     keeperDeployer,
-    uniswapV3Deployer,
     mockTokenDeployer,
     marginlyRouterDeployer,
     keeperUniswapV3Deployer,
+    keeperAlgebraDeployer,
+    keeperBalancerDeployer,
   } = await initializeDeployers(signer, rawConfig, stateStore, logger);
 
   const balanceBefore = await signer.getBalance();
@@ -401,10 +446,22 @@ export async function deployMarginly(
       uniswapV3Keeper = await processKeeperUniswapV3(logger, keeperUniswapV3Deployer);
     }
 
+    let algebraKeeper: DeployResult | null = null;
+    if (config.marginlyKeeper.algebraKeeper) {
+      algebraKeeper = await processKeeperAlgebra(logger, keeperAlgebraDeployer);
+    }
+
+    let balancerKeeper: DeployResult | null = null;
+    if (config.marginlyKeeper.balancerKeeper) {
+      balancerKeeper = await processKeeperBalancer(logger, keeperBalancerDeployer, config);
+    }
+
     return {
       marginlyPools: deployedMarginlyPools,
       aaveKeeperDeployResult: aaveKeeperDeployResult ? { address: aaveKeeperDeployResult.address } : undefined,
       uniswapV3Keeper: uniswapV3Keeper ? { address: uniswapV3Keeper.address } : undefined,
+      algebraKeeper: algebraKeeper ? { address: algebraKeeper.address } : undefined,
+      balancerKeeper: balancerKeeper ? { address: balancerKeeper.address } : undefined,
     };
   } finally {
     const balanceAfter = await signer.getBalance();

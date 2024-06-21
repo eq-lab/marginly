@@ -5,6 +5,7 @@ import {
   isAlgebraDoubleOracleConfig,
   isAlgebraOracleConfig,
   isChainlinkOracleConfig,
+  isCurveOracleConfig,
   isDoublePairChainlinkOracleDeployConfig,
   isDoublePairPythOracleDeployConfig,
   isMarginlyDeployConfigExistingToken,
@@ -220,6 +221,10 @@ export interface MarginlyConfigMarginlyKeeper {
   };
   aaveMock: boolean;
   uniswapKeeper: boolean;
+  algebraKeeper: boolean;
+  balancerKeeper?: {
+    balancerVault: EthAddress;
+  };
 }
 
 export type PriceOracleConfig =
@@ -230,7 +235,8 @@ export type PriceOracleConfig =
   | PendleOracleConfig
   | PendleMarketOracleConfig
   | AlgebraOracleConfig
-  | AlgebraDoubleOracleConfig;
+  | AlgebraDoubleOracleConfig
+  | CurveOracleConfig;;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -388,6 +394,16 @@ export interface PendleMarketOracleConfig {
   }[];
 }
 
+export interface CurveOracleConfig {
+  id: string;
+  type: 'curve';
+  settings: {
+    pool: EthAddress;
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+  }[];
+}
+
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
   return config.type === 'uniswapV3';
 }
@@ -418,6 +434,10 @@ export function isAlgebraOracle(config: PriceOracleConfig): config is AlgebraOra
 
 export function isAlgebraDoubleOracle(config: PriceOracleConfig): config is AlgebraDoubleOracleConfig {
   return config.type === 'algebraDouble';
+}
+
+export function isCurveOracle(config: PriceOracleConfig): config is CurveOracleConfig {
+  return config.type === 'curve';
 }
 
 export class StrictMarginlyDeployConfig {
@@ -634,6 +654,12 @@ export class StrictMarginlyDeployConfig {
         : undefined,
       aaveMock: false,
       uniswapKeeper: config.marginlyKeeper.uniswapKeeper ?? false,
+      algebraKeeper: config.marginlyKeeper.algebraKeeper ?? false,
+      balancerKeeper: config.marginlyKeeper.balancerKeeper
+        ? {
+            balancerVault: EthAddress.parse(config.marginlyKeeper.balancerKeeper.balancerVault),
+          }
+        : undefined,
     };
 
     const wethToken = tokens.get(config.marginlyFactory.wethTokenId);
@@ -927,7 +953,26 @@ export class StrictMarginlyDeployConfig {
             secondsAgo: TimeSpan.parse(x.secondsAgo),
             secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
           })),
-        };
+        }} else if (isCurveOracleConfig(priceOracleConfig)) {
+          const strictConfig: CurveOracleConfig = {
+            id: priceOracleId,
+            type: priceOracleConfig.type,
+            settings: priceOracleConfig.settings.map((x) => {
+              return {
+                pool: EthAddress.parse(x.pool),
+                quoteToken:
+                  tokens.get(x.quoteTokenId) ||
+                  (() => {
+                    throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                  })(),
+                baseToken:
+                  tokens.get(x.baseTokenId) ||
+                  (() => {
+                    throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                  })(),
+              };
+            }),
+          };
 
         priceOracles.set(priceOracleId, strictConfig);
       }

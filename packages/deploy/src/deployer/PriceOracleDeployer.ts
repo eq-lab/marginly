@@ -2,6 +2,7 @@ import {
   AlgebraDoubleOracleConfig,
   AlgebraOracleConfig,
   ChainlinkOracleConfig,
+  CurveOracleConfig,
   isDoublePairChainlinkOracleConfig,
   isDoublePairPythOracleConfig,
   isSinglePairChainlinkOracleConfig,
@@ -404,6 +405,81 @@ export class PriceOracleDeployer extends BaseDeployer {
       this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
     }
 
+    return deploymentResult;
+  }
+  public async deployCurveOracle(config: CurveOracleConfig, tokenRepository: ITokenRepository): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'CurveOracle',
+      [],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+    const priceOracle = (await deploymentResult).contract;
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+
+      this.logger.log(`Set oracle ${config.id} options`);
+
+      console.log(`Curve: ${setting.pool.toString()}`);
+      console.log(`Quote token: ${quoteToken.toString()}`);
+      console.log(`Base token: ${baseToken.toString()}`);
+
+      const abi = [
+        'function price_oracle() external view returns (uint256)',
+        'function price_oracle(uint256 i) external view returns (uint256)',
+        'function N_COINS() external view returns (uint256)',
+        'function coins(uint256 coinId) external view returns (address)',
+      ];
+      const pool = new ethers.Contract(setting.pool.toString(), abi, this.provider);
+
+      let moreThanTwoTokens = false;
+      try {
+        await pool.coins(2);
+        moreThanTwoTokens = true;
+      } catch (e) {}
+
+      if (moreThanTwoTokens) {
+        throw new Error(`Curve pools with more than two tokens are not allowed. Pool id: ${config.id}`);
+      }
+
+      let priceOracleMethodHaveArg: boolean | undefined = undefined;
+      try {
+        await pool['price_oracle()']();
+        priceOracleMethodHaveArg = false;
+      } catch (e) {}
+
+      if (priceOracleMethodHaveArg === undefined) {
+        try {
+          await pool['price_oracle(uint256)'](0);
+          priceOracleMethodHaveArg = true;
+        } catch (e) {}
+      }
+      if (priceOracleMethodHaveArg === undefined) {
+        throw new Error(`Curve pool has neither 'price_oracle()' nor 'price_oracle(uin256 i)' methods`);
+      }
+
+      const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+
+      if (currentParams.pool.toLowerCase() !== setting.pool.toString().toLowerCase()) {
+        this.logger.log(`Add pool ${setting.pool.toString()}`);
+        const tx = await priceOracle.addPool(
+          setting.pool.toString(),
+          quoteToken.toString(),
+          baseToken.toString(),
+          priceOracleMethodHaveArg
+        );
+        await tx.wait();
+      }
+
+      this.logger.log(`Check oracle ${config.id}`);
+      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`BalancePrice is ${balancePrice}`);
+
+      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
+      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+    }
     return deploymentResult;
   }
 }

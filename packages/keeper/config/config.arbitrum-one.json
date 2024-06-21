@@ -7,31 +7,38 @@
       "gasLimit": 4400000
     }
   },
-  "marginlyKeeperAaveAddress": "0x193E76C78e1c02BF35c1F789Ce2a1aE39F865629",
+  "keepers": {
+    "aave": "0xEd8b77AC3DC53d3528Cd7F2b96B26677025522c3",
+    "uniswapV3": "0x92e65fd9c7d562D88cc5E858ED491f4d86c27bc3",
+    "balancer": "0xA8b50f59Bb61aA8b1bb3cBDee22469ABc7eD5B21"
+  },
   "marginlyPools": [
     {
-      "type": "aave",
+      "keeperType": "aave",
       "description": "weth-usdc.e",
       "address": "0x53C08A5e2b7bc973d3d5Aee60373969E30e93B93",
       "minProfitQuote": "1",
-      "minProfitBase": "0.0005"
+      "minProfitBase": "0.0005",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "description": "wbtc-weth",
       "address": "0x99Cc2A68e121F2434db5C5D63670212F07f89ee8",
       "minProfitQuote": "0.0005",
-      "minProfitBase": "0.00005"
+      "minProfitBase": "0.00005",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "description": "arb-usdc.e",
       "address": "0x5ceB22fe09C7259b9dceef243615f180664BCE70",
       "minProfitQuote": "1",
-      "minProfitBase": "0.8"
+      "minProfitBase": "0.8",
+      "swapCallData": "0"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "uniswapV3",
       "description": "gmx-weth",
       "address": "0x0637B18b5c5b7fe72F63a5511D2e90BEc7FC828E",
       "minProfitQuote": "0.0005",
@@ -40,7 +47,7 @@
       "swapCallData": "0"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "uniswapV3",
       "description": "pendle-weth",
       "address": "0x3adc0f25c7A23a626A67811c47d0A0DbE21773a4",
       "minProfitQuote": "0.0005",
@@ -49,7 +56,7 @@
       "swapCallData": "0"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "uniswapV3",
       "description": "rdnt-weth",
       "address": "0x82bC6A8dA5988E66676014cA99056Bd7A2f44dF2",
       "minProfitQuote": "0.0005",
@@ -58,18 +65,20 @@
       "swapCallData": "11010049"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "description": "weth-usdc-native",
       "address": "0x87e711BcB9Ed1f2f6dec8fcC74cD2e0613D43b86",
       "minProfitQuote": "1",
-      "minProfitBase": "0.0005"
+      "minProfitBase": "0.0005",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "description": "arb-usdc-native",
       "address": "0x0F750fBb044037254b5843C6b4a715AA12876d94",
       "minProfitQuote": "1",
-      "minProfitBase": "0.8"
+      "minProfitBase": "0.8",
+      "swapCallData": "0"
     }
   ]
 }
