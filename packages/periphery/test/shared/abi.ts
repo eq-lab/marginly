@@ -6,8 +6,6 @@ export * as TestERC20Compiled from '@marginly/contracts/artifacts/contracts/test
 export * as MockAavePoolCompiled from '@marginly/contracts/artifacts/contracts/test/MockAavePool.sol/MockAavePool.json';
 export * as MockAavePoolAddressesProviderCompiled from '@marginly/contracts/artifacts/contracts/test/MockAavePoolAddressesProvider.sol/MockAavePoolAddressesProvider.json';
 export * as MockMarginlyPoolCompiled from '@marginly/contracts/artifacts/contracts/test/MockMarginlyPool.sol/MockMarginlyPool.json';
-export * as MarginlyKeeperCompiled from '@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json';
-// export * as MockSwapRouterCompiled from '@marginly/contracts/artifacts/contracts/test/MockSwapRouter.sol/MockSwapRouter.json';
 export * as MockMarginlyFactory from '@marginly/contracts/artifacts/contracts/test/MockMarginlyFactory.sol/MockMarginlyFactory.json';
 export * as MarginlyPoolAdminCompiled from '../../artifacts/contracts/admin/MarginlyAdmin.sol/MarginlyAdmin.json';
 export * as MarginlyRouterCompiled from '@marginly/router/artifacts/contracts/MarginlyRouter.sol/MarginlyRouter.json';
