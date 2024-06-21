@@ -14,28 +14,31 @@ import {
   ContractFactory,
 } from 'ethers';
 // @ts-ignore
-import { abi, bytecode } from '@marginly/contracts/artifacts/contracts/MarginlyKeeper.sol/MarginlyKeeper.json';
+import {
+  abi,
+  bytecode,
+} from '@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperAave.sol/MarginlyKeeperAave.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
-export interface MarginlyKeeperInterface extends utils.Interface {
+export interface MarginlyKeeperAaveInterface extends utils.Interface {
   functions: {
     'ADDRESSES_PROVIDER()': utils.FunctionFragment;
     'executeOperation(address,uint256,uint256,address,bytes)': utils.FunctionFragment;
-    'flashLoan(address,uint256,uint16,address,address,uint256)': utils.FunctionFragment;
+    'liquidatePosition(address,uint256,bytes)': utils.FunctionFragment;
     'POOL()': utils.FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: 'ADDRESSES_PROVIDER' | 'executeOperation' | 'flashLoan' | 'POOL'
+    nameOrSignatureOrTopic: 'ADDRESSES_PROVIDER' | 'executeOperation' | 'liquidatePosition' | 'POOL'
   ): utils.FunctionFragment;
 }
 
-export interface MarginlyKeeperContract extends BaseContract {
+export interface MarginlyKeeperAaveContract extends BaseContract {
   connect(signerOrProvider: Signer | providers.Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: MarginlyKeeperInterface;
+  interface: MarginlyKeeperAaveInterface;
 
   ADDRESSES_PROVIDER(override?: CallOverrides): Promise<string>;
   executeOperation(
@@ -46,13 +49,10 @@ export interface MarginlyKeeperContract extends BaseContract {
     data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  flashLoan(
+  liquidatePosition(
     asset: PromiseOrValue<string>,
     amount: PromiseOrValue<BigNumberish>,
-    referralCode: PromiseOrValue<BigNumberish>,
-    marginlyPool: PromiseOrValue<string>,
-    positionToLiquidate: PromiseOrValue<string>,
-    minProfit: PromiseOrValue<BigNumberish>,
+    params: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
   POOL(override?: CallOverrides): Promise<string>;
@@ -70,13 +70,10 @@ export interface MarginlyKeeperContract extends BaseContract {
       data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    flashLoan(
+    liquidatePosition(
       asset: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      marginlyPool: PromiseOrValue<string>,
-      positionToLiquidate: PromiseOrValue<string>,
-      minProfit: PromiseOrValue<BigNumberish>,
+      params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -89,13 +86,10 @@ export interface MarginlyKeeperContract extends BaseContract {
       data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    flashLoan(
+    liquidatePosition(
       asset: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      marginlyPool: PromiseOrValue<string>,
-      positionToLiquidate: PromiseOrValue<string>,
-      minProfit: PromiseOrValue<BigNumberish>,
+      params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
@@ -108,25 +102,25 @@ export interface MarginlyKeeperContract extends BaseContract {
       data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<boolean>;
-    flashLoan(
+    liquidatePosition(
       asset: PromiseOrValue<string>,
       amount: PromiseOrValue<BigNumberish>,
-      referralCode: PromiseOrValue<BigNumberish>,
-      marginlyPool: PromiseOrValue<string>,
-      positionToLiquidate: PromiseOrValue<string>,
-      minProfit: PromiseOrValue<BigNumberish>,
+      params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
   };
 }
 
-export async function deploy(addressesProvider: string, signer?: Signer): Promise<MarginlyKeeperContract> {
+export async function deploy(addressesProvider: string, signer?: Signer): Promise<MarginlyKeeperAaveContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
   const contract = await factory.deploy(addressesProvider);
   return (await contract.deployed()) as any;
 }
 
-export function connect(addressOrName: string, signerOrProvider?: Signer | providers.Provider): MarginlyKeeperContract {
+export function connect(
+  addressOrName: string,
+  signerOrProvider?: Signer | providers.Provider
+): MarginlyKeeperAaveContract {
   return new BaseContract(addressOrName, abi, signerOrProvider) as any;
 }
 

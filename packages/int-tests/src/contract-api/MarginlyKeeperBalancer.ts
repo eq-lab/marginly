@@ -17,97 +17,103 @@ import {
 import {
   abi,
   bytecode,
-} from '@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperUniswapV3.sol/MarginlyKeeperUniswapV3.json';
+} from '@marginly/contracts/artifacts/contracts/keepers/MarginlyKeeperBalancer.sol/MarginlyKeeperBalancer.json';
 import { PromiseOrValue } from '../utils/api-gen';
 
-export interface MarginlyKeeperUniswapV3Interface extends utils.Interface {
+export interface MarginlyKeeperBalancerInterface extends utils.Interface {
   functions: {
-    'liquidatePosition(address,uint256,uint256,bytes)': utils.FunctionFragment;
-    'uniswapV3FlashCallback(uint256,uint256,bytes)': utils.FunctionFragment;
+    'balancerVault()': utils.FunctionFragment;
+    'liquidatePosition(address,uint256,bytes)': utils.FunctionFragment;
+    'receiveFlashLoan(address[],uint256[],uint256[],bytes)': utils.FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: 'liquidatePosition' | 'uniswapV3FlashCallback'): utils.FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic: 'balancerVault' | 'liquidatePosition' | 'receiveFlashLoan'
+  ): utils.FunctionFragment;
 }
 
-export interface MarginlyKeeperUniswapV3Contract extends BaseContract {
+export interface MarginlyKeeperBalancerContract extends BaseContract {
   connect(signerOrProvider: Signer | providers.Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: MarginlyKeeperUniswapV3Interface;
+  interface: MarginlyKeeperBalancerInterface;
 
+  balancerVault(override?: CallOverrides): Promise<string>;
   liquidatePosition(
-    uniswapPool: PromiseOrValue<string>,
-    amount0: PromiseOrValue<BigNumberish>,
-    amount1: PromiseOrValue<BigNumberish>,
+    token: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
     params: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-  uniswapV3FlashCallback(
-    fee0: PromiseOrValue<BigNumberish>,
-    fee1: PromiseOrValue<BigNumberish>,
+  receiveFlashLoan(
+    tokens: PromiseOrValue<void>,
+    amounts: PromiseOrValue<BigNumberish>,
+    feeAmounts: PromiseOrValue<BigNumberish>,
     data: PromiseOrValue<BytesLike>,
     override?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  functions: {};
+  functions: {
+    balancerVault(override?: CallOverrides): Promise<[string]>;
+  };
   estimateGas: {
     liquidatePosition(
-      uniswapPool: PromiseOrValue<string>,
-      amount0: PromiseOrValue<BigNumberish>,
-      amount1: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-    uniswapV3FlashCallback(
-      fee0: PromiseOrValue<BigNumberish>,
-      fee1: PromiseOrValue<BigNumberish>,
+    receiveFlashLoan(
+      tokens: PromiseOrValue<void>,
+      amounts: PromiseOrValue<BigNumberish>,
+      feeAmounts: PromiseOrValue<BigNumberish>,
       data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
   populateTransaction: {
     liquidatePosition(
-      uniswapPool: PromiseOrValue<string>,
-      amount0: PromiseOrValue<BigNumberish>,
-      amount1: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-    uniswapV3FlashCallback(
-      fee0: PromiseOrValue<BigNumberish>,
-      fee1: PromiseOrValue<BigNumberish>,
+    receiveFlashLoan(
+      tokens: PromiseOrValue<void>,
+      amounts: PromiseOrValue<BigNumberish>,
+      feeAmounts: PromiseOrValue<BigNumberish>,
       data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
   callStatic: {
     liquidatePosition(
-      uniswapPool: PromiseOrValue<string>,
-      amount0: PromiseOrValue<BigNumberish>,
-      amount1: PromiseOrValue<BigNumberish>,
+      token: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       params: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
-    uniswapV3FlashCallback(
-      fee0: PromiseOrValue<BigNumberish>,
-      fee1: PromiseOrValue<BigNumberish>,
+    receiveFlashLoan(
+      tokens: PromiseOrValue<void>,
+      amounts: PromiseOrValue<BigNumberish>,
+      feeAmounts: PromiseOrValue<BigNumberish>,
       data: PromiseOrValue<BytesLike>,
       override?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<void>;
   };
 }
 
-export async function deploy(signer?: Signer): Promise<MarginlyKeeperUniswapV3Contract> {
+export async function deploy(_balancerVault: string, signer?: Signer): Promise<MarginlyKeeperBalancerContract> {
   const factory = new ContractFactory(abi, bytecode, signer);
-  const contract = await factory.deploy();
+  const contract = await factory.deploy(_balancerVault);
   return (await contract.deployed()) as any;
 }
 
 export function connect(
   addressOrName: string,
   signerOrProvider?: Signer | providers.Provider
-): MarginlyKeeperUniswapV3Contract {
+): MarginlyKeeperBalancerContract {
   return new BaseContract(addressOrName, abi, signerOrProvider) as any;
 }
 

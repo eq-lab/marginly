@@ -2,14 +2,15 @@ import { MarginlyConfigExistingToken, MarginlyConfigMintableToken, MarginlyConfi
 import { EthAddress, RationalNumber } from '@marginly/common';
 import {
   EthConnectionConfig,
+  isAlgebraDoubleOracleConfig,
+  isAlgebraOracleConfig,
   isChainlinkOracleConfig,
+  isCurveOracleConfig,
   isDoublePairChainlinkOracleDeployConfig,
   isDoublePairPythOracleDeployConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
-  isMarginlyDeployConfigSwapPoolRegistry,
-  isMarginlyDeployConfigUniswapGenuine,
-  isMarginlyDeployConfigUniswapMock,
+  isPendleOracleConfig,
   isPythOracleConfig,
   isSinglePairChainlinkOracleDeployConfig,
   isSinglePairPythOracleDeployConfig,
@@ -153,7 +154,6 @@ export interface MarginlyPoolParams {
 
 export interface MarginlyConfigMarginlyPool {
   id: string;
-  uniswapPool: MarginlyConfigUniswapPool;
   baseToken: MarginlyConfigToken;
   quoteToken: MarginlyConfigToken;
   params: MarginlyPoolParams;
@@ -161,17 +161,38 @@ export interface MarginlyConfigMarginlyPool {
   priceOracle: PriceOracleConfig;
 }
 
+export type AdapterParam = MarginlyAdapterParam | PendleAdapterParam;
+
 export interface MarginlyAdapterParam {
+  type: 'general';
   token0: MarginlyConfigToken;
   token1: MarginlyConfigToken;
   pool: EthAddress;
+}
+
+export interface PendleAdapterParam {
+  type: 'pendle';
+  token0: MarginlyConfigToken;
+  token1: MarginlyConfigToken;
+  ib: MarginlyConfigToken;
+  pendleMarket: EthAddress;
+  uniswapV3LikePool: EthAddress;
+  slippage: number;
+}
+
+export function isPendleAdapter(config: AdapterParam): config is PendleAdapterParam {
+  return config.type === 'pendle';
+}
+
+export function isGeneralAdapter(config: AdapterParam): config is MarginlyAdapterParam {
+  return config.type === 'general';
 }
 
 export interface MarginlyConfigAdapter {
   dexId: BigNumber;
   name: string;
   balancerVault?: EthAddress;
-  marginlyAdapterParams: MarginlyAdapterParam[];
+  marginlyAdapterParams: AdapterParam[];
 }
 
 export interface MarginlyConfigMarginlyRouter {
@@ -179,9 +200,14 @@ export interface MarginlyConfigMarginlyRouter {
 }
 
 export interface MarginlyConfigMarginlyKeeper {
-  aavePoolAddressesProvider: {
-    address?: EthAddress;
-    allowCreateMock?: boolean;
+  aaveKeeper?: {
+    aavePoolAddressProvider: EthAddress;
+  };
+  aaveMock: boolean;
+  uniswapKeeper: boolean;
+  algebraKeeper: boolean;
+  balancerKeeper?: {
+    balancerVault: EthAddress;
   };
 }
 
@@ -189,7 +215,11 @@ export type PriceOracleConfig =
   | UniswapV3TickOracleConfig
   | UniswapV3TickDoubleOracleConfig
   | ChainlinkOracleConfig
-  | PythOracleConfig;
+  | PythOracleConfig
+  | PendleOracleConfig
+  | AlgebraOracleConfig
+  | AlgebraDoubleOracleConfig
+  | CurveOracleConfig;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -216,6 +246,31 @@ export interface UniswapV3TickDoubleOracleConfig {
     secondsAgoLiquidation: TimeSpan;
     baseTokenPairFee: RationalNumber;
     quoteTokenPairFee: RationalNumber;
+  }[];
+}
+
+export interface AlgebraOracleConfig {
+  id: string;
+  type: 'algebra';
+  factory: EthAddress;
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
+  }[];
+}
+
+export interface AlgebraDoubleOracleConfig {
+  id: string;
+  type: 'algebraDouble';
+  factory: EthAddress;
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    intermediateToken: MarginlyConfigToken;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
   }[];
 }
 
@@ -294,6 +349,31 @@ export interface PythOracleConfig {
   settings: PairPythOracleConfig[];
 }
 
+export interface PendleOracleConfig {
+  id: string;
+  type: 'pendle';
+  pendlePtLpOracle: EthAddress;
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    pendleMarket: EthAddress;
+    secondaryPoolOracleId: string;
+    ibToken: MarginlyConfigToken;
+    secondsAgo: TimeSpan;
+    secondsAgoLiquidation: TimeSpan;
+  }[];
+}
+
+export interface CurveOracleConfig {
+  id: string;
+  type: 'curve';
+  settings: {
+    pool: EthAddress;
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+  }[];
+}
+
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
   return config.type === 'uniswapV3';
 }
@@ -310,10 +390,25 @@ export function isPythOracle(config: PriceOracleConfig): config is PythOracleCon
   return config.type === 'pyth';
 }
 
+export function isPendleOracle(config: PriceOracleConfig): config is PendleOracleConfig {
+  return config.type === 'pendle';
+}
+
+export function isAlgebraOracle(config: PriceOracleConfig): config is AlgebraOracleConfig {
+  return config.type === 'algebra';
+}
+
+export function isAlgebraDoubleOracle(config: PriceOracleConfig): config is AlgebraDoubleOracleConfig {
+  return config.type === 'algebraDouble';
+}
+
+export function isCurveOracle(config: PriceOracleConfig): config is CurveOracleConfig {
+  return config.type === 'curve';
+}
+
 export class StrictMarginlyDeployConfig {
   public readonly connection: EthConnectionConfig;
   public readonly tokens: MarginlyConfigToken[];
-  public readonly uniswap: MarginlyConfigUniswap;
   public readonly priceOracles: PriceOracleConfig[];
   public readonly marginlyFactory: MarginlyFactoryConfig;
   public readonly marginlyPools: MarginlyConfigMarginlyPool[];
@@ -322,7 +417,6 @@ export class StrictMarginlyDeployConfig {
 
   private constructor(
     connection: EthConnectionConfig,
-    uniswap: MarginlyConfigUniswap,
     priceOracles: PriceOracleConfig[],
     marginlyFactory: MarginlyFactoryConfig,
     tokens: MarginlyConfigToken[],
@@ -331,7 +425,6 @@ export class StrictMarginlyDeployConfig {
     marginlyRouter: MarginlyConfigMarginlyRouter
   ) {
     this.connection = connection;
-    this.uniswap = uniswap;
     this.priceOracles = priceOracles;
     this.marginlyFactory = marginlyFactory;
     this.tokens = tokens;
@@ -390,231 +483,20 @@ export class StrictMarginlyDeployConfig {
       logger.log(`Price for ${rawPrice.id} is ${price}`);
     }
 
-    let uniswap: MarginlyConfigUniswap;
-
-    const uniswapPools = new Map<string, MarginlyConfigUniswapPool>();
-
-    if (isMarginlyDeployConfigUniswapGenuine(config.uniswap)) {
-      const genuinePools: MarginlyConfigUniswapPoolGenuine[] = [];
-      for (let i = 0; i < config.uniswap.pools.length; i++) {
-        const rawPool = config.uniswap.pools[i];
-
-        if (uniswapPools.has(rawPool.id)) {
-          throw new Error(`Duplicate uniswap pool id '${rawPool.id} at index ${i}`);
-        }
-        const tokenA = tokens.get(rawPool.tokenAId);
-        if (tokenA === undefined) {
-          throw new Error(`TokenA with id '${rawPool.tokenAId}' is not found for uniswap pool '${rawPool.id}'`);
-        }
-        const tokenB = tokens.get(rawPool.tokenBId);
-        if (tokenB === undefined) {
-          throw new Error(`TokenB with id '${rawPool.tokenBId}' is not found for uniswap pool '${rawPool.id}'`);
-        }
-        const fee = RationalNumber.parsePercent(rawPool.fee);
-        const assertAddress = rawPool.assertAddress === undefined ? undefined : EthAddress.parse(rawPool.assertAddress);
-
-        const pool: MarginlyConfigUniswapPoolGenuine = {
-          type: 'genuine',
-          id: rawPool.id,
-          tokenA,
-          tokenB,
-          fee,
-          factory: EthAddress.parse(rawPool.factory),
-          allowCreate: rawPool.allowCreate,
-          assertAddress: assertAddress,
-        };
-        uniswapPools.set(rawPool.id, pool);
-        genuinePools.push(pool);
-      }
-      uniswap = {
-        type: 'genuine',
-        pools: genuinePools,
-      };
-    } else if (isMarginlyDeployConfigUniswapMock(config.uniswap)) {
-      const mockPools: MarginlyConfigUniswapPoolMock[] = [];
-      for (let i = 0; i < config.uniswap.pools.length; i++) {
-        const rawPool = config.uniswap.pools[i];
-
-        if (uniswapPools.has(rawPool.id)) {
-          throw new Error(`Duplicate uniswap pool id '${rawPool.id} at index ${i}`);
-        }
-        const tokenA = tokens.get(rawPool.tokenAId);
-        if (tokenA === undefined) {
-          throw new Error(`TokenA with id '${rawPool.tokenAId}' is not found for uniswap pool '${rawPool.id}'`);
-        }
-        const tokenB = tokens.get(rawPool.tokenBId);
-        if (tokenB === undefined) {
-          throw new Error(`TokenB with id '${rawPool.tokenBId}' is not found for uniswap pool '${rawPool.id}'`);
-        }
-        const fee = RationalNumber.parsePercent(rawPool.fee);
-
-        const price = prices.get(rawPool.priceId);
-
-        if (price === undefined) {
-          throw new Error(`Price with id ${rawPool.priceId} not found`);
-        }
-
-        const priceBaseToken = tokens.get(rawPool.priceBaseTokenId);
-
-        if (priceBaseToken === undefined) {
-          throw new Error(`Price base token with id ${rawPool.priceBaseTokenId} not found`);
-        }
-
-        let priceBaseTokenKey: 'tokenA' | 'tokenB';
-
-        if (priceBaseToken.id === tokenA.id) {
-          priceBaseTokenKey = 'tokenA';
-        } else if (priceBaseToken.id === tokenB.id) {
-          priceBaseTokenKey = 'tokenB';
-        } else {
-          throw new Error('Price base token must be either tokenA or tokenB');
-        }
-
-        const pool: MarginlyConfigUniswapPoolMock = {
-          type: 'mock',
-          id: rawPool.id,
-          tokenA,
-          tokenB,
-          fee,
-          tokenABalance: rawPool.tokenABalance === undefined ? undefined : RationalNumber.parse(rawPool.tokenABalance),
-          tokenBBalance: rawPool.tokenBBalance === undefined ? undefined : RationalNumber.parse(rawPool.tokenBBalance),
-          priceId: rawPool.priceId,
-          price,
-          priceBaseTokenKey,
-        };
-        uniswapPools.set(rawPool.id, pool);
-        mockPools.push(pool);
-      }
-
-      const weth9Token = tokens.get(config.uniswap.weth9TokenId);
-
-      if (weth9Token === undefined) {
-        throw new Error(`WETH9 token with id ${config.uniswap.weth9TokenId} not found`);
-      }
-
-      if (config.uniswap.priceLogSize < 1 || config.uniswap.priceLogSize > 65535) {
-        throw new Error('Invalid price log size');
-      }
-
-      uniswap = {
-        type: 'mock',
-        oracle: EthAddress.parse(config.uniswap.oracle),
-        weth9Token,
-        priceLogSize: config.uniswap.priceLogSize,
-        pools: mockPools,
-      };
-    } else if (isMarginlyDeployConfigSwapPoolRegistry(config.uniswap)) {
-      const swapPools: MarginlyConfigSwapPool[] = [];
-      for (let i = 0; i < config.uniswap.pools.length; i++) {
-        const rawPool = config.uniswap.pools[i];
-
-        if (uniswapPools.has(rawPool.id)) {
-          throw new Error(`Duplicate uniswap pool id '${rawPool.id} at index ${i}`);
-        }
-
-        const tokenA = tokens.get(rawPool.tokenAId);
-        if (tokenA === undefined) {
-          throw new Error(`TokenA with id '${rawPool.tokenAId}' is not found for uniswap pool '${rawPool.id}'`);
-        }
-        const tokenB = tokens.get(rawPool.tokenBId);
-        if (tokenB === undefined) {
-          throw new Error(`TokenB with id '${rawPool.tokenBId}' is not found for uniswap pool '${rawPool.id}'`);
-        }
-        const fee = RationalNumber.parsePercent(rawPool.fee);
-
-        let basePriceProviderMock, quotePriceProviderMock, priceProvidersMock;
-        if (rawPool.priceProvidersMock !== undefined) {
-          if (rawPool.priceProvidersMock.basePriceProviderMock !== undefined) {
-            basePriceProviderMock = {
-              answer: RationalNumber.parse(rawPool.priceProvidersMock.basePriceProviderMock.answer),
-              decimals: Number(rawPool.priceProvidersMock.basePriceProviderMock.decimals),
-            };
-          }
-          if (rawPool.priceProvidersMock.quotePriceProviderMock !== undefined) {
-            quotePriceProviderMock = {
-              answer: RationalNumber.parse(rawPool.priceProvidersMock.quotePriceProviderMock.answer),
-              decimals: Number(rawPool.priceProvidersMock.quotePriceProviderMock.decimals),
-            };
-          }
-          priceProvidersMock = { basePriceProviderMock, quotePriceProviderMock };
-        }
-
-        let basePriceProvider, quotePriceProvider;
-        if (rawPool.priceAdapter.basePriceProvider !== undefined) {
-          basePriceProvider = EthAddress.parse(rawPool.priceAdapter.basePriceProvider);
-        }
-
-        if (quotePriceProviderMock === undefined) {
-          quotePriceProvider = EthAddress.parse(
-            rawPool.priceAdapter.quotePriceProvider ?? '0x0000000000000000000000000000000000000000'
-          );
-        } else if (quotePriceProviderMock !== undefined && rawPool.priceAdapter.quotePriceProvider !== undefined) {
-          throw new Error(
-            `Both quote PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
-          );
-        }
-
-        if (basePriceProviderMock === undefined && basePriceProvider === undefined) {
-          throw new Error(
-            `Not base PriceProvider nor PriceProviderMock for uniswap pool with id ${rawPool.id} is not found`
-          );
-        }
-
-        if (basePriceProviderMock !== undefined && basePriceProvider !== undefined) {
-          throw new Error(
-            `Both base PriceProvider and PriceProviderMock for uniswap pool with id ${rawPool.id} is found`
-          );
-        }
-
-        const priceProvider: PriceAdapterConfig = {
-          priceProvidersMock,
-          basePriceProvider,
-          quotePriceProvider,
-        };
-
-        const pool: MarginlyConfigSwapPool = {
-          type: 'swapPool',
-          id: rawPool.id,
-          tokenA,
-          tokenB,
-          fee,
-          priceAdapter: priceProvider,
-        };
-        uniswapPools.set(rawPool.id, pool);
-        swapPools.push(pool);
-      }
-      uniswap = {
-        type: 'swapPoolRegistry',
-        factory: EthAddress.parse(config.uniswap.factory),
-        pools: swapPools,
-      };
-    } else {
-      throw new Error('Unknown uniswap type');
-    }
-
     const priceOracles = this.createPriceOracleConfigs(config, tokens);
 
     const marginlyPools: MarginlyConfigMarginlyPool[] = [];
     for (let i = 0; i < config.marginlyPools.length; i++) {
       const rawPool = config.marginlyPools[i];
 
-      const uniswapPool = uniswapPools.get(rawPool.uniswapPoolId);
-      if (uniswapPool === undefined) {
-        throw new Error(`Can not find uniswap pool '${rawPool.uniswapPoolId}' for marginly pool with index ${i}`);
-      }
-
       const baseToken = tokens.get(rawPool.baseTokenId);
       if (baseToken === undefined) {
         throw new Error(`Base token with id '${rawPool.baseTokenId}' is not found for marginly pool '${rawPool.id}'`);
       }
-
-      if (baseToken.id !== uniswapPool.tokenA.id && baseToken.id !== uniswapPool.tokenB.id) {
-        throw new Error(
-          `Base token with id '${baseToken.id}' of marginly pool '${rawPool.id}' not found in uniswap pool '${uniswapPool.id}'`
-        );
+      const quoteToken = tokens.get(rawPool.quoteTokenId);
+      if (quoteToken === undefined) {
+        throw new Error(`Quote token with id '${rawPool.quoteTokenId}' is not found for marginly pool '${rawPool.id}'`);
       }
-
-      const quoteToken = uniswapPool.tokenA.id === baseToken.id ? uniswapPool.tokenB : uniswapPool.tokenA;
 
       const params: MarginlyPoolParams = {
         interestRate: RationalNumber.parsePercent(rawPool.params.interestRate),
@@ -633,7 +515,6 @@ export class StrictMarginlyDeployConfig {
 
       marginlyPools.push({
         id: rawPool.id,
-        uniswapPool,
         baseToken,
         quoteToken,
         params,
@@ -645,22 +526,59 @@ export class StrictMarginlyDeployConfig {
     const adapters: MarginlyConfigAdapter[] = [];
 
     for (const adapter of config.adapters) {
-      const adapterParams: MarginlyAdapterParam[] = [];
+      const adapterParams: AdapterParam[] = [];
       for (const pool of adapter.pools) {
-        const poolAddress = EthAddress.parse(pool.poolAddress);
-        const token0 = tokens.get(pool.tokenAId);
-        if (token0 === undefined) {
-          throw new Error(`Can not find token0 '${pool.tokenAId}' for adapter with dexId ${adapter.dexId}`);
+        if (adapter.adapterName === 'PendleAdapter') {
+          if (!pool.ibTokenId) {
+            throw new Error(`IB token id is not set for adapter with dexId ${adapter.dexId}`);
+          }
+          if (!pool.slippage) {
+            throw new Error(`Slippage is not set for adapter with dexId ${adapter.dexId}`);
+          }
+          if (!pool.pendleMarket) {
+            throw new Error(`Pendle market is not set for adapter with dexId ${adapter.dexId}`);
+          }
+
+          const poolAddress = EthAddress.parse(pool.poolAddress);
+          const token0 = tokens.get(pool.tokenAId);
+          if (token0 === undefined) {
+            throw new Error(`Can not find token0 '${pool.tokenAId}' for adapter with dexId ${adapter.dexId}`);
+          }
+          const token1 = tokens.get(pool.tokenBId);
+          if (token1 === undefined) {
+            throw new Error(`Can not find token1 '${pool.tokenBId}' for adapter with dexId ${adapter.dexId}`);
+          }
+          const ibToken = tokens.get(pool.ibTokenId);
+          if (ibToken === undefined) {
+            throw new Error(`Can not find ibToken '${pool.ibTokenId}' for adapter with dexId ${adapter.dexId}`);
+          }
+
+          adapterParams.push({
+            type: 'pendle',
+            token0: token0,
+            token1: token1,
+            ib: ibToken,
+            uniswapV3LikePool: poolAddress,
+            pendleMarket: EthAddress.parse(pool.pendleMarket),
+            slippage: pool.slippage,
+          });
+        } else {
+          const poolAddress = EthAddress.parse(pool.poolAddress);
+          const token0 = tokens.get(pool.tokenAId);
+          if (token0 === undefined) {
+            throw new Error(`Can not find token0 '${pool.tokenAId}' for adapter with dexId ${adapter.dexId}`);
+          }
+          const token1 = tokens.get(pool.tokenBId);
+          if (token1 === undefined) {
+            throw new Error(`Can not find token1 '${pool.tokenBId}' for adapter with dexId ${adapter.dexId}`);
+          }
+          adapterParams.push({
+            type: 'general',
+            token0: token0,
+            token1: token1,
+            pool: poolAddress,
+          });
         }
-        const token1 = tokens.get(pool.tokenBId);
-        if (token1 === undefined) {
-          throw new Error(`Can not find token1 '${pool.tokenBId}' for adapter with dexId ${adapter.dexId}`);
-        }
-        adapterParams.push({
-          token0: token0,
-          token1: token1,
-          pool: poolAddress,
-        });
       }
 
       adapters.push({
@@ -674,12 +592,19 @@ export class StrictMarginlyDeployConfig {
     const marginlyRouter: MarginlyConfigMarginlyRouter = { adapters };
 
     const marginlyKeeper: MarginlyConfigMarginlyKeeper = {
-      aavePoolAddressesProvider: {
-        address: config.marginlyKeeper.aavePoolAddressesProvider.address
-          ? EthAddress.parse(config.marginlyKeeper.aavePoolAddressesProvider.address)
-          : undefined,
-        allowCreateMock: config.marginlyKeeper.aavePoolAddressesProvider.allowCreateMock,
-      },
+      aaveKeeper: config.marginlyKeeper.aaveKeeper
+        ? {
+            aavePoolAddressProvider: EthAddress.parse(config.marginlyKeeper.aaveKeeper.aavePoolAddressesProvider),
+          }
+        : undefined,
+      aaveMock: false,
+      uniswapKeeper: config.marginlyKeeper.uniswapKeeper ?? false,
+      algebraKeeper: config.marginlyKeeper.algebraKeeper ?? false,
+      balancerKeeper: config.marginlyKeeper.balancerKeeper
+        ? {
+            balancerVault: EthAddress.parse(config.marginlyKeeper.balancerKeeper.balancerVault),
+          }
+        : undefined,
     };
 
     const wethToken = tokens.get(config.marginlyFactory.wethTokenId);
@@ -689,7 +614,6 @@ export class StrictMarginlyDeployConfig {
 
     return new StrictMarginlyDeployConfig(
       config.connection,
-      uniswap,
       Array.from(priceOracles.values()),
       {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
@@ -868,6 +792,108 @@ export class StrictMarginlyDeployConfig {
             } else {
               throw new Error(`Unknown pair type at index ${i} on ${priceOracleConfig.id}`);
             }
+          }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isPendleOracleConfig(priceOracleConfig)) {
+        const strictConfig: PendleOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          pendlePtLpOracle: EthAddress.parse(priceOracleConfig.pendlePtLpOracle),
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              quoteToken:
+                tokens.get(x.quoteTokenId) ||
+                (() => {
+                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                })(),
+              baseToken:
+                tokens.get(x.baseTokenId) ||
+                (() => {
+                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                })(),
+              pendleMarket: EthAddress.parse(x.pendleMarket),
+              ibToken:
+                tokens.get(x.ibTokenId) ||
+                (() => {
+                  throw new Error(`IB token not found by id ${x.ibTokenId}`);
+                })(),
+              secondsAgo: TimeSpan.parse(x.secondsAgo),
+              secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
+              secondaryPoolOracleId: x.secondaryPoolOracleId,
+            };
+          }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isAlgebraOracleConfig(priceOracleConfig)) {
+        const strictConfig: AlgebraOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            secondsAgo: TimeSpan.parse(x.secondsAgo),
+            secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
+          })),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isAlgebraDoubleOracleConfig(priceOracleConfig)) {
+        const strictConfig: AlgebraDoubleOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          factory: EthAddress.parse(priceOracleConfig.factory),
+          settings: priceOracleConfig.settings.map((x) => ({
+            quoteToken:
+              tokens.get(x.quoteTokenId) ||
+              (() => {
+                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+              })(),
+            baseToken:
+              tokens.get(x.baseTokenId) ||
+              (() => {
+                throw new Error(`Base token not found by id ${x.baseTokenId}`);
+              })(),
+            intermediateToken:
+              tokens.get(x.intermediateTokenId) ||
+              (() => {
+                throw new Error(`Interm token not found by id ${x.baseTokenId}`);
+              })(),
+            secondsAgo: TimeSpan.parse(x.secondsAgo),
+            secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
+          })),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isCurveOracleConfig(priceOracleConfig)) {
+        const strictConfig: CurveOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              pool: EthAddress.parse(x.pool),
+              quoteToken:
+                tokens.get(x.quoteTokenId) ||
+                (() => {
+                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                })(),
+              baseToken:
+                tokens.get(x.baseTokenId) ||
+                (() => {
+                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                })(),
+            };
           }),
         };
 

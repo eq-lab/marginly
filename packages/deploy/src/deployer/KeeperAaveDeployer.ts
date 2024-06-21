@@ -2,7 +2,7 @@ import { Signer, ethers } from 'ethers';
 import { EthOptions } from '../config';
 import {
   createAaveContractReader,
-  createMarginlyContractReader,
+  createKeeperContractReader,
   createMarginlyMockContractReader,
 } from './contract-reader';
 import { StateStore } from '../common';
@@ -11,14 +11,14 @@ import { EthAddress } from '@marginly/common';
 import { DeployResult, LimitedDeployResult } from '../common/interfaces';
 import { BaseDeployer } from './BaseDeployer';
 
-export class KeeperDeployer extends BaseDeployer {
-  private readonly readMarginlyContract;
+export class KeeperAaveDeployer extends BaseDeployer {
+  private readonly readKeeperContract;
   private readonly readAaveContract;
   private readonly readMarginlyMockContract;
 
   public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
     super(signer, ethArgs, stateStore, logger);
-    this.readMarginlyContract = createMarginlyContractReader();
+    this.readKeeperContract = createKeeperContractReader();
     this.readAaveContract = createAaveContractReader();
     this.readMarginlyMockContract = createMarginlyMockContractReader();
   }
@@ -66,10 +66,10 @@ export class KeeperDeployer extends BaseDeployer {
 
   public deployMarginlyKeeper(aavePoolAddressesProvider: EthAddress): Promise<DeployResult> {
     return this.deploy(
-      'MarginlyKeeper',
+      'MarginlyKeeperAave',
       [aavePoolAddressesProvider.toString()],
-      'marginlyKeeper',
-      this.readMarginlyContract
+      'marginlyKeeperAave',
+      this.readKeeperContract
     );
   }
 

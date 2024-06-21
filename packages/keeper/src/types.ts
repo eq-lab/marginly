@@ -17,20 +17,87 @@ export interface EthConnectionConfig {
   ethOptions: EthOptions;
 }
 
-export interface PoolPositionLiquidationConfig {
-  keeperType: 'reinit' | 'aave' | 'uniswapV3';
+export type KeeperType = 'reinit' | 'aave' | 'uniswapV3' | 'algebra' | 'balancer';
+
+export type PoolPositionLiquidationConfig =
+  | ReinitLiquidationConfig
+  | AaveLiquidationConfig
+  | UniswapV3LiquidationConfig
+  | AlgebraLiquidationConfig
+  | BalancerLiquidationConfig;
+
+export interface ReinitLiquidationConfig {
+  keeperType: 'reinit';
   address: string;
   minProfitQuote: string;
   minProfitBase: string;
-  flashLoanPools?: string[];
-  swapCallData?: string;
+}
+
+export interface AaveLiquidationConfig {
+  keeperType: 'aave';
+  address: string;
+  minProfitQuote: string;
+  minProfitBase: string;
+  swapCallData: string;
+}
+
+export interface UniswapV3LiquidationConfig {
+  keeperType: 'uniswapV3';
+  address: string;
+  minProfitQuote: string;
+  minProfitBase: string;
+  flashLoanPools: string[];
+  swapCallData: string;
+}
+
+export interface AlgebraLiquidationConfig {
+  keeperType: 'algebra';
+  address: string;
+  minProfitQuote: string;
+  minProfitBase: string;
+  flashLoanPools: string[];
+  swapCallData: string;
+}
+
+export interface BalancerLiquidationConfig {
+  keeperType: 'balancer';
+  address: string;
+  minProfitQuote: string;
+  minProfitBase: string;
+  swapCallData: string;
+}
+
+export function isReinitLiquidationConfig(config: PoolPositionLiquidationConfig): config is ReinitLiquidationConfig {
+  return config.keeperType === 'reinit';
+}
+
+export function isAaveLiquidationConfig(config: PoolPositionLiquidationConfig): config is AaveLiquidationConfig {
+  return config.keeperType === 'aave';
+}
+
+export function isUniswapV3LiquidationConfig(
+  config: PoolPositionLiquidationConfig
+): config is UniswapV3LiquidationConfig {
+  return config.keeperType === 'uniswapV3';
+}
+
+export function isAlgebraLiquidationConfig(config: PoolPositionLiquidationConfig): config is AlgebraLiquidationConfig {
+  return config.keeperType === 'algebra';
+}
+
+export function isBalancerLiquidationConfig(
+  config: PoolPositionLiquidationConfig
+): config is BalancerLiquidationConfig {
+  return config.keeperType === 'balancer';
 }
 
 export interface KeeperConfig {
   systemContextDefaults?: Record<string, string>;
   connection: EthConnectionConfig;
-  marginlyKeeperAaveAddress?: string;
-  marginlyKeeperUniswapV3Address?: string;
+  keepers: {
+    type: KeeperType;
+    address: string;
+  }[];
   marginlyPools: PoolPositionLiquidationConfig[];
   log?: LogConfig;
 }
@@ -59,8 +126,7 @@ export interface KeeperParamter extends Parameter {
 
 export interface ContractDescriptions {
   token: ContractDescription;
-  keeperAave: ContractDescription;
-  keeperUniswapV3: ContractDescription;
+  keepers: Record<string, ContractDescription>;
   marginlyPool: ContractDescription;
   aavePool: ContractDescription;
   uniswapPool: ContractDescription;

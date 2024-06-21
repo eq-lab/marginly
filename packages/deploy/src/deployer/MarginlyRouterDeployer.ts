@@ -3,7 +3,7 @@ import { BigNumber, Signer } from 'ethers';
 import { StateStore, readMarginlyAdapterContract, readMarginlyRouterContract } from '../common';
 import { ITokenRepository, DeployResult } from '../common/interfaces';
 import { BaseDeployer } from './BaseDeployer';
-import { MarginlyAdapterParam } from './configs';
+import { AdapterParam, MarginlyAdapterParam, PendleAdapterParam, isPendleAdapter } from './configs';
 import { EthOptions } from '../config';
 import { Logger } from '../logger';
 
@@ -16,18 +16,40 @@ export class MarginlyRouterDeployer extends BaseDeployer {
     tokenRepository: ITokenRepository,
     dexId: BigNumber,
     adapterName: string,
-    pools: MarginlyAdapterParam[],
+    pools: AdapterParam[],
     balancerVault?: EthAddress
   ): Promise<DeployResult> {
-    const args: any[] = [
-      pools.map((x) => [
-        tokenRepository.getTokenInfo(x.token0.id).address.toString(),
-        tokenRepository.getTokenInfo(x.token1.id).address.toString(),
-        x.pool.toString(),
-      ]),
-    ];
-    if (balancerVault !== undefined) {
-      args.push(balancerVault.toString());
+    let args: any[];
+    if (pools.length > 0 && isPendleAdapter(pools[0])) {
+      args = [
+        pools.map((x) => {
+          const locConfig = x as PendleAdapterParam;
+          return [
+            [
+              locConfig.pendleMarket.toString(),
+              locConfig.uniswapV3LikePool.toString(),
+              tokenRepository.getTokenInfo(locConfig.ib.id).address.toString(),
+              locConfig.slippage,
+            ],
+            tokenRepository.getTokenInfo(locConfig.token0.id).address.toString(),
+            tokenRepository.getTokenInfo(locConfig.token1.id).address.toString(),
+          ];
+        }),
+      ];
+    } else {
+      args = [
+        pools.map((x) => {
+          const locConfig = x as MarginlyAdapterParam;
+          return [
+            tokenRepository.getTokenInfo(locConfig.token0.id).address.toString(),
+            tokenRepository.getTokenInfo(locConfig.token1.id).address.toString(),
+            locConfig.pool.toString(),
+          ];
+        }),
+      ];
+      if (balancerVault !== undefined) {
+        args.push(balancerVault.toString());
+      }
     }
 
     return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);

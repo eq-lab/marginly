@@ -7,57 +7,63 @@
       "gasLimit": 4400000
     }
   },
-  "marginlyKeeperAaveAddress": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0",
-  "marginlyKeeperUniswapV3Address": "0x56B10B0aB714c509bA2bB5e8bB4e322Cc05F09A0",
+  "keepers": {
+    "aave": "0xEd8b77AC3DC53d3528Cd7F2b96B26677025522c3",
+    "uniswapV3": "0x92e65fd9c7d562D88cc5E858ED491f4d86c27bc3",
+    "balancer": "0xA8b50f59Bb61aA8b1bb3cBDee22469ABc7eD5B21"
+  },
   "marginlyPools": [
     {
-      "type": "aave",
+      "keeperType": "balancer",
       "description": "pt-weeth-27jun2024/weth",
       "address": "0xcf848A30153506617B07207D2B3d054D4Fb72EBC",
       "minProfitQuote": "0.0005",
-      "minProfitBase": "0.0005"
+      "minProfitBase": "0.0005",
+      "swapCallData": "18350081"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "description": "pt-usde-29aug2024/usdc",
       "address": "0x79C37E226834Dc6BfB04Ba0b60f823515c32f50D",
       "minProfitQuote": "1",
-      "minProfitBase": "0.00005"
+      "minProfitBase": "0.00005",
+      "swapCallData": "18350081"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "uniswapV3",
       "description": "knox/eusd",
       "address": "0x3125e87D2630eb7DADD7F94e2fE05Bd21eE10C4f",
-      "flashLoanPools":["0x5d88c26ba4067292dac647bc849216699120aaa1"],
+      "flashLoanPools": ["0x5d88c26ba4067292dac647bc849216699120aaa1"],
       "minProfitQuote": "0.5",
-      "minProfitBase": "0.5"
+      "minProfitBase": "0.5",
+      "swapCallData": "19398657"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "uniswapV3",
       "description": "ethplus/weth",
       "address": "0xb1Af7B299ABBE4905Bbc80E614f64caCFEfBc96b",
-      "flashLoanPools":["0xd6b4cce96ddf8aab2e5750983af9a901f17fbc36"],
+      "flashLoanPools": ["0xd6b4cce96ddf8aab2e5750983af9a901f17fbc36"],
       "minProfitQuote": "0.0001",
-      "minProfitBase": "0.0001"
+      "minProfitBase": "0.0001",
+      "swapCallData": "19398657"
     },
     {
-      "type": "reinit",
+      "keeperType": "reinit",
       "description": "usde/usdc",
       "address": "0x9007A45304Ac6676CEf22ec68c870ae88Af60065",
       "minProfitQuote": "0.5",
       "minProfitBase": "0.5"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "balancer",
       "description": "pt-ezeth-26sep2024/ezeth",
       "address": "0x44579419E975f4d59eaA0876f2EdCA7F2531821A",
-      "flashLoanPools": ["0x40cc6f68400958bf7225e8a762d3ad41c1064086"],
       "swapCallData": "20447233",
       "minProfitQuote": "0.0001",
       "minProfitBase": "0.0001"
     },
     {
-      "type": "uniswapV3",
+      "keeperType": "uniswapV3",
       "description": "pt-weeth-26sep2024/weeth",
       "address": "0x3ad4F88aF401bf5F4F2fE35718139cacC82410d7",
       "flashLoanPools": ["0x14353445c8329df76e6f15e9ead18fa2d45a8bb6"],
