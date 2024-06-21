@@ -170,14 +170,14 @@ const watchMarginlyPoolsCommand = new Command()
     const contractDescriptions = prepareContractDescriptions();
 
     const keeperContracts = new Map<KeeperType, ethers.Contract>();
-    for (var keeper of config.keepers) {
+    for (const type in config.keepers) {
       const keeperContract = new ethers.Contract(
-        keeper.address,
-        contractDescriptions.keepers[keeper.type].abi,
+        config.keepers[type],
+        contractDescriptions.keepers[type].abi,
         signer.provider
       );
 
-      keeperContracts.set(keeper.type, keeperContract);
+      keeperContracts.set(type as KeeperType, keeperContract);
     }
 
     const poolWatchers = await createPoolWatchers(
