@@ -11,7 +11,7 @@ import {
   MarginlyDeployer,
   PriceOracleDeployer,
   UniswapV3Deployer,
-  KeeperDeployer,
+  KeeperAaveDeployer,
   MockTokenDeployer,
   MarginlyRouterDeployer,
   isChainlinkOracle,
@@ -88,7 +88,7 @@ async function initializeDeployers(
 
     const marginlyDeployer = new MarginlyDeployer(signer, ethOptions, stateStore, logger);
     const priceOracleDeployer = new PriceOracleDeployer(signer, ethOptions, stateStore, logger);
-    const keeperDeployer = new KeeperDeployer(signer, ethOptions, stateStore, logger);
+    const keeperDeployer = new KeeperAaveDeployer(signer, ethOptions, stateStore, logger);
     const uniswapV3Deployer = new UniswapV3Deployer(signer, ethOptions, stateStore, logger);
     const mockTokenDeployer = new MockTokenDeployer(signer, ethOptions, stateStore, logger);
     const marginlyRouterDeployer = new MarginlyRouterDeployer(signer, ethOptions, stateStore, logger);
@@ -296,7 +296,7 @@ async function processMarginly(
 
 async function processAaveKeeper(
   logger: Logger,
-  keeperDeployer: KeeperDeployer,
+  keeperDeployer: KeeperAaveDeployer,
   config: StrictMarginlyDeployConfig
 ): Promise<DeployResult> {
   const deployedMarginlyKeeper = await using(logger.beginScope('Process KeeperAave'), async () => {
@@ -439,9 +439,9 @@ export async function deployMarginly(
       algebraKeeper = await processKeeperAlgebra(logger, keeperAlgebraDeployer);
     }
 
-    let balacerKeeper: DeployResult | null = null;
+    let balancerKeeper: DeployResult | null = null;
     if (config.marginlyKeeper.balacerKeeper) {
-      balacerKeeper = await processKeeperBalancer(logger, keeperBalancerDeployer, config);
+      balancerKeeper = await processKeeperBalancer(logger, keeperBalancerDeployer, config);
     }
 
     return {
@@ -449,7 +449,7 @@ export async function deployMarginly(
       aaveKeeperDeployResult: aaveKeeperDeployResult ? { address: aaveKeeperDeployResult.address } : undefined,
       uniswapV3Keeper: uniswapV3Keeper ? { address: uniswapV3Keeper.address } : undefined,
       algebraKeeper: algebraKeeper ? { address: algebraKeeper.address } : undefined,
-      balacerKeeper: balacerKeeper ? { address: balacerKeeper.address } : undefined,
+      balancerKeeper: balancerKeeper ? { address: balancerKeeper.address } : undefined,
     };
   } finally {
     const balanceAfter = await signer.getBalance();
