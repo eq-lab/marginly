@@ -7,43 +7,51 @@
       "gasLimit": 900000
     }
   },
-  "marginlyKeeperAaveAddress": "0x258Dad63c47efeDc807158dF9f59CfB1eaf606Aa",
+  "keepers": {
+    "aave": "0x258Dad63c47efeDc807158dF9f59CfB1eaf606Aa"
+  },
   "marginlyPools": [
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0xea85A6a9A6e73Aa1203B3ee365D8e82B10feD7F8",
       "minProfitQuote": "1",
-      "minProfitBase": "0.001"
+      "minProfitBase": "0.001",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0x2f690B319C407C86CFdeF85d9088215C69960B0b",
       "minProfitQuote": "0.001",
-      "minProfitBase": "0.0001"
+      "minProfitBase": "0.0001",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0xA85151ef2756AdF90B232D94E31366547f4882e4",
       "minProfitQuote": "1",
-      "minProfitBase": "1"
+      "minProfitBase": "1",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0x8a6C5Ed1B834587FCc82bAd1b72e562a9FEfc2eA",
       "minProfitQuote": "0.001",
-      "minProfitBase": "0.1"
+      "minProfitBase": "0.1",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0x3864540D1d9f19a57fEF256757f516872c31D0e9",
       "minProfitQuote": "0.001",
-      "minProfitBase": "1"
+      "minProfitBase": "1",
+      "swapCallData": "0"
     },
     {
-      "type": "aave",
+      "keeperType": "aave",
       "address": "0xC0b3acac242f476415F043F1B0432F3197983f92",
       "minProfitQuote": "0.001",
-      "minProfitBase": "10"
+      "minProfitBase": "10",
+      "swapCallData": "0"
     }
   ]
 }

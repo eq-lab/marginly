@@ -22,7 +22,7 @@ import { shortIncome } from './short_income';
 import { GasReporter } from '../utils/GasReporter';
 import { simulation1, simulation2, simulation3 } from './simulation';
 import { longEmergency, shortEmergency } from './shutdown';
-import MarginlyKeeper, { MarginlyKeeperContract } from '../contract-api/MarginlyKeeper';
+import MarginlyKeeperAave, { MarginlyKeeperAaveContract } from '../contract-api/MarginlyKeeperAave';
 import { keeperAave } from './keeperAave';
 import MarginlyRouter, { MarginlyRouterContract } from '../contract-api/MarginlyRouter';
 import BalancerMarginlyAdapter from '../contract-api/BalancerMarginlyAdapter';
@@ -43,7 +43,10 @@ import DodoV1MarginlyAdapter from '../contract-api/DodoV1MarginlyAdapter';
 import DodoV2MarginlyAdapter from '../contract-api/DodoV2MarginlyAdapter';
 import { parseUnits } from 'ethers/lib/utils';
 import MarginlyKeeperUniswapV3, { MarginlyKeeperUniswapV3Contract } from '../contract-api/MarginlyKeeperUniswapV3';
+import MarginlyKeeperBalancer, { MarginlyKeeperBalancerContract } from '../contract-api/MarginlyKeeperBalancer';
+import MarginlyKeeperAlgebra, { MarginlyKeeperAlgebraContract } from '../contract-api/MarginlyKeeperAlgebra';
 import { keeperUniswapV3 } from './keeperUniswapV3';
+import { keeperBalancer } from './keeperBalancer';
 import UniswapV3TickOracle from '../contract-api/UniswapV3TickOracle';
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
@@ -58,8 +61,10 @@ export type SystemUnderTest = {
   swapRouter: MarginlyRouterContract;
   marginlyPool: MarginlyPoolContract;
   marginlyFactory: MarginlyFactoryContract;
-  keeperAave: MarginlyKeeperContract;
+  keeperAave: MarginlyKeeperAaveContract;
   keeperUniswapV3: MarginlyKeeperUniswapV3Contract;
+  keeperBalancer: MarginlyKeeperBalancerContract;
+  keeperAlgebra: MarginlyKeeperAlgebraContract;
   treasury: Wallet;
   accounts: Wallet[];
   usdc: FiatTokenV2_1Contract;
@@ -173,9 +178,9 @@ async function initializeTestSystem(
   const secondsAgo = 1800;
   const secondsAgoLiquidation = 5;
   const uniswapPoolFee = 500;
-  await priceOracle.connect(treasury).setOptions(
-    usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee
-  );
+  await priceOracle
+    .connect(treasury)
+    .setOptions(usdc.address, weth.address, secondsAgo, secondsAgoLiquidation, uniswapPoolFee);
 
   const marginlyPoolImplementation = await MarginlyPool.deploy(treasury);
   logger.info(`marginly pool implementation: ${marginlyPoolImplementation.address}`);
@@ -219,12 +224,18 @@ async function initializeTestSystem(
   const marginlyPool = MarginlyPool.connect(marginlyAddress, provider);
   logger.info(`marginly <> uniswap: ${marginlyPool.address} <> ${uniswap.address}`);
 
-  const aavePoolAddressesProviderAddress = '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e';
-  const keeperAave = await MarginlyKeeper.deploy(aavePoolAddressesProviderAddress, treasury);
+  const aavePoolAddressesProviderAddress = '0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e'; //ethereum mainnet
+  const keeperAave = await MarginlyKeeperAave.deploy(aavePoolAddressesProviderAddress, treasury);
   logger.info(`keeperAave: ${keeperAave.address}`);
 
   const keeperUniswapV3 = await MarginlyKeeperUniswapV3.deploy(treasury);
   logger.info(`keeperUniswapV3: ${keeperUniswapV3.address}`);
+
+  const keeperBalancer = await MarginlyKeeperBalancer.deploy(balancerVault, treasury);
+  logger.info(`keeperBalancer: ${keeperBalancer.address}`);
+
+  const keeperAlgebra = await MarginlyKeeperAlgebra.deploy(treasury);
+  logger.info(`keeperAlgebra: ${keeperAlgebra.address}`);
 
   logger.info('Initialization completed');
 
@@ -240,6 +251,8 @@ async function initializeTestSystem(
     swapRouter,
     keeperAave,
     keeperUniswapV3,
+    keeperBalancer,
+    keeperAlgebra,
     provider: new Web3ProviderDecorator(provider),
     gasReporter,
   };
@@ -262,6 +275,7 @@ export async function startSuite(
     shortEmergency,
     longEmergency,
     keeperAave,
+    keeperBalancer,
     keeperUniswapV3,
     deleveragePrecisionLong,
     deleveragePrecisionShort,

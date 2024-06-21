@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import { ethers } from 'ethers';
 import { MarginlyKeeperWorker } from './MarginlyKeeperWorker';
 import { createPoolWatchers } from './PoolWatcher';
-import { ContractDescriptions, KeeperArgs, KeeperConfig, KeeperParamter } from './types';
+import { ContractDescriptions, KeeperArgs, KeeperConfig, KeeperParamter, KeeperType } from './types';
 
 function createLogFormatter(format: string): LogFormatter {
   if (format == 'text') {
@@ -60,6 +60,10 @@ function createMarginlyContractDescription(name: string): ContractDescription {
   return require(`@marginly/contracts/artifacts/contracts/${name}.sol/${name}.json`);
 }
 
+function createKeeperContractDescription(name: string): ContractDescription {
+  return require(`@marginly/contracts/artifacts/contracts/keepers/${name}.sol/${name}.json`);
+}
+
 function createOpenZeppelinContractDescription(name: string): ContractDescription {
   return require(`@openzeppelin/contracts/build/contracts/${name}.json`);
 }
@@ -75,8 +79,12 @@ function createUniswapV3ContractDescription(): ContractDescription {
 function prepareContractDescriptions(): ContractDescriptions {
   return {
     token: createOpenZeppelinContractDescription('IERC20Metadata'),
-    keeperAave: createMarginlyContractDescription('MarginlyKeeper'),
-    keeperUniswapV3: createMarginlyContractDescription('MarginlyKeeperUniswapV3'),
+    keepers: {
+      aave: createMarginlyContractDescription('MarginlyKeeper'),
+      uniswapV3: createMarginlyContractDescription('MarginlyKeeperUniswapV3'),
+      algebra: createMarginlyContractDescription('MarginlyKeeperAlgebra'),
+      balancer: createMarginlyContractDescription('MarginlyKeeperBalancer'),
+    },
     marginlyPool: createMarginlyContractDescription('MarginlyPool'),
     aavePool: createAaveIPoolContractDescription(),
     uniswapPool: createUniswapV3ContractDescription(),
@@ -161,17 +169,16 @@ const watchMarginlyPoolsCommand = new Command()
     const signer = await createSignerFromContext(systemContext);
     const contractDescriptions = prepareContractDescriptions();
 
-    const keeperAaveContract: ethers.Contract | undefined = config.marginlyKeeperAaveAddress
-      ? new ethers.Contract(config.marginlyKeeperAaveAddress, contractDescriptions.keeperAave.abi, signer.provider)
-      : undefined;
+    const keeperContracts = new Map<KeeperType, ethers.Contract>();
+    for (var keeper of config.keepers) {
+      const keeperContract = new ethers.Contract(
+        keeper.address,
+        contractDescriptions.keepers[keeper.type].abi,
+        signer.provider
+      );
 
-    const keeperUniswapV3Contract: ethers.Contract | undefined = config.marginlyKeeperUniswapV3Address
-      ? new ethers.Contract(
-          config.marginlyKeeperUniswapV3Address,
-          contractDescriptions.keeperUniswapV3.abi,
-          signer.provider
-        )
-      : undefined;
+      keeperContracts.set(keeper.type, keeperContract);
+    }
 
     const poolWatchers = await createPoolWatchers(
       logger,
@@ -185,8 +192,7 @@ const watchMarginlyPoolsCommand = new Command()
       signer,
       contractDescriptions,
       poolWatchers,
-      keeperAaveContract,
-      keeperUniswapV3Contract,
+      keeperContracts,
       config.connection.ethOptions,
       logger
     );

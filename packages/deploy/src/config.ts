@@ -381,5 +381,9 @@ export interface MarginlyDeployConfig {
       aavePoolAddressesProvider: string;
     };
     uniswapKeeper?: boolean;
+    algebraKeeper?: boolean;
+    balancerKeeper?: {
+      balancerVault: string;
+    };
   };
 }
