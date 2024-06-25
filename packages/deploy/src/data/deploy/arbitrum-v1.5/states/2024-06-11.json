@@ -1,9 +1,5 @@
 {
   "contracts": {
-    "marginlyKeeper": {
-      "address": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0",
-      "txHash": "0xa74a1b0f62cf014093d175a530651fbed7edada23fe45ef3a657bc9057760dc9"
-    },
     "priceOracle_curve-oracle": {
       "address": "0xD6Fa690B9e02aCF0A790704f0E04E4cA8021eAFD",
       "txHash": "0xabc299173bda750b0ee1a38fe46925f64d2e7b44af44a09a84eaeb423030bd6a"
@@ -43,6 +39,18 @@
     "marginlyPool_usde-usdc": {
       "address": "0x9007A45304Ac6676CEf22ec68c870ae88Af60065",
       "txHash": "0xd886b2d9fdb1279f2a16bf1e787b27af8fbf0a53ac22e0d79060cb6ec1224077"
+    },
+    "marginlyKeeperAave": {
+      "address": "0xEd8b77AC3DC53d3528Cd7F2b96B26677025522c3",
+      "txHash": "0x1d41a1849c7fa7fef004b9c7ff4d112a3efcd0900c449a33f3a7bbdcbe5f07e6"
+    },
+    "marginlyKeeperUniswapV3": {
+      "address": "0x92e65fd9c7d562D88cc5E858ED491f4d86c27bc3",
+      "txHash": "0xa92c156bf09a25ef724cdf519277e74bc162dcff230f955dd8d77fe8b40d8c8d"
+    },
+    "marginlyKeeperBalancer": {
+      "address": "0xA8b50f59Bb61aA8b1bb3cBDee22469ABc7eD5B21",
+      "txHash": "0x9d2cad8f7e607ed35e9f55754d10f0b79767d09eb47da672630d8d23227c316c"
     }
   }
 }

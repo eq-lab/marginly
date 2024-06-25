@@ -2,35 +2,41 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { BigNumber } from 'ethers';
-import { createMarginlyKeeperContract } from './shared/fixtures';
+import { createMarginlyKeeperAlgebra } from './shared/fixtures';
 import { PositionType } from './shared/utils';
 
 const keeperSwapCallData = 0n; // it's ok for unit tests, but it wont work in production
 
 function encodeLiquidationParams(
+  asset: string,
+  amount: bigint,
   marginlyPool: string,
   positionToLiquidate: string,
   liquidator: string,
+  algebraPool: string,
   minProfit: bigint,
   swapCallData: bigint
 ): string {
   /**
+   *  address asset;
+    uint256 amount;
     address marginlyPool;
     address positionToLiquidate;
     address liquidator;
+    address algebraPool;
     uint256 minProfit;
     uint256 swapCallData;
    */
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['address', 'address', 'address', 'uint256', 'uint256'],
-    [marginlyPool, positionToLiquidate, liquidator, minProfit, swapCallData]
+    ['address', 'uint256', 'address', 'address', 'address', 'address', 'uint256', 'uint256'],
+    [asset, amount, marginlyPool, positionToLiquidate, liquidator, algebraPool, minProfit, swapCallData]
   );
 }
 
-describe('MarginlyKeeperAave', () => {
+describe('MarginlyKeeperAlgebra', () => {
   it('Should liquidate short bad position', async () => {
-    const { marginlyKeeper, swapRouter, baseToken, marginlyPool } = await loadFixture(createMarginlyKeeperContract);
+    const { keeper, swapRouter, baseToken, marginlyPool, algebraPool } = await loadFixture(createMarginlyKeeperAlgebra);
     const [, badPosition, liquidator] = await ethers.getSigners();
     const decimals = BigInt(await baseToken.decimals());
     const price = 1500; // 1 ETH = 1500 USDC
@@ -55,15 +61,19 @@ describe('MarginlyKeeperAave', () => {
 
     const balanceBefore = await baseToken.balanceOf(liquidator.address);
 
-    const liqParams = encodeLiquidationParams(
+    const [amount0, amount1] = (await algebraPool.token0()) == baseToken.address ? [baseAmount, 0] : [0, baseAmount];
+    const flashCalldata = encodeLiquidationParams(
+      baseToken.address,
+      baseAmount,
       marginlyPool.address,
       badPosition.address,
       liquidator.address,
+      algebraPool.address,
       minProfitETH,
       keeperSwapCallData
     );
 
-    await marginlyKeeper.connect(liquidator).liquidatePosition(await marginlyPool.baseToken(), baseAmount, liqParams);
+    await keeper.connect(liquidator).liquidatePosition(algebraPool.address, amount0, amount1, flashCalldata);
 
     const balanceAfter = await baseToken.balanceOf(liquidator.address);
 
@@ -71,8 +81,8 @@ describe('MarginlyKeeperAave', () => {
   });
 
   it('Should liquidate long position', async () => {
-    const { marginlyKeeper, swapRouter, baseToken, quoteToken, marginlyPool } = await loadFixture(
-      createMarginlyKeeperContract
+    const { keeper, swapRouter, baseToken, quoteToken, marginlyPool, algebraPool } = await loadFixture(
+      createMarginlyKeeperAlgebra
     );
     const [, badPosition, liquidator] = await ethers.getSigners();
     const decimals = BigInt(await baseToken.decimals());
@@ -98,15 +108,19 @@ describe('MarginlyKeeperAave', () => {
 
     const balanceBefore = await quoteToken.balanceOf(liquidator.address);
 
-    const liqParams = encodeLiquidationParams(
+    const [amount0, amount1] = (await algebraPool.token0()) == quoteToken.address ? [quoteAmount, 0] : [0, quoteAmount];
+    const liquidationParams = encodeLiquidationParams(
+      quoteToken.address,
+      quoteAmount,
       marginlyPool.address,
       badPosition.address,
       liquidator.address,
+      algebraPool.address,
       minProfitETH,
       keeperSwapCallData
     );
 
-    await marginlyKeeper.connect(liquidator).liquidatePosition(await marginlyPool.quoteToken(), quoteAmount, liqParams);
+    await keeper.connect(liquidator).liquidatePosition(algebraPool.address, amount0, amount1, liquidationParams);
 
     const balanceAfter = await quoteToken.balanceOf(liquidator.address);
 
@@ -114,7 +128,9 @@ describe('MarginlyKeeperAave', () => {
   });
 
   it('Should fail when profit after liquidation less than minimum', async () => {
-    const { marginlyKeeper, swapRouter, baseToken, marginlyPool } = await loadFixture(createMarginlyKeeperContract);
+    const { keeper, swapRouter, baseToken, quoteToken, marginlyPool, algebraPool } = await loadFixture(
+      createMarginlyKeeperAlgebra
+    );
     const [, badPosition, liquidator] = await ethers.getSigners();
     const decimals = BigInt(await baseToken.decimals());
     const price = 1500; // 1 ETH = 1500 USDC
@@ -137,16 +153,20 @@ describe('MarginlyKeeperAave', () => {
 
     const minProfitETH = 500n * 10n ** decimals; // 500 USDC
 
-    const liqParams = encodeLiquidationParams(
+    const [amount0, amount1] = (await algebraPool.token0()) == quoteToken.address ? [quoteAmount, 0] : [0, quoteAmount];
+    const liquidationParams = encodeLiquidationParams(
+      quoteToken.address,
+      quoteAmount,
       marginlyPool.address,
       badPosition.address,
       liquidator.address,
+      algebraPool.address,
       minProfitETH,
       keeperSwapCallData
     );
 
     await expect(
-      marginlyKeeper.connect(liquidator).liquidatePosition(await marginlyPool.quoteToken(), quoteAmount, liqParams)
+      keeper.connect(liquidator).liquidatePosition(algebraPool.address, amount0, amount1, liquidationParams)
     ).to.be.revertedWith('Less than minimum profit');
   });
 });

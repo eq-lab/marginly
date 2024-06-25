@@ -5,7 +5,7 @@ import { MarginlyPoolContract } from '../contract-api/MarginlyPool';
 import { CallType, uniswapV3Swapdata } from '../utils/chain-ops';
 import { ZERO_ADDRESS } from '../utils/const';
 import { logger } from '../utils/logger';
-import { encodeLiquidationParamsAave } from '@marginly/common';
+import { encodeLiquidationParamsBalancer } from '@marginly/common';
 
 type PoolCoeffs = {
   baseCollateralCoeffX96: BigNumber;
@@ -48,11 +48,11 @@ async function getDebtAmount(
   }
 }
 
-export async function keeperAave(sut: SystemUnderTest) {
+export async function keeperBalancer(sut: SystemUnderTest) {
   logger.info(`Starting keeper liquidation test suite`);
   const ethArgs = { gasLimit: 1_000_000 };
 
-  const { marginlyPool, keeperAave, treasury, usdc, weth, accounts, provider, uniswap, gasReporter } = sut;
+  const { marginlyPool, keeperBalancer, treasury, usdc, weth, accounts, provider, uniswap, gasReporter } = sut;
 
   const lender = accounts[0];
   logger.info(`Deposit lender account`);
@@ -166,21 +166,20 @@ export async function keeperAave(sut: SystemUnderTest) {
   const swapCallData = BigNumber.from(0);
   const minProfit = BigNumber.from(0);
 
-  const longerLiqParams = encodeLiquidationParamsAave(
+  const longerLiqParams = encodeLiquidationParamsBalancer(
     marginlyPool.address,
     longer.address,
     liquidator.address,
     minProfit,
     swapCallData
   );
-
-  const ethOptions = {
+  const ethOpts = {
     gasLimit: 1_000_000,
   };
 
   await gasReporter.saveGasUsage(
-    'keeperAave.liquidatePosition',
-    keeperAave.connect(liquidator).liquidatePosition(usdc.address, longerDebtAmount, longerLiqParams, ethOptions)
+    'keeperBalancer.liquidatePosition',
+    keeperBalancer.connect(liquidator).liquidatePosition(usdc.address, longerDebtAmount, longerLiqParams, ethOpts)
   );
 
   let balanceAfter = BigNumber.from(await usdc.balanceOf(liquidator.address));
@@ -188,7 +187,7 @@ export async function keeperAave(sut: SystemUnderTest) {
   let profit = formatUnits(balanceAfter.sub(balanceBefore), await usdc.decimals());
   console.log(`Profit after long position liquidation is ${profit} USDC`);
 
-  const shorterLiqParams = encodeLiquidationParamsAave(
+  const shorterLiqParams = encodeLiquidationParamsBalancer(
     marginlyPool.address,
     shorter.address,
     liquidator.address,
@@ -199,7 +198,7 @@ export async function keeperAave(sut: SystemUnderTest) {
   balanceBefore = BigNumber.from(await weth.balanceOf(liquidator.address));
   await gasReporter.saveGasUsage(
     'keeperAave.liquidatePosition',
-    keeperAave.connect(liquidator).liquidatePosition(weth.address, shorterDebtAmount, shorterLiqParams, ethOptions)
+    keeperBalancer.connect(liquidator).liquidatePosition(weth.address, shorterDebtAmount, shorterLiqParams, ethOpts)
   );
 
   balanceAfter = BigNumber.from(await weth.balanceOf(liquidator.address));

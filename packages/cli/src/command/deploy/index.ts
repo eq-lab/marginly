@@ -272,7 +272,7 @@ function getLatestStateFileName(dirName: string): string {
       mtimeNs: fs.statSync(path.join(dirName, x), { bigint: true }).mtimeNs,
     }))
     .filter((x) => x.extension === '.json')
-    .sort((a, b) => Number(b.mtimeNs - a.mtimeNs));
+    .sort((a, b) => (a.name > b.name ? -1 : 1));
 
   if (files.length === 0) {
     throw new Error('No state file found');
