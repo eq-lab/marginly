@@ -6,7 +6,10 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@marginly/contracts/contracts/interfaces/IPriceOracle.sol';
 import './CompositeOracle.sol';
 
-///@dev Composition of two IPriceOracles
+///@dev Composition of two IPriceOracles.
+/// Should be used very carefully:
+/// 1) not all implementations of IPriceOracle could be combined
+/// 2) both IPriceOracle implementations must have the same time settings: secondsAgo, secondsAgoLiquidation
 contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
   error ZeroPrice();
   error ZeroAddress();
