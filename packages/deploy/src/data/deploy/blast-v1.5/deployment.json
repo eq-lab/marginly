@@ -1,6 +1,14 @@
 {
   "marginlyPools": [
     {
+      "id": "blast-usdb",
+      "address": "0xEA3513719153Be844809C0Dc64c7E2aE4972Ba8A"
+    },
+    {
+      "id": "blast-weth",
+      "address": "0x1E4dC872E7a2731fE91ECC654e4FEE4B65178c9d"
+    },
+    {
       "id": "musd-usdb",
       "address": "0xb312D61915c878938fcE09D13DD3006c6835b3e5"
     },

@@ -5,7 +5,7 @@
   "connection": {
     "assertChainId": 81457,
     "ethOptions": {
-      "gasPrice": 31880557
+      "gasPrice": 30990206
     }
   },
   "tokens": [
@@ -37,6 +37,12 @@
       "id": "susde",
       "address": "0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2",
       "assertSymbol": "sUSDe",
+      "assertDecimals": 18
+    },
+    {
+      "id": "blast",
+      "address": "0xb1a5700fA2358173Fe465e6eA4Ff52E36e88E2ad",
+      "assertSymbol": "BLAST",
       "assertDecimals": 18
     }
   ],
@@ -93,6 +99,26 @@
         "allowCreate": false,
         "assertAddress": "0x5FA8702D9987B9Da17002c0Eb31B3a29d4A4ec2f",
         "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
+      },
+      {
+        "id": "blast-weth",
+        "description": "Thruster",
+        "tokenAId": "blast",
+        "tokenBId": "weth",
+        "fee": "0.05%",
+        "allowCreate": false,
+        "assertAddress": "0x32fdf42095aaecfea06f8ec26a361475f3603cb9",
+        "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
+      },
+      {
+        "id": "blast-usdb",
+        "description": "Thruster",
+        "tokenAId": "blast",
+        "tokenBId": "usdb",
+        "fee": "0.3%",
+        "allowCreate": false,
+        "assertAddress": "0xe3a5f46667461e35eece4e39e2177b438af6b7f7",
+        "factory": "0x71b08f13B3c3aF35aAdEb3949AFEb1ded1016127"
       }
     ]
   },
@@ -112,6 +138,20 @@
         {
           "quoteTokenId": "usdb",
           "baseTokenId": "susde",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "usdb",
+          "baseTokenId": "blast",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.3%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "blast",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.05%"
@@ -240,6 +280,38 @@
         "positionMinAmount": "1",
         "quoteLimit": "500_000"
       }
+    },
+    {
+      "id": "blast-weth",
+      "uniswapPoolId": "blast-weth",
+      "baseTokenId": "blast",
+      "priceOracleId": "thrusterOracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "2.5%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "200"
+      }
+    },
+    {
+      "id": "blast-usdb",
+      "uniswapPoolId": "blast-usdb",
+      "baseTokenId": "blast",
+      "priceOracleId": "thrusterOracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "1_000_000"
+      }
     }
   ],
   "adapters": [
@@ -257,6 +329,16 @@
           "tokenAId": "susde",
           "tokenBId": "usdb",
           "poolAddress": "0x5FA8702D9987B9Da17002c0Eb31B3a29d4A4ec2f"
+        },
+        {
+          "tokenAId": "blast",
+          "tokenBId": "weth",
+          "poolAddress": "0x32fdf42095aaecfea06f8ec26a361475f3603cb9"
+        },
+        {
+          "tokenAId": "blast",
+          "tokenBId": "usdb",
+          "poolAddress": "0xe3a5f46667461e35eece4e39e2177b438af6b7f7"
         }
       ]
     },
