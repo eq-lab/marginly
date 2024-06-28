@@ -41,6 +41,24 @@
       "address": "0x12afF531E86f5E9763c6C7D0994AdEfB1a1f844c",
       "minProfitQuote": "0.5",
       "minProfitBase": "0.5"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "blast/weth",
+      "flashLoanPools": ["0x9a0aa28d999a21d3cf6f2703cdbba9feaf4a32f7"],
+      "address": "0x1E4dC872E7a2731fE91ECC654e4FEE4B65178c9d",
+      "minProfitQuote": "100",
+      "minProfitBase": "0.0001",
+      "swapCallData": 0
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "blast/usdb",
+      "flashLoanPools": ["0x5d49456a119ef9afb5bec2a644338a078bef2b4b"],
+      "address": "0xEA3513719153Be844809C0Dc64c7E2aE4972Ba8A",
+      "minProfitQuote": "1",
+      "minProfitBase": "100",
+      "swapCallData": 0
     }
   ]
 }
