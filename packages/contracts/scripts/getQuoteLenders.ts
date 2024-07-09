@@ -21,7 +21,8 @@ async function main() {
   const finishBlockNumber = 230330681; // 9-July-2024 //TODO: could be block number on finishTime
 
   const startTime = 1718841600; //20-Jun-2024T00:00:00Z
-  const finishTime = 1720742400; // 12-July-2024T00:00:00Z
+  const finishTime = 1720656000; // 11-July-2024T00:00:00Z
+  const timeRange = finishTime - startTime;
 
   const marginlyPoolAddress = '0x3ad4F88aF401bf5F4F2fE35718139cacC82410d7';
   const lendersFileName = `lenders_${marginlyPoolAddress}_${startBlockNumber}_${finishBlockNumber}.json`;
@@ -44,7 +45,9 @@ async function main() {
     }
   } else {
     console.log(`File ${lendersFileName} not exists. Request data from web3 node`);
-    console.log(`Scan web3 for deposit events from block ${startBlockNumber} to ${finishBlockNumber}`);
+    console.log(
+      `Scan marginly pool ${marginlyPoolAddress} for deposit events from block ${startBlockNumber} to ${finishBlockNumber}`
+    );
     const step = 200_000;
     let currentBlockNumber = startBlockNumber;
     while (currentBlockNumber < finishBlockNumber) {
@@ -105,7 +108,7 @@ async function main() {
     for (let i = 1; i < deposits.length; i++) {
       const holdTime = deposits[i].timestamp - lastDepositTime;
       if (holdTime > 0) {
-        timeWeightedBalance = timeWeightedBalance.add(balance.mul(holdTime));
+        timeWeightedBalance = timeWeightedBalance.add(balance.mul(holdTime).div(timeRange));
       }
       balance = balance.add(deposits[i].amount);
       lastDepositTime = Math.max(deposits[i].timestamp, finishTime);
@@ -113,7 +116,7 @@ async function main() {
 
     if (balance.gt(0)) {
       const holdTime = finishTime - lastDepositTime;
-      timeWeightedBalance = timeWeightedBalance.add(balance.mul(holdTime));
+      timeWeightedBalance = timeWeightedBalance.add(balance.mul(holdTime).div(timeRange));
     }
 
     if (timeWeightedBalance.gt(0)) {
