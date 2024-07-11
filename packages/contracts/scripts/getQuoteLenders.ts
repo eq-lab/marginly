@@ -18,7 +18,7 @@ async function main() {
   const provider = new hre.ethers.providers.JsonRpcProvider((hre.network.config as any).url);
 
   const startBlockNumber = 220388330; // 10-Jun-2024
-  const finishBlockNumber = 230330681; // 9-July-2024 //TODO: could be block number on finishTime
+  const finishBlockNumber = 230902583; // 11-July-2024
 
   const startTime = 1718841600; //20-Jun-2024T00:00:00Z
   const finishTime = 1720656000; // 11-July-2024T00:00:00Z
