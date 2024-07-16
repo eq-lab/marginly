@@ -1,0 +1,72 @@
+[
+  {
+    "userAddress": "0x99FBD9e681419d7D2dbFD95e82621E827C1CdD37",
+    "txHash": "0xab861745e91f407f006c9d13a52680cbed31b13a46b20e5155c0ef6dfaed928b",
+    "amount": "8475668076633681408"
+  },
+  {
+    "userAddress": "0x74e142df816C376bd35d7AE02914fC8168Fcd45f",
+    "txHash": "0x88759de65d38e46bb22e11871748a3294f0f0901afa8d529d1f3d6f224aff53c",
+    "amount": "1020996297566505848"
+  },
+  {
+    "userAddress": "0x5DF6854884B77098D2A5cd304e43584A9d2699e9",
+    "txHash": "0xa9bdd721d2fe2c928d0d1be32eb8af9423684161bfce3b03e6eb6338977b0cc9",
+    "amount": "150800523035146"
+  },
+  {
+    "userAddress": "0xF12fB8BfC9FF09a85c30C0ED93Da94E25E84cf3e",
+    "txHash": "0x47a255f053f81aef5d4d827e9f6e9df2bdce8b826f694e0b42be6f5194a8ff8c",
+    "amount": "22453240301152093554"
+  },
+  {
+    "userAddress": "0x445BaB4342FAFcfEE8bAaEc5Bd7d6030770D4011",
+    "txHash": "0x55ad40a6bae9edca32a3ee6270008b412a1f9a0ac87d2b8e03f9520134c473f2",
+    "amount": "129826869317981083675"
+  },
+  {
+    "userAddress": "0x971C12A76B3117B4fa731b111104015C0308376A",
+    "txHash": "0xde5102c305c68d5a5e6695d8252f870a72b3944dc640c790af246518813562f7",
+    "amount": "151033211585245849180"
+  },
+  {
+    "userAddress": "0x1621981298bA5c23222Fbc2BFD8489214bCe13cB",
+    "txHash": "0xbb327a828523f0641e02faaf863e1cb9030e1052b863e8c00364299b8ff5a7a5",
+    "amount": "26079226702688114146"
+  },
+  {
+    "userAddress": "0xf6d3498B8112545F280DCACf3927BE84EFDa8FA8",
+    "txHash": "0x27029c493c5a088badb9ebbbd479745c2bb61795960d1f02df1baebbba2b8594",
+    "amount": "157544420440499026"
+  },
+  {
+    "userAddress": "0x53f2736FaE551C998D4e72E519F1aCf474264de4",
+    "txHash": "0x6275e191bf0310354cbe9c6a1a111272ee1831b053de28127d377264a3c98466",
+    "amount": "36811641847667992710"
+  },
+  {
+    "userAddress": "0x7b68a28d7aD85451188fA0608FB3eA2d83155bDE",
+    "txHash": "0xa8ce5788c3c6bb5b69197016dfeb62094f5f22c834fcbe4a64bdc4fbe494e623",
+    "amount": "349701185944592465"
+  },
+  {
+    "userAddress": "0x96661c1256c82495201C58549dCA0a2b27fd507F",
+    "txHash": "0x4e19ff9b6f5633726035c7765ac1b977b3a84ed2bc2dca9ff49ea7f9530e0e47",
+    "amount": "261339380418786437"
+  },
+  {
+    "userAddress": "0xe16e210ea3Ac61417ffFD05B71A2bDEA6eB000f0",
+    "txHash": "0x1e3935967ab061b4686de65177acda4c4e66f93f715b41e5e89e434c62ad8f3c",
+    "amount": "259585880520727796"
+  },
+  {
+    "userAddress": "0xfE00Af7f2Fb3A34b842858a95896F7C0153B92B8",
+    "txHash": "0x16e43cdcd691e2cee71da776fb9a83d7d51a53297e86ae35c8002d415e319623",
+    "amount": "6128401793366835926"
+  },
+  {
+    "userAddress": "0xA93C4f71492065eE492B3D81a55fFedC95b2aD77",
+    "txHash": "0x0eccd88c886f1f0182ce8ff1f0b732c2270c2800e5580c4d9064f18ed827bb20",
+    "amount": "217142422409850202683"
+  }
+]

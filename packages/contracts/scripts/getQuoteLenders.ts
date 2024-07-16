@@ -3,6 +3,7 @@ import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 import bn from 'bignumber.js';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { formatUnits, parseUnits } from '@ethersproject/units';
 const fs = require('node:fs');
 const hre: HardhatRuntimeEnvironment = require('hardhat');
 
@@ -24,7 +25,7 @@ async function main() {
   const finishTime = 1720656000; // 11-July-2024T00:00:00Z
   const timeRange = finishTime - startTime;
 
-  const marginlyPoolAddress = '0x3ad4F88aF401bf5F4F2fE35718139cacC82410d7';
+  const marginlyPoolAddress = '0x44579419E975f4d59eaA0876f2EdCA7F2531821A';
   const lendersFileName = `lenders_${marginlyPoolAddress}_${startBlockNumber}_${finishBlockNumber}.json`;
   const distributionFileName = `distribution_${marginlyPoolAddress}_${startBlockNumber}_${finishBlockNumber}.json`;
 
@@ -129,12 +130,46 @@ async function main() {
   console.log(`Distribution file ${distributionFileName} saved`);
 
   const distributionDebug: any = {};
+  let totalShare = 0;
+  let lastUser: string | undefined;
   for (const user of Object.keys(distribution)) {
     const share = bn(distribution[user]).div(totalTimeWeightedBalance.toString()).toFixed(4);
+    totalShare += +share;
     distributionDebug[user] = share;
+    lastUser = user;
   }
+
+  const sharesLeft = 1.0 - totalShare;
+  if (lastUser && sharesLeft > 0) {
+    distributionDebug[lastUser] = (+distributionDebug[lastUser] + sharesLeft).toString();
+  }
+
   const distributionDebugFile = `distribution_debug_${marginlyPoolAddress}.json`;
   fs.writeFileSync(distributionDebugFile, JSON.stringify(distributionDebug, null, 2), 'utf8');
+
+  //prepare rewards distribution fileName
+  const rewardsDistribution: { userAddress: string; amount: string }[] = [];
+  const rewardsAmount = parseUnits('600', 18); // 600 ARB to distribute
+  let totalDistributed = BigNumber.from(0);
+  for (const user of Object.keys(distribution)) {
+    const amount = BigNumber.from(distribution[user]).mul(rewardsAmount).div(totalTimeWeightedBalance.toString());
+    rewardsDistribution.push({
+      userAddress: user,
+      amount: amount.toString(),
+    });
+
+    totalDistributed = totalDistributed.add(amount);
+  }
+
+  const rewardsLeft = rewardsAmount.sub(totalDistributed);
+  if (rewardsLeft.gt(0) && rewardsDistribution.length > 0) {
+    var lastDistr = rewardsDistribution[rewardsDistribution.length - 1];
+    lastDistr.amount = BigNumber.from(lastDistr.amount).add(rewardsLeft).toString();
+    console.log(`Rewards left to distribute: ${formatUnits(rewardsLeft, 18)} ARB`);
+  }
+
+  const rewardsDistributionFileName = `rewards_distribution_${marginlyPoolAddress}.json`;
+  fs.writeFileSync(rewardsDistributionFileName, JSON.stringify(rewardsDistribution, null, 2), 'utf8');
 }
 
 function sleep(ms: number) {
