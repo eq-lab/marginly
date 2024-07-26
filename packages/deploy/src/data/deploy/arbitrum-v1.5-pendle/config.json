@@ -60,6 +60,18 @@
       "address": "0xb8b0a120F6A68Dd06209619F62429fB1a8e92feC",
       "assertSymbol": "PT-weETH-26SEP2024",
       "assertDecimals": 18
+    },
+    {
+      "id": "unieth",
+      "address": "0x3d15fD46CE9e551498328B1C83071D9509E2C3a0",
+      "assertSymbol": "uniETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-unieth-26dec2024",
+      "address": "0x22e9aD26eA0e65a7073571d5D7172ff6336084AD",
+      "assertSymbol": "PT-uniETH-26DEC2024",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -132,6 +144,13 @@
           "quoteTokenId": "weeth",
           "baseTokenId": "pt-weeth-26sep2024",
           "pendleMarket": "0xf9f9779d8ff604732eba9ad345e6a27ef5c2a9d6",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "unieth",
+          "baseTokenId": "pt-unieth-26dec2024",
+          "pendleMarket": "0x279b44e48226d40ec389129061cb0b56c5c09e46",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -207,6 +226,22 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "500"
       }
+    },
+    {
+      "id": "pt-unieth-26dec2024-unieth",
+      "baseTokenId": "pt-unieth-26dec2024",
+      "quoteTokenId": "unieth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "500"
+      }
     }
   ],
   "adapters": [
@@ -247,6 +282,12 @@
           "tokenBId": "weeth",
           "slippage": "20",
           "poolAddress": "0xf9f9779d8ff604732eba9ad345e6a27ef5c2a9d6"
+        },
+        {
+          "tokenAId": "pt-unieth-26dec2024",
+          "tokenBId": "unieth",
+          "slippage": "20",
+          "poolAddress": "0x279b44e48226d40ec389129061cb0b56c5c09e46"
         }
       ]
     }

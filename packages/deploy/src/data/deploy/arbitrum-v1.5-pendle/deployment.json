@@ -5,6 +5,10 @@
       "address": "0x44579419E975f4d59eaA0876f2EdCA7F2531821A"
     },
     {
+      "id": "pt-unieth-26dec2024-unieth",
+      "address": "0x1be9c0343F6A5E3F1E8c76e6cEF05EEbda4074D3"
+    },
+    {
       "id": "pt-usde-29aug2024-usdc",
       "address": "0x79C37E226834Dc6BfB04Ba0b60f823515c32f50D"
     },
@@ -18,7 +22,7 @@
     }
   ],
   "aaveKeeperDeployResult": {
-    "address": "0xEfc060E66973a2cb16E77A80AD681244a855c0d0"
+    "address": "0x2Ae483a05f2Ef7a0C43453Fc267B6cDdCbFBB944"
   },
   "uniswapV3Keeper": {
     "address": "0x56B10B0aB714c509bA2bB5e8bB4e322Cc05F09A0"
