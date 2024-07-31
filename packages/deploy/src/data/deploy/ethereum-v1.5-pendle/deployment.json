@@ -23,6 +23,10 @@
     {
       "id": "pt-weeth-27jun2024-weth",
       "address": "0xE45FD040dCaF59276Be6AAC6A3C14e4707381AAC"
+    },
+    {
+      "id": "pt-amphreth-26sep2024-amphreth",
+      "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
     }
   ],
   "aaveKeeperDeployResult": {

@@ -72,6 +72,18 @@
       "address": "0xbf5495Efe5DB9ce00f80364C8B423567e58d2110",
       "assertSymbol": "ezETH",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-amphreth-26sep2024",
+      "address": "0x7fB0D250D4768E8590cB3c459549C7e33481511E",
+      "assertSymbol": "PT-amphrETH-26SEP2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "amphreth",
+      "address": "0x5fD13359Ba15A84B76f7F87568309040176167cd",
+      "assertSymbol": "amphrETH",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -154,6 +166,13 @@
           "quoteTokenId": "ezeth",
           "baseTokenId": "pt-ezeth-26dec2024",
           "pendleMarket": "0xd8f12bcde578c653014f27379a6114f67f0e445f",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "amphreth",
+          "baseTokenId": "pt-amphreth-26sep2024",
+          "pendleMarket": "0x901e710c2f634131b36e3c68b072ed5db9250f3e",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -261,6 +280,22 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "5000"
       }
+    },
+    {
+      "id": "pt-amphreth-26sep2024-amphreth",
+      "baseTokenId": "pt-amphreth-26sep2024",
+      "quoteTokenId": "amphreth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "0.2%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "1000"
+      }
     }
   ],
   "adapters": [
@@ -315,6 +350,12 @@
           "slippage": "20",
           "tokenAId": "pt-ezeth-26dec2024",
           "tokenBId": "ezeth"
+        },
+        {
+          "poolAddress": "0x901e710c2f634131b36e3c68b072ed5db9250f3e",
+          "slippage": "20",
+          "tokenAId": "pt-amphreth-26sep2024",
+          "tokenBId": "amphreth"
         }
       ]
     }
