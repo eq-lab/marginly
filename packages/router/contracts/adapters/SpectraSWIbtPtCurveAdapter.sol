@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/access/Ownable2Step.sol';
 import '../interfaces/IMarginlyRouter.sol';
 import '../interfaces/IMarginlyAdapter.sol';
 import './interfaces/ICurvePool.sol';
@@ -111,7 +112,7 @@ interface ISpectra4626Wrapper {
 
 ///@notice Adapter for Spectra Curve pool of two tokens SpectraWrapped IBT and PT
 ///        but adapter for IBT and PT
-contract SpectraSWIbtPtCurveAdapter is IMarginlyAdapter {
+contract SpectraSWIbtPtCurveAdapter is IMarginlyAdapter, Ownable2Step {
   using SafeERC20 for IERC20;
 
   error WrongPoolInput();
@@ -451,5 +452,13 @@ contract SpectraSWIbtPtCurveAdapter is IMarginlyAdapter {
 
   function addPools(PoolInput[] calldata poolsData) external {
     _addPools(poolsData);
+  }
+
+  /// @dev During swap Pt to exact SW after maturity a little amount of sw-ibt might stay at the adapter contract
+  function sweepDust(address tokenA, address tokenB, address recipient) external onlyOwner {
+    PoolData memory poolData = getPoolData[tokenA][tokenB];
+
+    uint256 dust = IERC20(poolData.swIbt).balanceOf(address(this));
+    IERC20(poolData.swIbt).safeTransfer(recipient, dust);
   }
 }
