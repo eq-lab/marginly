@@ -27,6 +27,10 @@
     {
       "id": "pt-amphreth-26sep2024-amphreth",
       "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
+    },
+    {
+      "id": "pt-rseth-26sep2024-rseth",
+      "address": "0xa16C1F55129E4Af8288c005a27c8fE05591d24bE"
     }
   ],
   "aaveKeeperDeployResult": {

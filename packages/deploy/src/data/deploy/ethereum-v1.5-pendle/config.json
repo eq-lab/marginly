@@ -84,6 +84,18 @@
       "address": "0x5fD13359Ba15A84B76f7F87568309040176167cd",
       "assertSymbol": "amphrETH",
       "assertDecimals": 18
+    },
+    {
+      "id": "rseth",
+      "address": "0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7",
+      "assertSymbol": "rsETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-rseth-26sep2024",
+      "address": "0x7bAf258049cc8B9A78097723dc19a8b103D4098F",
+      "assertSymbol": "PT-rsETH-26SEP2024",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -173,6 +185,13 @@
           "quoteTokenId": "amphreth",
           "baseTokenId": "pt-amphreth-26sep2024",
           "pendleMarket": "0x901e710c2f634131b36e3c68b072ed5db9250f3e",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "rseth",
+          "baseTokenId": "pt-rseth-26sep2024",
+          "pendleMarket": "0x6b4740722e46048874d84306b2877600abcea3ae",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -296,6 +315,22 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "1000"
       }
+    },
+    {
+      "id": "pt-rseth-26sep2024-rseth",
+      "baseTokenId": "pt-rseth-26sep2024",
+      "quoteTokenId": "rseth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "0.2%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "200"
+      }
     }
   ],
   "adapters": [
@@ -335,27 +370,33 @@
       "pools": [
         {
           "poolAddress": "0xc8edd52d0502aa8b4d5c77361d4b3d300e8fc81c",
-          "slippage": "20",
+          "slippage": "35",
           "tokenAId": "pt-weeth-26sep2024",
           "tokenBId": "weeth"
         },
         {
           "poolAddress": "0xcdbd5ff3e03b6828db9c32e2131a60aba5137901",
-          "slippage": "20",
+          "slippage": "35",
           "tokenAId": "pt-ezeth-26sep2024",
           "tokenBId": "ezeth"
         },
         {
           "poolAddress": "0xd8f12bcde578c653014f27379a6114f67f0e445f",
-          "slippage": "20",
+          "slippage": "35",
           "tokenAId": "pt-ezeth-26dec2024",
           "tokenBId": "ezeth"
         },
         {
           "poolAddress": "0x901e710c2f634131b36e3c68b072ed5db9250f3e",
-          "slippage": "20",
+          "slippage": "35",
           "tokenAId": "pt-amphreth-26sep2024",
           "tokenBId": "amphreth"
+        },
+        {
+          "poolAddress": "0x6b4740722e46048874d84306b2877600abcea3ae",
+          "slippage": "35",
+          "tokenAId": "pt-rseth-26sep2024",
+          "tokenBId": "rseth"
         }
       ]
     }
