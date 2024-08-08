@@ -96,6 +96,30 @@
       "address": "0x7bAf258049cc8B9A78097723dc19a8b103D4098F",
       "assertSymbol": "PT-rsETH-26SEP2024",
       "assertDecimals": 18
+    },
+    {
+      "id": "unieth",
+      "address": "0xF1376bceF0f78459C0Ed0ba5ddce976F1ddF51F4",
+      "assertSymbol": "uniETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-unieth-26sep2024",
+      "address": "0x15fA86404BFbA8b46684552F792558128bFB6418",
+      "assertSymbol": "PT-uniETH-26SEP2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pzeth",
+      "address": "0x8c9532a60e0e7c6bbd2b2c1303f63ace1c3e9811",
+      "assertSymbol": "pzETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-pzeth-26sep2024",
+      "address": "0xdBD8a24E780E7661c5c9f66310A3D4Ad309cD763",
+      "assertSymbol": "PT-pzETH-26SEP2024",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -192,6 +216,20 @@
           "quoteTokenId": "rseth",
           "baseTokenId": "pt-rseth-26sep2024",
           "pendleMarket": "0x6b4740722e46048874d84306b2877600abcea3ae",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "unieth",
+          "baseTokenId": "pt-unieth-26sep2024",
+          "pendleMarket": "0xbae2df4dfcd0c613018d6056a40077f2d1eff28a",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "pzeth",
+          "baseTokenId": "pt-pzeth-26sep2024",
+          "pendleMarket": "0xd3bb297264bd6115ae163db4153038a79d78acba",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -331,6 +369,38 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "200"
       }
+    },
+    {
+      "id": "pt-unieth-26sep2024-unieth",
+      "baseTokenId": "pt-unieth-26sep2024",
+      "quoteTokenId": "unieth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "2%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "500"
+      }
+    },
+    {
+      "id": "pt-pzeth-26sep2024-pzeth",
+      "baseTokenId": "pt-pzeth-26sep2024",
+      "quoteTokenId": "pzeth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "2%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "500"
+      }
     }
   ],
   "adapters": [
@@ -397,6 +467,18 @@
           "slippage": "35",
           "tokenAId": "pt-rseth-26sep2024",
           "tokenBId": "rseth"
+        },
+        {
+          "poolAddress": "0xbae2df4dfcd0c613018d6056a40077f2d1eff28a",
+          "slippage": "35",
+          "tokenAId": "pt-unieth-26sep2024",
+          "tokenBId": "unieth"
+        },
+        {
+          "poolAddress": "0xd3bb297264bd6115ae163db4153038a79d78acba",
+          "slippage": "35",
+          "tokenAId": "pt-ezeth-26sep2024",
+          "tokenBId": "pzeth"
         }
       ]
     }

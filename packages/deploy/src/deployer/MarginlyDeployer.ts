@@ -57,10 +57,15 @@ export class MarginlyDeployer extends BaseDeployer {
     marginlyFactoryContract: ethers.Contract,
     txHash: string,
     quoteToken: EthAddress,
-    baseToken: EthAddress
+    baseToken: EthAddress,
+    priceOracle: EthAddress
   ): Promise<EthAddress> {
     const txReceipt = await this.provider.getTransactionReceipt(txHash);
-    const eventFilter = marginlyFactoryContract.filters.PoolCreated(quoteToken.toString(), baseToken.toString());
+    const eventFilter = marginlyFactoryContract.filters.PoolCreated(
+      quoteToken.toString(),
+      baseToken.toString(),
+      priceOracle.toString()
+    );
     const events = await marginlyFactoryContract.queryFilter(eventFilter, txReceipt.blockHash);
 
     if (events.length === 0) {
@@ -134,7 +139,8 @@ export class MarginlyDeployer extends BaseDeployer {
       marginlyPoolFactoryContract,
       createPoolTx.hash,
       quoteTokenInfo.address,
-      baseTokenInfo.address
+      baseTokenInfo.address,
+      priceOracle
     );
 
     this.stateStore.setById(stateFileId, {
