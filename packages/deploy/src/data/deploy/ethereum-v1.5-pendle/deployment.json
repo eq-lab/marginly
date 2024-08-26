@@ -1,12 +1,40 @@
 {
   "marginlyPools": [
     {
+      "id": "pt-ageth-26dec2024-ageth",
+      "address": "0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305"
+    },
+    {
+      "id": "pt-amphreth-26sep2024-amphreth",
+      "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
+    },
+    {
+      "id": "pt-amphrlrt-26sep2024-amphrlrt",
+      "address": "0x5e321551bA80b01051B24FeF2e44DA29313fC1ef"
+    },
+    {
       "id": "pt-ezeth-26dec2024-ezeth",
       "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA"
     },
     {
       "id": "pt-ezeth-26sep2024-ezeth",
       "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975"
+    },
+    {
+      "id": "pt-pzeth-26sep2024-pzeth",
+      "address": "0x51f95AAF94834b878eec18A812D840910370887f"
+    },
+    {
+      "id": "pt-rseth-26dec2024-rseth",
+      "address": "0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173"
+    },
+    {
+      "id": "pt-rseth-26sep2024-rseth",
+      "address": "0xa16C1F55129E4Af8288c005a27c8fE05591d24bE"
+    },
+    {
+      "id": "pt-unieth-26sep2024-unieth",
+      "address": "0x86DC30f6dBbb742463CE77f88926eff979892b22"
     },
     {
       "id": "pt-usde-25jul2024-usdt",
@@ -23,22 +51,6 @@
     {
       "id": "pt-weeth-27jun2024-weth",
       "address": "0xE45FD040dCaF59276Be6AAC6A3C14e4707381AAC"
-    },
-    {
-      "id": "pt-amphreth-26sep2024-amphreth",
-      "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
-    },
-    {
-      "id": "pt-rseth-26sep2024-rseth",
-      "address": "0xa16C1F55129E4Af8288c005a27c8fE05591d24bE"
-    },
-    {
-      "id": "pt-unieth-26sep2024-unieth",
-      "address": "0x86DC30f6dBbb742463CE77f88926eff979892b22"
-    },
-    {
-      "id": "pt-pzeth-26sep2024-pzeth",
-      "address": "0x51f95AAF94834b878eec18A812D840910370887f"
     }
   ],
   "aaveKeeperDeployResult": {
