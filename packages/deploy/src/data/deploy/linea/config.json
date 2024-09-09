@@ -1,0 +1,205 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://linea.blockpi.network/v1/rpc/public"
+  },
+  "connection": {
+    "assertChainId": 59144,
+    "ethOptions": {
+      "gasPrice": 60000000
+    }
+  },
+  "tokens": [
+    {
+      "id": "weeth",
+      "address": "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6",
+      "assertSymbol": "weETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "weth",
+      "address": "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "ezeth",
+      "address": "0x2416092f143378750bb29b79eD961ab195CcEea5",
+      "assertSymbol": "ezETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "wrseth",
+      "address": "0xD2671165570f41BBB3B0097893300b6EB6101E6C",
+      "assertSymbol": "wrsETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "wsteth",
+      "address": "0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F",
+      "assertSymbol": "wstETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc",
+      "address": "0x176211869cA2b568f2A7D4EE941E073a821EE1ff",
+      "assertSymbol": "USDC",
+      "assertDecimals": 6
+    },
+    {
+      "id": "wbtc",
+      "address": "0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4",
+      "assertSymbol": "WBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "lynx",
+      "address": "0x1a51b19ce03dbe0cb44c1528e34a7edd7771e9af",
+      "assertSymbol": "LYNX",
+      "assertDecimals": 18
+    }
+  ],
+  "prices": [],
+  "priceOracles": [
+    {
+      "id": "lynex-oracle",
+      "type": "algebra",
+      "factory": "0x622b2c98123D303ae067DB4925CD6282B3A08D0F",
+      "settings": [
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "weeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "wsteth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "wbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "weth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "ezeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "lynx",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
+    },
+    {
+      "id": "nile-oracle",
+      "type": "uniswapV3",
+      "factory": "0xAAA32926fcE6bE95ea2c51cB4Fcb60836D320C42",
+      "settings": [
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "weeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.025%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "ezeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "wrseth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "weth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.025%"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+    "techPositionOwner": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "lynex_weth-usdc",
+      "baseTokenId": "weth",
+      "quoteTokenId": "usdc",
+      "priceOracleId": "lynex-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "0.1%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "1",
+        "quoteLimit": "500_000"
+      }
+    },
+    {
+      "id": "nile_weth-usdc",
+      "baseTokenId": "weth",
+      "quoteTokenId": "usdc",
+      "priceOracleId": "nile-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.025%",
+        "fee": "0.025%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "1",
+        "quoteLimit": "500_000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 2,
+      "adapterName": "AlgebraAdapter",
+      "pools": [
+        {
+          "type": "general",
+          "tokenAId": "usdc",
+          "tokenBId": "weth",
+          "poolAddress": "0x64bccad8e7302e81b09894f56f6bba85ae82cd03"
+        },
+        {
+          "type": "general",
+          "tokenAId": "usdc",
+          "tokenBId": "weth",
+          "poolAddress": "0x3Cb104f044dB23d6513F2A6100a1997Fa5e3F587"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {
+    "uniswapKeeper": true,
+    "algebraKeeper": true
+  }
+}
