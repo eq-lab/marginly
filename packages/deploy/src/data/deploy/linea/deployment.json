@@ -7,6 +7,10 @@
     {
       "id": "nile_weth-usdc",
       "address": "0xAEF052bc755fE331C799326f971dD41b8Ce38602"
+    },
+    {
+      "id": "nile_wrseth-weth",
+      "address": "0x4BFEeF844eF5C87F0573f0c2D5918142Ed5f8035"
     }
   ],
   "uniswapV3Keeper": {

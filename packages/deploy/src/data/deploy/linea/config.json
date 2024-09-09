@@ -1,11 +1,12 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri": "https://linea.blockpi.network/v1/rpc/public"
+    "ethNodeUri": "https://rpc.linea.build"
   },
   "connection": {
     "assertChainId": 59144,
     "ethOptions": {
-      "gasPrice": 60000000
+      "gasPrice": 1000000000,
+      "gasLimit": 600000
     }
   },
   "tokens": [
@@ -176,6 +177,22 @@
         "positionMinAmount": "1",
         "quoteLimit": "500_000"
       }
+    },
+    {
+      "id": "nile_wrseth-weth",
+      "baseTokenId": "wrseth",
+      "quoteTokenId": "weth",
+      "priceOracleId": "nile-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "2%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "1000"
+      }
     }
   ],
   "adapters": [
@@ -194,6 +211,12 @@
           "tokenAId": "usdc",
           "tokenBId": "weth",
           "poolAddress": "0x3Cb104f044dB23d6513F2A6100a1997Fa5e3F587"
+        },
+        {
+          "type": "general",
+          "tokenAId": "wrseth",
+          "tokenBId": "weth",
+          "poolAddress": "0xCE6f03C4f2D1F23ED1996c85b6FF047FB049B61f"
         }
       ]
     }

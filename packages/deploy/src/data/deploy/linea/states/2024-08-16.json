@@ -43,6 +43,10 @@
     "marginlyKeeperAlgebra": {
       "address": "0x67673BaAEB1D13aB558F6a8B807A092ac516d4DF",
       "txHash": "0x8400e06d0e6f5fce13f56e1d2df9550fe692be52561803d067a47863d63d34ab"
+    },
+    "marginlyPool_nile_wrseth-weth": {
+      "address": "0x4BFEeF844eF5C87F0573f0c2D5918142Ed5f8035",
+      "txHash": "0x050ff82e246882bb923aac9001b9e83a36e465a8e061cecd43e63d884822f834"
     }
   }
 }
