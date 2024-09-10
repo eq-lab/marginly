@@ -47,7 +47,7 @@
       "swapCallData": "20447233"
     },
     {
-      "keeperType": "balancer",
+      "keeperType": "uniswapV3",
       "description": "pt-ezeth-26sep2024/ezeth",
       "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975",
       "flashLoanPools": ["0xbe80225f09645f172b079394312220637c440a63"],
@@ -56,10 +56,119 @@
       "swapCallData": "20447233"
     },
     {
-      "keeperType": "balancer",
+      "keeperType": "uniswapV3",
       "description": "pt-ezeth-26dec2024/ezeth",
       "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA",
       "flashLoanPools": ["0xbe80225f09645f172b079394312220637c440a63"],
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-re7lrt-26dec2024/re7lrt",
+      "address": "0x2Df52e18e0fcA1E8CEE272cD034368278a49125f",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-amphreth-26sep2024/amphreth",
+      "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-rseth-26sep2024/rseth",
+      "address": "0xa16C1F55129E4Af8288c005a27c8fE05591d24bE",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-unieth-26sep2024/unieth",
+      "address": "0x86DC30f6dBbb742463CE77f88926eff979892b22",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "pt-pzeth-26sep2024/pzeth",
+      "address": "0x51f95AAF94834b878eec18A812D840910370887f",
+      "flashLoanPools": ["0xfc354f5cf57125a7d85e1165f4fcdfd3006db61a"],
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-amphreth-26dec2024/amphreth",
+      "address": "0x530043876F37170468a9F366145E645BEE86da6C",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-pufeth-26dec2024/pufeth",
+      "address": "0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "pt-weeths-26dec2024/weeths",
+      "address": "0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf",
+      "flashLoanPools": ["0x174eff1363c4b446f3425315bd6c12f305823d6a"],
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "pt-ebtc-26dec2024/ebtc",
+      "address": "0x2F06faF2A2EEFfBd44a796b8c6d2D04841c6488C",
+      "flashLoanPools": ["0xef9b4fddd861aa2f00ee039c323b7fabd7afe239"],
+      "minProfitQuote": "0.00002",
+      "minProfitBase": "0.00002",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "pt-amphrlrt-26dec2024/amphrlrt",
+      "address": "0xcAbAE9295e274c152b9DcCC124AB06cf78d079Eb",
+      "flashLoanPools": ["0xbc048791147d8f89ef87f95b330b494ce3fafad6"],
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "pt-amphrlrt-26sep2024/amphrlrt",
+      "address": "0x5e321551bA80b01051B24FeF2e44DA29313fC1ef",
+      "flashLoanPools": ["0xbc048791147d8f89ef87f95b330b494ce3fafad6"],
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-rseth-26dec2024/rseth",
+      "address": "0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001",
+      "swapCallData": "20447233"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-ageth-26dec2024/ageth",
+      "address": "0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305",
       "minProfitQuote": "0.001",
       "minProfitBase": "0.001",
       "swapCallData": "20447233"

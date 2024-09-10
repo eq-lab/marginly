@@ -70,6 +70,31 @@
       "swapCallData": "20447233",
       "minProfitQuote": "0.0001",
       "minProfitBase": "0.0001"
+    },
+    {
+      "keeperType": "balancer",
+      "description": "pt-rseth-26sep2024/rseth",
+      "address": "0x5ecE952A12b87f909b4Bd8137DD30fd07b80c2C4",
+      "swapCallData": "20447233",
+      "minProfitQuote": "0.0001",
+      "minProfitBase": "0.0001"
+    },
+    {
+      "keeperType": "uniswapV3",
+      "description": "pt-weeth-26dec2024/weeth",
+      "address": "0x2E70CC46F465ab249D6972cCeb0363a6B07AeA01",
+      "flashLoanPools": ["0x14353445c8329df76e6f15e9ead18fa2d45a8bb6"],
+      "swapCallData": "20447233",
+      "minProfitQuote": "0.0001",
+      "minProfitBase": "0.0001"
+    },
+    {
+      "keeperType": "reinit",
+      "description": "pt-unieth-26dec2024/unieth",
+      "address": "0x1be9c0343F6A5E3F1E8c76e6cEF05EEbda4074D3",
+      "swapCallData": "20447233",
+      "minProfitQuote": "0.0001",
+      "minProfitBase": "0.0001"
     }
   ]
 }
