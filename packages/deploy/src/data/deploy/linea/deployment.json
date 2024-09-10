@@ -1,0 +1,19 @@
+{
+  "marginlyPools": [
+    {
+      "id": "lynex_weth-usdc",
+      "address": "0x1486Ae53479e4F493Da05D0c432e1281b338E567"
+    },
+    {
+      "id": "nile_weth-usdc",
+      "address": "0x4dafc81C87b9a5b38cD81e2047C22f7C7A86d8E2"
+    },
+    {
+      "id": "nile_wrseth-weth",
+      "address": "0x0002D6c1Ad42a924B771162E9679201539945fa5"
+    }
+  ],
+  "uniswapV3Keeper": {
+    "address": "0x798A2FEb73E82D44b2148e37f02367CFb6ea3674"
+  }
+}
