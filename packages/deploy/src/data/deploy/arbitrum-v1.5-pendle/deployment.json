@@ -5,6 +5,10 @@
       "address": "0x44579419E975f4d59eaA0876f2EdCA7F2531821A"
     },
     {
+      "id": "pt-rseth-26dec2024-rseth",
+      "address": "0x5ecE952A12b87f909b4Bd8137DD30fd07b80c2C4"
+    },
+    {
       "id": "pt-rseth-26sep2024-rseth",
       "address": "0x6128F06bF224F8407d5cBD7476D2BE0848aA05aF"
     },
@@ -15,6 +19,10 @@
     {
       "id": "pt-usde-29aug2024-usdc",
       "address": "0x79C37E226834Dc6BfB04Ba0b60f823515c32f50D"
+    },
+    {
+      "id": "pt-weeth-26dec2024-weeth",
+      "address": "0x2E70CC46F465ab249D6972cCeb0363a6B07AeA01"
     },
     {
       "id": "pt-weeth-26sep2024-weeth",

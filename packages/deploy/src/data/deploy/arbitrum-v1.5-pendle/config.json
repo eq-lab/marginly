@@ -84,6 +84,18 @@
       "address": "0x30c98c0139B62290E26aC2a2158AC341Dcaf1333",
       "assertSymbol": "PT-rsETH-26SEP2024",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-rseth-26dec2024",
+      "address": "0x355ec27c9d4530dE01A103FA27F884a2F3dA65ef",
+      "assertSymbol": "PT-rsETH-26DEC2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-weeth-26dec2024",
+      "address": "0xE2B2D203577c7cb3D043E89cCf90b5E24d19b66f",
+      "assertSymbol": "PT-weETH-26DEC2024",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -170,6 +182,20 @@
           "quoteTokenId": "rseth",
           "baseTokenId": "pt-rseth-26sep2024",
           "pendleMarket": "0xed99fc8bdb8e9e7b8240f62f69609a125a0fbf14",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "rseth",
+          "baseTokenId": "pt-rseth-26dec2024",
+          "pendleMarket": "0xcb471665bf23b2ac6196d84d947490fd5571215f",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weeth",
+          "baseTokenId": "pt-weeth-26dec2024",
+          "pendleMarket": "0x6b92feb89ed16aa971b096e247fe234db4aaa262",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -277,6 +303,38 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "200"
       }
+    },
+    {
+      "id": "pt-rseth-26dec2024-rseth",
+      "baseTokenId": "pt-rseth-26dec2024",
+      "quoteTokenId": "rseth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "160"
+      }
+    },
+    {
+      "id": "pt-weeth-26dec2024-weeth",
+      "baseTokenId": "pt-weeth-26dec2024",
+      "quoteTokenId": "weeth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "200"
+      }
     }
   ],
   "adapters": [
@@ -329,6 +387,18 @@
           "tokenBId": "rseth",
           "slippage": "35",
           "poolAddress": "0xed99fc8bdb8e9e7b8240f62f69609a125a0fbf14"
+        },
+        {
+          "poolAddress": "0xcb471665bf23b2ac6196d84d947490fd5571215f",
+          "slippage": "35",
+          "tokenAId": "pt-rseth-26dec2024",
+          "tokenBId": "rseth"
+        },
+        {
+          "poolAddress": "0x6b92feb89ed16aa971b096e247fe234db4aaa262",
+          "slippage": "35",
+          "tokenAId": "pt-weeth-26dec2024",
+          "tokenBId": "weeth"
         }
       ]
     }

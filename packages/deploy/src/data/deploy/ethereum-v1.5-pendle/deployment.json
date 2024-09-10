@@ -5,12 +5,24 @@
       "address": "0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305"
     },
     {
+      "id": "pt-amphreth-26dec2024-amphreth",
+      "address": "0x530043876F37170468a9F366145E645BEE86da6C"
+    },
+    {
       "id": "pt-amphreth-26sep2024-amphreth",
       "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
     },
     {
+      "id": "pt-amphrlrt-26dec2024-amphrlrt",
+      "address": "0xcAbAE9295e274c152b9DcCC124AB06cf78d079Eb"
+    },
+    {
       "id": "pt-amphrlrt-26sep2024-amphrlrt",
       "address": "0x5e321551bA80b01051B24FeF2e44DA29313fC1ef"
+    },
+    {
+      "id": "pt-ebtc-26dec2024-ebtc",
+      "address": "0x2F06faF2A2EEFfBd44a796b8c6d2D04841c6488C"
     },
     {
       "id": "pt-ezeth-26dec2024-ezeth",
@@ -21,8 +33,16 @@
       "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975"
     },
     {
+      "id": "pt-pufeth-26dec2024-pufeth",
+      "address": "0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40"
+    },
+    {
       "id": "pt-pzeth-26sep2024-pzeth",
       "address": "0x51f95AAF94834b878eec18A812D840910370887f"
+    },
+    {
+      "id": "pt-re7lrt-26dec2024-re7lrt",
+      "address": "0x2Df52e18e0fcA1E8CEE272cD034368278a49125f"
     },
     {
       "id": "pt-rseth-26dec2024-rseth",
@@ -51,6 +71,10 @@
     {
       "id": "pt-weeth-27jun2024-weth",
       "address": "0xE45FD040dCaF59276Be6AAC6A3C14e4707381AAC"
+    },
+    {
+      "id": "pt-weeths-26dec2024-weeths",
+      "address": "0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf"
     }
   ],
   "aaveKeeperDeployResult": {

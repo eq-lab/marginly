@@ -301,13 +301,14 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       if (currentParams.secondsAgo != 0) continue; // oracle already initialized
 
-      await priceOracle.setPair(
+      const tx = await priceOracle.setPair(
         quoteToken.toString(),
         baseToken.toString(),
         setting.pendleMarket.toString(),
         setting.secondsAgo.toSeconds(),
         setting.secondsAgoLiquidation.toSeconds()
       );
+      await tx.wait();
     }
 
     return deploymentResult;
