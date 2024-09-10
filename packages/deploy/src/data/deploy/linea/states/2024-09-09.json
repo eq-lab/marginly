@@ -1,0 +1,52 @@
+{
+  "contracts": {
+    "priceOracle_lynex-oracle": {
+      "address": "0x30C9A865F86adbA333B2390Ce69167D979f0db6f",
+      "txHash": "0x1475ce33b51c5f6893ff24e93815af601a455fc59cd241c68844119ccd471747"
+    },
+    "priceOracle_nile-oracle": {
+      "address": "0x953bCae95340b4f275c357a9d847E36617401f8e",
+      "txHash": "0x13139026f484e474a63dcc915a12484f735653fefd524f2ffbd1871400c0a1db"
+    },
+    "AlgebraAdapter_24": {
+      "address": "0xF8D88A292B0afa85E5Cf0d1195d0D3728Cfd7070",
+      "txHash": "0x06beab076dc32ea2d3d25a08303c17cc9a152aa8a8530bad514e7bd691d38b3b"
+    },
+    "AlgebraAdapter_25": {
+      "address": "0x8b5e7a4Fc691eDCCB148E2fC657E22e8a0F3F310",
+      "txHash": "0xae01d4217cd133d9ff1fbacedfdda3727a15a67846e9a06c82d5c60834c3a9e0"
+    },
+    "MarginlyRouter": {
+      "address": "0x904F8A3363e8D695870ae72045023Cf81cBabEB8",
+      "txHash": "0xeade6c023565849491de31bebb1afa99bd833420ead5ddf4a7e7ac17c5c02694"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x491B373Bc80bC068BC63e5e7E5E57F0dfe9c84c5",
+      "txHash": "0x9028795a885088fcdd1f2adcc3b4ee86a732c2190597f4d6a4fbe4569333c162"
+    },
+    "marginlyFactory": {
+      "address": "0x623342afe5C8cA6a090F8F09399c2713107EEccF",
+      "txHash": "0x156ddec4a25810b0872e5dfb20c80d6ca0adada6ceb6f66ede07550cbea6208c"
+    },
+    "marginlyPool_lynex_weth-usdc": {
+      "address": "0x1486Ae53479e4F493Da05D0c432e1281b338E567",
+      "txHash": "0x6201ef6a78149148aa0321aee5cd9a8babd5628eaefe053504cef4a53c4f61c8"
+    },
+    "marginlyPool_nile_weth-usdc": {
+      "address": "0x4dafc81C87b9a5b38cD81e2047C22f7C7A86d8E2",
+      "txHash": "0xf64dfd383905fd22823b1c8d11520ba47e19359b657e31bac8f9a05b6159a5ba"
+    },
+    "marginlyPool_nile_wrseth-weth": {
+      "address": "0x0002D6c1Ad42a924B771162E9679201539945fa5",
+      "txHash": "0xb90cc8acb1e411bd7af1c6086f51757f68bf557997307db2fd7f78b193e9b756"
+    },
+    "marginlyKeeperUniswapV3": {
+      "address": "0x798A2FEb73E82D44b2148e37f02367CFb6ea3674",
+      "txHash": "0x2778e1adc1fa070823adffb9fe05dd559500bfac59576f93a616477c1e36a468"
+    },
+    "marginlyKeeperAlgebra": {
+      "address": "0x0D889a355456963A416a0b8611fb76c2bB5c69D3",
+      "txHash": "0x0a3e06145797528939068add9596e64c4e9ab42ea6e5c512e6e5471b22d32f07"
+    }
+  }
+}

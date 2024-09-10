@@ -55,6 +55,7 @@ const deployTemplate = (signer: Signer, ethArgs: EthOptions, stateStore: StateSt
       };
     }
 
+    logger.log(`Sending ${name} contract deploy tx. Id: ${id}`);
     const contract = await factory.deploy(...args, ethArgs);
     await contract.deployed();
     const result = {

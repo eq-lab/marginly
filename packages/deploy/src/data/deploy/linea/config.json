@@ -5,8 +5,8 @@
   "connection": {
     "assertChainId": 59144,
     "ethOptions": {
-      "gasPrice": 1000000000,
-      "gasLimit": 600000
+      "gasPrice": 100000000,
+      "gasLimit": 5500000
     }
   },
   "tokens": [
@@ -151,7 +151,7 @@
       "baseTokenId": "weth",
       "quoteTokenId": "usdc",
       "priceOracleId": "lynex-oracle",
-      "defaultSwapCallData": "0",
+      "defaultSwapCallData": "26738689",
       "params": {
         "interestRate": "1%",
         "maxLeverage": "20",
@@ -167,7 +167,7 @@
       "baseTokenId": "weth",
       "quoteTokenId": "usdc",
       "priceOracleId": "nile-oracle",
-      "defaultSwapCallData": "0",
+      "defaultSwapCallData": "25690113",
       "params": {
         "interestRate": "1%",
         "maxLeverage": "20",
@@ -183,7 +183,7 @@
       "baseTokenId": "wrseth",
       "quoteTokenId": "weth",
       "priceOracleId": "nile-oracle",
-      "defaultSwapCallData": "0",
+      "defaultSwapCallData": "25690113",
       "params": {
         "interestRate": "2%",
         "maxLeverage": "20",
@@ -197,7 +197,7 @@
   ],
   "adapters": [
     {
-      "dexId": 2,
+      "dexId": 24,
       "adapterName": "AlgebraAdapter",
       "pools": [
         {
@@ -208,15 +208,21 @@
         },
         {
           "type": "general",
-          "tokenAId": "usdc",
-          "tokenBId": "weth",
-          "poolAddress": "0x3Cb104f044dB23d6513F2A6100a1997Fa5e3F587"
-        },
-        {
-          "type": "general",
           "tokenAId": "wrseth",
           "tokenBId": "weth",
           "poolAddress": "0xCE6f03C4f2D1F23ED1996c85b6FF047FB049B61f"
+        }
+      ]
+    },
+    {
+      "dexId": 25,
+      "adapterName": "AlgebraAdapter",
+      "pools": [
+        {
+          "type": "general",
+          "tokenAId": "usdc",
+          "tokenBId": "weth",
+          "poolAddress": "0x3Cb104f044dB23d6513F2A6100a1997Fa5e3F587"
         }
       ]
     }
