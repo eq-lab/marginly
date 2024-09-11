@@ -141,43 +141,11 @@
     }
   ],
   "marginlyFactory": {
-    "feeHolder": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
-    "techPositionOwner": "0xef6b3b0A89D9c966Bd9291130869140CDE2B7688",
+    "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
+    "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
     "wethTokenId": "weth"
   },
   "marginlyPools": [
-    {
-      "id": "lynex_weth-usdc",
-      "baseTokenId": "weth",
-      "quoteTokenId": "usdc",
-      "priceOracleId": "lynex-oracle",
-      "defaultSwapCallData": "26738689",
-      "params": {
-        "interestRate": "1%",
-        "maxLeverage": "20",
-        "swapFee": "0.1%",
-        "fee": "0.1%",
-        "mcSlippage": "1%",
-        "positionMinAmount": "1",
-        "quoteLimit": "500_000"
-      }
-    },
-    {
-      "id": "nile_weth-usdc",
-      "baseTokenId": "weth",
-      "quoteTokenId": "usdc",
-      "priceOracleId": "nile-oracle",
-      "defaultSwapCallData": "25690113",
-      "params": {
-        "interestRate": "1%",
-        "maxLeverage": "20",
-        "swapFee": "0.025%",
-        "fee": "0.025%",
-        "mcSlippage": "1%",
-        "positionMinAmount": "1",
-        "quoteLimit": "500_000"
-      }
-    },
     {
       "id": "nile_wrseth-weth",
       "baseTokenId": "wrseth",
