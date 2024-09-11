@@ -1,0 +1,84 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://ethereum-rpc.publicnode.com"
+  },
+  "connection": {
+    "assertChainId": 1,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "unibtc",
+      "address": "0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568",
+      "assertSymbol": "uniBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "wbtc",
+      "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+      "assertSymbol": "WBTC",
+      "assertDecimals": 8
+    }
+  ],
+  "prices": [],
+  "priceOracles": [
+    {
+      "id": "uniswapV3-oracle",
+      "type": "uniswapV3",
+      "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      "settings": [
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "unibtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
+    "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "unibtc-wbtc",
+      "baseTokenId": "unibtc",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "2%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "type": "general",
+          "tokenAId": "unibtc",
+          "tokenBId": "wbtc",
+          "poolAddress": "0x3a32F5040Bc4d8417e78E236eb2C48c90e003FDa"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {}
+}
