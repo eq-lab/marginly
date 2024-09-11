@@ -1,0 +1,23 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.linea.build"
+  },
+  "connection": {
+    "ethOptions": {
+      "gasLimit": 4400000
+    }
+  },
+  "keepers": {
+    "algebra": "0x0D889a355456963A416a0b8611fb76c2bB5c69D3",
+    "uniswapV3": "0x798A2FEb73E82D44b2148e37f02367CFb6ea3674"
+  },
+  "marginlyPools": [
+    {
+      "keeperType": "reinit",
+      "description": "wrsETH/WETH",
+      "address": "0xff820E43095edbC86b1FE337219d7D2b29a2Da92",
+      "minProfitQuote": "0.001",
+      "minProfitBase": "0.001"
+    }
+  ]
+}
