@@ -1,6 +1,9 @@
 import '@nomicfoundation/hardhat-toolbox';
 require('hardhat-contract-sizer');
 import 'solidity-docgen';
+import { config as dotEnvConfig } from 'dotenv';
+
+dotEnvConfig();
 
 const config = {
   solidity: {
@@ -20,6 +23,9 @@ const config = {
     artifacts: './artifacts',
   },
   networks: {
+    mainnet: {
+      url: 'https://ethereum-rpc.publicnode.com',
+    },
     polygonMumbai: {
       url: 'https://rpc.ankr.com/polygon_mumbai',
     },
@@ -35,6 +41,7 @@ const config = {
   },
   etherscan: {
     apiKey: {
+      mainnet: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
       artioTestnet: 'artio_testnet',
     },
