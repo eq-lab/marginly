@@ -96,6 +96,24 @@
       "address": "0xE2B2D203577c7cb3D043E89cCf90b5E24d19b66f",
       "assertSymbol": "PT-weETH-26DEC2024",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-gusdc-26dec2024",
+      "address": "0x2Be6Fab4d1408e7ad6AD91cE7B77FA2A7670782f",
+      "assertSymbol": "PT-gUSDC-26DEC2024",
+      "assertDecimals": 6
+    },
+    {
+      "id": "gusdc",
+      "address": "0xd3443ee1e91aF28e5FB858Fbd0D72A63bA8046E0",
+      "assertSymbol": "gUSDC",
+      "assertDecimals": 6
+    },
+    {
+      "id": "pt-usde-28nov2024",
+      "address": "0x1FA42e6730DF74fF2742704761Da41111bB7F019",
+      "assertSymbol": "PT-USDe-28NOV2024",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -124,6 +142,12 @@
           "baseTokenId": "usde",
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "gusdc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
         }
       ]
     },
@@ -145,6 +169,24 @@
           "quoteTokenId": "usdc",
           "baseTokenId": "pt-usde-29aug2024",
           "pendleMarket": "0x2dfaf9a5e4f293bceede49f2dba29aacdd88e0c4",
+          "secondaryPoolOracleId": "algebraOracle",
+          "ibTokenId": "usde",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "pt-gusdc-26dec2024",
+          "pendleMarket": "0xa877a0e177b54a37066c1786f91a1dab68f094af",
+          "secondaryPoolOracleId": "algebraOracle",
+          "ibTokenId": "gusdc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "usdc",
+          "baseTokenId": "pt-usde-28nov2024",
+          "pendleMarket": "0x281fe15fd3e08a282f52d5cf09a4d13c3709e66d",
           "secondaryPoolOracleId": "algebraOracle",
           "ibTokenId": "usde",
           "secondsAgo": "15 min",
@@ -335,6 +377,38 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "200"
       }
+    },
+    {
+      "id": "pt-gusdc-26dec2024-usdc",
+      "baseTokenId": "pt-gusdc-26dec2024",
+      "quoteTokenId": "usdc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "1",
+        "quoteLimit": "100000"
+      }
+    },
+    {
+      "id": "pt-usde-28nov2024-usdc",
+      "baseTokenId": "pt-usde-28nov2024",
+      "quoteTokenId": "usdc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "3%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "1.25%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "1",
+        "quoteLimit": "100000"
+      }
     }
   ],
   "adapters": [
@@ -356,6 +430,22 @@
           "ibTokenId": "usde",
           "slippage": "20",
           "tokenAId": "pt-usde-29aug2024",
+          "tokenBId": "usdc"
+        },
+        {
+          "pendleMarket": "0xa877a0e177b54a37066c1786f91a1dab68f094af",
+          "poolAddress": "0x1470b62eb67225f6ecdf8249293c8052f1cd2717",
+          "ibTokenId": "gusdc",
+          "slippage": "20",
+          "tokenAId": "pt-gusdc-26dec2024",
+          "tokenBId": "usdc"
+        },
+        {
+          "pendleMarket": "0x281fe15fd3e08a282f52d5cf09a4d13c3709e66d",
+          "poolAddress": "0xc23f308cf1bfa7efffb592920a619f00990f8d74",
+          "ibTokenId": "usde",
+          "slippage": "20",
+          "tokenAId": "pt-usde-28nov2024",
           "tokenBId": "usdc"
         }
       ]
