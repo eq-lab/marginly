@@ -213,6 +213,18 @@
       "address": "0x0F5f14C2ed1161640891703A4988E59A4930b79d",
       "assertSymbol": "PT-Re7LRT-26DEC2024",
       "assertDecimals": 18
+    },
+    {
+      "id": "lbtc",
+      "address": "0x8236a87084f8B84306f72007F36F2618A5634494",
+      "assertSymbol": "LBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-cornlbtc-26dec2024",
+      "address": "0x332A8ee60EdFf0a11CF3994b1b846BBC27d3DcD6",
+      "assertSymbol": "PT-cornLBTC-26DEC2024",
+      "assertDecimals": 8
     }
   ],
   "prices": [],
@@ -386,6 +398,13 @@
           "quoteTokenId": "re7lrt",
           "baseTokenId": "pt-re7lrt-26dec2024",
           "pendleMarket": "0x1c5b54c0bd500a7430ed34bd2413af17725a7840",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "lbtc",
+          "baseTokenId": "pt-cornlbtc-26dec2024",
+          "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -634,7 +653,7 @@
         "swapFee": "0.1%",
         "fee": "2%",
         "mcSlippage": "1%",
-        "positionMinAmount": "0.001",
+        "positionMinAmount": "0.00002",
         "quoteLimit": "36"
       }
     },
@@ -700,6 +719,22 @@
         "mcSlippage": "1%",
         "positionMinAmount": "0.001",
         "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "pt-cornlbtc-26dec2024-lbtc",
+      "baseTokenId": "pt-cornlbtc-26dec2024",
+      "quoteTokenId": "lbtc",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
       }
     }
   ],
@@ -833,6 +868,12 @@
           "slippage": "35",
           "tokenAId": "pt-re7lrt-26dec2024",
           "tokenBId": "re7lrt"
+        },
+        {
+          "poolAddress": "0xcae62858db831272a03768f5844cbe1b40bb381f",
+          "slippage": "35",
+          "tokenAId": "pt-cornlbtc-26dec2024",
+          "tokenBId": "lbtc"
         }
       ]
     }
