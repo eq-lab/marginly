@@ -4,10 +4,7 @@
   },
   "connection": {
     "assertChainId": 1,
-    "ethOptions": {
-      "gasLimit": 700000,
-      "gasPrice": 4000000000
-    }
+    "ethOptions": {}
   },
   "tokens": [
     {
@@ -225,6 +222,18 @@
       "address": "0x332A8ee60EdFf0a11CF3994b1b846BBC27d3DcD6",
       "assertSymbol": "PT-cornLBTC-26DEC2024",
       "assertDecimals": 8
+    },
+    {
+      "id": "unibtc",
+      "address": "0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568",
+      "assertSymbol": "uniBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-corn-unibtc-26dec2024",
+      "address": "0x2C131770eE1F943f1Fb261784C41Bb6aBE57E2C9",
+      "assertSymbol": "PT-corn-uniBTC-26DEC2024",
+      "assertDecimals": 8
     }
   ],
   "prices": [],
@@ -405,6 +414,13 @@
           "quoteTokenId": "lbtc",
           "baseTokenId": "pt-cornlbtc-26dec2024",
           "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "unibtc",
+          "baseTokenId": "pt-corn-unibtc-26dec2024",
+          "pendleMarket": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -736,6 +752,22 @@
         "positionMinAmount": "0.00002",
         "quoteLimit": "50"
       }
+    },
+    {
+      "id": "pt-corn-unibtc-26dec2024-unibtc",
+      "baseTokenId": "pt-corn-unibtc-26dec2024",
+      "quoteTokenId": "unibtc",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
     }
   ],
   "adapters": [
@@ -874,6 +906,12 @@
           "slippage": "35",
           "tokenAId": "pt-cornlbtc-26dec2024",
           "tokenBId": "lbtc"
+        },
+        {
+          "poolAddress": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
+          "slippage": "35",
+          "tokenAId": "pt-corn-unibtc-26dec2024",
+          "tokenBId": "unibtc"
         }
       ]
     }
