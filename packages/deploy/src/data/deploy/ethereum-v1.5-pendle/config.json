@@ -234,6 +234,30 @@
       "address": "0x2C131770eE1F943f1Fb261784C41Bb6aBE57E2C9",
       "assertSymbol": "PT-corn-uniBTC-26DEC2024",
       "assertDecimals": 8
+    },
+    {
+      "id": "wbtc",
+      "address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "assertSymbol": "WBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-lbtc-27mar2025",
+      "address": "0xEc5a52C685CC3Ad79a6a347aBACe330d69e0b1eD",
+      "assertSymbol": "PT-LBTC-27MAR2025",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pumpbtc",
+      "address": "0xF469fBD2abcd6B9de8E169d128226C0Fc90a012e",
+      "assertSymbol": "pumpBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-corn-pumpbtc-26dec2024",
+      "address": "0xa76f0C6e5f286bFF151b891d2A0245077F1Ad74c",
+      "assertSymbol": "PT-corn-pumpBTC-26DEC2024",
+      "assertDecimals": 8
     }
   ],
   "prices": [],
@@ -256,6 +280,34 @@
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.01%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "lbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pumpbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "unibtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "ebtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
         }
       ]
     },
@@ -288,6 +340,51 @@
           "pendleMarket": "0x19588f29f9402bb508007feadd415c875ee3f19f",
           "secondaryPoolOracleId": "uniswapV3Oracle",
           "ibTokenId": "usde",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-lbtc-27mar2025",
+          "pendleMarket": "0x70b70ac0445c3ef04e314dfda6caafd825428221",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "lbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-corn-pumpbtc-26dec2024",
+          "pendleMarket": "0xf8208fb52ba80075af09840a683143c22dc5b4dd",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "pumpbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-corn-unibtc-26dec2024",
+          "pendleMarket": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "unibtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-ebtc-26dec2024",
+          "pendleMarket": "0x36d3ca43ae7939645c306e26603ce16e39a89192",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "ebtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-cornlbtc-26dec2024",
+          "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "lbtc",
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -768,6 +865,86 @@
         "positionMinAmount": "0.00002",
         "quoteLimit": "50"
       }
+    },
+    {
+      "id": "pt-lbtc-27mar2025-wbtc",
+      "baseTokenId": "pt-lbtc-27mar2025",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "pt-corn-pumpbtc-26dec2024-wbtc",
+      "baseTokenId": "pt-corn-pumpbtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
+    },
+    {
+      "id": "pt-corn-unibtc-26dec2024-wbtc",
+      "baseTokenId": "pt-corn-unibtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "pt-ebtc-26dec2024-wbtc",
+      "baseTokenId": "pt-ebtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
+    },
+    {
+      "id": "pt-cornlbtc-26dec2024-wbtc",
+      "baseTokenId": "pt-cornlbtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
     }
   ],
   "adapters": [
@@ -798,6 +975,46 @@
           "slippage": "20",
           "tokenAId": "pt-usde-25jul2024",
           "tokenBId": "usdt"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-lbtc-27mar2025",
+          "ibTokenId": "lbtc",
+          "pendleMarket": "0x70b70ac0445c3ef04e314dfda6caafd825428221",
+          "poolAddress": "0x87428a53e14d24ab19c6ca4939b4df93b8996ca9",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-corn-pumpbtc-26dec2024",
+          "ibTokenId": "pumpbtc",
+          "pendleMarket": "0xf8208fb52ba80075af09840a683143c22dc5b4dd",
+          "poolAddress": "0x6f5ec7c65c2744a963064f6d49df0f4eea7d7d90",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-corn-unibtc-26dec2024",
+          "pendleMarket": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
+          "ibTokenId": "unibtc",
+          "poolAddress": "0x3a32f5040bc4d8417e78e236eb2c48c90e003fda",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-ebtc-26dec2024",
+          "pendleMarket": "0x36d3ca43ae7939645c306e26603ce16e39a89192",
+          "ibTokenId": "ebtc",
+          "poolAddress": "0xef9b4fddd861aa2f00ee039c323b7fabd7afe239",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-cornlbtc-26dec2024",
+          "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
+          "ibTokenId": "lbtc",
+          "poolAddress": "0x87428a53e14d24ab19c6ca4939b4df93b8996ca9",
+          "slippage": "20"
         }
       ]
     },
