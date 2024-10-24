@@ -301,13 +301,6 @@
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.05%"
-        },
-        {
-          "quoteTokenId": "wbtc",
-          "baseTokenId": "ebtc",
-          "secondsAgo": "15 min",
-          "secondsAgoLiquidation": "5 sec",
-          "uniswapFee": "0.05%"
         }
       ]
     },
@@ -866,30 +859,15 @@
         "quoteLimit": "50"
       }
     },
+    
     {
-      "id": "pt-lbtc-27mar2025-wbtc",
-      "baseTokenId": "pt-lbtc-27mar2025",
+      "id": "pt-cornlbtc-26dec2024-wbtc",
+      "baseTokenId": "pt-cornlbtc-26dec2024",
       "quoteTokenId": "wbtc",
       "priceOracleId": "pendleOracle",
       "defaultSwapCallData": "18350081",
       "params": {
-        "interestRate": "1%",
-        "maxLeverage": "20",
-        "swapFee": "0%",
-        "fee": "0%",
-        "mcSlippage": "1%",
-        "positionMinAmount": "0.00002",
-        "quoteLimit": "100"
-      }
-    },
-    {
-      "id": "pt-corn-pumpbtc-26dec2024-wbtc",
-      "baseTokenId": "pt-corn-pumpbtc-26dec2024",
-      "quoteTokenId": "wbtc",
-      "priceOracleId": "pendleMarketOracle",
-      "defaultSwapCallData": "18350081",
-      "params": {
-        "interestRate": "1%",
+        "interestRate": "0.4%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
@@ -902,10 +880,10 @@
       "id": "pt-corn-unibtc-26dec2024-wbtc",
       "baseTokenId": "pt-corn-unibtc-26dec2024",
       "quoteTokenId": "wbtc",
-      "priceOracleId": "pendleMarketOracle",
+      "priceOracleId": "pendleOracle",
       "defaultSwapCallData": "18350081",
       "params": {
-        "interestRate": "1%",
+        "interestRate": "0.4%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
@@ -915,13 +893,13 @@
       }
     },
     {
-      "id": "pt-ebtc-26dec2024-wbtc",
-      "baseTokenId": "pt-ebtc-26dec2024",
+      "id": "pt-corn-pumpbtc-26dec2024-wbtc",
+      "baseTokenId": "pt-corn-pumpbtc-26dec2024",
       "quoteTokenId": "wbtc",
-      "priceOracleId": "pendleMarketOracle",
+      "priceOracleId": "pendleOracle",
       "defaultSwapCallData": "18350081",
       "params": {
-        "interestRate": "1%",
+        "interestRate": "0.4%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
@@ -931,19 +909,19 @@
       }
     },
     {
-      "id": "pt-cornlbtc-26dec2024-wbtc",
-      "baseTokenId": "pt-cornlbtc-26dec2024",
+      "id": "pt-lbtc-27mar2025-wbtc",
+      "baseTokenId": "pt-lbtc-27mar2025",
       "quoteTokenId": "wbtc",
-      "priceOracleId": "pendleMarketOracle",
+      "priceOracleId": "pendleOracle",
       "defaultSwapCallData": "18350081",
       "params": {
-        "interestRate": "1%",
+        "interestRate": "0.4%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
         "mcSlippage": "1%",
         "positionMinAmount": "0.00002",
-        "quoteLimit": "50"
+        "quoteLimit": "100"
       }
     }
   ],
@@ -998,14 +976,6 @@
           "pendleMarket": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
           "ibTokenId": "unibtc",
           "poolAddress": "0x3a32f5040bc4d8417e78e236eb2c48c90e003fda",
-          "slippage": "20"
-        },
-        {
-          "tokenBId": "wbtc",
-          "tokenAId": "pt-ebtc-26dec2024",
-          "pendleMarket": "0x36d3ca43ae7939645c306e26603ce16e39a89192",
-          "ibTokenId": "ebtc",
-          "poolAddress": "0xef9b4fddd861aa2f00ee039c323b7fabd7afe239",
           "slippage": "20"
         },
         {
@@ -1065,12 +1035,6 @@
           "tokenBId": "pzeth"
         },
         {
-          "poolAddress": "0x6010676bc2534652ad1ef5fa8073dcf9ad7ebfbe",
-          "slippage": "35",
-          "tokenAId": "pt-ageth-26dec2024",
-          "tokenBId": "ageth"
-        },
-        {
           "poolAddress": "0xb9e8bb1105382b018c6adfd95fd9272542cc1776",
           "slippage": "35",
           "tokenAId": "pt-amphrlrt-26sep2024",
@@ -1099,12 +1063,6 @@
           "slippage": "35",
           "tokenAId": "pt-weeths-26dec2024",
           "tokenBId": "weeths"
-        },
-        {
-          "poolAddress": "0x676106576004ef54b4bd39ce8d2b34069f86eb8f",
-          "slippage": "35",
-          "tokenAId": "pt-pufeth-26dec2024",
-          "tokenBId": "pufeth"
         },
         {
           "poolAddress": "0x1c48cd1179aa0c503a48fcd5852559942492e31b",

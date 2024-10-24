@@ -127,6 +127,22 @@
     "marginlyPool_pt-corn-unibtc-26dec2024-unibtc": {
       "address": "0x49755E70285dE0c624e0750543046131CB7163de",
       "txHash": "0x515ded0fcf6befac2b0a1efe652017c41f4ec545225ca89c572d40eee9578c24"
+    },
+    "marginlyPool_pt-cornlbtc-26dec2024-wbtc": {
+      "address": "0x3D6f0097FA10f2e3855377daF2139dBeD66Fb343",
+      "txHash": "0x2b99de0b93fca0dbc64a6ce3b3332d86e0c2f3bc2bee2f0bffc451d165114d5e"
+    },
+    "marginlyPool_pt-corn-unibtc-26dec2024-wbtc": {
+      "address": "0x056888DD4B31cA090E2FC7ca87AF62B588dD8207",
+      "txHash": "0x64bc236bd84187b15f3a19e265908ffde719e2cce136bf3051b447a993604232"
+    },
+    "marginlyPool_pt-corn-pumpbtc-26dec2024-wbtc": {
+      "address": "0xEe368c5014D218795F76DcDA58e8FD24D04E19Ff",
+      "txHash": "0x794c912838fe5357eec47b91f6b5b5eb8846e54cc00df01318f28e297d0e6fd4"
+    },
+    "marginlyPool_pt-lbtc-27mar2025-wbtc": {
+      "address": "0xB95b9f7763de009a4E6c739855faCDfA960eB893",
+      "txHash": "0x2af8edad5af15bd030d7883a4cc4ed233ef9dd873ca0c06bdda4145152395048"
     }
   }
 }
