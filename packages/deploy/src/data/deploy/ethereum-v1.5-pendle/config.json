@@ -301,11 +301,33 @@
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pufeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "weeths",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.3%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "rseth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
         }
       ]
     },
     {
       "id": "pendleOracle",
+      "description": "Pendle + UniswapV3",
       "type": "pendle",
       "pendlePtLpOracle": "0x66a1096C6366b2529274dF4f5D8247827fe4CEA8",
       "settings": [
@@ -380,6 +402,33 @@
           "ibTokenId": "lbtc",
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-pufeth-26dec2024",
+          "pendleMarket": "0x676106576004ef54b4bd39ce8d2b34069f86eb8f",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "pufeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-weeths-26dec2024",
+          "pendleMarket": "0x40789e8536c668c6a249af61c81b9dfac3eb8f32",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "weeths",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-rseth-26dec2024",
+          "pendleMarket": "0x84a50177a84dad50fdbf665dfbfb39914b52dff2",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "rseth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
         }
       ]
     },
@@ -451,13 +500,7 @@
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         },
-        {
-          "quoteTokenId": "ageth",
-          "baseTokenId": "pt-ageth-26dec2024",
-          "pendleMarket": "0x6010676bc2534652ad1ef5fa8073dcf9ad7ebfbe",
-          "secondsAgo": "30 min",
-          "secondsAgoLiquidation": "5 sec"
-        },
+
         {
           "quoteTokenId": "amphrlrt",
           "baseTokenId": "pt-amphrlrt-26dec2024",
@@ -859,7 +902,7 @@
         "quoteLimit": "50"
       }
     },
-    
+
     {
       "id": "pt-cornlbtc-26dec2024-wbtc",
       "baseTokenId": "pt-cornlbtc-26dec2024",
@@ -923,6 +966,54 @@
         "positionMinAmount": "0.00002",
         "quoteLimit": "100"
       }
+    },
+    {
+      "id": "pt-pufeth-26dec2024-weth",
+      "baseTokenId": "pt-pufeth-26dec2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "400"
+      }
+    },
+    {
+      "id": "pt-weeths-26dec2024-weth",
+      "baseTokenId": "pt-weeths-26dec2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "2000"
+      }
+    },
+    {
+      "id": "pt-rseth-26dec2024-weth",
+      "baseTokenId": "pt-rseth-26dec2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "400"
+      }
     }
   ],
   "adapters": [
@@ -984,6 +1075,30 @@
           "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
           "ibTokenId": "lbtc",
           "poolAddress": "0x87428a53e14d24ab19c6ca4939b4df93b8996ca9",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "weth",
+          "tokenAId": "pt-pufeth-26dec2024",
+          "pendleMarket": "0x676106576004ef54b4bd39ce8d2b34069f86eb8f",
+          "ibTokenId": "pufeth",
+          "poolAddress": "0xbf7d01d6cddecb72c2369d1b421967098b10def7",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "weth",
+          "tokenAId": "pt-weeths-26dec2024",
+          "pendleMarket": "0x40789e8536c668c6a249af61c81b9dfac3eb8f32",
+          "ibTokenId": "weeths",
+          "poolAddress": "0x174eff1363c4b446f3425315bd6c12f305823d6a",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "weth",
+          "tokenAId": "pt-rseth-26dec2024",
+          "pendleMarket": "0x84a50177a84dad50fdbf665dfbfb39914b52dff2",
+          "ibTokenId": "rseth",
+          "poolAddress": "0x059615ebf32c946aaab3d44491f78e4f8e97e1d3",
           "slippage": "20"
         }
       ]

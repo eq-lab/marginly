@@ -61,6 +61,10 @@
       "address": "0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40"
     },
     {
+      "id": "pt-pufeth-26dec2024-weth",
+      "address": "0xa692B4fb38f8e9aEA229DA05CC2FC9d748218CD3"
+    },
+    {
       "id": "pt-pzeth-26sep2024-pzeth",
       "address": "0x51f95AAF94834b878eec18A812D840910370887f"
     },
@@ -71,6 +75,10 @@
     {
       "id": "pt-rseth-26dec2024-rseth",
       "address": "0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173"
+    },
+    {
+      "id": "pt-rseth-26dec2024-weth",
+      "address": "0x49D7712f65B291E4574726d6e263a4E6Af2830F0"
     },
     {
       "id": "pt-rseth-26sep2024-rseth",
@@ -99,6 +107,10 @@
     {
       "id": "pt-weeths-26dec2024-weeths",
       "address": "0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf"
+    },
+    {
+      "id": "pt-weeths-26dec2024-weth",
+      "address": "0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96"
     }
   ],
   "aaveKeeperDeployResult": {
