@@ -1,0 +1,56 @@
+{
+  "contracts": {
+    "UniswapV3Adapter_0": {
+      "address": "0x31647c167b99b2078aEE1B6d0508b857bd73C1d9",
+      "txHash": "0x1cf81c790df1515c457f2ce7c691735dfd8ed01bbbe9c9ad662010eee8a33c66"
+    },
+    "MarginlyRouter": {
+      "address": "0x47394fa722Af686fD9263465C7120F012680Cd63",
+      "txHash": "0x4c961daf92add8544b7a537fbdcfe19b2f241d5c8f4d78f45c05e7c0ec4782f4"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x96244d564d5f2661C9A7B653E857246A8311EecB",
+      "txHash": "0x69f0a640c92469885d282d5a8347b5c714ecc35a34802d8eb96ea5d727681a65"
+    },
+    "marginlyFactory": {
+      "address": "0xc1aC50D46783387F4236a8364435b5CCEaDd9fe2",
+      "txHash": "0x83b1a3cc22bea45921c414d6b1cc501b9bf4305599be0e795e7068f8fb5ba747"
+    },
+    "priceOracle_uniswapV3-oracle": {
+      "address": "0xCACd459F1ecA25B8AA8D4808819e843e844Ab549",
+      "txHash": "0xf476e3a4e0d86a366eb0780aa5735c6a4b7d4abfd9d0e7f93877dcf531049a9b"
+    },
+    "marginlyPool_unibtc-wbtc": {
+      "address": "0x8A171afA8Db2a01E8b280c12db0F5bc2EEEcdc10",
+      "txHash": "0xdfdaa1ea54a5ef79d21fdc255c1010da5c715b778b40ed9f5af5a3878a687c91"
+    },
+    "priceOracle_curve-oracle": {
+      "address": "0xAedF248c09697B823cb693CD2F912C143E96859B",
+      "txHash": "0xbe551ed82831a6fa2998d425e0f2f23443d5a336a9457c24d99dba60665db53e"
+    },
+    "CurveAdapter_18": {
+      "address": "0x213263E9d6f530e834088F1Cbd579C5D80A4550c",
+      "txHash": "0xc1e0e7b9384138ee696cdf6ae45c77f5393d2ae160cef9db02a50ffd13b01d77"
+    },
+    "marginlyPool_ezeth-weth": {
+      "address": "0xd136839D9978CAa3780a5D7a19a0322f3618A49D",
+      "txHash": "0xc1f8500f04cc31d7961e289840fcdee9ac6a4f1beee3b5bf51b3eca0802696ba"
+    },
+    "marginlyPool_weeth-weth": {
+      "address": "0x4819C556E87aDf28dB19e850480886F62D37f46A",
+      "txHash": "0xb75671da6cf6258506da5e773810ca2e7eeccfc8e110e3457277ec1d837090b4"
+    },
+    "marginlyPool_rseth-weth": {
+      "address": "0xef2424e938E48F92b77AB193a5AA669D90B1ebc1",
+      "txHash": "0xb9a137704f8a7152226084a52c592f98771484fd88df6d715222563a8e15907d"
+    },
+    "marginlyPool_unieth-weth": {
+      "address": "0x4727835Ee3AdBb9b69eebc13b5d4e36943e2eEC5",
+      "txHash": "0xbde5d51019af24abce786e6cebe443ee16bab232e0638a56586649e659e906b7"
+    },
+    "marginlyPool_pufeth-weth": {
+      "address": "0x51b5D4a7c58bE1d131D7BD027B5713e55efa0606",
+      "txHash": "0x54d273cbae9f28c72a92f8c46018585af14f44a7fb76116d3fb19a645242ff53"
+    }
+  }
+}

@@ -12,6 +12,17 @@ export class MarginlyRouterDeployer extends BaseDeployer {
     super(signer, ethArgs, stateStore, logger);
   }
 
+  private async updateAdapterSettings(args: any[]): Promise<void> {
+    //TODO: check adapter for pools and update if needed
+
+    console.log('Update adapter pools manually:');
+    for (const arg of args) {
+      console.log(arg);
+    }
+
+    console.log('\n\n');
+  }
+
   public async deployMarginlyAdapter(
     tokenRepository: ITokenRepository,
     dexId: BigNumber,
@@ -52,6 +63,7 @@ export class MarginlyRouterDeployer extends BaseDeployer {
       }
     }
 
+    await this.updateAdapterSettings(args);
     return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);
   }
 

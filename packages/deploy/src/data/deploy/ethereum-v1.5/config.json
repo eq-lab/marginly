@@ -24,6 +24,36 @@
       "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
       "assertSymbol": "WBTC",
       "assertDecimals": 8
+    },
+    {
+      "id": "ezeth",
+      "address": "0xbf5495Efe5DB9ce00f80364C8B423567e58d2110",
+      "assertSymbol": "ezETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "rseth",
+      "address": "0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7",
+      "assertSymbol": "rsETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "weeth",
+      "address": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee",
+      "assertSymbol": "weETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "unieth",
+      "address": "0xF1376bceF0f78459C0Ed0ba5ddce976F1ddF51F4",
+      "assertSymbol": "uniETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pufeth",
+      "address": "0xD9A442856C234a39a81a089C06451EBAa4306a72",
+      "assertSymbol": "pufETH",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -39,6 +69,45 @@
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "ezeth",
+          "uniswapFee": "0.01%",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "rseth",
+          "uniswapFee": "0.05%",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "weeth",
+          "uniswapFee": "0.01%",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pufeth",
+          "uniswapFee": "0.05%",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
+    },
+    {
+      "id": "curve-oracle",
+      "type": "curve",
+      "settings": [
+        {
+          "pool": "0x0f2f4d68308db60d36268a602ef273421a227021",
+          "quoteTokenId": "weth",
+          "baseTokenId": "unieth"
         }
       ]
     }
@@ -64,18 +133,136 @@
         "positionMinAmount": "0.00002",
         "quoteLimit": "50"
       }
+    },
+    {
+      "id": "ezeth-weth",
+      "baseTokenId": "ezeth",
+      "quoteTokenId": "weth",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "200"
+      }
+    },
+    {
+      "id": "weeth-weth",
+      "baseTokenId": "weeth",
+      "quoteTokenId": "weth",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "2000"
+      }
+    },
+    {
+      "id": "rseth-weth",
+      "baseTokenId": "rseth",
+      "quoteTokenId": "weth",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "2000"
+      }
+    },
+    {
+      "id": "unieth-weth",
+      "baseTokenId": "unieth",
+      "quoteTokenId": "weth",
+      "priceOracleId": "curve-oracle",
+      "defaultSwapCallData": "19398657",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "600"
+      }
+    },
+    {
+      "id": "pufeth-weth",
+      "baseTokenId": "pufeth",
+      "quoteTokenId": "weth",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "1%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "2%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "600"
+      }
     }
   ],
   "adapters": [
     {
       "dexId": 0,
       "adapterName": "UniswapV3Adapter",
+      "pools1": [
+        {
+          "type": "general",
+          "tokenAId": "weth",
+          "tokenBId": "pufeth",
+          "poolAddress": "0xbf7d01d6cddecb72c2369d1b421967098b10def7"
+        }
+      ],
       "pools": [
         {
           "type": "general",
           "tokenAId": "unibtc",
           "tokenBId": "wbtc",
           "poolAddress": "0x3a32F5040Bc4d8417e78E236eb2C48c90e003FDa"
+        },
+        {
+          "type": "general",
+          "tokenAId": "weth",
+          "tokenBId": "ezeth",
+          "poolAddress": "0xbe80225f09645f172b079394312220637c440a63"
+        },
+        {
+          "type": "general",
+          "tokenAId": "weth",
+          "tokenBId": "rseth",
+          "poolAddress": "0x059615ebf32c946aaab3d44491f78e4f8e97e1d3"
+        },
+        {
+          "type": "general",
+          "tokenAId": "weth",
+          "tokenBId": "weeth",
+          "poolAddress": "0x202a6012894ae5c288ea824cbc8a9bfb26a49b93"
+        }
+      ]
+    },
+    {
+      "dexId": 18,
+      "adapterName": "CurveAdapter",
+      "pools": [
+        {
+          "type": "general",
+          "tokenAId": "weth",
+          "tokenBId": "unieth",
+          "poolAddress": "0x0f2f4d68308db60d36268a602ef273421a227021"
         }
       ]
     }
