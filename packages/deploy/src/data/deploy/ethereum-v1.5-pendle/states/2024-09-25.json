@@ -143,6 +143,18 @@
     "marginlyPool_pt-lbtc-27mar2025-wbtc": {
       "address": "0xB95b9f7763de009a4E6c739855faCDfA960eB893",
       "txHash": "0x2af8edad5af15bd030d7883a4cc4ed233ef9dd873ca0c06bdda4145152395048"
+    },
+    "marginlyPool_pt-pufeth-26dec2024-weth": {
+      "address": "0xa692B4fb38f8e9aEA229DA05CC2FC9d748218CD3",
+      "txHash": "0x7f7174d9b2f759fb5d3ad6647e4a5916cfdea25bdc2660a5dbfa0acd7d8e0d24"
+    },
+    "marginlyPool_pt-weeths-26dec2024-weth": {
+      "address": "0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96",
+      "txHash": "0x8dcef6fc387c95c5e6b1dd2f9d201f205d0549054fcc6754d9846390f9058e9b"
+    },
+    "marginlyPool_pt-rseth-26dec2024-weth": {
+      "address": "0x49D7712f65B291E4574726d6e263a4E6Af2830F0",
+      "txHash": "0x84fd8cfd6bfb05ae909242b50e70cdd11659ea028ce547bc3c6bde62eb04a2dd"
     }
   }
 }

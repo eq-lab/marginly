@@ -74,13 +74,14 @@ export class PriceOracleDeployer extends BaseDeployer {
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
 
-        await priceOracle.setOptions(
+        const tx = await priceOracle.setOptions(
           quoteToken.toString(),
           baseToken.toString(),
           secondsAgo,
           secondsAgoLiquidation,
           uniswapFee
         );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);
@@ -131,7 +132,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
-        await priceOracle.setOptions(
+        const tx = await priceOracle.setOptions(
           quoteToken.toString(),
           baseToken.toString(),
           secondsAgo,
@@ -140,6 +141,7 @@ export class PriceOracleDeployer extends BaseDeployer {
           quoteTokenPairFee,
           intermediateToken.toString()
         );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);
@@ -178,17 +180,24 @@ export class PriceOracleDeployer extends BaseDeployer {
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
         const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
 
-        await priceOracle.setPair(
+        let tx = await priceOracle.setPair(
           intermediateToken.toString(),
           quoteToken.toString(),
           setting.quoteAggregatorV3.toString()
         );
-        await priceOracle.setPair(
+        await tx.wait();
+        tx = await priceOracle.setPair(
           intermediateToken.toString(),
           baseToken.toString(),
           setting.baseAggregatorV3.toString()
         );
-        await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
+        await tx.wait();
+        tx = await priceOracle.setCompositePair(
+          quoteToken.toString(),
+          intermediateToken.toString(),
+          baseToken.toString()
+        );
+        await tx.wait();
       } else {
         throw new Error('Unknown pair type');
       }
@@ -221,17 +230,24 @@ export class PriceOracleDeployer extends BaseDeployer {
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
         const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
 
-        await priceOracle.setPair(
+        let tx = await priceOracle.setPair(
           intermediateToken.toString(),
           quoteToken.toString(),
           setting.quotePythPriceId.toString()
         );
-        await priceOracle.setPair(
+        await tx.wait();
+        tx = await priceOracle.setPair(
           intermediateToken.toString(),
           baseToken.toString(),
           setting.basePythPriceId.toString()
         );
-        await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
+        await tx.wait();
+        tx = await priceOracle.setCompositePair(
+          quoteToken.toString(),
+          intermediateToken.toString(),
+          baseToken.toString()
+        );
+        await tx.wait();
       } else {
         throw new Error('Unknown pair type');
       }
@@ -267,7 +283,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       if (currentParams.secondsAgo != 0) continue; // oracle already initialized
 
-      await priceOracle.setPair(
+      const tx = await priceOracle.setPair(
         quoteToken.toString(),
         baseToken.toString(),
         setting.pendleMarket.toString(),
@@ -276,6 +292,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         setting.secondsAgo.toSeconds(),
         setting.secondsAgoLiquidation.toSeconds()
       );
+      await tx.wait();
     }
 
     return deploymentResult;

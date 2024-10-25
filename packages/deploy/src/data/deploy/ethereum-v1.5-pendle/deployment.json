@@ -21,12 +21,24 @@
       "address": "0x5e321551bA80b01051B24FeF2e44DA29313fC1ef"
     },
     {
+      "id": "pt-corn-pumpbtc-26dec2024-wbtc",
+      "address": "0xEe368c5014D218795F76DcDA58e8FD24D04E19Ff"
+    },
+    {
       "id": "pt-corn-unibtc-26dec2024-unibtc",
       "address": "0x49755E70285dE0c624e0750543046131CB7163de"
     },
     {
+      "id": "pt-corn-unibtc-26dec2024-wbtc",
+      "address": "0x056888DD4B31cA090E2FC7ca87AF62B588dD8207"
+    },
+    {
       "id": "pt-cornlbtc-26dec2024-lbtc",
       "address": "0x32d850609FDc950bF6E23640d1EB0bbd60a5149c"
+    },
+    {
+      "id": "pt-cornlbtc-26dec2024-wbtc",
+      "address": "0x3D6f0097FA10f2e3855377daF2139dBeD66Fb343"
     },
     {
       "id": "pt-ebtc-26dec2024-ebtc",
@@ -41,8 +53,16 @@
       "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975"
     },
     {
+      "id": "pt-lbtc-27mar2025-wbtc",
+      "address": "0xB95b9f7763de009a4E6c739855faCDfA960eB893"
+    },
+    {
       "id": "pt-pufeth-26dec2024-pufeth",
       "address": "0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40"
+    },
+    {
+      "id": "pt-pufeth-26dec2024-weth",
+      "address": "0xa692B4fb38f8e9aEA229DA05CC2FC9d748218CD3"
     },
     {
       "id": "pt-pzeth-26sep2024-pzeth",
@@ -55,6 +75,10 @@
     {
       "id": "pt-rseth-26dec2024-rseth",
       "address": "0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173"
+    },
+    {
+      "id": "pt-rseth-26dec2024-weth",
+      "address": "0x49D7712f65B291E4574726d6e263a4E6Af2830F0"
     },
     {
       "id": "pt-rseth-26sep2024-rseth",
@@ -83,6 +107,10 @@
     {
       "id": "pt-weeths-26dec2024-weeths",
       "address": "0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf"
+    },
+    {
+      "id": "pt-weeths-26dec2024-weth",
+      "address": "0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96"
     }
   ],
   "aaveKeeperDeployResult": {

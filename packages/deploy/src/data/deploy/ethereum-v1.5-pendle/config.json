@@ -234,6 +234,30 @@
       "address": "0x2C131770eE1F943f1Fb261784C41Bb6aBE57E2C9",
       "assertSymbol": "PT-corn-uniBTC-26DEC2024",
       "assertDecimals": 8
+    },
+    {
+      "id": "wbtc",
+      "address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "assertSymbol": "WBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-lbtc-27mar2025",
+      "address": "0xEc5a52C685CC3Ad79a6a347aBACe330d69e0b1eD",
+      "assertSymbol": "PT-LBTC-27MAR2025",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pumpbtc",
+      "address": "0xF469fBD2abcd6B9de8E169d128226C0Fc90a012e",
+      "assertSymbol": "pumpBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-corn-pumpbtc-26dec2024",
+      "address": "0xa76f0C6e5f286bFF151b891d2A0245077F1Ad74c",
+      "assertSymbol": "PT-corn-pumpBTC-26DEC2024",
+      "assertDecimals": 8
     }
   ],
   "prices": [],
@@ -256,11 +280,54 @@
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec",
           "uniswapFee": "0.01%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "lbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pumpbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "unibtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pufeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "weeths",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.3%"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "rseth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.05%"
         }
       ]
     },
     {
       "id": "pendleOracle",
+      "description": "Pendle + UniswapV3",
       "type": "pendle",
       "pendlePtLpOracle": "0x66a1096C6366b2529274dF4f5D8247827fe4CEA8",
       "settings": [
@@ -288,6 +355,78 @@
           "pendleMarket": "0x19588f29f9402bb508007feadd415c875ee3f19f",
           "secondaryPoolOracleId": "uniswapV3Oracle",
           "ibTokenId": "usde",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-lbtc-27mar2025",
+          "pendleMarket": "0x70b70ac0445c3ef04e314dfda6caafd825428221",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "lbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-corn-pumpbtc-26dec2024",
+          "pendleMarket": "0xf8208fb52ba80075af09840a683143c22dc5b4dd",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "pumpbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-corn-unibtc-26dec2024",
+          "pendleMarket": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "unibtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-ebtc-26dec2024",
+          "pendleMarket": "0x36d3ca43ae7939645c306e26603ce16e39a89192",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "ebtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wbtc",
+          "baseTokenId": "pt-cornlbtc-26dec2024",
+          "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "lbtc",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-pufeth-26dec2024",
+          "pendleMarket": "0x676106576004ef54b4bd39ce8d2b34069f86eb8f",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "pufeth",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-weeths-26dec2024",
+          "pendleMarket": "0x40789e8536c668c6a249af61c81b9dfac3eb8f32",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "weeths",
+          "secondsAgo": "15 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "pt-rseth-26dec2024",
+          "pendleMarket": "0x84a50177a84dad50fdbf665dfbfb39914b52dff2",
+          "secondaryPoolOracleId": "uniswapV3Oracle",
+          "ibTokenId": "rseth",
           "secondsAgo": "15 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -361,13 +500,7 @@
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         },
-        {
-          "quoteTokenId": "ageth",
-          "baseTokenId": "pt-ageth-26dec2024",
-          "pendleMarket": "0x6010676bc2534652ad1ef5fa8073dcf9ad7ebfbe",
-          "secondsAgo": "30 min",
-          "secondsAgoLiquidation": "5 sec"
-        },
+
         {
           "quoteTokenId": "amphrlrt",
           "baseTokenId": "pt-amphrlrt-26dec2024",
@@ -768,6 +901,119 @@
         "positionMinAmount": "0.00002",
         "quoteLimit": "50"
       }
+    },
+
+    {
+      "id": "pt-cornlbtc-26dec2024-wbtc",
+      "baseTokenId": "pt-cornlbtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
+    },
+    {
+      "id": "pt-corn-unibtc-26dec2024-wbtc",
+      "baseTokenId": "pt-corn-unibtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "pt-corn-pumpbtc-26dec2024-wbtc",
+      "baseTokenId": "pt-corn-pumpbtc-26dec2024",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
+      }
+    },
+    {
+      "id": "pt-lbtc-27mar2025-wbtc",
+      "baseTokenId": "pt-lbtc-27mar2025",
+      "quoteTokenId": "wbtc",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "100"
+      }
+    },
+    {
+      "id": "pt-pufeth-26dec2024-weth",
+      "baseTokenId": "pt-pufeth-26dec2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "400"
+      }
+    },
+    {
+      "id": "pt-weeths-26dec2024-weth",
+      "baseTokenId": "pt-weeths-26dec2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "2000"
+      }
+    },
+    {
+      "id": "pt-rseth-26dec2024-weth",
+      "baseTokenId": "pt-rseth-26dec2024",
+      "quoteTokenId": "weth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "18350081",
+      "params": {
+        "interestRate": "0.3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "400"
+      }
     }
   ],
   "adapters": [
@@ -798,6 +1044,62 @@
           "slippage": "20",
           "tokenAId": "pt-usde-25jul2024",
           "tokenBId": "usdt"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-lbtc-27mar2025",
+          "ibTokenId": "lbtc",
+          "pendleMarket": "0x70b70ac0445c3ef04e314dfda6caafd825428221",
+          "poolAddress": "0x87428a53e14d24ab19c6ca4939b4df93b8996ca9",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-corn-pumpbtc-26dec2024",
+          "ibTokenId": "pumpbtc",
+          "pendleMarket": "0xf8208fb52ba80075af09840a683143c22dc5b4dd",
+          "poolAddress": "0x6f5ec7c65c2744a963064f6d49df0f4eea7d7d90",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-corn-unibtc-26dec2024",
+          "pendleMarket": "0x40deae18c3ce932fdd5df1f44b54d8cf3902787b",
+          "ibTokenId": "unibtc",
+          "poolAddress": "0x3a32f5040bc4d8417e78e236eb2c48c90e003fda",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "wbtc",
+          "tokenAId": "pt-cornlbtc-26dec2024",
+          "pendleMarket": "0xcae62858db831272a03768f5844cbe1b40bb381f",
+          "ibTokenId": "lbtc",
+          "poolAddress": "0x87428a53e14d24ab19c6ca4939b4df93b8996ca9",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "weth",
+          "tokenAId": "pt-pufeth-26dec2024",
+          "pendleMarket": "0x676106576004ef54b4bd39ce8d2b34069f86eb8f",
+          "ibTokenId": "pufeth",
+          "poolAddress": "0xbf7d01d6cddecb72c2369d1b421967098b10def7",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "weth",
+          "tokenAId": "pt-weeths-26dec2024",
+          "pendleMarket": "0x40789e8536c668c6a249af61c81b9dfac3eb8f32",
+          "ibTokenId": "weeths",
+          "poolAddress": "0x174eff1363c4b446f3425315bd6c12f305823d6a",
+          "slippage": "20"
+        },
+        {
+          "tokenBId": "weth",
+          "tokenAId": "pt-rseth-26dec2024",
+          "pendleMarket": "0x84a50177a84dad50fdbf665dfbfb39914b52dff2",
+          "ibTokenId": "rseth",
+          "poolAddress": "0x059615ebf32c946aaab3d44491f78e4f8e97e1d3",
+          "slippage": "20"
         }
       ]
     },
@@ -848,12 +1150,6 @@
           "tokenBId": "pzeth"
         },
         {
-          "poolAddress": "0x6010676bc2534652ad1ef5fa8073dcf9ad7ebfbe",
-          "slippage": "35",
-          "tokenAId": "pt-ageth-26dec2024",
-          "tokenBId": "ageth"
-        },
-        {
           "poolAddress": "0xb9e8bb1105382b018c6adfd95fd9272542cc1776",
           "slippage": "35",
           "tokenAId": "pt-amphrlrt-26sep2024",
@@ -882,12 +1178,6 @@
           "slippage": "35",
           "tokenAId": "pt-weeths-26dec2024",
           "tokenBId": "weeths"
-        },
-        {
-          "poolAddress": "0x676106576004ef54b4bd39ce8d2b34069f86eb8f",
-          "slippage": "35",
-          "tokenAId": "pt-pufeth-26dec2024",
-          "tokenBId": "pufeth"
         },
         {
           "poolAddress": "0x1c48cd1179aa0c503a48fcd5852559942492e31b",
