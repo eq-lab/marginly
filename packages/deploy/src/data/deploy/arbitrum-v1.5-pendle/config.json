@@ -114,6 +114,18 @@
       "address": "0x1FA42e6730DF74fF2742704761Da41111bB7F019",
       "assertSymbol": "PT-USDe-28NOV2024",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-wsteth-26jun2025",
+      "address": "0x1255638efeca62e12e344e0b6b22ea853ec6e2c7",
+      "assertSymbol": "PT-wstETH-26JUN2025",
+      "assertDecimals": 18
+    },
+    {
+      "id": "wsteth",
+      "address": "0x5979D7b546E38E414F7E9822514be443A4800529",
+      "assertSymbol": "wstETH",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -238,6 +250,13 @@
           "quoteTokenId": "weeth",
           "baseTokenId": "pt-weeth-26dec2024",
           "pendleMarket": "0x6b92feb89ed16aa971b096e247fe234db4aaa262",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "wsteth",
+          "baseTokenId": "pt-wsteth-26jun2025",
+          "pendleMarket": "0x08a152834de126d2ef83d612ff36e4523fd0017f",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -409,6 +428,22 @@
         "positionMinAmount": "1",
         "quoteLimit": "100000"
       }
+    },
+    {
+      "id": "pt-wsteth-26jun2025-wsteth",
+      "baseTokenId": "pt-wsteth-26jun2025",
+      "quoteTokenId": "wsteth",
+      "priceOracleId": "pendleOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "3%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "200"
+      }
     }
   ],
   "adapters": [
@@ -489,6 +524,12 @@
           "slippage": "35",
           "tokenAId": "pt-weeth-26dec2024",
           "tokenBId": "weeth"
+        },
+        {
+          "poolAddress": "0x08a152834de126d2ef83d612ff36e4523fd0017f",
+          "slippage": "35",
+          "tokenAId": "pt-wsteth-26jun2025",
+          "tokenBId": "wsteth"
         }
       ]
     }
