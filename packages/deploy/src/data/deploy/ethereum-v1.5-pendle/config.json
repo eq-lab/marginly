@@ -38,10 +38,16 @@
       "assertDecimals": 18
     },
     {
-      "id": "weeth",
-      "address": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee",
-      "assertSymbol": "weETH",
-      "assertDecimals": 18
+      "id": "ebtc",
+      "address": "0x657e8C867D8B37dCC18fA4Caead9C45EB088C642",
+      "assertSymbol": "eBTC",
+      "assertDecimals": 8
+    },
+    {
+      "id": "pt-ebtc-27mar2025",
+      "address": "0x44a7876ca99460ef3218bf08b5f52e2dbe199566",
+      "assertSymbol": "PT-corn-eBTC-27MAR2025",
+      "assertDecimals": 8
     }
   ],
   "prices": [],
@@ -59,16 +65,9 @@
           "secondsAgoLiquidation": "5 sec"
         },
         {
-          "quoteTokenId": "weeth",
-          "baseTokenId": "pt-weeth-26dec2024",
-          "pendleMarket": "0x7d372819240d14fb477f17b964f95f33beb4c704",
-          "secondsAgo": "30 min",
-          "secondsAgoLiquidation": "5 sec"
-        },
-        {
-          "quoteTokenId": "weeth",
-          "baseTokenId": "pt-weeth-26jun2025",
-          "pendleMarket": "0xf4cf59259d007a96c641b41621ab52c93b9691b1",
+          "quoteTokenId": "ebtc",
+          "baseTokenId": "pt-ebtc-27mar2025",
+          "pendleMarket": "0x2c71ead7ac9ae53d05f8664e77031d4f9eba064b",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -88,7 +87,7 @@
       "priceOracleId": "pendleMarketOracle",
       "defaultSwapCallData": "20447233",
       "params": {
-        "interestRate": "1%",
+        "interestRate": "0.3%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
@@ -98,35 +97,19 @@
       }
     },
     {
-      "id": "pt-weeth-26dec2024-weeth",
-      "baseTokenId": "pt-weeth-26dec2024",
-      "quoteTokenId": "weeth",
+      "id": "pt-ebtc-27mar2025-ebtc",
+      "baseTokenId": "pt-ebtc-27mar2025",
+      "quoteTokenId": "ebtc",
       "priceOracleId": "pendleMarketOracle",
       "defaultSwapCallData": "20447233",
       "params": {
-        "interestRate": "1.0%",
+        "interestRate": "0.3%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
         "mcSlippage": "1%",
-        "positionMinAmount": "0.001",
-        "quoteLimit": "10000"
-      }
-    },
-    {
-      "id": "pt-weeth-26jun2025-weeth",
-      "baseTokenId": "pt-weeth-26jun2025",
-      "quoteTokenId": "weeth",
-      "priceOracleId": "pendleMarketOracle",
-      "defaultSwapCallData": "20447233",
-      "params": {
-        "interestRate": "1.0%",
-        "maxLeverage": "20",
-        "swapFee": "0%",
-        "fee": "0%",
-        "mcSlippage": "1%",
-        "positionMinAmount": "0.001",
-        "quoteLimit": "10000"
+        "positionMinAmount": "0.00002",
+        "quoteLimit": "50"
       }
     }
   ],
@@ -142,16 +125,10 @@
           "tokenBId": "lbtc"
         },
         {
-          "poolAddress": "0x7d372819240d14fb477f17b964f95f33beb4c704",
+          "poolAddress": "0x2c71ead7ac9ae53d05f8664e77031d4f9eba064b",
           "slippage": "35",
-          "tokenAId": "pt-weeth-26dec2024",
-          "tokenBId": "weeth"
-        },
-        {
-          "poolAddress": "0xf4cf59259d007a96c641b41621ab52c93b9691b1",
-          "slippage": "35",
-          "tokenAId": "pt-weeth-26jun2025",
-          "tokenBId": "weeth"
+          "tokenAId": "pt-ebtc-27mar2025",
+          "tokenBId": "ebtc"
         }
       ]
     }

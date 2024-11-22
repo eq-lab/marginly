@@ -45,12 +45,20 @@
       "address": "0x2F06faF2A2EEFfBd44a796b8c6d2D04841c6488C"
     },
     {
+      "id": "pt-ebtc-27mar2025-ebtc",
+      "address": "0xd88855292819e34388833A3cb5524eEDf25010AE"
+    },
+    {
       "id": "pt-ezeth-26dec2024-ezeth",
       "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA"
     },
     {
       "id": "pt-ezeth-26sep2024-ezeth",
       "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975"
+    },
+    {
+      "id": "pt-lbtc-27mar2025-lbtc",
+      "address": "0xf7710a79F2440423e5865EB3a7DF3e47a430859F"
     },
     {
       "id": "pt-lbtc-27mar2025-wbtc",
