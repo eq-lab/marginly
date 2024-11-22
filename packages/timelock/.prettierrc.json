@@ -1,0 +1,15 @@
+{
+  "trailingComma": "es5",
+  "printWidth": 120,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "plugins": ["prettier-plugin-solidity"],
+  "overrides": [
+    {
+      "files": "contracts/**/*.sol",
+      "options": {
+        "parser": "solidity-parse"
+      }
+    }
+  ]
+}
