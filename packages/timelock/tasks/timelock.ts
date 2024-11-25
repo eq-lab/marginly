@@ -37,8 +37,34 @@ task('deploy-timelock', 'Deploy timelock contract and transfer ownership from ro
     const createPoolSignature = marginlyFactoryInterface.getFunction('createPool').selector;
     const setParametersSignature = marginlyPoolInterface.getFunction('setParameters').selector;
 
-    const whitelistedTargets = [];
-    const whitelistedMethods = [];
+    const whitelisted = [
+      ['0xF8D88A292B0afa85E5Cf0d1195d0D3728Cfd7070', createPoolSignature], // factory
+      ['0xa77C2275C1F403056c7F73B44df69E374C299dd7', setParametersSignature], //pt-weeth-26dec2024-weth
+      ['0x4Cac44a1C50fea3F458f5F31529C0810AFcac497', setParametersSignature], //pt-weeth-26dec2024-weeth
+      ['0xb34DfB03973e148ED800F369EdE84b92803116CA', setParametersSignature], //pt-ezeth-26dec2024-ezeth
+      ['0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173', setParametersSignature], //pt-rseth-26dec2024-rseth
+      ['0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305', setParametersSignature], //pt-ageth-26dec2024-ageth
+      ['0xcAbAE9295e274c152b9DcCC124AB06cf78d079Eb', setParametersSignature], //pt-amphrlrt-26dec2024-amphrlrt
+      ['0x2F06faF2A2EEFfBd44a796b8c6d2D04841c6488C', setParametersSignature], //pt-ebtc-26dec2024-ebtc
+      ['0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf', setParametersSignature], //pt-weeths-26dec2024-weeths
+      ['0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40', setParametersSignature], //pt-pufeth-26dec2024-pufeth
+      ['0x530043876F37170468a9F366145E645BEE86da6C', setParametersSignature], //pt-amphreth-26dec2024-amphreth
+      ['0x2Df52e18e0fcA1E8CEE272cD034368278a49125f', setParametersSignature], //pt-re7lrt-26dec2024-re7lrt
+      ['0x32d850609FDc950bF6E23640d1EB0bbd60a5149c', setParametersSignature], //pt-cornlbtc-26dec2024-lbtc
+      ['0x49755E70285dE0c624e0750543046131CB7163de', setParametersSignature], //pt-corn-unibtc-26dec2024-unibtc
+      ['0x3D6f0097FA10f2e3855377daF2139dBeD66Fb343', setParametersSignature], //pt-cornlbtc-26dec2024-wbtc
+      ['0x056888DD4B31cA090E2FC7ca87AF62B588dD8207', setParametersSignature], //pt-corn-unibtc-26dec2024-wbtc
+      ['0xEe368c5014D218795F76DcDA58e8FD24D04E19Ff', setParametersSignature], //pt-corn-pumpbtc-26dec2024-wbtc
+      ['0xB95b9f7763de009a4E6c739855faCDfA960eB893', setParametersSignature], //pt-lbtc-27mar2025-wbtc
+      ['0xa692B4fb38f8e9aEA229DA05CC2FC9d748218CD3', setParametersSignature], //pt-pufeth-26dec2024-weth
+      ['0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96', setParametersSignature], //pt-weeths-26dec2024-weth
+      ['0x49D7712f65B291E4574726d6e263a4E6Af2830F0', setParametersSignature], //pt-rseth-26dec2024-weth
+      ['0xf7710a79F2440423e5865EB3a7DF3e47a430859F', setParametersSignature], //pt-lbtc-27mar2025-lbtc
+      ['0xd88855292819e34388833A3cb5524eEDf25010AE', setParametersSignature], //pt-ebtc-27mar2025-ebtc
+    ];
+
+    const whitelistedTargets = whitelisted.map((x) => x[0]);
+    const whitelistedMethods = whitelisted.map((x) => x[1]);
 
     const timelock = (await new TimelockWhitelist__factory(signer).deploy(
       initialMinDelay,
@@ -64,7 +90,14 @@ task('deploy-timelock', 'Deploy timelock contract and transfer ownership from ro
 
     await saveDeploymentData('TimelockWhitelist', deploymentData, configDir);
 
-    await verifyContract(hre, timelockAddress, [initialMinDelay, proposers, executors, admin]);
+    await verifyContract(hre, timelockAddress, [
+      initialMinDelay,
+      proposers,
+      executors,
+      admin,
+      whitelistedTargets,
+      whitelistedMethods,
+    ]);
   });
 
 //npx hardhat --network holesky --config hardhat.config.ts factory-transfer-ownership --signer <private-key>
@@ -75,19 +108,18 @@ task('factory-transfer-ownership', 'Change factory owner to timelock')
 
     let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
 
-    const timelockAddress = '';
-    const factoryAddress = '';
-    31;
+    const timelockAddress = '0x8cDAf202eBe2f38488074DcFCa08c0B0cB7B8Aa5';
+    const factoryAddress = '0xF8D88A292B0afa85E5Cf0d1195d0D3728Cfd7070';
     const minDelay = 259_200; //3 days, 3 * 24 * 60 * 60
 
-    const router = Ownable2Step__factory.connect(factoryAddress, signer);
+    const factory = Ownable2Step__factory.connect(factoryAddress, signer);
     const timelock = TimelockWhitelist__factory.connect(timelockAddress, signer);
 
-    await (await router.connect(signer).transferOwnership(timelockAddress)).wait();
+    await (await factory.connect(signer).transferOwnership(timelockAddress)).wait();
     console.log('\nTransfer ownership from factory to timelock');
 
     // Timelock accept ownership
-    const acceptOwnershipCallData = router.interface.encodeFunctionData('acceptOwnership');
+    const acceptOwnershipCallData = factory.interface.encodeFunctionData('acceptOwnership');
     await (
       await timelock
         .connect(signer)
@@ -129,7 +161,7 @@ task('timelock-execute', 'Timelock schedule and execute operation')
     const salt = ethers.ZeroHash;
 
     // Timelock execute
-    const target = ''; // target address
+    const target = ''; // target address pool
     const parameters: MarginlyParamsStruct = {
       maxLeverage: 0n,
       interestRate: 0n,
