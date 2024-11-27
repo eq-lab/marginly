@@ -358,7 +358,13 @@ export class PriceOracleDeployer extends BaseDeployer {
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
 
-        await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), secondsAgo, secondsAgoLiquidation);
+        const tx = await priceOracle.setOptions(
+          quoteToken.toString(),
+          baseToken.toString(),
+          secondsAgo,
+          secondsAgoLiquidation
+        );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);
@@ -405,13 +411,14 @@ export class PriceOracleDeployer extends BaseDeployer {
         currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
-        await priceOracle.setOptions(
+        const tx = await priceOracle.setOptions(
           quoteToken.toString(),
           baseToken.toString(),
           secondsAgo,
           secondsAgoLiquidation,
           intermediateToken.toString()
         );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);
