@@ -285,7 +285,8 @@ async function processMarginly(
         marginlyFactoryDeployResult.contract,
         pool,
         tokenRepository,
-        EthAddress.parse(priceOracle.address)
+        EthAddress.parse(priceOracle.address),
+        config.marginlyFactory.timelockOwner
       );
       deployedMarginlyPools.push({
         id: pool.id,

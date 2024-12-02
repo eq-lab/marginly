@@ -402,6 +402,7 @@ export interface MarginlyDeployConfig {
     feeHolder: string;
     techPositionOwner: string;
     wethTokenId: string;
+    timelockOwner?: string;
   };
   marginlyPools: {
     id: string;

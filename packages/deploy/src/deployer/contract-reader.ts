@@ -53,3 +53,10 @@ export function createAaveContractReader(): ContractReader {
     return require(`@aave/core-v3/artifacts/contracts/interfaces/${name}.sol/${name}.json`);
   };
 }
+
+
+export function createTimelockWhitelistContract(): ContractReader {
+  return (name: string): ContractDescription => {
+    return require(`@marginly/timelock/artifacts/contracts/${name}.sol/${name}.json`);
+  };
+}

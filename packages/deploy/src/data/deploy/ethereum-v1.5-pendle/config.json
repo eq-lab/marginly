@@ -48,6 +48,12 @@
       "address": "0x44a7876ca99460ef3218bf08b5f52e2dbe199566",
       "assertSymbol": "PT-corn-eBTC-27MAR2025",
       "assertDecimals": 8
+    },
+    {
+      "id": "weeth",
+      "address": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee",
+      "assertSymbol": "weETH",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -70,6 +76,13 @@
           "pendleMarket": "0x2c71ead7ac9ae53d05f8664e77031d4f9eba064b",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "weeth",
+          "baseTokenId": "pt-weeth-26dec2024",
+          "pendleMarket": "0x7d372819240d14fb477f17b964f95f33beb4c704",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
         }
       ]
     }
@@ -77,7 +90,8 @@
   "marginlyFactory": {
     "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
     "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
-    "wethTokenId": "weth"
+    "wethTokenId": "weth",
+    "timelockOwner": "0x8cDAf202eBe2f38488074DcFCa08c0B0cB7B8Aa5"
   },
   "marginlyPools": [
     {
@@ -111,6 +125,22 @@
         "positionMinAmount": "0.00002",
         "quoteLimit": "50"
       }
+    },
+    {
+      "id": "pt-weeth-26dec2024-weeth",
+      "baseTokenId": "pt-weeth-26dec2024",
+      "quoteTokenId": "weeth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "0.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "10000"
+      }
     }
   ],
   "adapters": [
@@ -129,6 +159,12 @@
           "slippage": "35",
           "tokenAId": "pt-ebtc-27mar2025",
           "tokenBId": "ebtc"
+        },
+        {
+          "poolAddress": "0x7d372819240d14fb477f17b964f95f33beb4c704",
+          "slippage": "35",
+          "tokenAId": "pt-weeth-26dec2024",
+          "tokenBId": "weeth"
         }
       ]
     }

@@ -144,6 +144,7 @@ export interface MarginlyFactoryConfig {
   feeHolder: EthAddress;
   techPositionOwner: EthAddress;
   weth9Token: MarginlyConfigToken;
+  timelockOwner?: EthAddress;
 }
 
 export interface MarginlyPoolParams {
@@ -236,7 +237,7 @@ export type PriceOracleConfig =
   | PendleMarketOracleConfig
   | AlgebraOracleConfig
   | AlgebraDoubleOracleConfig
-  | CurveOracleConfig;;
+  | CurveOracleConfig;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -674,6 +675,9 @@ export class StrictMarginlyDeployConfig {
         feeHolder: EthAddress.parse(config.marginlyFactory.feeHolder),
         techPositionOwner: EthAddress.parse(config.marginlyFactory.techPositionOwner),
         weth9Token: wethToken,
+        timelockOwner: config.marginlyFactory.timelockOwner
+          ? EthAddress.parse(config.marginlyFactory.timelockOwner)
+          : undefined,
       },
       Array.from(tokens.values()),
       marginlyPools,
@@ -953,26 +957,27 @@ export class StrictMarginlyDeployConfig {
             secondsAgo: TimeSpan.parse(x.secondsAgo),
             secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
           })),
-        }} else if (isCurveOracleConfig(priceOracleConfig)) {
-          const strictConfig: CurveOracleConfig = {
-            id: priceOracleId,
-            type: priceOracleConfig.type,
-            settings: priceOracleConfig.settings.map((x) => {
-              return {
-                pool: EthAddress.parse(x.pool),
-                quoteToken:
-                  tokens.get(x.quoteTokenId) ||
-                  (() => {
-                    throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                  })(),
-                baseToken:
-                  tokens.get(x.baseTokenId) ||
-                  (() => {
-                    throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                  })(),
-              };
-            }),
-          };
+        };
+      } else if (isCurveOracleConfig(priceOracleConfig)) {
+        const strictConfig: CurveOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              pool: EthAddress.parse(x.pool),
+              quoteToken:
+                tokens.get(x.quoteTokenId) ||
+                (() => {
+                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
+                })(),
+              baseToken:
+                tokens.get(x.baseTokenId) ||
+                (() => {
+                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
+                })(),
+            };
+          }),
+        };
 
         priceOracles.set(priceOracleId, strictConfig);
       }
