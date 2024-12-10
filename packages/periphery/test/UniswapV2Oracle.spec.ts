@@ -231,7 +231,7 @@ describe('UniswapV2Oracle prices', () => {
   });
 
   it('updateAll should work', async () => {
-    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
+    const { oracle } = await createUniswapV2OracleWithPairs();
     const granularity = await oracle.granularity();
 
     //expect all observations are empty
@@ -293,7 +293,7 @@ describe('UniswapV2Oracle prices', () => {
   });
 
   it('updateAll should work with update', async () => {
-    const { oracle } = await loadFixture(createUniswapV2OracleWithPairs);
+    const { oracle } = await createUniswapV2OracleWithPairs();
 
     const timestamp = await time.latest();
     const targetObservationIndex = await oracle.observationIndexOf(timestamp + 60);
