@@ -93,6 +93,10 @@
       "address": "0xa16C1F55129E4Af8288c005a27c8fE05591d24bE"
     },
     {
+      "id": "pt-rsweth-26dec2024-rsweth",
+      "address": "0x6b79E799Ebdb9e867A1fe268A0703cbAA532C60d"
+    },
+    {
       "id": "pt-unieth-26sep2024-unieth",
       "address": "0x86DC30f6dBbb742463CE77f88926eff979892b22"
     },
@@ -105,12 +109,12 @@
       "address": "0xE1B77a8B19b23229e9d1774027a5EC06f84D460B"
     },
     {
-      "id": "pt-weeth-26sep2024-weeth",
-      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497"
-    },
-    {
       "id": "pt-weeth-26dec2024-weth",
       "address": "0xa77C2275C1F403056c7F73B44df69E374C299dd7"
+    },
+    {
+      "id": "pt-weeth-26sep2024-weeth",
+      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497"
     },
     {
       "id": "pt-weeth-27jun2024-weth",

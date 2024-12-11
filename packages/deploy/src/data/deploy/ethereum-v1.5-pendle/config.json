@@ -54,6 +54,24 @@
       "address": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee",
       "assertSymbol": "weETH",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-rsweth-26dec2024",
+      "address": "0x2048e9a6fee232056580d95e10b30f14f0ee578b",
+      "assertSymbol": "PT-rswETH-26DEC2024",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-rsweth-26jun2025",
+      "address": "0x003984ecc30bafe364efa8c0112cdd94b8216406",
+      "assertSymbol": "PT-rswETH-26JUN2025",
+      "assertDecimals": 18
+    },
+    {
+      "id": "rsweth",
+      "address": "0xfae103dc9cf190ed75350761e95403b7b8afa6c0",
+      "assertSymbol": "rswETH",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -81,6 +99,13 @@
           "quoteTokenId": "weeth",
           "baseTokenId": "pt-weeth-26dec2024",
           "pendleMarket": "0x7d372819240d14fb477f17b964f95f33beb4c704",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        },
+        {
+          "quoteTokenId": "rsweth",
+          "baseTokenId": "pt-rsweth-26dec2024",
+          "pendleMarket": "0x7c7fbb2d11803c35aa3e283985237ad27f64406b",
           "secondsAgo": "30 min",
           "secondsAgoLiquidation": "5 sec"
         }
@@ -141,6 +166,22 @@
         "positionMinAmount": "0.001",
         "quoteLimit": "10000"
       }
+    },
+    {
+      "id": "pt-rsweth-26dec2024-rsweth",
+      "baseTokenId": "pt-rsweth-26dec2024",
+      "quoteTokenId": "rsweth",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "0.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "1.0%",
+        "positionMinAmount": "0.001",
+        "quoteLimit": "1000"
+      }
     }
   ],
   "adapters": [
@@ -165,6 +206,12 @@
           "slippage": "35",
           "tokenAId": "pt-weeth-26dec2024",
           "tokenBId": "weeth"
+        },
+        {
+          "poolAddress": "0x7c7fbb2d11803c35aa3e283985237ad27f64406b",
+          "slippage": "35",
+          "tokenAId": "pt-rsweth-26dec2024",
+          "tokenBId": "rsweth"
         }
       ]
     }
