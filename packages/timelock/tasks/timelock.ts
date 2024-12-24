@@ -172,8 +172,16 @@ task('timelock-grant-role')
     for (let i = 0; i < cancellers.length; i++) {
       const grantCancellerRole = await timelock.interface.encodeFunctionData('grantRole', [role, cancellers[i]]);
 
-      await timelock.schedule(timelock, 0, grantCancellerRole, ethers.ZeroHash, ethers.ZeroHash, delay);
+      const txReceipt = await timelock.schedule(
+        timelock,
+        0,
+        grantCancellerRole,
+        ethers.ZeroHash,
+        ethers.ZeroHash,
+        delay
+      );
       if (delay == 0n) {
+        await txReceipt.wait();
         await timelock.execute(timelock, 0, grantCancellerRole, ethers.ZeroHash, ethers.ZeroHash);
       }
     }
@@ -187,7 +195,6 @@ task('timelock-set-delay')
 
     let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
 
-    const cancellers = [];
     const timelockAddress = '';
 
     const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
@@ -195,7 +202,9 @@ task('timelock-set-delay')
 
     const updateDelayData = await timelock.interface.encodeFunctionData('updateDelay', [delay]);
 
-    await timelock.schedule(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash, 0);
+    const txReceipt = await timelock.schedule(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash, 0);
+    await txReceipt.wait();
+
     await timelock.execute(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash);
   });
 
@@ -207,18 +216,60 @@ task('timelock-accept-ownership')
 
     let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
 
-    const ownableContractAddress = '0x6eC48569A33E9465c5325ff205Afa81209C33F31';
+    const ownableContractAddress = '';
     const ownableContract = Ownable2Step__factory.connect(ownableContractAddress, signer);
-    const timelockAddress = '0x8cDAf202eBe2f38488074DcFCa08c0B0cB7B8Aa5';
+    const timelockAddress = '';
 
     const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
     const acceptOwnershipCallData = await ownableContract.interface.encodeFunctionData('acceptOwnership');
 
     const delay = await timelock.getMinDelay();
-    await timelock.schedule(ownableContract, 0, acceptOwnershipCallData, ethers.ZeroHash, ethers.ZeroHash, delay);
+    const txReceipt = await timelock.schedule(
+      ownableContract,
+      0,
+      acceptOwnershipCallData,
+      ethers.ZeroHash,
+      ethers.ZeroHash,
+      delay
+    );
 
     if (delay == 0n) {
+      await txReceipt.wait();
       await timelock.execute(ownableContract, 0, acceptOwnershipCallData, ethers.ZeroHash, ethers.ZeroHash);
+    }
+  });
+
+//npx hardhat --network holesky --config hardhat.config.ts timelock-transfer-ownership --signer <private-key>
+task('timelock-transfer-ownership')
+  .addParam<string>('signer', 'Private key of contracts creator')
+  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+    const provider = hre.ethers.provider;
+
+    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+
+    const ownableContractAddress = '0xe8632C0BA276B245988885A37E3B1A3CeeD0D469';
+    const ownableContract = Ownable2Step__factory.connect(ownableContractAddress, signer);
+    const timelockAddress = '0xCF515e7cB2a636CDe81D63A37F2433100cbf982C';
+    const newOwner = '0x63DE6d2ec4289339569250Dc000b658c7f1244c5';
+
+    const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
+    const transferOwnershipCallData = await ownableContract.interface.encodeFunctionData('transferOwnership', [
+      newOwner,
+    ]);
+
+    const delay = await timelock.getMinDelay();
+    const txReceipt = await timelock.schedule(
+      ownableContract,
+      0,
+      transferOwnershipCallData,
+      ethers.ZeroHash,
+      ethers.ZeroHash,
+      delay
+    );
+
+    if (delay == 0n) {
+      await txReceipt.wait();
+      await timelock.execute(ownableContract, 0, transferOwnershipCallData, ethers.ZeroHash, ethers.ZeroHash);
     }
   });
 
