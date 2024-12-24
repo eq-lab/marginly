@@ -38,4 +38,21 @@ interface ICurvePool {
   function price_oracle() external view returns (uint256);
 
   function last_price() external view returns (uint256);
+
+  /*
+  @dev some pools have last_prices method, example https://etherscan.io/address/0xb09fc8bbdcc8dc9d8b3775132c52fcebf1c7dbb3#readContract
+  */
+  function last_prices() external view returns (uint256);
+
+  /*
+  @dev Spectra version of curve pool
+  */
+  function exchange(
+    uint256 i,
+    uint256 j,
+    uint256 dx,
+    uint256 min_dy,
+    bool use_eth,
+    address receiver
+  ) external returns (uint256);
 }
