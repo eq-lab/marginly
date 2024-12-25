@@ -171,6 +171,14 @@
     "marginlyPool_pt-rsweth-26dec2024-rsweth": {
       "address": "0x6b79E799Ebdb9e867A1fe268A0703cbAA532C60d",
       "txHash": "0x6f29670368665690f3bca31410dcf7a7069c619a114bf644491121bd1a48a08c"
+    },
+    "marginlyPool_pt-weeth-26jun2025-weeth": {
+      "address": "0x5a326377Ae9Ce16A5545BccB06931aaa098495a0",
+      "txHash": "0x9f69d97179b9a3f1fcdef7ece89ff22641e63cdec938df0f4e9e34d1c8c80139"
+    },
+    "marginlyPool_pt-ageth-26jun2025-ageth": {
+      "address": "0x8F5F4816AFbb41257aD6F5380d0b9a22b0ACf410",
+      "txHash": "0x5521625ced323369a20903553ac37e0e359dc10574804e228affa27dfe330201"
     }
   }
 }

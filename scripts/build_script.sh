@@ -50,11 +50,11 @@ echo "build oracle"
 yarn workspace @marginly/oracle install
 yarn workspace @marginly/oracle build
 
-echo "build contest-winner-nft"
-yarn workspace @marginly/contest-winner-nft install
-yarn workspace @marginly/contest-winner-nft typechain
-yarn workspace @marginly/contest-winner-nft compile
-yarn workspace @marginly/contest-winner-nft build
+# echo "build contest-winner-nft"
+# yarn workspace @marginly/contest-winner-nft install
+# yarn workspace @marginly/contest-winner-nft typechain
+# yarn workspace @marginly/contest-winner-nft compile
+# yarn workspace @marginly/contest-winner-nft build
 
 echo "build cli"
 yarn workspace @marginly/cli install

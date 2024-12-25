@@ -5,6 +5,10 @@
       "address": "0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305"
     },
     {
+      "id": "pt-ageth-26jun2025-ageth",
+      "address": "0x8F5F4816AFbb41257aD6F5380d0b9a22b0ACf410"
+    },
+    {
       "id": "pt-amphreth-26dec2024-amphreth",
       "address": "0x530043876F37170468a9F366145E645BEE86da6C"
     },
@@ -111,6 +115,10 @@
     {
       "id": "pt-weeth-26dec2024-weth",
       "address": "0xa77C2275C1F403056c7F73B44df69E374C299dd7"
+    },
+    {
+      "id": "pt-weeth-26jun2025-weeth",
+      "address": "0x5a326377Ae9Ce16A5545BccB06931aaa098495a0"
     },
     {
       "id": "pt-weeth-26sep2024-weeth",
