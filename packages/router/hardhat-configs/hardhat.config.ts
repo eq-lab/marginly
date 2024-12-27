@@ -11,9 +11,10 @@ const config = {
   solidity: {
     version: '0.8.19',
     settings: {
+      viaIR: true,
       optimizer: {
         enabled: true,
-        runs: 100_000,
+        runs: 5_000_000,
       },
     },
   },

@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers';
+import { BigNumber, ContractTransaction } from 'ethers';
 
 export const SWAP_ONE = 1 << 15;
 
@@ -18,6 +18,8 @@ export const Dex = {
   DodoV2: 12,
   Curve: 13,
   Pendle: 17,
+  PendleMarket: 19,
+  PendleCurveRouter: 20,
 };
 
 export function constructSwap(dex: number[], ratios: number[]): BigNumber {
@@ -31,4 +33,9 @@ export function constructSwap(dex: number[], ratios: number[]): BigNumber {
   }
   swap = (swap << BigInt(4)) + BigInt(dex.length);
   return BigNumber.from(swap);
+}
+
+export async function showGasUsage(tx: ContractTransaction) {
+  const txReceipt = await tx.wait();
+  console.log(`⛽ gas used ${txReceipt.gasUsed}`);
 }
