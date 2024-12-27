@@ -14,12 +14,15 @@ interface ICurvePool {
     */
   function exchange(int128 i, int128 j, uint256 _dx, uint256 _min_dy, address _receiver) external returns (uint256);
 
+  /* Returns number of coins */
+  function N_COINS() external view returns (uint256);
+
   /*
         @notice Get address of coin with `i` index
         @param i Index of coin
         @return Address of coin with `i` index
       */
-  function coins(uint256 i) external returns (address);
+  function coins(uint256 i) external view returns (address);
 
   /*
         @notice Calculate the current output dy given input `dx`
@@ -30,6 +33,8 @@ interface ICurvePool {
         @return Amount of `j` predicted
       */
   function get_dy(int128 i, int128 j, uint256 dx) external view returns (uint256);
+
+  function get_dx(int128 i, int128 j, uint256 dy) external view returns (uint256);
 
   /*
         @notice price have 18 decimals even if the tokens have different decimals,

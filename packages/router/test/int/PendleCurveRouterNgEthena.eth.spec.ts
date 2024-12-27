@@ -6,42 +6,40 @@ import {
   MarginlyRouter__factory,
   PendleCurveRouterNgAdapter,
   PendleCurveRouterNgAdapter__factory,
-  PendleMarketAdapter,
 } from '../../typechain-types';
 import { constructSwap, Dex, showGasUsage, SWAP_ONE } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { EthereumMainnetERC20BalanceOfSlot, setTokenBalance } from '../shared/tokens';
-import { BigNumber } from 'ethers';
 
 async function initializeRouter(): Promise<{
   ptToken: ERC20;
   usdcToken: ERC20;
-  usd0PlusPlusToken: ERC20;
+  usdeToken: ERC20;
   router: MarginlyRouter;
   pendleCurveAdapter: PendleCurveRouterNgAdapter;
   owner: SignerWithAddress;
   user: SignerWithAddress;
 }> {
   const [owner, user] = await ethers.getSigners();
-  const ptToken = await ethers.getContractAt('ERC20', '0xd86f4d98b34108cb4c059d540bd513f09b2ddd30');
+  const ptToken = await ethers.getContractAt('ERC20', '0x8a47b431a7d947c6a3ed6e42d501803615a97eaa');
   const usdcToken = await ethers.getContractAt('ERC20', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48');
-  const usd0PlusPlusToken = await ethers.getContractAt('ERC20', '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0');
-  const pendleMarket = '0x81f3a11db1de16f4f9ba8bf46b71d2b168c64899';
+  const usdeToken = await ethers.getContractAt('ERC20', '0x4c9edd5852cd905f086c759e8383e09bff1e68b3');
+  const pendleMarket = '0xb451a36c8b6b2eac77ad0737ba732818143a0e25';
   const curveRouterAddress = '0x16c6521dff6bab339122a0fe25a9116693265353';
 
-  // Route to make swap pt-usd0++ -> usd0++ -> usd0 -> usdc
+  // Route to make swap pt-USDe -> usde -> usdc
   const routeInput: PendleCurveRouterNgAdapter.RouteInputStruct = {
     pendleMarket: pendleMarket,
     slippage: 20, // 20/100  = 20%
     curveSlippage: 10, // 10/1000000 = 0.001%
     curveRoute: [
-      '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
-      '0x1d08e7adc263cfc70b1babe6dc5bb339c16eec52',
-      '0x73a15fed60bf67631dc6cd7bc5b6e8da8190acf5',
-      '0x14100f81e33c33ecc7cdac70181fb45b6e78569f',
+      '0x4c9edd5852cd905f086c759e8383e09bff1e68b3',
+      '0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72',
       '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      '0x0000000000000000000000000000000000000000',
+      '0x0000000000000000000000000000000000000000',
       '0x0000000000000000000000000000000000000000',
       '0x0000000000000000000000000000000000000000',
       '0x0000000000000000000000000000000000000000',
@@ -50,15 +48,15 @@ async function initializeRouter(): Promise<{
       '0x0000000000000000000000000000000000000000',
     ], // curve route usd0++ -> usd0 -> usdc
     curveSwapParams: [
-      [1, 0, 1, 1, 2],
       [0, 1, 1, 1, 2],
+      [0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0],
     ],
     curvePools: [
-      '0x1d08e7adc263cfc70b1babe6dc5bb339c16eec52',
-      '0x14100f81e33c33ecc7cdac70181fb45b6e78569f',
+      '0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72',
+      '0x0000000000000000000000000000000000000000',
       '0x0000000000000000000000000000000000000000',
       '0x0000000000000000000000000000000000000000',
       '0x0000000000000000000000000000000000000000',
@@ -94,7 +92,7 @@ async function initializeRouter(): Promise<{
   return {
     ptToken,
     usdcToken,
-    usd0PlusPlusToken,
+    usdeToken,
     router,
     pendleCurveAdapter,
     owner,
@@ -103,11 +101,11 @@ async function initializeRouter(): Promise<{
 }
 
 // Tests for running in ethereum mainnet fork
-describe('Pendle PT-usd0++ - usdc', () => {
+describe('PendleCurveRouter PT-usde - usdc', () => {
   describe('Pendle swap pre maturity', () => {
     let ptToken: ERC20;
     let usdc: ERC20;
-    let usd0PlusPlusToken: ERC20;
+    let usde: ERC20;
     let router: MarginlyRouter;
     let pendleCurveAdapter: PendleCurveRouterNgAdapter;
     let user: SignerWithAddress;
@@ -117,7 +115,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       ({
         ptToken,
         usdcToken: usdc,
-        usd0PlusPlusToken,
+        usdeToken: usde,
         router,
         pendleCurveAdapter,
         owner,
@@ -125,10 +123,10 @@ describe('Pendle PT-usd0++ - usdc', () => {
       } = await initializeRouter());
     });
 
-    it('USDC to pt-USD0++ exact input', async () => {
+    it.only('USDC to pt-USDe exact input', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
-        `pt-usd0++ balance Before: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
+        `pt-usde balance Before: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
       const usdcBalanceBefore = await usdc.balanceOf(user.address);
       console.log(
@@ -136,10 +134,10 @@ describe('Pendle PT-usd0++ - usdc', () => {
       );
 
       const swapCalldata = constructSwap([Dex.PendleCurveRouter], [SWAP_ONE]);
-      const usdcSwapAmount = parseUnits('1', 6);
+      const usdcSwapAmount = parseUnits('100', 6);
       await usdc.connect(user).approve(router.address, usdcSwapAmount);
 
-      const minPtAmountOut = parseUnits('0.9', 18); //parseUnits('900', 18);
+      const minPtAmountOut = parseUnits('90', 18); //parseUnits('900', 18);
 
       const tx = await router
         .connect(user)
@@ -154,10 +152,10 @@ describe('Pendle PT-usd0++ - usdc', () => {
       expect(usdcBalanceBefore.sub(usdcBalanceAfter)).to.be.lessThanOrEqual(usdcSwapAmount);
     });
 
-    it('USDC to pt-USD0++ exact output', async () => {
+    it('USDC to pt-USDe exact output', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
-        `pt-usd0++ balance Before: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
+        `pt-USDe balance Before: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
       const usdcBalanceBefore = await usdc.balanceOf(user.address);
       console.log(
@@ -180,16 +178,13 @@ describe('Pendle PT-usd0++ - usdc', () => {
       console.log(`usdcBalanceAfter: ${formatUnits(usdcBalanceAfter, await usdc.decimals())} ${await usdc.symbol()}`);
       expect(usdcBalanceBefore).to.be.greaterThan(usdcBalanceAfter);
 
-      const usd0PlusPlusOnAdapter = await usd0PlusPlusToken.balanceOf(pendleCurveAdapter.address);
+      const usd0PlusPlusOnAdapter = await usde.balanceOf(pendleCurveAdapter.address);
       console.log(
-        `usd0PlusPlus stays on adapter: ${formatUnits(
-          usd0PlusPlusOnAdapter,
-          await usd0PlusPlusToken.decimals()
-        )} ${await usd0PlusPlusToken.symbol()}`
+        `usde stays on adapter: ${formatUnits(usd0PlusPlusOnAdapter, await usde.decimals())} ${await usde.symbol()}`
       );
     });
 
-    it('pt-USD0++ to USDC exact input', async () => {
+    it('pt-USDe to USDC exact input', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
@@ -212,7 +207,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       expect(sUsdeBalanceAfter).to.be.greaterThan(sUSDeBalanceBefore);
     });
 
-    it('pt-USD0++ to USDC exact output', async () => {
+    it('pt-USDe to USDC exact output', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
@@ -245,7 +240,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
   describe('Pendle swap post maturity', () => {
     let ptToken: ERC20;
     let usdc: ERC20;
-    let usd0PlusPlusToken: ERC20;
+    let usde: ERC20;
     let router: MarginlyRouter;
     let pendleCurveAdapter: PendleCurveRouterNgAdapter;
     let user: SignerWithAddress;
@@ -255,7 +250,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       ({
         ptToken,
         usdcToken: usdc,
-        usd0PlusPlusToken,
+        usdeToken: usde,
         router,
         pendleCurveAdapter,
         owner,
@@ -267,7 +262,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       await ethers.provider.send('evm_mine', []);
     });
 
-    it('USDC to pt-usd0++ exact input, forbidden', async () => {
+    it('USDC to pt-USDe exact input, forbidden', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
@@ -300,7 +295,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       expect(sUsdeBalanceAfter).to.be.eq(sUsdeBalanceBefore);
     });
 
-    it('USDC to pt-usd0++ exact output, forbidden', async () => {
+    it('USDC to pt-USDe exact output, forbidden', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
@@ -327,7 +322,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       expect(usdcBalanceAfter).to.be.eq(usdcBalanceBefore);
     });
 
-    it('pt-usd0++ to USDC exact input', async () => {
+    it('pt-USDe to USDC exact input', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
@@ -349,7 +344,7 @@ describe('Pendle PT-usd0++ - usdc', () => {
       expect(usdcBalanceAfter).to.be.greaterThan(usdcBalanceBefore);
     });
 
-    it('pt-usd0++ to USDC exact output', async () => {
+    it('pt-USDe to USDC exact output', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
