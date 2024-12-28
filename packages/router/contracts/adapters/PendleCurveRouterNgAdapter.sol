@@ -352,13 +352,13 @@ contract PendleCurveRouterNgAdapter is IMarginlyAdapter, Ownable2Step {
       address _curveRouter = curveRouter;
 
       // approve to curve router
-      TransferHelper.safeApprove(routeData.ib, _curveRouter, amountIn);
+      TransferHelper.safeApprove(routeData.ib, _curveRouter, ibAmount);
 
       // ib to quote in curve
       amountOut = ICurveRouterNg(_curveRouter).exchange(
         routeData.curveRoute,
         routeData.curveSwapParams,
-        amountIn,
+        ibAmount,
         minAmountOut,
         routeData.curvePools,
         recipient

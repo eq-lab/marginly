@@ -309,15 +309,14 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       // pt redeem -> sy -> unwrap sy to ib
       uint256 syRedeemed = _redeemPY(routeData.yt, msg.sender, amountIn, data);
       uint256 ibAmount = _pendleRedeemSy(routeData, address(this), syRedeemed);
-
-      // approve to curve router
-      TransferHelper.safeApprove(routeData.ib, routeData.curvePool, amountIn);
+      // approve to curve pool
+      TransferHelper.safeApprove(routeData.ib, routeData.curvePool, ibAmount);
 
       // ib to quote in curve
       amountOut = ICurvePool(routeData.curvePool).exchange(
         int128(uint128(routeData.i)),
         int128(uint128(routeData.j)),
-        amountIn,
+        ibAmount,
         minAmountOut,
         recipient
       );
@@ -479,54 +478,53 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       if (!sy.isValidTokenIn(input.ibToken)) revert WrongInput();
       if (!sy.isValidTokenOut(input.ibToken)) revert WrongInput();
 
+      int8 coinI = -1; // -1 means not initialized value
+      int8 coinJ = -1;
+
       uint256 coinsCount = ICurvePool(input.curvePool).N_COINS();
-      for(uint256 coinsIdx;coinsIdx<coinsCount;){
-        
+      for (uint256 coinsIdx; coinsIdx < coinsCount; ) {
+        address coin = ICurvePool(input.curvePool).coins(coinsIdx);
+        if (coin == input.ibToken) {
+          coinI = int8(int256(coinsIdx));
+        } else if (coin == input.quoteToken) {
+          coinJ = int8(int256(coinsIdx));
+        }
+
+        unchecked {
+          ++coinsIdx;
+        }
       }
 
-      address coin0 = ICurvePool(input.curvePool).coins(0);
-      address coin1 = ICurvePool(input.curvePool).coins(1);
+      if (coinI == -1 || coinJ == -1) revert WrongInput();
 
-      uint8 coinI; 
-      uint8 coinJ;
-      if (coin0 == input.ibToken && coin1 == input.quoteToken) {
-        coinJ = 1;
-      } else if (coin1 == input.ibToken && coin0 == input.quoteToken) {
-        coinI = 1;
-      } else {
-        revert WrongInput();
-      }
+      RouteData memory ptToQuoteSwapRoute = RouteData({
+        pendleMarket: IPMarket(input.pendleMarket),
+        ib: input.ibToken,
+        sy: sy,
+        pt: pt,
+        yt: yt,
+        slippage: input.slippage,
+        curveSlippage: input.curveSlippage,
+        curvePool: input.curvePool,
+        i: uint8(coinI),
+        j: uint8(coinJ)
+      });
 
-      {
-        RouteData memory ptToQuoteSwapRoute = RouteData({
-          pendleMarket: IPMarket(input.pendleMarket),
-          ib: input.ibToken,
-          sy: sy,
-          pt: pt,
-          yt: yt,
-          slippage: input.slippage,
-          curveSlippage: input.curveSlippage,
-          curvePool: input.curvePool,
-          i: coinI,
-          j: coinJ
-        });
+      RouteData memory quoteToPtSwapRoute = RouteData({
+        pendleMarket: IPMarket(input.pendleMarket),
+        ib: input.ibToken,
+        sy: sy,
+        pt: pt,
+        yt: yt,
+        slippage: input.slippage,
+        curveSlippage: input.curveSlippage,
+        curvePool: input.curvePool,
+        i: uint8(coinJ),
+        j: uint8(coinI)
+      });
 
-        RouteData memory quoteToPtSwapRoute = RouteData({
-          pendleMarket: IPMarket(input.pendleMarket),
-          ib: input.ibToken,
-          sy: sy,
-          pt: pt,
-          yt: yt,
-          slippage: input.slippage,
-          curveSlippage: input.curveSlippage,
-          curvePool: input.curvePool,
-          i: coinJ,
-          j: coinI
-        });
-
-        getRouteData[address(pt)][input.quoteToken] = ptToQuoteSwapRoute;
-        getRouteData[input.quoteToken][address(pt)] = quoteToPtSwapRoute;
-      }
+      getRouteData[address(pt)][input.quoteToken] = ptToQuoteSwapRoute;
+      getRouteData[input.quoteToken][address(pt)] = quoteToPtSwapRoute;
 
       emit NewPair(address(pt), input.quoteToken, input.pendleMarket, input.slippage);
 

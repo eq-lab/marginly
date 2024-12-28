@@ -66,15 +66,11 @@ async function initializeRouter(): Promise<{
     .connect(owner)
     .deploy(curveRouterAddress, [routeInput]);
 
-  console.log(`PendleCurveRouterAdapter: ${pendleCurveAdapter.address}`);
-
   const routerInput = {
     dexIndex: Dex.PendleCurveRouter,
     adapter: pendleCurveAdapter.address,
   };
   const router = await new MarginlyRouter__factory().connect(owner).deploy([routerInput]);
-  console.log(`Router: ${router.address}`);
-  console.log(`User: ${user.address}`);
 
   await setTokenBalance(
     usdcToken.address,
@@ -123,7 +119,7 @@ describe('PendleCurveRouter PT-usde - usdc', () => {
       } = await initializeRouter());
     });
 
-    it.only('USDC to pt-USDe exact input', async () => {
+    it('USDC to pt-USDe exact input', async () => {
       const ptBalanceBefore = await ptToken.balanceOf(user.address);
       console.log(
         `pt-usde balance Before: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`

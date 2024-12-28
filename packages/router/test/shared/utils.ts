@@ -1,4 +1,6 @@
 import { BigNumber, ContractTransaction } from 'ethers';
+import { ERC20 } from '../../typechain-types';
+import { formatUnits } from 'ethers/lib/utils';
 
 export const SWAP_ONE = 1 << 15;
 
@@ -20,6 +22,7 @@ export const Dex = {
   Pendle: 17,
   PendleMarket: 19,
   PendleCurveRouter: 20,
+  PendleCurve: 21,
 };
 
 export function constructSwap(dex: number[], ratios: number[]): BigNumber {
@@ -38,4 +41,11 @@ export function constructSwap(dex: number[], ratios: number[]): BigNumber {
 export async function showGasUsage(tx: ContractTransaction) {
   const txReceipt = await tx.wait();
   console.log(`⛽ gas used ${txReceipt.gasUsed}`);
+}
+
+export async function showBalance(token: ERC20, account: string, startPhrase = ''): Promise<BigNumber> {
+  const [balance, symbol, decimals] = await Promise.all([token.balanceOf(account), token.symbol(), token.decimals()]);
+
+  console.log(`${startPhrase} ${formatUnits(balance, decimals)} ${symbol}`);
+  return balance;
 }
