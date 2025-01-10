@@ -3,39 +3,48 @@ pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import '@pendle/core-v2/contracts/router/base/MarketApproxLib.sol';
 import '@pendle/core-v2/contracts/interfaces/IPMarket.sol';
 import '@pendle/core-v2/contracts/core/StandardizedYield/PYIndex.sol';
 
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-
 import '../interfaces/IMarginlyAdapter.sol';
 import '../interfaces/IMarginlyRouter.sol';
 import './interfaces/ICurvePool.sol';
 
-/// @dev This adapter is using for swaps PT token (Principal token) to IB token (Interest bearing)  in Pendle Market without trading pools
+/// @dev Adapter for swapping PT token to IB and IB to quoteToken using Curve pool
 contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
   using PYIndexLib for IPYieldToken;
 
   struct RouteData {
+    /// @dev Pendle Market contract
     IPMarket pendleMarket;
+    /// @dev SY token
     IStandardizedYield sy;
+    /// @dev PT token
     IPPrincipalToken pt;
+    /// @dev YT token
     IPYieldToken yt;
+    /// @dev Slippage for Pendle approx swap
     uint8 slippage;
+    /// @dev Slippage for Curve swap exact output
     uint32 curveSlippage;
-    address ib; // interest bearing token
+    /// @dev Interest bearing token
+    address ib;
+    /// @dev Curve pool address
     address curvePool;
+    /// @dev index of coin in curve pool
     uint8 i;
+    /// @dev index of coin in curve pool
     uint8 j;
   }
 
   struct RouteInput {
     address pendleMarket;
-    // slippage using in pendle approx swap
+    // slippage, used in pendle approx swap
     uint8 slippage;
-    uint32 curveSlippage; // by default 0.001%, 0.00001
+    uint32 curveSlippage; // by default 10, 0.001%, 0.00001
     address curvePool;
     address ibToken;
     address quoteToken;
@@ -66,16 +75,16 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
   error ZeroAddress();
 
   constructor(RouteInput[] memory routes) {
-    _addRoutes(routes);
+    _addPairs(routes);
   }
 
-  function addRoutes(RouteInput[] calldata routes) external onlyOwner {
-    _addRoutes(routes);
+  function addPairs(RouteInput[] calldata routes) external onlyOwner {
+    _addPairs(routes);
   }
 
   /// @dev During swap Pt to exact SY before maturity a little amount of SY might stay at the adapter contract
   function redeemDust(address token, address recipient) external onlyOwner {
-    TransferHelper.safeTransfer(token, recipient, IERC20(token).balanceOf(address(this)));
+    SafeERC20.safeTransfer(IERC20(token), recipient, IERC20(token).balanceOf(address(this)));
   }
 
   function swapExactInput(
@@ -155,7 +164,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
 
         IMarginlyRouter(data.router).adapterCallback(address(this), estimatedQuoteAmount, data.adapterCallbackData);
 
-        TransferHelper.safeApprove(data.tokenIn, routeData.curvePool, estimatedQuoteAmount);
+        SafeERC20.forceApprove(IERC20(data.tokenIn), routeData.curvePool, estimatedQuoteAmount);
         ICurvePool(routeData.curvePool).exchange(
           int128(uint128(routeData.i)),
           int128(uint128(routeData.j)),
@@ -191,7 +200,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       uint256 ibAmountIn = _pendleRedeemSy(routeData, address(this), syAmountIn);
 
       // approve router to spend ib from adapter
-      TransferHelper.safeApprove(routeData.ib, routeData.curvePool, ibAmountIn);
+      SafeERC20.forceApprove(IERC20(routeData.ib), routeData.curvePool, ibAmountIn);
 
       //swap ib -> quote token in curveRouter
       amountOut = ICurvePool(routeData.curvePool).exchange(
@@ -204,7 +213,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
     } else {
       // transfer quote token into adapter
       IMarginlyRouter(msg.sender).adapterCallback(address(this), amountIn, data);
-      TransferHelper.safeApprove(tokenIn, routeData.curvePool, amountIn);
+      SafeERC20.forceApprove(IERC20(tokenIn), routeData.curvePool, amountIn);
       // swap quote token -> ib
       uint256 ibAmount = ICurvePool(routeData.curvePool).exchange(
         int128(uint128(routeData.i)),
@@ -258,7 +267,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
         int128(uint128(routeData.j)),
         amountOut //quoteToken amount
       );
-      estimatedIbAmount = (estimatedIbAmount * (routeData.slippage + CURVE_SLIPPAGE_ONE)) / CURVE_SLIPPAGE_ONE;
+      estimatedIbAmount = (estimatedIbAmount * (routeData.curveSlippage + CURVE_SLIPPAGE_ONE)) / CURVE_SLIPPAGE_ONE;
 
       // approx Pt to Sy -> in callback send Pt to PendleMarket
       // then unwrap Sy to Ib and send to recipient
@@ -274,7 +283,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       // use amountOut here, because actualSyAmountOut a little bit more than amountOut
       uint256 ibRedeemed = _pendleRedeemSy(routeData, address(this), estimatedIbAmount);
 
-      TransferHelper.safeApprove(routeData.ib, routeData.curvePool, ibRedeemed);
+      SafeERC20.forceApprove(IERC20(routeData.ib), routeData.curvePool, ibRedeemed);
 
       //swap ib to quote token
       ICurvePool(routeData.curvePool).exchange(
@@ -286,7 +295,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       );
 
       // transfer amountOut to recipient, delta = actualAmountOut - amountOut stays in adapter contract balance
-      TransferHelper.safeTransfer(tokenOut, recipient, amountOut);
+      SafeERC20.safeTransfer(IERC20(tokenOut), recipient, amountOut);
     } else {
       // Sy to Pt -> in callback unwrap Sy to Ib and send to pendle market
       // in callback:
@@ -310,7 +319,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       uint256 syRedeemed = _redeemPY(routeData.yt, msg.sender, amountIn, data);
       uint256 ibAmount = _pendleRedeemSy(routeData, address(this), syRedeemed);
       // approve to curve pool
-      TransferHelper.safeApprove(routeData.ib, routeData.curvePool, ibAmount);
+      SafeERC20.forceApprove(IERC20(routeData.ib), routeData.curvePool, ibAmount);
 
       // ib to quote in curve
       amountOut = ICurvePool(routeData.curvePool).exchange(
@@ -355,7 +364,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
         _redeemPY(routeData.yt, msg.sender, amountIn, data) // syRedeemed
       );
 
-      TransferHelper.safeApprove(routeData.ib, routeData.curvePool, ibRedeemed);
+      SafeERC20.forceApprove(IERC20(routeData.ib), routeData.curvePool, ibRedeemed);
 
       // exchange ib to quoteToken in curve
       ICurvePool(routeData.curvePool).exchange(
@@ -367,7 +376,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       );
       //delta actualAmountOut - amountOut stays in adapter contract, because router has strict check of amountOut
       //transfer to recipient exact amountOut
-      TransferHelper.safeTransfer(tokenOut, recipient, amountOut);
+      SafeERC20.safeTransfer(IERC20(tokenOut), recipient, amountOut);
     } else {
       // sy to pt swap is not possible after maturity
       revert NotSupported();
@@ -435,7 +444,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
     address recipient,
     uint256 ibIn
   ) private returns (uint256 syMinted) {
-    TransferHelper.safeApprove(routeData.ib, address(routeData.sy), ibIn);
+    SafeERC20.forceApprove(IERC20(routeData.ib), address(routeData.sy), ibIn);
     // setting `minSyOut` value as ibIn (1:1 swap)
     syMinted = routeData.sy.deposit(recipient, routeData.ib, ibIn, ibIn);
   }
@@ -464,7 +473,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
     delete callbackAmountIn;
   }
 
-  function _addRoutes(RouteInput[] memory routes) private {
+  function _addPairs(RouteInput[] memory routes) private {
     RouteInput memory input;
     uint256 length = routes.length;
     for (uint256 i; i < length; ) {

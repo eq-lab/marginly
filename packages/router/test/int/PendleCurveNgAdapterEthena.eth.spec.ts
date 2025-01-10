@@ -70,7 +70,7 @@ async function initializeRouter(): Promise<{
 }
 
 // Tests for running in ethereum mainnet fork
-describe.only('PendleCurveAdapter PT-usde - usdc', () => {
+describe('PendleCurveAdapter PT-usde - usdc', () => {
   describe('Pendle swap pre maturity', () => {
     let ptToken: ERC20;
     let usdc: ERC20;

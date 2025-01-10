@@ -33,7 +33,7 @@ async function initializeRouter(): Promise<{
   const routeInput: PendleCurveRouterNgAdapter.RouteInputStruct = {
     pendleMarket: pendleMarket,
     slippage: 20, // 20/100  = 20%
-    curveSlippage: 10, // 10/1000000 = 0.001%
+    curveSlippage: 100, // 10/1000000 = 0.001%
     curveRoute: [
       '0x4c9edd5852cd905f086c759e8383e09bff1e68b3',
       '0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72',
@@ -160,7 +160,7 @@ describe('PendleCurveRouter PT-usde - usdc', () => {
       const swapCalldata = constructSwap([Dex.PendleCurveRouter], [SWAP_ONE]);
 
       const exactPtOut = parseUnits('500', 18);
-      const usdcMaxIn = parseUnits('1000', 6);
+      const usdcMaxIn = parseUnits('600', 6);
       await usdc.connect(user).approve(router.address, usdcMaxIn);
       const tx = await router
         .connect(user)
