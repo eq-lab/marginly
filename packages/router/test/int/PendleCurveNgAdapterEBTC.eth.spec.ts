@@ -7,7 +7,7 @@ import {
   PendleCurveNgAdapter,
   PendleCurveNgAdapter__factory,
 } from '../../typechain-types';
-import { constructSwap, Dex, showGasUsage, SWAP_ONE } from '../shared/utils';
+import { constructSwap, Dex, showGasUsage, SWAP_ONE, resetFork } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -72,6 +72,10 @@ async function initializeRouter(): Promise<{
 
 // Tests for running in ethereum mainnet fork
 describe('PendleCurveAdapter PT-eBTC - WBTC', () => {
+  before(async () => {
+    await resetFork(21493100);
+  });
+
   describe('Pendle swap pre maturity', () => {
     let ptToken: ERC20;
     let WBTC: ERC20;
