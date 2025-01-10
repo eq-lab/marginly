@@ -35,9 +35,9 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
     /// @dev Curve pool address
     address curvePool;
     /// @dev index of coin in curve pool
-    uint8 i;
+    uint8 curveInputCoinIndex;
     /// @dev index of coin in curve pool
-    uint8 j;
+    uint8 curveOutputCoinIndex;
   }
 
   struct RouteInput {
@@ -152,8 +152,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       if (data.isExactOutput) {
         // estimate amount of quoteToken to get uint256(-syToAccount)
         uint256 estimatedQuoteAmount = ICurvePool(routeData.curvePool).get_dx(
-          int128(uint128(routeData.i)),
-          int128(uint128(routeData.j)),
+          int128(uint128(routeData.curveInputCoinIndex)),
+          int128(uint128(routeData.curveOutputCoinIndex)),
           ibAmount
         );
         estimatedQuoteAmount =
@@ -166,8 +166,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
 
         SafeERC20.forceApprove(IERC20(data.tokenIn), routeData.curvePool, estimatedQuoteAmount);
         ICurvePool(routeData.curvePool).exchange(
-          int128(uint128(routeData.i)),
-          int128(uint128(routeData.j)),
+          int128(uint128(routeData.curveInputCoinIndex)),
+          int128(uint128(routeData.curveOutputCoinIndex)),
           estimatedQuoteAmount,
           ibAmount, // min output ibAmount
           address(this)
@@ -204,8 +204,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
 
       //swap ib -> quote token in curveRouter
       amountOut = ICurvePool(routeData.curvePool).exchange(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         ibAmountIn,
         minAmountOut,
         recipient
@@ -216,8 +216,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       SafeERC20.forceApprove(IERC20(tokenIn), routeData.curvePool, amountIn);
       // swap quote token -> ib
       uint256 ibAmount = ICurvePool(routeData.curvePool).exchange(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         amountIn, // quoteToken amount In
         0, // unknown minAmountOut of ib
         address(this)
@@ -263,8 +263,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
     if (tokenIn == address(routeData.pt)) {
       //estimate ibIn to get quoteToken amountOut in curve
       uint256 estimatedIbAmount = ICurvePool(routeData.curvePool).get_dx(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         amountOut //quoteToken amount
       );
       estimatedIbAmount = (estimatedIbAmount * (routeData.curveSlippage + CURVE_SLIPPAGE_ONE)) / CURVE_SLIPPAGE_ONE;
@@ -287,8 +287,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
 
       //swap ib to quote token
       ICurvePool(routeData.curvePool).exchange(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         ibRedeemed,
         amountOut,
         address(this)
@@ -323,8 +323,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
 
       // ib to quote in curve
       amountOut = ICurvePool(routeData.curvePool).exchange(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         ibAmount,
         minAmountOut,
         recipient
@@ -346,8 +346,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
     if (tokenIn == address(routeData.pt)) {
       // estimate on curve ibAmount to get amountOut
       uint256 estimatedIbAmount = ICurvePool(routeData.curvePool).get_dx(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         amountOut // quoteAmountOut
       );
 
@@ -368,8 +368,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
 
       // exchange ib to quoteToken in curve
       ICurvePool(routeData.curvePool).exchange(
-        int128(uint128(routeData.i)),
-        int128(uint128(routeData.j)),
+        int128(uint128(routeData.curveInputCoinIndex)),
+        int128(uint128(routeData.curveOutputCoinIndex)),
         ibRedeemed,
         amountOut,
         address(this)
@@ -487,16 +487,16 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
       if (!sy.isValidTokenIn(input.ibToken)) revert WrongInput();
       if (!sy.isValidTokenOut(input.ibToken)) revert WrongInput();
 
-      int8 coinI = -1; // -1 means not initialized value
-      int8 coinJ = -1;
+      int8 ibTokenCurveIndex = -1; // -1 means not initialized value
+      int8 quoteTokenCurveIndex = -1;
 
       uint256 coinsCount = ICurvePool(input.curvePool).N_COINS();
       for (uint256 coinsIdx; coinsIdx < coinsCount; ) {
         address coin = ICurvePool(input.curvePool).coins(coinsIdx);
         if (coin == input.ibToken) {
-          coinI = int8(int256(coinsIdx));
+          ibTokenCurveIndex = int8(int256(coinsIdx));
         } else if (coin == input.quoteToken) {
-          coinJ = int8(int256(coinsIdx));
+          quoteTokenCurveIndex = int8(int256(coinsIdx));
         }
 
         unchecked {
@@ -504,7 +504,7 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
         }
       }
 
-      if (coinI == -1 || coinJ == -1) revert WrongInput();
+      if (ibTokenCurveIndex == -1 || quoteTokenCurveIndex == -1) revert WrongInput();
 
       RouteData memory ptToQuoteSwapRoute = RouteData({
         pendleMarket: IPMarket(input.pendleMarket),
@@ -515,8 +515,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
         slippage: input.slippage,
         curveSlippage: input.curveSlippage,
         curvePool: input.curvePool,
-        i: uint8(coinI),
-        j: uint8(coinJ)
+        curveInputCoinIndex: uint8(ibTokenCurveIndex),
+        curveOutputCoinIndex: uint8(quoteTokenCurveIndex)
       });
 
       RouteData memory quoteToPtSwapRoute = RouteData({
@@ -528,8 +528,8 @@ contract PendleCurveNgAdapter is IMarginlyAdapter, Ownable2Step {
         slippage: input.slippage,
         curveSlippage: input.curveSlippage,
         curvePool: input.curvePool,
-        i: uint8(coinJ),
-        j: uint8(coinI)
+        curveInputCoinIndex: uint8(quoteTokenCurveIndex),
+        curveOutputCoinIndex: uint8(ibTokenCurveIndex)
       });
 
       getRouteData[address(pt)][input.quoteToken] = ptToQuoteSwapRoute;
