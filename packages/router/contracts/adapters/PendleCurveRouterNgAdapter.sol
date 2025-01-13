@@ -220,13 +220,13 @@ contract PendleCurveRouterNgAdapter is IMarginlyAdapter, Ownable2Step {
       IMarginlyRouter(msg.sender).adapterCallback(address(routeData.pendleMarket), amountIn, data);
       (uint256 syAmountIn, ) = routeData.pendleMarket.swapExactPtForSy(address(this), amountIn, new bytes(0));
 
-      //unwrap sy to ib to address(this)
+      // unwrap sy to ib to address(this)
       uint256 ibAmountIn = _pendleRedeemSy(routeData, address(this), syAmountIn);
 
       // approve router to spend ib from adapter
       SafeERC20.forceApprove(IERC20(routeData.ib), _curveRouter, ibAmountIn);
 
-      //swap ib -> quote token in curveRouter
+      // swap ib -> quote token in curveRouter
       amountOut = ICurveRouterNg(_curveRouter).exchange(
         routeData.curveRoute,
         routeData.curveSwapParams,
@@ -288,7 +288,7 @@ contract PendleCurveRouterNgAdapter is IMarginlyAdapter, Ownable2Step {
     address _curveRouter = curveRouter;
 
     if (tokenIn == address(routeData.pt)) {
-      //estimate ibIn to get quoteToken amountOut in curve
+      // estimate ibIn to get quoteToken amountOut in curve
       uint256 estimatedIbAmount = ICurveRouterNg(_curveRouter).get_dx(
         routeData.curveRoute,
         routeData.curveSwapParams,
@@ -313,7 +313,7 @@ contract PendleCurveRouterNgAdapter is IMarginlyAdapter, Ownable2Step {
 
       SafeERC20.forceApprove(IERC20(routeData.ib), _curveRouter, ibRedeemed);
 
-      //swap ib to quote token
+      // swap ib to quote token
       ICurveRouterNg(_curveRouter).exchange(
         routeData.curveRoute,
         routeData.curveSwapParams,
@@ -411,8 +411,8 @@ contract PendleCurveRouterNgAdapter is IMarginlyAdapter, Ownable2Step {
         routeData.curvePools,
         address(this)
       );
-      //delta actualAmountOut - amountOut stays in adapter contract, because router has strict check of amountOut
-      //transfer to recipient exact amountOut
+      // delta actualAmountOut - amountOut stays in adapter contract, because router has strict check of amountOut
+      // transfer to recipient exact amountOut
       SafeERC20.safeTransfer(IERC20(tokenOut), recipient, amountOut);
     } else {
       // sy to pt swap is not possible after maturity
@@ -522,7 +522,7 @@ contract PendleCurveRouterNgAdapter is IMarginlyAdapter, Ownable2Step {
 
       address ibToken = input.curveRoute[0];
 
-      //prepare inverted route for swap quoteToken -> ..curve.. -> ibToken -> ptToken
+      // prepare inverted route for swap quoteToken -> ..curve.. -> ibToken -> ptToken
       address[11] memory invertedCurveRoute;
       uint256 index = 0;
       for (uint256 j = 10; ; --j) {
