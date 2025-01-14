@@ -83,6 +83,12 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
       // sequencerAnswer == 1: Sequencer is down
       if (sequencerAnswer != 0) revert SequencerIsDown();
 
+      // https://docs.chain.link/data-feeds/l2-sequencer-feeds#example-code
+      // The startedAt variable returns 0 only on Arbitrum when the Sequencer Uptime contract is not yet initialized.
+      // For L2 chains other than Arbitrum, startedAt is set to block.timestamp on construction and startedAt is never 0.
+      // After the feed begins rounds, the startedAt timestamp will always indicate when the sequencer feed last changed status.
+      if (sequencerStartedAt == 0) revert SequencerIsDown();
+
       // Make sure the grace period has passed after the
       // sequencer is back up.
       uint256 timeSinceUp = block.timestamp - sequencerStartedAt;
