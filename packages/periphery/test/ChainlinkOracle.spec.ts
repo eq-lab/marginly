@@ -4,7 +4,7 @@ import { BigNumber } from 'ethers';
 import { createSomeChainlinkCompositeOracle, createSomeChainlinkOracle } from './shared/fixtures';
 import { ethers } from 'hardhat';
 
-describe.only('ChainlinkOracle prices', () => {
+describe('ChainlinkOracle prices', () => {
   for (const getPrice of ['getBalancePrice', 'getMargincallPrice']) {
     it(`${getPrice} forward`, async () => {
       const { oracle, chainlink, decimals, quoteToken, baseToken } = await loadFixture(createSomeChainlinkOracle);

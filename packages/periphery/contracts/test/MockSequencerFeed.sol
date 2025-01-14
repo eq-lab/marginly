@@ -16,8 +16,4 @@ contract MockSequencerFeed {
   function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
     return (0, answer, startedAt, 0, 0);
   }
-
-  function setStartedAt(uint256 _startedAt) external {
-    startedAt = _startedAt;
-  }
 }
