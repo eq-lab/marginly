@@ -7,7 +7,7 @@ import {
   PendleMarketAdapter,
   PendleMarketAdapter__factory,
 } from '../../typechain-types';
-import { constructSwap, Dex, SWAP_ONE } from '../shared/utils';
+import { constructSwap, Dex, resetFork, SWAP_ONE } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -55,6 +55,10 @@ async function initializeRouterArbWeEth(): Promise<{
 }
 
 describe('Pendle PT-weETH - weETH', () => {
+  before(async () => {
+    await resetFork(20032943);
+  });
+
   describe('Pendle swap pre maturity', () => {
     let ptToken: ERC20;
     let weETH: ERC20;

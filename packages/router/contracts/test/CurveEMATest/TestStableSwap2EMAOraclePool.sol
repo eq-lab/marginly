@@ -49,6 +49,14 @@ contract TestStableSwap2EMAOraclePool is ICurvePool {
     }
   }
 
+  function get_dx(int128 i, int128 j, uint256 dy) public view returns (uint256 dx) {
+    revert('Not implemented');
+  }
+
+  function N_COINS() external view returns (uint256) {
+    return 2;
+  }
+
   function price_oracle() external view returns (uint256) {
     return price;
   }
