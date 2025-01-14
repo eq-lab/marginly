@@ -13,19 +13,17 @@ jobs:
   unit_tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js 18.14.2
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.14.2
-    - name: Build for testing periphery
-      run: |
-        cd packages/contracts
-        yarn
-        yarn compile
-        cd ../router
-        yarn compile
-        cd ../periphery
-        yarn test
-        
-    
+      - uses: actions/checkout@v3
+      - name: Use Node.js 21.1.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: 21.1.0
+      - name: Build for testing periphery
+        run: |
+          cd packages/contracts
+          yarn
+          yarn compile
+          cd ../router
+          yarn compile
+          cd ../periphery
+          yarn test
