@@ -4,7 +4,7 @@ import { BigNumber } from 'ethers';
 import { createSomeChainlinkCompositeOracle, createSomeChainlinkOracle } from './shared/fixtures';
 import { ethers } from 'hardhat';
 
-describe('ChainlinkOracle prices', () => {
+describe.only('ChainlinkOracle prices', () => {
   for (const getPrice of ['getBalancePrice', 'getMargincallPrice']) {
     it(`${getPrice} forward`, async () => {
       const { oracle, chainlink, decimals, quoteToken, baseToken } = await loadFixture(createSomeChainlinkOracle);
@@ -60,6 +60,54 @@ describe('ChainlinkOracle prices', () => {
       await oracle.unpause();
       await (oracle as any)[getPrice](quoteToken, baseToken);
     });
+
+    it(`${getPrice} should fail when price is stale`, async () => {
+      const { oracle, chainlink, quoteToken, baseToken } = await loadFixture(createSomeChainlinkOracle);
+
+      await chainlink.setUpdatedAt(0);
+
+      await expect((oracle as any)[getPrice](quoteToken, baseToken)).to.be.revertedWithCustomError(
+        oracle,
+        'StalePrice'
+      );
+    });
+
+    it(`${getPrice} should fail when sequencer is down`, async () => {
+      const { oracle, quoteToken, baseToken, sequencerFeed } = await loadFixture(createSomeChainlinkOracle);
+
+      await sequencerFeed.setAnswer(1, 1);
+
+      await expect((oracle as any)[getPrice](quoteToken, baseToken)).to.be.revertedWithCustomError(
+        oracle,
+        'SequencerIsDown'
+      );
+    });
+
+    it(`${getPrice} should fail when sequencerStartedAt is zero`, async () => {
+      const { oracle, quoteToken, baseToken, sequencerFeed } = await loadFixture(createSomeChainlinkOracle);
+
+      await sequencerFeed.setAnswer(0, 0);
+
+      await expect((oracle as any)[getPrice](quoteToken, baseToken)).to.be.revertedWithCustomError(
+        oracle,
+        'SequencerIsNotInitialized'
+      );
+    });
+
+    it(`${getPrice} should fail when sequencer grace period is not over`, async () => {
+      const { oracle, quoteToken, baseToken, sequencerFeed, chainlink } = await loadFixture(createSomeChainlinkOracle);
+      await chainlink.setPrice(5n * 10n ** (BigInt(18) - 1n)); // 0.5
+      const currentTimestamp = await time.latest();
+
+      await sequencerFeed.setAnswer(0, currentTimestamp);
+      await expect((oracle as any)[getPrice](quoteToken, baseToken)).to.be.revertedWithCustomError(
+        oracle,
+        'SequencerGracePeriodNotOver'
+      );
+
+      await sequencerFeed.setAnswer(0, currentTimestamp - (await oracle.sequencerGracePeriod()).toNumber());
+      await (oracle as any)[getPrice](quoteToken, baseToken);
+    });
   }
 
   it('setPair should fail when wrong maxPriceAge provided', async () => {
@@ -70,50 +118,6 @@ describe('ChainlinkOracle prices', () => {
     const dataFeed = '0x000000000000000000000000000000000000000f';
 
     await expect(oracle.setPair(token1, token2, dataFeed, 0)).to.be.revertedWithCustomError(oracle, 'WrongValue');
-  });
-
-  it('getPrice should fail when price is stale', async () => {
-    const { oracle, chainlink, quoteToken, baseToken } = await loadFixture(createSomeChainlinkOracle);
-
-    await chainlink.setUpdatedAt(0);
-
-    await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(oracle, 'StalePrice');
-    await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(oracle, 'StalePrice');
-  });
-
-  it('getPrice should fail when sequencer is down', async () => {
-    const { oracle, quoteToken, baseToken, sequencerFeed } = await loadFixture(createSomeChainlinkOracle);
-
-    await sequencerFeed.setAnswer(1, 0);
-
-    await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
-      oracle,
-      'SequencerIsDown'
-    );
-    await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
-      oracle,
-      'SequencerIsDown'
-    );
-  });
-
-  it('getPrice should fail when sequencer grace period is not over', async () => {
-    const { oracle, quoteToken, baseToken, sequencerFeed, chainlink } = await loadFixture(createSomeChainlinkOracle);
-    await chainlink.setPrice(5n * 10n ** (BigInt(18) - 1n)); // 0.5
-    const currentTimestamp = await time.latest();
-
-    await sequencerFeed.setAnswer(0, currentTimestamp);
-    await expect(oracle.getMargincallPrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
-      oracle,
-      'SequencerGracePeriodNotOver'
-    );
-    await expect(oracle.getBalancePrice(quoteToken, baseToken)).to.be.revertedWithCustomError(
-      oracle,
-      'SequencerGracePeriodNotOver'
-    );
-
-    await sequencerFeed.setAnswer(0, currentTimestamp - (await oracle.sequencerGracePeriod()).toNumber());
-    await oracle.getMargincallPrice(quoteToken, baseToken);
-    await oracle.getBalancePrice(quoteToken, baseToken);
   });
 
   it('only owner could change sequencer grace period', async () => {

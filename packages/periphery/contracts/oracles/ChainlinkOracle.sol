@@ -14,6 +14,7 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
   error WrongValue();
   error StalePrice();
   error SequencerIsDown();
+  error SequencerIsNotInitialized();
   error SequencerGracePeriodNotOver();
 
   /// @dev address(0) means that sequncer feed is not provided and should not be checked for up and grace period
@@ -87,7 +88,7 @@ contract ChainlinkOracle is IPriceOracle, CompositeOracle, Ownable2Step, Pausabl
       // The startedAt variable returns 0 only on Arbitrum when the Sequencer Uptime contract is not yet initialized.
       // For L2 chains other than Arbitrum, startedAt is set to block.timestamp on construction and startedAt is never 0.
       // After the feed begins rounds, the startedAt timestamp will always indicate when the sequencer feed last changed status.
-      if (sequencerStartedAt == 0) revert SequencerIsDown();
+      if (sequencerStartedAt == 0) revert SequencerIsNotInitialized();
 
       // Make sure the grace period has passed after the
       // sequencer is back up.
