@@ -654,7 +654,7 @@ export class StrictMarginlyDeployConfig {
             pendleMarket: EthAddress.parse(pairConfig.poolAddress),
             slippage: pairConfig.slippage,
           });
-        } else if (adapter.adapterName === 'PendleCurveAdapter') {
+        } else if (adapter.adapterName === 'PendleCurveNgAdapter') {
           const pairConfig = pool as PendleCurveAdapterPair;
 
           const ibToken = tokens.get(pairConfig.ibTokenId);
@@ -678,7 +678,7 @@ export class StrictMarginlyDeployConfig {
             ibToken: ibToken,
             quoteToken: quoteToken,
           });
-        } else if (adapter.adapterName === 'PendleCurveRouter') {
+        } else if (adapter.adapterName === 'PendleCurveRouterNg') {
           const pairConfig = pool as PendleCurveRouterAdapterPair;
 
           if (pairConfig.curveRoute.length !== 11) {

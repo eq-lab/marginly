@@ -11,6 +11,7 @@ import {
 
 import { saveDeploymentData, verifyContract } from './utils';
 import { MarginlyParamsStruct } from '../typechain-types/contracts/test/MockMarginlyFactory.sol/MockMarginlyFactory';
+import { MARGINLY_ROUTER_ABI } from './abi';
 
 interface DeployArgs {
   signer: string;
@@ -143,6 +144,58 @@ task('timelock-execute', 'Timelock schedule and execute operation')
     const callData = new MockMarginlyPool__factory(signer).interface.encodeFunctionData('setParameters', [parameters]);
     const method = callData.slice(0, 10);
     const delay = await timelock.getMinDelay();
+
+    const operationId = await timelock.hashOperation(target, 0n, callData, predecessor, salt);
+
+    if (await timelock.isWhitelisted(target, method)) {
+      console.log('Whitelisted method. Execute operation immediately');
+
+      await (await timelock.execute(target, 0n, callData, predecessor, salt)).wait();
+    } else if (!(await timelock.isOperation(operationId))) {
+      console.log('Operation not existed. Schedule operation');
+
+      await (await timelock.schedule(target, 0n, callData, predecessor, salt, delay)).wait();
+    } else if (await timelock.isOperationDone(operationId)) {
+      console.log('Operation done.');
+    } else if (await timelock.isOperationReady(operationId)) {
+      console.log('Operation ready for execution. Execute operation');
+
+      await (await timelock.execute(target, 0n, callData, predecessor, salt)).wait();
+    } else if (await timelock.isOperationPending(operationId)) {
+      const readyTimestamp = await timelock.getTimestamp(operationId);
+      console.log('Operation pending. Ready at ', new Date(Number(readyTimestamp) * 1000));
+    }
+  });
+
+//npx hardhat --network holesky --config hardhat.config.ts timelock-router-add-adapter --signer <private-key>
+task('timelock-router-add-adapter', 'Timelock schedule and execute operation')
+  .addParam<string>('signer', 'Private key of contracts creator')
+  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+    const provider = hre.ethers.provider;
+    const signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+
+    const timelockAddress = '0xc71968f413bF7EDa0d11629e0Cedca0831967cD3';
+    const timelock = TimelockWhitelist__factory.connect(timelockAddress, signer);
+
+    const predecessor = ethers.ZeroHash;
+    const salt = ethers.ZeroHash;
+
+    // Marginly router address
+    const target = '0x6eC48569A33E9465c5325ff205Afa81209C33F31'; // target address
+    const marginlyRouter = new ethers.Contract(target, MARGINLY_ROUTER_ABI);
+    const adapterAddress = '0xBdf6114EE6466B4c52f4A85C587d28DB5f3eFF5f'; // new adapter to add
+
+    const dexAdapter = {
+      dexIndex: 30,
+      adapter: adapterAddress,
+    };
+
+    const callData = marginlyRouter.interface.encodeFunctionData('addDexAdapters', [[dexAdapter]]);
+    const method = callData.slice(0, 10);
+    const delay = await timelock.getMinDelay();
+
+    console.log(`Generated calldata`);
+    console.log(callData);
 
     const operationId = await timelock.hashOperation(target, 0n, callData, predecessor, salt);
 
