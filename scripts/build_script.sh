@@ -18,6 +18,10 @@ echo "build periphery"
 yarn workspace @marginly/periphery install
 yarn workspace @marginly/periphery compile
 
+echo "build timelock"
+yarn workspace @marginly/timelock install
+yarn workspace @marginly/timelock compile
+
 echo "build common"
 yarn workspace @marginly/common install
 yarn workspace @marginly/common build
@@ -46,11 +50,11 @@ echo "build oracle"
 yarn workspace @marginly/oracle install
 yarn workspace @marginly/oracle build
 
-echo "build contest-winner-nft"
-yarn workspace @marginly/contest-winner-nft install
-yarn workspace @marginly/contest-winner-nft typechain
-yarn workspace @marginly/contest-winner-nft compile
-yarn workspace @marginly/contest-winner-nft build
+# echo "build contest-winner-nft"
+# yarn workspace @marginly/contest-winner-nft install
+# yarn workspace @marginly/contest-winner-nft typechain
+# yarn workspace @marginly/contest-winner-nft compile
+# yarn workspace @marginly/contest-winner-nft build
 
 echo "build cli"
 yarn workspace @marginly/cli install

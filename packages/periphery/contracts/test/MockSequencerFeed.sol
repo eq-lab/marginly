@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/access/AccessControl.sol';
 
 contract MockSequencerFeed {
   int256 private answer;
-  uint256 private startedAt;
+  uint256 private startedAt = 1;
 
   function setAnswer(int256 _answer, uint256 _startedAt) external {
     answer = _answer;

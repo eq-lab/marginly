@@ -1,4 +1,9 @@
-import { BigNumber } from 'ethers';
+import { BigNumber, ContractTransaction } from 'ethers';
+import { ERC20 } from '../../typechain-types';
+import { formatUnits } from 'ethers/lib/utils';
+import { reset } from '@nomicfoundation/hardhat-network-helpers';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+const hre = require('hardhat');
 
 export const SWAP_ONE = 1 << 15;
 
@@ -18,6 +23,9 @@ export const Dex = {
   DodoV2: 12,
   Curve: 13,
   Pendle: 17,
+  PendleMarket: 19,
+  PendleCurveRouter: 20,
+  PendleCurve: 21,
 };
 
 export function constructSwap(dex: number[], ratios: number[]): BigNumber {
@@ -31,4 +39,24 @@ export function constructSwap(dex: number[], ratios: number[]): BigNumber {
   }
   swap = (swap << BigInt(4)) + BigInt(dex.length);
   return BigNumber.from(swap);
+}
+
+export async function showGasUsage(tx: ContractTransaction) {
+  const txReceipt = await tx.wait();
+  console.log(`⛽ gas used ${txReceipt.gasUsed}`);
+}
+
+export async function showBalance(token: ERC20, account: string, startPhrase = ''): Promise<BigNumber> {
+  const [balance, symbol, decimals] = await Promise.all([token.balanceOf(account), token.symbol(), token.decimals()]);
+
+  console.log(`${startPhrase} ${formatUnits(balance, decimals)} ${symbol}`);
+  return balance;
+}
+
+export async function resetFork(blockNumber?: number) {
+  const hardhatConfig = (<HardhatRuntimeEnvironment>hre).config;
+  const forkingBlockNumber = hardhatConfig.networks.hardhat.forking?.blockNumber;
+  const forkingUrl = hardhatConfig.networks.hardhat.forking?.url;
+
+  await reset(forkingUrl, blockNumber ?? forkingBlockNumber);
 }

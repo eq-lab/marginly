@@ -7,8 +7,12 @@ import {
   AdapterParam,
   MarginlyAdapterParam,
   PendleAdapterParam,
+  PendleCurveAdapterParam,
+  PendleCurveRouterAdapterParam,
   PendleMarketAdapterParam,
   isPendleAdapter,
+  isPendleCurveAdapter,
+  isPendleCurveRouterAdapter,
   isPendleMarketAdapter,
 } from './configs';
 import { EthOptions } from '../config';
@@ -24,7 +28,8 @@ export class MarginlyRouterDeployer extends BaseDeployer {
     dexId: BigNumber,
     adapterName: string,
     pools: AdapterParam[],
-    balancerVault?: EthAddress
+    balancerVault?: EthAddress,
+    curveRouter?: EthAddress
   ): Promise<DeployResult> {
     let args: any[];
     if (isPendleAdapter(pools[0])) {
@@ -55,6 +60,39 @@ export class MarginlyRouterDeployer extends BaseDeployer {
           ];
         }),
       ];
+    } else if (isPendleCurveAdapter(pools[0])) {
+      args = [
+        pools.map((x) => {
+          const locConfig = x as PendleCurveAdapterParam;
+          return [
+            locConfig.pendleMarket.toString(),
+            locConfig.slippage,
+            locConfig.curveSlippage,
+            locConfig.curvePool.toString(),
+            tokenRepository.getTokenInfo(locConfig.ibToken.id).address.toString(),
+            tokenRepository.getTokenInfo(locConfig.quoteToken.id).address.toString(),
+          ];
+        }),
+      ];
+    } else if (isPendleCurveRouterAdapter(pools[0])) {
+      if (!curveRouter) {
+        throw new Error('CurveRouter address is required for PendleCurveRouterAdapter');
+      }
+
+      args = [
+        curveRouter.toString(),
+        pools.map((x) => {
+          const locConfig = x as PendleCurveRouterAdapterParam;
+          return [
+            locConfig.pendleMarket.toString(),
+            locConfig.slippage,
+            locConfig.curveSlippage,
+            locConfig.curveRoute.map((y) => y.toString()),
+            locConfig.curveSwapParams,
+            locConfig.curvePools.map((y) => y.toString()),
+          ];
+        }),
+      ];
     } else {
       args = [
         pools.map((x) => {
@@ -66,12 +104,31 @@ export class MarginlyRouterDeployer extends BaseDeployer {
           ];
         }),
       ];
+
       if (balancerVault !== undefined) {
         args.push(balancerVault.toString());
       }
     }
 
-    return this.deploy(adapterName, args, `${adapterName}_${dexId}`, readMarginlyAdapterContract);
+    const adapterDeployResult = await this.deploy(
+      adapterName,
+      args,
+      `${adapterName}_${dexId}`,
+      readMarginlyAdapterContract
+    );
+    await this.updateAdapterSettings(args);
+    return adapterDeployResult;
+  }
+
+  private async updateAdapterSettings(args: any[]): Promise<void> {
+    //TODO: check adapter for pools and update if needed
+
+    console.log('Update adapter pools manually:');
+    for (const arg of args) {
+      console.log(arg);
+    }
+
+    console.log('\n\n');
   }
 
   public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {

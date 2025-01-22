@@ -219,7 +219,8 @@ async function processMarginlyRouter(
         adapter.dexId,
         adapter.name,
         adapter.marginlyAdapterParams,
-        adapter.balancerVault
+        adapter.balancerVault,
+        adapter.curveRouter
       );
       printDeployState(
         `Marginly adapter dexId:${adapter.dexId} name:${adapter.name}`,
@@ -285,7 +286,8 @@ async function processMarginly(
         marginlyFactoryDeployResult.contract,
         pool,
         tokenRepository,
-        EthAddress.parse(priceOracle.address)
+        EthAddress.parse(priceOracle.address),
+        config.marginlyFactory.timelockOwner
       );
       deployedMarginlyPools.push({
         id: pool.id,

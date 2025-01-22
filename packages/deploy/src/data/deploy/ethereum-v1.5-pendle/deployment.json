@@ -1,6 +1,62 @@
 {
   "marginlyPools": [
     {
+      "id": "pt-ageth-26dec2024-ageth",
+      "address": "0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305"
+    },
+    {
+      "id": "pt-ageth-26jun2025-ageth",
+      "address": "0x8F5F4816AFbb41257aD6F5380d0b9a22b0ACf410"
+    },
+    {
+      "id": "pt-amphreth-26dec2024-amphreth",
+      "address": "0x530043876F37170468a9F366145E645BEE86da6C"
+    },
+    {
+      "id": "pt-amphreth-26sep2024-amphreth",
+      "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
+    },
+    {
+      "id": "pt-amphrlrt-26dec2024-amphrlrt",
+      "address": "0xcAbAE9295e274c152b9DcCC124AB06cf78d079Eb"
+    },
+    {
+      "id": "pt-amphrlrt-26sep2024-amphrlrt",
+      "address": "0x5e321551bA80b01051B24FeF2e44DA29313fC1ef"
+    },
+    {
+      "id": "pt-corn-pumpbtc-26dec2024-wbtc",
+      "address": "0xEe368c5014D218795F76DcDA58e8FD24D04E19Ff"
+    },
+    {
+      "id": "pt-corn-unibtc-26dec2024-unibtc",
+      "address": "0x49755E70285dE0c624e0750543046131CB7163de"
+    },
+    {
+      "id": "pt-corn-unibtc-26dec2024-wbtc",
+      "address": "0x056888DD4B31cA090E2FC7ca87AF62B588dD8207"
+    },
+    {
+      "id": "pt-cornlbtc-26dec2024-lbtc",
+      "address": "0x32d850609FDc950bF6E23640d1EB0bbd60a5149c"
+    },
+    {
+      "id": "pt-cornlbtc-26dec2024-wbtc",
+      "address": "0x3D6f0097FA10f2e3855377daF2139dBeD66Fb343"
+    },
+    {
+      "id": "pt-ebtc-26dec2024-ebtc",
+      "address": "0x2F06faF2A2EEFfBd44a796b8c6d2D04841c6488C"
+    },
+    {
+      "id": "pt-ebtc-27mar2025-ebtc",
+      "address": "0xd88855292819e34388833A3cb5524eEDf25010AE"
+    },
+    {
+      "id": "pt-ebtc-27mar2025-wbtc",
+      "address": "0x124dF0CEE8B6859B6fBD906b084e546a038D0433"
+    },
+    {
       "id": "pt-ezeth-26dec2024-ezeth",
       "address": "0xb34DfB03973e148ED800F369EdE84b92803116CA"
     },
@@ -9,24 +65,80 @@
       "address": "0x48f6E31CFe4da92C2470f8b797aa89a9460E9975"
     },
     {
+      "id": "pt-lbtc-27mar2025-lbtc",
+      "address": "0xf7710a79F2440423e5865EB3a7DF3e47a430859F"
+    },
+    {
+      "id": "pt-lbtc-27mar2025-wbtc",
+      "address": "0xB95b9f7763de009a4E6c739855faCDfA960eB893"
+    },
+    {
+      "id": "pt-pufeth-26dec2024-pufeth",
+      "address": "0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40"
+    },
+    {
+      "id": "pt-pufeth-26dec2024-weth",
+      "address": "0xa692B4fb38f8e9aEA229DA05CC2FC9d748218CD3"
+    },
+    {
+      "id": "pt-pzeth-26sep2024-pzeth",
+      "address": "0x51f95AAF94834b878eec18A812D840910370887f"
+    },
+    {
+      "id": "pt-re7lrt-26dec2024-re7lrt",
+      "address": "0x2Df52e18e0fcA1E8CEE272cD034368278a49125f"
+    },
+    {
+      "id": "pt-rseth-26dec2024-rseth",
+      "address": "0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173"
+    },
+    {
+      "id": "pt-rseth-26dec2024-weth",
+      "address": "0x49D7712f65B291E4574726d6e263a4E6Af2830F0"
+    },
+    {
+      "id": "pt-rseth-26sep2024-rseth",
+      "address": "0xa16C1F55129E4Af8288c005a27c8fE05591d24bE"
+    },
+    {
+      "id": "pt-rsweth-26dec2024-rsweth",
+      "address": "0x6b79E799Ebdb9e867A1fe268A0703cbAA532C60d"
+    },
+    {
+      "id": "pt-unieth-26sep2024-unieth",
+      "address": "0x86DC30f6dBbb742463CE77f88926eff979892b22"
+    },
+    {
       "id": "pt-usde-25jul2024-usdt",
       "address": "0xbd4a9ca12c5f3c12d1378843c0b91585475aed51"
     },
     {
       "id": "pt-weeth-26dec2024-weeth",
-      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497"
+      "address": "0xE1B77a8B19b23229e9d1774027a5EC06f84D460B"
     },
     {
       "id": "pt-weeth-26dec2024-weth",
       "address": "0xa77C2275C1F403056c7F73B44df69E374C299dd7"
     },
     {
+      "id": "pt-weeth-26jun2025-weeth",
+      "address": "0x5a326377Ae9Ce16A5545BccB06931aaa098495a0"
+    },
+    {
+      "id": "pt-weeth-26sep2024-weeth",
+      "address": "0x4Cac44a1C50fea3F458f5F31529C0810AFcac497"
+    },
+    {
       "id": "pt-weeth-27jun2024-weth",
       "address": "0xE45FD040dCaF59276Be6AAC6A3C14e4707381AAC"
     },
     {
-      "id": "pt-amphreth-26sep2024-amphreth",
-      "address": "0xAc02A14F647029d2B2FF937032A2EDDfc6255A06"
+      "id": "pt-weeths-26dec2024-weeths",
+      "address": "0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf"
+    },
+    {
+      "id": "pt-weeths-26dec2024-weth",
+      "address": "0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96"
     }
   ],
   "aaveKeeperDeployResult": {

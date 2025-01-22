@@ -11,6 +11,7 @@ import {
   createMarginlyContractReader,
   createMarginlyPeripheryContractReader,
   createMarginlyPeripheryMockContract,
+  createTimelockWhitelistContract,
 } from './contract-reader';
 import { BaseDeployer } from './BaseDeployer';
 
@@ -18,12 +19,14 @@ export class MarginlyDeployer extends BaseDeployer {
   private readonly readMarginlyContract;
   private readonly readMarginlyPeripheryContract;
   private readonly readMarginlyPeripheryMockContract;
+  private readonly readTimeLockContract;
 
   public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
     super(signer, ethArgs, stateStore, logger);
     this.readMarginlyContract = createMarginlyContractReader();
     this.readMarginlyPeripheryContract = createMarginlyPeripheryContractReader();
     this.readMarginlyPeripheryMockContract = createMarginlyPeripheryMockContract();
+    this.readTimeLockContract = createTimelockWhitelistContract();
   }
 
   public deployMarginlyPoolImplementation(): Promise<DeployResult> {
@@ -57,10 +60,15 @@ export class MarginlyDeployer extends BaseDeployer {
     marginlyFactoryContract: ethers.Contract,
     txHash: string,
     quoteToken: EthAddress,
-    baseToken: EthAddress
+    baseToken: EthAddress,
+    priceOracle: EthAddress
   ): Promise<EthAddress> {
     const txReceipt = await this.provider.getTransactionReceipt(txHash);
-    const eventFilter = marginlyFactoryContract.filters.PoolCreated(quoteToken.toString(), baseToken.toString());
+    const eventFilter = marginlyFactoryContract.filters.PoolCreated(
+      quoteToken.toString(),
+      baseToken.toString(),
+      priceOracle.toString()
+    );
     const events = await marginlyFactoryContract.queryFilter(eventFilter, txReceipt.blockHash);
 
     if (events.length === 0) {
@@ -83,10 +91,12 @@ export class MarginlyDeployer extends BaseDeployer {
     marginlyPoolFactoryContract: Contract,
     config: MarginlyConfigMarginlyPool,
     tokenRepository: ITokenRepository,
-    priceOracle: EthAddress
+    priceOracle: EthAddress,
+    timelockOwner?: EthAddress
   ): Promise<LimitedDeployResult> {
     const stateFileId = `marginlyPool_${config.id}`;
     const marginlyPoolContractDescription = this.readMarginlyContract('MarginlyPool');
+    const timelockDescription = this.readTimeLockContract('TimelockWhitelist');
 
     const stateFromFile = this.stateStore.getById(stateFileId);
     if (stateFromFile !== undefined) {
@@ -121,20 +131,48 @@ export class MarginlyDeployer extends BaseDeployer {
       quoteLimit: config.params.quoteLimit.mul(quoteOne).toInteger(),
     };
 
-    const createPoolTx = await marginlyPoolFactoryContract.createPool(
-      quoteTokenInfo.address.toString(),
-      baseTokenInfo.address.toString(),
-      priceOracle.toString(),
-      config.defaultSwapCallData,
-      params,
-      this.ethArgs
-    );
-    await createPoolTx.wait();
+    let createPoolTx: ethers.ContractTransaction;
+    if (timelockOwner) {
+      // create new pool through timelock
+      const createPoolCallData = marginlyPoolFactoryContract.interface.encodeFunctionData('createPool', [
+        quoteTokenInfo.address.toString(),
+        baseTokenInfo.address.toString(),
+        priceOracle.toString(),
+        config.defaultSwapCallData,
+        params,
+      ]);
+
+      const timelockContract = new ethers.Contract(timelockOwner.toString(), timelockDescription.abi, this.signer);
+
+      createPoolTx = await timelockContract.execute(
+        marginlyPoolFactoryContract.address, //target
+        0, //value
+        createPoolCallData, //calldata
+        ethers.constants.HashZero, //predecessor
+        ethers.constants.HashZero, //salt
+        this.ethArgs //overrides
+      );
+      await createPoolTx.wait();
+
+      this.logger.log(`Marginly pool created with timelock ${timelockContract.address}`);
+    } else {
+      // create new pool from factory owner
+      createPoolTx = await marginlyPoolFactoryContract.createPool(
+        quoteTokenInfo.address.toString(),
+        baseTokenInfo.address.toString(),
+        priceOracle.toString(),
+        config.defaultSwapCallData,
+        params,
+        this.ethArgs
+      );
+    }
+
     const marginlyPoolAddress = await this.getCreatedMarginlyPoolAddress(
       marginlyPoolFactoryContract,
       createPoolTx.hash,
       quoteTokenInfo.address,
-      baseTokenInfo.address
+      baseTokenInfo.address,
+      priceOracle
     );
 
     this.stateStore.setById(stateFileId, {
@@ -148,11 +186,71 @@ export class MarginlyDeployer extends BaseDeployer {
       this.signer
     );
 
+    // add marginlyPool.setParameters to whitelist timelock
+    if (timelockOwner) {
+      const timelockContract = new ethers.Contract(timelockOwner.toString(), timelockDescription.abi, this.signer);
+      await this.whitelistSetParameters(timelockContract, marginlyPoolContract, params);
+    }
+
     return {
       address: marginlyPoolAddress.toString(),
       txHash: createPoolTx.hash,
       contract: marginlyPoolContract,
     };
+  }
+
+  private async whitelistSetParameters(
+    timelockContract: ethers.Contract,
+    marginlyPoolContract: ethers.Contract,
+    params: any
+  ): Promise<void> {
+    const setParametersMethod = marginlyPoolContract.interface
+      .encodeFunctionData('setParameters', [params])
+      .slice(0, 10);
+
+    const whitelistMethodCallData = timelockContract.interface.encodeFunctionData('whitelistMethods', [
+      [marginlyPoolContract.address],
+      [setParametersMethod],
+      [true],
+    ]);
+
+    const operationId = await timelockContract.hashOperation(
+      timelockContract.address, //target
+      0,
+      whitelistMethodCallData, //calldata
+      ethers.constants.HashZero, //predecessor
+      ethers.constants.HashZero //salt
+    );
+
+    const minDelay = await timelockContract.getMinDelay();
+
+    const target = timelockContract.address;
+    const callData = whitelistMethodCallData;
+    const predecessor = ethers.constants.HashZero;
+    const salt = ethers.constants.HashZero;
+
+    if (await timelockContract.isWhitelisted(marginlyPoolContract.address, setParametersMethod)) {
+      this.logger.log('Whitelisted method. Execute operation immediately');
+
+      await (await timelockContract.execute(target, 0n, callData, predecessor, salt)).wait();
+    } else if (!(await timelockContract.isOperation(operationId))) {
+      this.logger.log('Operation not existed. Schedule operation');
+
+      await (await timelockContract.schedule(target, 0n, callData, predecessor, salt, minDelay)).wait();
+
+      this.logger.log(
+        `Scheduled whitelist setParameters of MarginlyPool ${marginlyPoolContract.address} in Timelock ${timelockContract.address}`
+      );
+    } else if (await timelockContract.isOperationDone(operationId)) {
+      this.logger.log('Operation done.');
+    } else if (await timelockContract.isOperationReady(operationId)) {
+      this.logger.log('Operation ready for execution. Execute operation');
+
+      await (await timelockContract.execute(target, 0n, callData, predecessor, salt)).wait();
+    } else if (await timelockContract.isOperationPending(operationId)) {
+      const readyTimestamp = await timelockContract.getTimestamp(operationId);
+      this.logger.log('Operation pending. Ready at ' + new Date(Number(readyTimestamp) * 1000));
+    }
   }
 
   public deployMarginlyPoolAdmin(marginlyFactoryAddress: EthAddress): Promise<DeployResult> {

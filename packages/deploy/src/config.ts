@@ -379,6 +379,55 @@ export enum Dex {
   Woofi,
 }
 
+export type AdapterPair =
+  | GeneralAdapterPair
+  | PendleUniswapAdapterPair
+  | PendleMarketAdapterPair
+  | PendleCurveAdapterPair
+  | PendleCurveRouterAdapterPair;
+
+export interface GeneralAdapterPair {
+  tokenAId: string;
+  tokenBId: string;
+  poolAddress: string;
+}
+
+export interface PendleUniswapAdapterPair {
+  tokenAId: string;
+  tokenBId: string;
+  poolAddress: string;
+  ibTokenId: string;
+  pendleMarket: string;
+  slippage: number;
+}
+
+export interface PendleMarketAdapterPair {
+  tokenAId: string;
+  tokenBId: string;
+  poolAddress: string;
+  slippage: number;
+}
+
+export interface PendleCurveAdapterPair {
+  ibTokenId: string;
+  quoteTokenId: string;
+  curvePool: string;
+  pendleMarket: string;
+  slippage: number;
+  curveSlippage: number;
+}
+
+export interface PendleCurveRouterAdapterPair {
+  tokenAId: string;
+  tokenBId: string;
+  pendleMarket: string;
+  slippage: number;
+  curveRoute: string[];
+  curveSwapParams: number[][];
+  curvePools: string[];
+  curveSlippage: number;
+}
+
 export interface MarginlyDeployConfig {
   connection: EthConnectionConfig;
   tokens: MarginlyDeployConfigToken[];
@@ -389,19 +438,14 @@ export interface MarginlyDeployConfig {
     dexId: number;
     adapterName: string;
     balancerVault?: string;
-    pools: {
-      tokenAId: string;
-      tokenBId: string;
-      poolAddress: string;
-      ibTokenId?: string;
-      pendleMarket?: string;
-      slippage?: number;
-    }[];
+    curveRouter?: string;
+    pools: AdapterPair[];
   }[];
   marginlyFactory: {
     feeHolder: string;
     techPositionOwner: string;
     wethTokenId: string;
+    timelockOwner?: string;
   };
   marginlyPools: {
     id: string;

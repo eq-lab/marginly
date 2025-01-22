@@ -4,6 +4,7 @@ require('hardhat-contract-sizer');
 import 'solidity-docgen';
 import '../scripts';
 import { config as dotEnvConfig } from 'dotenv';
+import { network } from 'hardhat';
 
 dotEnvConfig();
 
@@ -11,9 +12,10 @@ const config = {
   solidity: {
     version: '0.8.19',
     settings: {
+      viaIR: true,
       optimizer: {
         enabled: true,
-        runs: 100_000,
+        runs: 5_000_000,
       },
     },
   },
@@ -40,6 +42,9 @@ const config = {
     mainnet: {
       url: 'https://ethereum-rpc.publicnode.com',
     },
+    holesky: {
+      url: 'https://ethereum-holesky-rpc.publicnode.com',
+    },
   },
   etherscan: {
     apiKey: {
@@ -48,6 +53,7 @@ const config = {
       arbitrumOne: process.env.API_KEY,
       artio_testnet: 'artio_testnet',
       mainnet: process.env.ETH_API_KEY,
+      holesky: process.env.API_KEY,
     },
     customChains: [
       {
@@ -64,6 +70,14 @@ const config = {
         urls: {
           apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
           browserURL: 'https://artio.beratrail.io',
+        },
+      },
+      {
+        network: 'holesky',
+        chainId: 17000,
+        urls: {
+          apiURL: 'https://api-holesky.etherscan.io/api',
+          browserURL: 'https://holesky.etherscan.io/',
         },
       },
     ],
