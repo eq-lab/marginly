@@ -24,8 +24,9 @@ export const Dex = {
   Curve: 13,
   Pendle: 17,
   PendleMarket: 19,
-  PendleCurveRouter: 20,
-  PendleCurve: 21,
+  PendleCurveRouter: 30,
+  PendleCurve: 31,
+  Spectra: 32,
 };
 
 export function constructSwap(dex: number[], ratios: number[]): BigNumber {
@@ -49,7 +50,7 @@ export async function showGasUsage(tx: ContractTransaction) {
 export async function showBalance(token: ERC20, account: string, startPhrase = ''): Promise<BigNumber> {
   const [balance, symbol, decimals] = await Promise.all([token.balanceOf(account), token.symbol(), token.decimals()]);
 
-  console.log(`${startPhrase} ${formatUnits(balance, decimals)} ${symbol}`);
+  console.log(`${startPhrase.replace('$symbol', symbol)} ${formatUnits(balance, decimals)} ${symbol}`);
   return balance;
 }
 
@@ -59,4 +60,8 @@ export async function resetFork(blockNumber?: number) {
   const forkingUrl = hardhatConfig.networks.hardhat.forking?.url;
 
   await reset(forkingUrl, blockNumber ?? forkingBlockNumber);
+}
+
+export function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
