@@ -7,7 +7,16 @@ import {
   SpectraAdapter,
   SpectraAdapter__factory,
 } from '../../typechain-types';
-import { constructSwap, delay, Dex, resetFork, showBalance, showGasUsage, SWAP_ONE } from '../shared/utils';
+import {
+  constructSwap,
+  delay,
+  Dex,
+  resetFork,
+  showBalance,
+  showBalanceDelta,
+  showGasUsage,
+  SWAP_ONE,
+} from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -16,17 +25,29 @@ import { BigNumber } from 'ethers';
 
 const swapCallData = constructSwap([Dex.Spectra], [SWAP_ONE]);
 
-type TestCase = {
+interface TokenInfo {
+  address: string;
+  symbol: string;
+  balanceSlot: EthereumMainnetERC20BalanceOfSlot;
+  initialBalance: BigNumber;
+}
+
+// For testing case when somebody make direct IBT transfer to sw-IBT and change rate IBT/sw-IBT
+interface SWToken {
+  address: string;
+  symbol: string;
+  ibtTransferAmount: BigNumber;
+}
+
+interface TestCase {
   forkNumber: number;
+
   spectraPool: string;
-  ptToken: string;
-  ptSymbol: string;
-  ptBalanceSlot: EthereumMainnetERC20BalanceOfSlot;
-  ptInitialBalance: BigNumber;
-  ibtToken: string;
-  ibtSymbol: string;
-  ibtBalanceSlot: EthereumMainnetERC20BalanceOfSlot;
-  ibtInitialBalance: BigNumber;
+
+  ptToken: TokenInfo;
+  ibtToken: TokenInfo;
+  swIbt?: SWToken;
+
   timeToMaturity: number;
   preMaturity: {
     swapExactIbtToPt: {
@@ -56,21 +77,31 @@ type TestCase = {
       minIbtOut: BigNumber;
     };
   };
-};
+}
 
 const inwstETHs_TestCase: TestCase = {
   forkNumber: 21714750,
 
   spectraPool: '0xe119bad8a35b999f65b1e5fd48c626c327daa16b',
-  ptToken: '0x4ae0154f83427a5864e5de6513a47dac9e5d5a69',
-  ptSymbol: 'pt-sw-inwstETHs',
-  ptBalanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSWINWSTETHS,
-  ptInitialBalance: parseUnits('1000', 18),
+  ptToken: {
+    address: '0x4ae0154f83427a5864e5de6513a47dac9e5d5a69',
+    symbol: 'pt-sw-inwstETHs',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSWINWSTETHS,
+    initialBalance: parseUnits('1000', 18),
+  },
 
-  ibtToken: '0x8e0789d39db454dbe9f4a77acef6dc7c69f6d552',
-  ibtSymbol: 'inwstETHs',
-  ibtBalanceSlot: EthereumMainnetERC20BalanceOfSlot.INWSTETHS,
-  ibtInitialBalance: parseUnits('1000', 18),
+  ibtToken: {
+    address: '0x8e0789d39db454dbe9f4a77acef6dc7c69f6d552',
+    symbol: 'inwstETHs',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.INWSTETHS,
+    initialBalance: parseUnits('2000', 18),
+  },
+
+  // swIbt: {
+  //   address: '0xd89fc47aacbb31e2bf23ec599f593a4876d8c18c',
+  //   symbol: 'sw-inwstETHs',
+  //   ibtTransferAmount: parseUnits('500', 18),
+  // },
 
   timeToMaturity: 180 * 24 * 60 * 60, // 180 days
 
@@ -109,15 +140,19 @@ const wstUSR_TestCase: TestCase = {
   forkNumber: 21714750,
 
   spectraPool: '0x0d89f4583a6b5eceb76551d573ad49cd435f6064',
-  ptToken: '0xd0097149aa4cc0d0e1fc99b8bd73fc17dc32c1e9',
-  ptSymbol: 'pt-wstUSR',
-  ptBalanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSWINWSTETHS,
-  ptInitialBalance: parseUnits('10000', 18),
+  ptToken: {
+    address: '0xd0097149aa4cc0d0e1fc99b8bd73fc17dc32c1e9',
+    symbol: 'pt-wstUSR',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSWINWSTETHS,
+    initialBalance: parseUnits('10000', 18),
+  },
 
-  ibtToken: '0x1202f5c7b4b9e47a1a484e8b270be34dbbc75055',
-  ibtSymbol: 'wstUSR',
-  ibtBalanceSlot: EthereumMainnetERC20BalanceOfSlot.WSTUSR,
-  ibtInitialBalance: parseUnits('10000', 18),
+  ibtToken: {
+    address: '0x1202f5c7b4b9e47a1a484e8b270be34dbbc75055',
+    symbol: 'wstUSR',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.WSTUSR,
+    initialBalance: parseUnits('10000', 18),
+  },
 
   timeToMaturity: 180 * 24 * 60 * 60, // 180 days
 
@@ -156,15 +191,19 @@ const sDOLA_TestCase: TestCase = {
   forkNumber: 21714750,
 
   spectraPool: '0x69ba1b7dba7eb3b7a73f4e35fd04a27ad06c55fe',
-  ptToken: '0xf4ca2ce6eaa1b507570c4b340007f6266c7d5698',
-  ptSymbol: 'pt-sDOLA',
-  ptBalanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSWINWSTETHS,
-  ptInitialBalance: parseUnits('10000', 18),
+  ptToken: {
+    address: '0xf4ca2ce6eaa1b507570c4b340007f6266c7d5698',
+    symbol: 'pt-sDOLA',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSWINWSTETHS,
+    initialBalance: parseUnits('10000', 18),
+  },
 
-  ibtToken: '0xb45ad160634c528cc3d2926d9807104fa3157305',
-  ibtSymbol: 'sDOLA',
-  ibtBalanceSlot: EthereumMainnetERC20BalanceOfSlot.SDOLA,
-  ibtInitialBalance: parseUnits('10000', 18),
+  ibtToken: {
+    address: '0xb45ad160634c528cc3d2926d9807104fa3157305',
+    symbol: 'sDOLA',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.SDOLA,
+    initialBalance: parseUnits('10000', 18),
+  },
 
   timeToMaturity: 365 * 24 * 60 * 60, // 365 days
 
@@ -211,11 +250,10 @@ async function initializeRouter(testCase: TestCase): Promise<{
 }> {
   const [owner, user] = await ethers.getSigners();
 
-  const ptToken = await ethers.getContractAt('ERC20', testCase.ptToken);
-  const ibtToken = await ethers.getContractAt('ERC20', testCase.ibtToken);
+  const ptToken = await ethers.getContractAt('ERC20', testCase.ptToken.address);
+  const ibtToken = await ethers.getContractAt('ERC20', testCase.ibtToken.address);
   const spectraPool = testCase.spectraPool;
 
-  // pool wstUSR/PT-wstUSR
   const poolInput: SpectraAdapter.PoolInputStruct = {
     pt: ptToken.address,
     ibt: ibtToken.address,
@@ -232,26 +270,37 @@ async function initializeRouter(testCase: TestCase): Promise<{
 
   await setTokenBalance(
     ibtToken.address,
-    testCase.ibtBalanceSlot,
+    testCase.ibtToken.balanceSlot,
     EthAddress.parse(user.address),
-    testCase.ibtInitialBalance
+    testCase.ibtToken.initialBalance
   );
 
   await setTokenBalance(
     ptToken.address,
-    testCase.ptBalanceSlot,
+    testCase.ptToken.balanceSlot,
     EthAddress.parse(user.address),
-    testCase.ptInitialBalance
+    testCase.ptToken.initialBalance
   );
 
   expect(await ptToken.balanceOf(user.address)).to.be.eq(
-    testCase.ptInitialBalance,
-    `Wrong initial ${testCase.ptSymbol} balance`
+    testCase.ptToken.initialBalance,
+    `Wrong initial ${testCase.ptToken.symbol} balance`
   );
   expect(await ibtToken.balanceOf(user.address)).to.be.eq(
-    testCase.ibtInitialBalance,
-    `Wrong initial ${testCase.ibtSymbol} balance`
+    testCase.ibtToken.initialBalance,
+    `Wrong initial ${testCase.ibtToken.symbol} balance`
   );
+
+  if (testCase.swIbt) {
+    await setTokenBalance(
+      ibtToken.address,
+      testCase.ibtToken.balanceSlot,
+      EthAddress.parse(user.address),
+      testCase.ibtToken.initialBalance.add(testCase.swIbt.ibtTransferAmount)
+    );
+
+    await ibtToken.connect(user).transfer(testCase.swIbt.address, testCase.swIbt.ibtTransferAmount);
+  }
 
   return {
     ptToken,
@@ -263,10 +312,10 @@ async function initializeRouter(testCase: TestCase): Promise<{
   };
 }
 
-describe.only('SpectraAdapter', async () => {
+// Tests for running in ethereum mainnet fork
+describe('SpectraAdapter', async () => {
   for (const testCase of testCases) {
-    // Tests for running in ethereum mainnet fork
-    describe(`SpectraAdapter ${testCase.ptSymbol} - ${testCase.ibtSymbol}`, () => {
+    describe(`SpectraAdapter ${testCase.ptToken.symbol} - ${testCase.ibtToken.symbol}`, () => {
       before(async () => {
         await resetFork(testCase.forkNumber);
       });
@@ -282,7 +331,7 @@ describe.only('SpectraAdapter', async () => {
           ({ ptToken, ibtToken, router, spectraAdapter, user } = await initializeRouter(testCase));
         });
 
-        it(`${testCase.ibtSymbol} to ${testCase.ptSymbol} exact input`, async () => {
+        it(`${testCase.ibtToken.symbol} to ${testCase.ptToken.symbol} exact input`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -301,9 +350,12 @@ describe.only('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceBefore.sub(ibtBalanceAfter)).to.be.lessThanOrEqual(ibtTokenAmount);
+
+          await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
+          await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
 
-        it(`${testCase.ibtSymbol} to ${testCase.ptSymbol} exact output`, async () => {
+        it(`${testCase.ibtToken.symbol} to ${testCase.ptToken.symbol} exact output`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -320,9 +372,12 @@ describe.only('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After: ');
           expect(ibtBalanceBefore).to.be.greaterThan(ibtBalanceAfter);
+
+          await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
+          await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
 
-        it(`${testCase.ptSymbol} to ${testCase.ibtSymbol} exact input`, async () => {
+        it(`${testCase.ptToken.symbol} to ${testCase.ibtToken.symbol} exact input`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -339,9 +394,12 @@ describe.only('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter).to.be.greaterThan(ibtBalanceBefore);
+
+          await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
+          await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
 
-        it(`${testCase.ptSymbol} to ${testCase.ibtSymbol} exact output`, async () => {
+        it(`${testCase.ptToken.symbol} to ${testCase.ibtToken.symbol} exact output`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -358,6 +416,9 @@ describe.only('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter.sub(ibtBalanceBefore)).to.be.eq(ibtMinOut);
+
+          await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
+          await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
       });
 
@@ -376,7 +437,7 @@ describe.only('SpectraAdapter', async () => {
           await ethers.provider.send('evm_mine', []);
         });
 
-        it(`${testCase.ibtSymbol} to ${testCase.ptSymbol} exact input, forbidden`, async () => {
+        it(`${testCase.ibtToken.symbol} to ${testCase.ptToken.symbol} exact input, forbidden`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -396,7 +457,7 @@ describe.only('SpectraAdapter', async () => {
           expect(ibtBalanceAfter).to.be.eq(ibtBalanceBefore);
         });
 
-        it(`${testCase.ibtSymbol} to ${testCase.ptSymbol} exact output, forbidden`, async () => {
+        it(`${testCase.ibtToken.symbol} to ${testCase.ptToken.symbol} exact output, forbidden`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -415,7 +476,7 @@ describe.only('SpectraAdapter', async () => {
           expect(ibtBalanceAfter).to.be.eq(ibtBalanceBefore);
         });
 
-        it(`${testCase.ptSymbol} to ${testCase.ibtSymbol} exact input`, async () => {
+        it(`${testCase.ptToken.symbol} to ${testCase.ibtToken.symbol} exact input`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'balance before:');
 
@@ -432,9 +493,12 @@ describe.only('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter).to.be.greaterThan(ibtBalanceBefore);
+
+          await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
+          await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
 
-        it(`${testCase.ptSymbol} to ${testCase.ibtSymbol} exact output`, async () => {
+        it(`${testCase.ptToken.symbol} to ${testCase.ibtToken.symbol} exact output`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'pt balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'ibt balance before:');
 
@@ -451,6 +515,9 @@ describe.only('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter.sub(ibtBalanceBefore)).to.be.eq(ibtOut);
+
+          await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
+          await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
       });
     });

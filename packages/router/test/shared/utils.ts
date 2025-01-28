@@ -54,6 +54,19 @@ export async function showBalance(token: ERC20, account: string, startPhrase = '
   return balance;
 }
 
+export async function showBalanceDelta(
+  balanceBefore: BigNumber,
+  balanceAfter: BigNumber,
+  token: ERC20,
+  startPhrase = ''
+) {
+  const [symbol, decimals] = await Promise.all([token.symbol(), token.decimals()]);
+
+  console.log(
+    `${startPhrase.replace('$symbol', symbol)} ${formatUnits(balanceAfter.sub(balanceBefore), decimals)} ${symbol}`
+  );
+}
+
 export async function resetFork(blockNumber?: number) {
   const hardhatConfig = (<HardhatRuntimeEnvironment>hre).config;
   const forkingBlockNumber = hardhatConfig.networks.hardhat.forking?.blockNumber;
