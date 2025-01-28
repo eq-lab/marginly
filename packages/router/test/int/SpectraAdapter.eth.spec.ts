@@ -422,7 +422,7 @@ describe('SpectraAdapter', async () => {
         });
       });
 
-      describe('Pendle swap post maturity', () => {
+      describe('Spectra swap post maturity', () => {
         let ptToken: ERC20;
         let ibtToken: ERC20;
         let router: MarginlyRouter;
