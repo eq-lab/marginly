@@ -8,12 +8,15 @@ import '../interfaces/IMarginlyAdapter.sol';
 import './interfaces/ICurvePool.sol';
 import './interfaces/ISpectraErc4626Wrapper.sol';
 import './interfaces/ISpectraPrincipalToken.sol';
+import './interfaces/IERC4626.sol';
 
 /// @title Adapter for Spectra finance pool (old curve pool) of two tokens IBT/PT
 /// @dev Two cases supported:
-///      1) Spectra pool PT/sw-IBT. Adapter will wrap/unwrap IBT to sw-IBT during swaps
-///      2) Spectra pool PT/IBT
-
+///      1) Spectra pool PT / sw-IBT for marginly pool PT / IBT.
+///             Adapter will wrap/unwrap IBT to sw-IBT during swaps.
+///      2) Spectra pool PT / IBT, marginly pool PT / IBT
+///      3) Spectra pool PT / IBT, marginly pool PT / Underlying of IBT.
+///           Adapter will wrap/unwrap IBT to Underlying. Only for IBT tokens that supports immediate withdraw
 contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
   using SafeERC20 for IERC20;
 
@@ -22,11 +25,18 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
 
   event NewPair(address indexed ptToken, address indexed ibToken, address curvePool);
 
+  // TODO: use this enum
+  enum QuoteTokenKind {
+    IbtCompatibleWithERC4626,
+    IbtNotCompatibleWithERC4626,
+    UnderlyingOfIbt
+  }
+
   struct PoolInput {
     /// @dev Address of Principal Token
     address pt;
-    /// @dev Address of Interest Bearing Token. Address of protocol token (not Spectra wrapper)
-    address ibt;
+    /// @dev Address of QuoteToken. Could be IBT or Underlying asset of IBT
+    address quoteToken;
     /// @dev Address of spectra curve pool IBT or Spectra Wrapped IBT / PT
     address pool;
   }
@@ -40,8 +50,10 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     address pt;
     /// @dev True if curvePool.coins[0] is ibt, curvePool.coins[1] is pt
     bool zeroIndexCoinIsIbt;
-    /// @dev True if ibt is spectraWrapped token
-    bool isSpectraWrappedIbt;
+    /// @dev True if QuoteToken is IBT not compatible with ERC4626. Spectra pool PT-sw-IBT / sw-IBT
+    bool unwrapSwIbtToIbt;
+    /// @dev True if QuoteToken is Underlying and ibt should be unwrapped to underlying token
+    bool unwrapIbtToUnderlying;
   }
 
   mapping(address => mapping(address => PoolData)) public getPoolData;
@@ -64,21 +76,30 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
         zeroIndexCoinIsIbt: true,
         ibt: coin0,
         pt: coin1,
-        isSpectraWrappedIbt: false
+        unwrapSwIbtToIbt: false,
+        unwrapIbtToUnderlying: false
       });
 
       if (coin1 == input.pt) {
         //check other token is spectra wrapper or not
-        if (coin0 != input.ibt) {
-          if (ISpectraErc4626Wrapper(coin0).vaultShare() != input.ibt) revert WrongPoolInput();
-
-          poolData.isSpectraWrappedIbt = true;
+        if (coin0 != input.quoteToken) {
+          if (ISpectraErc4626Wrapper(coin0).vaultShare() == input.quoteToken) {
+            poolData.unwrapSwIbtToIbt = true;
+          } else if (IERC4626(coin0).asset() == input.quoteToken) {
+            poolData.unwrapIbtToUnderlying = true;
+          } else {
+            revert WrongPoolInput();
+          }
         }
       } else if (coin0 == input.pt) {
-        if (coin1 != input.ibt) {
-          if (ISpectraErc4626Wrapper(coin1).vaultShare() != input.ibt) revert WrongPoolInput();
-
-          poolData.isSpectraWrappedIbt = true;
+        if (coin1 != input.quoteToken) {
+          if (ISpectraErc4626Wrapper(coin1).vaultShare() == input.quoteToken) {
+            poolData.unwrapSwIbtToIbt = true;
+          } else if (IERC4626(coin0).asset() == input.quoteToken) {
+            poolData.unwrapIbtToUnderlying = true;
+          } else {
+            revert WrongPoolInput();
+          }
         }
 
         poolData.zeroIndexCoinIsIbt = false;
@@ -88,10 +109,10 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
         revert WrongPoolInput();
       }
 
-      getPoolData[input.pt][input.ibt] = poolData;
-      getPoolData[input.ibt][input.pt] = poolData;
+      getPoolData[input.pt][input.quoteToken] = poolData;
+      getPoolData[input.quoteToken][input.pt] = poolData;
 
-      emit NewPair(input.pt, input.ibt, input.pool);
+      emit NewPair(input.pt, input.quoteToken, input.pool);
 
       unchecked {
         ++i;
@@ -118,15 +139,19 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       // PT -> IBT
       address recipient = recipientArg;
 
-      if (poolData.isSpectraWrappedIbt) {
+      if (poolData.unwrapIbtToUnderlying || poolData.unwrapSwIbtToIbt) {
         // change recipient to address(this), it let make unwrap swIbt for Ibt after swap
         recipient = address(this);
       }
 
       amountOut = _curveSwapExactInput(poolData.pool, recipient, tokenInArg, tokenInIndex, amountInArg, minAmountOut);
 
-      if (poolData.isSpectraWrappedIbt) {
+      if (poolData.unwrapSwIbtToIbt) {
+        // sw-IBT unwrap to IBT
         amountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(amountOut, recipientArg, address(this));
+      } else if (poolData.unwrapIbtToUnderlying) {
+        // IBT redeem to underlying asset
+        amountOut = IERC4626(poolData.ibt).redeem(amountOut, recipientArg, address(this));
       }
     } else {
       // IBT -> PT
@@ -134,11 +159,16 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       uint256 amountIn = amountInArg;
       address tokenIn = tokenInArg;
 
-      if (poolData.isSpectraWrappedIbt) {
+      if (poolData.unwrapSwIbtToIbt) {
         // wrap IBT to sw-IBT and change recipient to current address(this)
         IERC20(tokenIn).forceApprove(poolData.ibt, amountInArg);
         amountIn = ISpectraErc4626Wrapper(poolData.ibt).wrap(amountInArg, address(this));
         tokenIn = poolData.ibt; // tokenIn is sw-IBT
+      } else if (poolData.unwrapIbtToUnderlying) {
+        // wrap Underlying asset to IBT and change recipient to current address(this)
+        IERC20(tokenIn).forceApprove(poolData.ibt, amountInArg);
+        amountIn = IERC4626(poolData.ibt).deposit(amountInArg, address(this));
+        tokenIn = poolData.ibt;
       }
 
       // swap in curve IBT to PT
@@ -153,11 +183,17 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     uint256 amountIn
   ) private returns (uint256 amountOut) {
     if (tokenIn == poolData.pt) {
-      if (poolData.isSpectraWrappedIbt) {
+      if (poolData.unwrapSwIbtToIbt) {
         // redeem sw-IBT
         uint256 swAmountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, address(this), address(this));
         // unwrap sw-IBT to IBT
         amountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(swAmountOut, recipient, address(this));
+      }
+      if (poolData.unwrapIbtToUnderlying) {
+        // redeem IBT
+        uint ibtAmountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, recipient, address(this));
+        // redeem Underlying
+        amountOut = IERC4626(poolData.ibt).redeem(ibtAmountOut, recipient, address(this));
       } else {
         amountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, recipient, address(this));
       }
@@ -393,11 +429,34 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       // swap IBT to PT is not possible after maturity
       revert NotSupported();
     } else {
-      if (poolData.isSpectraWrappedIbt) {
+      if (poolData.unwrapSwIbtToIbt) {
         // PT withdraw to sw-IBT, then unwrap sw-IBT to IBT
         // calc sw-IBT amount from amountOut
-        uint256 swAmountOut = ISpectraErc4626Wrapper(poolData.ibt).previewWrap(amountOut);
+        uint256 swAmountOut = ISpectraErc4626Wrapper(poolData.ibt).previewUnwrap(amountOut);
         amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(swAmountOut, address(this), address(this));
+
+        uint256 actualAmountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(
+          swAmountOut,
+          address(this),
+          address(this)
+        );
+        if (actualAmountOut < amountOut) revert InsufficientAmount();
+
+        // actualAmountOut could be more than amountOut, but it's not possible to change it back to PT aftrer maturity
+        // dust may be left on the contract
+        IERC20(tokenOut).safeTransfer(recipient, amountOut);
+
+        if (maxAmountIn == amountIn) {
+          return amountIn;
+        }
+
+        // return rest of PT token back to recipient
+        IERC20(poolData.pt).safeTransfer(recipient, maxAmountIn - amountIn);
+      } else if (poolData.unwrapIbtToUnderlying) {
+        // PT withdraw to sw-IBT, then unwrap sw-IBT to IBT
+        // calc sw-IBT amount from amountOut
+        uint256 ibtAmountOut = IERC4626(poolData.ibt).previewMint(amountOut);
+        amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(ibtAmountOut, address(this), address(this));
 
         uint256 actualAmountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(
           swAmountOut,
@@ -489,14 +548,18 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       amountIn = _swapExactOutputPostMaturity(poolData, recipient, tokenOut, amountOut, maxAmountIn);
     } else {
       if (tokenIn == poolData.pt) {
-        if (poolData.isSpectraWrappedIbt) {
+        if (poolData.unwrapSwIbtToIbt) {
           amountIn = _swapExactOutputPtToSwIbtToIbtPreMaturity(poolData, recipient, tokenOut, amountOut, maxAmountIn);
+        } else if (poolData.unwrapIbtToUnderlying) {
+          amountIn = 0; // _swapExactOutputPtToIbtToUnderlyingPreMaturity(...) TODO: not implemented
         } else {
           amountIn = _swapExactOutputPtToIbtPreMaturity(poolData, recipient, tokenOut, amountOut, maxAmountIn);
         }
       } else {
-        if (poolData.isSpectraWrappedIbt) {
+        if (poolData.unwrapSwIbtToIbt) {
           amountIn = _swapExactOutputIbtToSwIbtToPtPreMaturity(poolData, recipient, tokenIn, amountOut, maxAmountIn);
+        } else if (poolData.unwrapIbtToUnderlying) {
+          amountIn = 0; //_swapExactOutputUnderlyingToIbtToPtPreMaturity(...);    TODO: not implemented
         } else {
           amountIn = _swapExactOutputIbtToPtPreMaturity(poolData, recipient, tokenIn, amountOut, maxAmountIn);
         }
