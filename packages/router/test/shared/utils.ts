@@ -44,7 +44,8 @@ export function constructSwap(dex: number[], ratios: number[]): BigNumber {
 
 export async function showGasUsage(tx: ContractTransaction) {
   const txReceipt = await tx.wait();
-  console.log(`⛽ gas used ${txReceipt.gasUsed}`);
+  const warningLimit = 1_000_000;
+  console.log(`⛽ gas used ${txReceipt.gasUsed} ${txReceipt.gasUsed.gt(warningLimit) ? '!!! WARNING' : ''}`);
 }
 
 export async function showBalance(token: ERC20, account: string, startPhrase = ''): Promise<BigNumber> {
