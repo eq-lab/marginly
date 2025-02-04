@@ -421,7 +421,7 @@ async function initializeRouter(testCase: TestCase): Promise<{
 }
 
 // Tests for running in ethereum mainnet fork
-describe.only('SpectraAdapter', async () => {
+describe('SpectraAdapter', async () => {
   for (const testCase of testCases) {
     describe(`SpectraAdapter ${testCase.ptToken.symbol} - ${testCase.quoteToken.symbol}`, () => {
       before(async () => {
