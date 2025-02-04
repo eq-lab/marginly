@@ -154,22 +154,20 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       // IBT -> PT
 
       uint256 amountIn = amountInArg;
-      address tokenIn = tokenInArg;
 
       if (poolData.quoteTokenKind == QuoteTokenKind.IbtNotCompatibleWithERC4626) {
         // wrap IBT to sw-IBT and change recipient to current address(this)
-        IERC20(tokenIn).forceApprove(poolData.ibt, amountInArg);
+        IERC20(tokenInArg).forceApprove(poolData.ibt, amountInArg);
         amountIn = ISpectraErc4626Wrapper(poolData.ibt).wrap(amountInArg, address(this));
-        tokenIn = poolData.ibt; // tokenIn is sw-IBT
+        // tokenIn is sw-IBT
       } else if (poolData.quoteTokenKind == QuoteTokenKind.UnderlyingOfIbt) {
         // wrap Underlying asset to IBT and change recipient to current address(this)
-        IERC20(tokenIn).forceApprove(poolData.ibt, amountInArg);
+        IERC20(tokenInArg).forceApprove(poolData.ibt, amountInArg);
         amountIn = IERC4626(poolData.ibt).deposit(amountInArg, address(this));
-        tokenIn = poolData.ibt;
       }
 
       // swap in curve IBT to PT
-      amountOut = _curveSwapExactInput(poolData.pool, recipientArg, tokenIn, tokenInIndex, amountIn, minAmountOut);
+      amountOut = _curveSwapExactInput(poolData.pool, recipientArg, poolData.ibt, tokenInIndex, amountIn, minAmountOut);
     }
   }
 
@@ -179,23 +177,21 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     address tokenIn,
     uint256 amountIn
   ) private returns (uint256 amountOut) {
-    if (tokenIn == poolData.pt) {
-      if (poolData.quoteTokenKind == QuoteTokenKind.IbtNotCompatibleWithERC4626) {
-        // convert PT to sw-IBT
-        uint256 swAmountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, address(this), address(this));
-        // convert sw-IBT to IBT
-        amountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(swAmountOut, recipient, address(this));
-      } else if (poolData.quoteTokenKind == QuoteTokenKind.UnderlyingOfIbt) {
-        // convert PT to IBT
-        uint ibtAmountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, address(this), address(this));
-        // convert IBT to Underlying
-        amountOut = IERC4626(poolData.ibt).redeem(ibtAmountOut, recipient, address(this));
-      } else {
-        amountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, recipient, address(this));
-      }
-    } else {
+    if (tokenIn != poolData.pt) {
       // IBT to PT swap is not possible after maturity
       revert NotSupported();
+    }
+
+    if (poolData.quoteTokenKind == QuoteTokenKind.IbtNotCompatibleWithERC4626) {
+      // convert PT to sw-IBT
+      uint256 swAmountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, address(this), address(this));
+      // convert sw-IBT to IBT
+      amountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(swAmountOut, recipient, address(this));
+    } else if (poolData.quoteTokenKind == QuoteTokenKind.UnderlyingOfIbt) {
+      // convert PT to Underlying
+      amountOut = ISpectraPrincipalToken(poolData.pt).redeem(amountIn, recipient, address(this));
+    } else {
+      amountOut = ISpectraPrincipalToken(poolData.pt).redeemForIBT(amountIn, recipient, address(this));
     }
   }
 
@@ -251,7 +247,6 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
   function _swapExactOutputPtToSwIbtToIbtPreMaturity(
     PoolData memory poolData,
     address recipient,
-    address ibtOut,
     uint256 ibtAmountOut,
     uint256 maxPtAmountIn
   ) private returns (uint256 ptAmountIn) {
@@ -271,28 +266,14 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       swAmountOut
     );
 
-    // unwrap swIbt to ibt
-    uint256 ibtActualAmountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(
-      swActualAmountOut,
-      address(this),
-      address(this)
-    );
+    // unwrap swAmountOut to get exact ibtAmountOut
+    ISpectraErc4626Wrapper(poolData.ibt).unwrap(swAmountOut, recipient, address(this));
 
-    IERC20(ibtOut).safeTransfer(recipient, ibtAmountOut);
-
-    if (ibtActualAmountOut < ibtAmountOut) {
-      revert TooMuchRequested();
-    }
-
-    if (ibtActualAmountOut == ibtAmountOut) {
+    if (swActualAmountOut == swAmountOut) {
       return maxPtAmountIn;
     }
 
-    uint256 deltaIbtAmountOut = ibtActualAmountOut - ibtAmountOut;
-
-    // wrap extra amountOut ibt to swIbt
-    IERC20(ibtOut).forceApprove(poolData.ibt, deltaIbtAmountOut);
-    uint256 deltaSwAmountOut = ISpectraErc4626Wrapper(poolData.ibt).wrap(deltaIbtAmountOut, address(this));
+    uint256 deltaSwAmountOut = swActualAmountOut - swAmountOut;
 
     // swap and move excessive tokenIn directly to recipient.
     // last arg minAmountOut is zero because we made worst allowed by user swap
@@ -330,11 +311,11 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
       ibtAmountOut
     );
 
-    IERC20(ibtOut).safeTransfer(recipient, ibtAmountOut);
-
     if (ibtActualAmountOut < ibtAmountOut) {
       revert TooMuchRequested();
     }
+
+    IERC20(ibtOut).safeTransfer(recipient, ibtAmountOut);
 
     if (ibtActualAmountOut == ibtAmountOut) {
       return maxPtAmountIn;
@@ -356,6 +337,48 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     ptAmountIn = maxPtAmountIn - excessivePtAmountIn;
   }
 
+  /// @dev Swap IBT to exact amount of PT. Returns excessive input amount
+  function _swapExactOutputIbtToPt(
+    PoolData memory poolData,
+    address recipient,
+    bool sendExcessiveToRecipient,
+    uint256 ibtInMaximum,
+    uint256 amountPtOut
+  ) private returns (uint256 excessiveIbtAmount) {
+    uint256 tokenInIndex = poolData.zeroIndexCoinIsIbt ? 0 : 1;
+    // swap all IBT to PT
+    uint256 actualAmountPtOut = _curveSwapExactInput(
+      poolData.pool,
+      address(this),
+      poolData.ibt,
+      tokenInIndex,
+      ibtInMaximum,
+      amountPtOut
+    );
+
+    if (actualAmountPtOut < amountPtOut) {
+      revert TooMuchRequested();
+    }
+
+    // send exact amount of tokenOut to recipient
+    IERC20(poolData.pt).safeTransfer(recipient, amountPtOut);
+
+    if (actualAmountPtOut == amountPtOut) {
+      return 0; // all input amount was used
+    }
+
+    uint256 deltaAmountPtOut = actualAmountPtOut - amountPtOut;
+    // swap and move excessive PT amount back to IBT
+    excessiveIbtAmount = _curveSwapExactInput(
+      poolData.pool,
+      sendExcessiveToRecipient ? recipient : address(this),
+      poolData.pt,
+      1 - tokenInIndex,
+      deltaAmountPtOut,
+      0
+    );
+  }
+
   function _swapExactOutputUnderlyingToIbtToPtPreMaturity(
     PoolData memory poolData,
     address recipient,
@@ -364,43 +387,13 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     uint256 maxUnderlyingAmountIn
   ) private returns (uint256 underlyingAmountIn) {
     // Underlying -> IBT -> PT
-    uint256 tokenInIndex = poolData.zeroIndexCoinIsIbt ? 0 : 1;
-
     // Convert all Underlying to IBT
     IERC20(quoteTokenIn).forceApprove(poolData.ibt, maxUnderlyingAmountIn);
     uint256 ibtMaxAmountIn = IERC4626(poolData.ibt).deposit(maxUnderlyingAmountIn, address(this));
 
     // swap all IBT to PT
-    uint256 ptActualAmountOut = _curveSwapExactInput(
-      poolData.pool,
-      address(this),
-      poolData.ibt,
-      tokenInIndex,
-      ibtMaxAmountIn,
-      ptAmountOut
-    );
-
-    if (ptActualAmountOut < ptAmountOut) {
-      revert TooMuchRequested();
-    }
-
-    // send exact amount of PT to recipient
-    IERC20(poolData.pt).safeTransfer(recipient, ptAmountOut);
-
-    if (ptActualAmountOut == ptAmountOut) {
-      return maxUnderlyingAmountIn;
-    }
-
-    uint256 deltaPtAmountOut = ptActualAmountOut - ptAmountOut;
-    // swap and move excessive PT amount back to IBT
-    uint256 excessiveIbtIn = _curveSwapExactInput(
-      poolData.pool,
-      address(this),
-      poolData.pt,
-      1 - tokenInIndex,
-      deltaPtAmountOut,
-      0
-    );
+    uint256 excessiveIbtIn = _swapExactOutputIbtToPt(poolData, recipient, false, ibtMaxAmountIn, ptAmountOut);
+    if (excessiveIbtIn == 0) return maxUnderlyingAmountIn;
 
     // convert excessive IBT to Underlying and return to recipient
     uint256 excessiveUnderlyingAmountIn = IERC4626(poolData.ibt).redeem(excessiveIbtIn, recipient, address(this));
@@ -415,47 +408,14 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     uint256 maxIbtAmountIn
   ) private returns (uint256 ibAmountIn) {
     // IBT -> sw-IBT -> PT
-    uint256 tokenInIndex = poolData.zeroIndexCoinIsIbt ? 0 : 1;
-
     // wrap ibt to swIbt
     IERC20(ibtIn).forceApprove(poolData.ibt, maxIbtAmountIn);
-    uint256 swMaxAmountIn = ISpectraErc4626Wrapper(poolData.ibt).wrap(maxIbtAmountIn, address(this));
+    uint256 maxSwAmountIn = ISpectraErc4626Wrapper(poolData.ibt).wrap(maxIbtAmountIn, address(this));
 
-    // swap swMaxAmountIn to pt tokens
-    uint256 ptActualAmountOut = _curveSwapExactInput(
-      poolData.pool,
-      address(this),
-      poolData.ibt,
-      tokenInIndex,
-      swMaxAmountIn,
-      ptAmountOut
-    );
+    uint256 excessiveSwAmountIn = _swapExactOutputIbtToPt(poolData, recipient, false, maxSwAmountIn, ptAmountOut);
+    if (excessiveSwAmountIn == 0) return maxIbtAmountIn;
 
-    if (ptActualAmountOut < ptAmountOut) {
-      revert TooMuchRequested();
-    }
-
-    IERC20(poolData.pt).safeTransfer(recipient, ptAmountOut);
-
-    if (ptActualAmountOut == ptAmountOut) {
-      return maxIbtAmountIn;
-    }
-
-    uint256 deltaPtAmountOut = ptActualAmountOut - ptAmountOut;
-    // swap and move excessive tokenIn
-    // last arg minAmountOut is zero because we made worst allowed by user swap
-    // and an additional swap with whichever output only improves it,
-    // so the tx shouldn't be reverted
-    uint256 excessiveSwAmountIn = _curveSwapExactInput(
-      poolData.pool,
-      address(this),
-      poolData.pt,
-      1 - tokenInIndex,
-      deltaPtAmountOut,
-      0
-    );
-
-    // unwrap exessive sw into ib and transfer back to recipient
+    // unwrap excessive sw into ib and transfer back to recipient
     uint256 excessiveIbAmountIn = ISpectraErc4626Wrapper(poolData.ibt).unwrap(
       excessiveSwAmountIn,
       recipient,
@@ -468,46 +428,12 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
   function _swapExactOutputIbtToPtPreMaturity(
     PoolData memory poolData,
     address recipient,
-    address ibtIn,
     uint256 ptAmountOut,
     uint256 maxIbtAmountIn
   ) private returns (uint256 ibAmountIn) {
-    uint256 tokenInIndex = poolData.zeroIndexCoinIsIbt ? 0 : 1;
-
     // IBT -> PT
-    // swap all swMaxAmountIn to pt tokens
-    uint256 ptActualAmountOut = _curveSwapExactInput(
-      poolData.pool,
-      address(this),
-      ibtIn,
-      tokenInIndex,
-      maxIbtAmountIn,
-      ptAmountOut
-    );
-
-    if (ptActualAmountOut < ptAmountOut) {
-      revert TooMuchRequested();
-    }
-
-    IERC20(poolData.pt).safeTransfer(recipient, ptAmountOut);
-
-    if (ptActualAmountOut == ptAmountOut) {
-      return maxIbtAmountIn;
-    }
-
-    uint256 deltaPtAmountOut = ptActualAmountOut - ptAmountOut;
-    // swap and move excessive tokenIn
-    // last arg minAmountOut is zero because we made worst allowed by user swap
-    // and an additional swap with whichever output only improves it,
-    // so the tx shouldn't be reverted
-    uint256 excessiveIbtAmountIn = _curveSwapExactInput(
-      poolData.pool,
-      recipient,
-      poolData.pt,
-      1 - tokenInIndex,
-      deltaPtAmountOut,
-      0
-    );
+    uint256 excessiveIbtAmountIn = _swapExactOutputIbtToPt(poolData, recipient, true, maxIbtAmountIn, ptAmountOut);
+    if (excessiveIbtAmountIn == 0) return maxIbtAmountIn;
 
     ibAmountIn = maxIbtAmountIn - excessiveIbtAmountIn;
   }
@@ -522,51 +448,31 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     if (tokenOut == poolData.pt) {
       // swap IBT to PT is not possible after maturity
       revert NotSupported();
-    } else {
-      if (poolData.quoteTokenKind == QuoteTokenKind.IbtNotCompatibleWithERC4626) {
-        // PT -> sw-IBT -> IBT
-        // calc sw-IBT amount from amountOut
-        uint256 swAmountOut = ISpectraErc4626Wrapper(poolData.ibt).previewWrap(amountOut);
-        amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(swAmountOut, address(this), address(this));
-        uint256 actualAmountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(
-          swAmountOut,
-          address(this),
-          address(this)
-        );
-        if (actualAmountOut < amountOut) revert InsufficientAmount();
-
-        // actualAmountOut could be more than amountOut, but it's not possible to change it back to PT aftrer maturity
-        // dust may be left on the contract
-        IERC20(tokenOut).safeTransfer(recipient, amountOut);
-
-        if (maxAmountIn == amountIn) {
-          return amountIn;
-        }
-        // return rest of PT token back to recipient
-        IERC20(poolData.pt).safeTransfer(recipient, maxAmountIn - amountIn);
-      } else if (poolData.quoteTokenKind == QuoteTokenKind.UnderlyingOfIbt) {
-        // PT -> IBT -> Underlying
-        // calc IBT needed to withdraw amountOut of Underlying
-        uint256 ibtAmountOut = IERC4626(poolData.ibt).previewWithdraw(amountOut);
-        amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(ibtAmountOut, address(this), address(this));
-
-        IERC4626(poolData.ibt).withdraw(amountOut, recipient, address(this));
-
-        if (maxAmountIn == amountIn) {
-          return amountIn;
-        }
-
-        // return rest of PT token back to recipient
-        IERC20(poolData.pt).safeTransfer(recipient, maxAmountIn - amountIn);
-      } else {
-        amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(amountOut, recipient, address(this));
-
-        if (maxAmountIn == amountIn) {
-          return amountIn;
-        }
-        IERC20(poolData.pt).safeTransfer(recipient, maxAmountIn - amountIn);
-      }
     }
+
+    if (poolData.quoteTokenKind == QuoteTokenKind.IbtNotCompatibleWithERC4626) {
+      // PT -> sw-IBT -> IBT
+      // calc sw-IBT amount from amountOut
+      uint256 swAmountOut = ISpectraErc4626Wrapper(poolData.ibt).previewWrap(amountOut);
+      amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(swAmountOut, address(this), address(this));
+      uint256 actualAmountOut = ISpectraErc4626Wrapper(poolData.ibt).unwrap(swAmountOut, address(this), address(this));
+      if (actualAmountOut < amountOut) revert InsufficientAmount();
+
+      // actualAmountOut could be more than amountOut, but it's not possible to change it back to PT after maturity
+      // dust may be left on the contract
+      IERC20(tokenOut).safeTransfer(recipient, amountOut);
+    } else if (poolData.quoteTokenKind == QuoteTokenKind.UnderlyingOfIbt) {
+      // PT -> Underlying
+      amountIn = ISpectraPrincipalToken(poolData.pt).withdraw(amountOut, recipient, address(this));
+    } else {
+      amountIn = ISpectraPrincipalToken(poolData.pt).withdrawIBT(amountOut, recipient, address(this));
+    }
+
+    if (maxAmountIn == amountIn) {
+      return amountIn;
+    }
+    // return rest of PT token back to recipient
+    IERC20(poolData.pt).safeTransfer(recipient, maxAmountIn - amountIn);
   }
 
   function _curveSwapExactInput(
@@ -632,7 +538,7 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
     } else {
       if (tokenIn == poolData.pt) {
         if (poolData.quoteTokenKind == QuoteTokenKind.IbtNotCompatibleWithERC4626) {
-          amountIn = _swapExactOutputPtToSwIbtToIbtPreMaturity(poolData, recipient, tokenOut, amountOut, maxAmountIn);
+          amountIn = _swapExactOutputPtToSwIbtToIbtPreMaturity(poolData, recipient, amountOut, maxAmountIn);
         } else if (poolData.quoteTokenKind == QuoteTokenKind.UnderlyingOfIbt) {
           amountIn = _swapExactOutputPtToIbtToUnderlyingPreMaturity(poolData, recipient, amountOut, maxAmountIn);
         } else {
@@ -650,7 +556,7 @@ contract SpectraAdapter is IMarginlyAdapter, Ownable2Step {
             maxAmountIn
           );
         } else {
-          amountIn = _swapExactOutputIbtToPtPreMaturity(poolData, recipient, tokenIn, amountOut, maxAmountIn);
+          amountIn = _swapExactOutputIbtToPtPreMaturity(poolData, recipient, amountOut, maxAmountIn);
         }
       }
     }

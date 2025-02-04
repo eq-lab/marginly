@@ -57,4 +57,23 @@ interface ISpectraPrincipalToken {
     address owner,
     uint256 maxShares
   ) external returns (uint256 shares);
+
+  /**
+   * @notice Burns owner's shares (PTs and YTs before expiry, PTs after expiry)
+   * and sends assets to receiver
+   * @param shares The amount of shares to burn
+   * @param receiver The address that will receive the assets
+   * @param owner The owner of the shares
+   * @return assets The actual amount of assets received for burning the shares
+   */
+  function redeem(uint256 shares, address receiver, address owner) external returns (uint256 assets);
+
+  /**
+   * @notice Burns owner's shares (before expiry : PTs and YTs) and sends assets to receiver
+   * @param assets The amount of assets to be received
+   * @param receiver The address that will receive the assets
+   * @param owner The owner of the shares (PTs and YTs)
+   * @return shares The actual amount of shares burnt for receiving the assets
+   */
+  function withdraw(uint256 assets, address receiver, address owner) external returns (uint256 shares);
 }

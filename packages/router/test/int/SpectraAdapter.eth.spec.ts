@@ -340,7 +340,13 @@ const sDOLA_TestCase: TestCase = {
   },
 };
 
-const testCases = [USR_TestCase, DOLA_TestCase, wstUSR_TestCase, sDOLA_TestCase, inwstETHs_TestCase];
+const testCases = [
+  USR_TestCase, // PT/Underlying case
+  DOLA_TestCase, //PT/Underlying case
+  wstUSR_TestCase, // PT-IBT/IBT case
+  sDOLA_TestCase, //PT-IBT/IBT case
+  inwstETHs_TestCase, // PT-sw/IBT case
+];
 
 async function initializeRouter(testCase: TestCase): Promise<{
   ptToken: ERC20;
@@ -415,7 +421,7 @@ async function initializeRouter(testCase: TestCase): Promise<{
 }
 
 // Tests for running in ethereum mainnet fork
-describe('SpectraAdapter', async () => {
+describe.only('SpectraAdapter', async () => {
   for (const testCase of testCases) {
     describe(`SpectraAdapter ${testCase.ptToken.symbol} - ${testCase.quoteToken.symbol}`, () => {
       before(async () => {
@@ -600,7 +606,7 @@ describe('SpectraAdapter', async () => {
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
 
-        it.only(`${testCase.ptToken.symbol} to ${testCase.quoteToken.symbol} exact output`, async () => {
+        it(`${testCase.ptToken.symbol} to ${testCase.quoteToken.symbol} exact output`, async () => {
           const ptBalanceBefore = await showBalance(ptToken, user.address, 'pt balance Before:');
           const ibtBalanceBefore = await showBalance(ibtToken, user.address, 'ibt balance before:');
 
