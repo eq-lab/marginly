@@ -3,12 +3,13 @@ pragma solidity 0.8.19;
 
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/access/Ownable2Step.sol';
+import '@openzeppelin/contracts/interfaces/IERC4626.sol';
+
 import '../interfaces/IMarginlyRouter.sol';
 import '../interfaces/IMarginlyAdapter.sol';
 import './interfaces/ICurvePool.sol';
 import './interfaces/ISpectraErc4626Wrapper.sol';
 import './interfaces/ISpectraPrincipalToken.sol';
-import './interfaces/IERC4626.sol';
 
 /// @title Adapter for Spectra finance pool (old curve pool) of two tokens IBT/PT
 /// @dev Two cases supported:
