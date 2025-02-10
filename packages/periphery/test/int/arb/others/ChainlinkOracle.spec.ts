@@ -1,8 +1,8 @@
 import { ethers } from 'hardhat';
 import bn from 'bignumber.js';
 import { BigNumber } from 'ethers';
-import { ChainlinkOracle } from '../../../typechain-types/contracts/oracles';
-import { getDecimalsDiff, printPrices } from '../../shared/common';
+import { ChainlinkOracle } from '../../../../typechain-types/contracts/oracles';
+import { getDecimalsDiff, printPrices } from '../../../shared/common';
 
 describe('ChainlinkOracle', () => {
   let oracle: ChainlinkOracle;

@@ -2,9 +2,11 @@ import { ethers } from 'hardhat';
 import {
   AlgebraTickOracle,
   MarginlyCompositeOracle,
+  PendleMarketOracle,
+  PythOracle,
   UniswapV3TickOracle,
-} from '../../../typechain-types/contracts/oracles';
-import { getDecimalsDiff, printPrices } from '../../shared/common';
+} from '../../../../typechain-types/contracts/oracles';
+import { getDecimalsDiff, printPrices } from '../../../shared/common';
 
 describe('Composite oracle weETH/ARB with uniswapV3 weETH/WETH and uniswapV3 ARB/WETH', () => {
   const uniswapFactory = '0x1F98431c8aD98523631AE4a59f267346ea31F984';

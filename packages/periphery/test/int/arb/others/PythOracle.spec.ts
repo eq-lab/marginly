@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
-import { PythOracle } from '../../../typechain-types/contracts/oracles';
-import { getDecimalsDiff, printPrices } from '../../shared/common';
+import { PythOracle } from '../../../../typechain-types/contracts/oracles';
+import { getDecimalsDiff, printPrices } from '../../../shared/common';
 
 describe('PythOracle', () => {
   let oracle: PythOracle;
