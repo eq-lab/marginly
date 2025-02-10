@@ -15,6 +15,8 @@ import {
   IPriceOracle,
   PendleMarketV3,
   PendlePtLpOracle,
+  MockPriceOracleV2,
+  MarginlyCompositeOracle,
   IPPtLpOracle,
   IPMarketV3,
   TestUniswapV2Factory,
@@ -1124,5 +1126,64 @@ export async function createCurveCaseCrvUsdUsdc(): Promise<CurveOracleCaseParams
     oracle,
     priceOracleMethodHasArg: true,
     isToken0QuoteToken: false,
+  };
+}
+
+export async function createEmptyMarginlyCompositeOracle(): Promise<MarginlyCompositeOracle> {
+  const compositeOracle = await (await ethers.getContractFactory('MarginlyCompositeOracle')).deploy();
+  return compositeOracle;
+}
+
+type MarginlyCompositeOracleData = {
+  oracle: MarginlyCompositeOracle;
+  quoteToken: TokenInfo;
+  intermediateToken: TokenInfo;
+  baseToken: TokenInfo;
+  quoteIntermediateOracle: MockPriceOracleV2;
+  baseIntermediateOracle: MockPriceOracleV2;
+};
+
+export async function createMarginlyCompositeOracle(): Promise<MarginlyCompositeOracleData> {
+  const compositeOracle = await createEmptyMarginlyCompositeOracle();
+  const usdc: TokenInfo = {
+    address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+    symbol: 'USDC',
+    decimals: 6,
+  };
+
+  const arb: TokenInfo = {
+    address: '0x912CE59144191C1204E64559FE8253a0e49E6548',
+    symbol: 'ARB',
+    decimals: 18,
+  };
+
+  const weth = <TokenInfo>{
+    address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    symbol: 'WETH',
+    decimals: 18,
+  };
+
+  const oracle = await (await ethers.getContractFactory('MockPriceOracleV2')).deploy();
+  {
+    const mcPrice = BigNumber.from('70757347443141900'); // arb/usdc = 0.89
+    const balancePrice = BigNumber.from('74757347443141900'); // arb/usdc = 0.94
+    await oracle.setPrice(usdc.address, arb.address, balancePrice, mcPrice);
+  }
+
+  {
+    const mcPrice = BigNumber.from('293713709653472000000000000000000'); // wteh/abr = 3 707,188
+    const balancePrice = BigNumber.from('306017264062733000000000000000000'); // wteh/abr = 3 862,480
+    await oracle.setPrice(arb.address, weth.address, balancePrice, mcPrice);
+  }
+
+  await compositeOracle.setPair(usdc.address, arb.address, weth.address, oracle.address, oracle.address);
+
+  return {
+    oracle: compositeOracle,
+    quoteToken: usdc,
+    intermediateToken: arb,
+    baseToken: weth,
+    quoteIntermediateOracle: oracle,
+    baseIntermediateOracle: oracle,
   };
 }

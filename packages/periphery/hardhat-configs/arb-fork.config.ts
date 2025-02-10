@@ -8,8 +8,8 @@ const config = {
     hardhat: {
       forking: {
         enabled: true,
-        url: 'https://arb1.arbitrum.io/rpc',
-        blockNumber: 203690137,
+        url: 'https://rpc.ankr.com/arbitrum',
+        blockNumber: 221775851,
       },
     },
   },
