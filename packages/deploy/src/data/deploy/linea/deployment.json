@@ -1,0 +1,11 @@
+{
+  "marginlyPools": [
+    {
+      "id": "nile_wrseth-weth",
+      "address": "0xff820E43095edbC86b1FE337219d7D2b29a2Da92"
+    }
+  ],
+  "uniswapV3Keeper": {
+    "address": "0x798A2FEb73E82D44b2148e37f02367CFb6ea3674"
+  }
+}

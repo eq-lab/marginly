@@ -1,0 +1,28 @@
+{
+  "marginlyPools": [
+    {
+      "id": "ezeth-weth",
+      "address": "0xd136839D9978CAa3780a5D7a19a0322f3618A49D"
+    },
+    {
+      "id": "pufeth-weth",
+      "address": "0x51b5D4a7c58bE1d131D7BD027B5713e55efa0606"
+    },
+    {
+      "id": "rseth-weth",
+      "address": "0xef2424e938E48F92b77AB193a5AA669D90B1ebc1"
+    },
+    {
+      "id": "unibtc-wbtc",
+      "address": "0x8A171afA8Db2a01E8b280c12db0F5bc2EEEcdc10"
+    },
+    {
+      "id": "unieth-weth",
+      "address": "0x4727835Ee3AdBb9b69eebc13b5d4e36943e2eEC5"
+    },
+    {
+      "id": "weeth-weth",
+      "address": "0x4819C556E87aDf28dB19e850480886F62D37f46A"
+    }
+  ]
+}

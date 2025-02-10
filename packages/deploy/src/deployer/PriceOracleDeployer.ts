@@ -73,13 +73,14 @@ export class PriceOracleDeployer extends BaseDeployer {
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
 
-        await priceOracle.setOptions(
+        const tx = await priceOracle.setOptions(
           quoteToken.toString(),
           baseToken.toString(),
           secondsAgo,
           secondsAgoLiquidation,
           uniswapFee
         );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);
@@ -266,7 +267,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       if (currentParams.secondsAgo != 0) continue; // oracle already initialized
 
-      await priceOracle.setPair(
+      const tx = await priceOracle.setPair(
         quoteToken.toString(),
         baseToken.toString(),
         setting.pendleMarket.toString(),
@@ -275,6 +276,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         setting.secondsAgo.toSeconds(),
         setting.secondsAgoLiquidation.toSeconds()
       );
+      await tx.wait();
     }
 
     return deploymentResult;
@@ -307,7 +309,13 @@ export class PriceOracleDeployer extends BaseDeployer {
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
 
-        await priceOracle.setOptions(quoteToken.toString(), baseToken.toString(), secondsAgo, secondsAgoLiquidation);
+        const tx = await priceOracle.setOptions(
+          quoteToken.toString(),
+          baseToken.toString(),
+          secondsAgo,
+          secondsAgoLiquidation
+        );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);
@@ -354,13 +362,14 @@ export class PriceOracleDeployer extends BaseDeployer {
         currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
       ) {
         this.logger.log(`Set oracle ${config.id} options`);
-        await priceOracle.setOptions(
+        const tx = await priceOracle.setOptions(
           quoteToken.toString(),
           baseToken.toString(),
           secondsAgo,
           secondsAgoLiquidation,
           intermediateToken.toString()
         );
+        await tx.wait();
       }
 
       this.logger.log(`Check oracle ${config.id}`);

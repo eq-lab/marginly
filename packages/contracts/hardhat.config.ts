@@ -23,6 +23,9 @@ const config = {
         count: 30,
       },
     },
+    mainnet: {
+      url: 'https://ethereum-rpc.publicnode.com',
+    },
     polygonMumbai: {
       url: 'https://rpc.ankr.com/polygon_mumbai',
     },
@@ -47,6 +50,7 @@ const config = {
   },
   etherscan: {
     apiKey: {
+      mainnet: process.env.API_KEY,
       polygonMumbai: process.env.API_KEY,
       arbitrumGoerli: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
@@ -78,7 +82,7 @@ const config = {
         urls: {
           apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
           browserURL: 'https://artio.beratrail.io',
-        }
+        },
       },
       {
         network: 'blastSepolia',
