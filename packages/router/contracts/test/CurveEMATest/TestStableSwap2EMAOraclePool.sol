@@ -31,6 +31,22 @@ contract TestStableSwap2EMAOraclePool is ICurvePool {
     TransferHelper.safeTransfer(j == 0 ? token0 : token1, _receiver, dy);
   }
 
+  function exchange(
+    uint256 i,
+    uint256 j,
+    uint256 _dx,
+    uint256 _min_dy,
+    bool,
+    address _receiver
+  ) external returns (uint256 dy) {
+    dy = get_dy(int128(uint128(i)), int128(uint128(j)), _dx);
+
+    if (dy < _min_dy) revert('dy < _min_dy');
+
+    TransferHelper.safeTransferFrom(i == 0 ? token0 : token1, msg.sender, address(this), _dx);
+    TransferHelper.safeTransfer(j == 0 ? token0 : token1, _receiver, dy);
+  }
+
   function coins(uint256 i) external view returns (address) {
     if (i == 0) {
       return token0;
@@ -62,6 +78,10 @@ contract TestStableSwap2EMAOraclePool is ICurvePool {
   }
 
   function last_price() external view returns (uint256) {
+    return price;
+  }
+
+  function last_prices() external view returns (uint256) {
     return price;
   }
 }
