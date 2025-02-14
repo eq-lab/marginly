@@ -246,7 +246,186 @@ const usual_TestCase: TestCase = {
   },
 };
 
-const testCases = [wstUSR_TestCase, USR_TestCase, usual_TestCase];
+const DAI_sUSDS_TestCase: TestCase = {
+  forkNumber: 21830300,
+
+  pendleMarket: '0x21d85ff3bedff031ef466c7d5295240c8ab2a2b8',
+  ptToken: {
+    address: '0x152b8629fee8105248ba3b7ba6afb94f7a468302',
+    symbol: 'PT-sUSDS-27MAR2025',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSUSDE,
+    initialBalance: parseUnits('100000', 18),
+  },
+
+  assetToken: {
+    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    symbol: 'DAI',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.DAI,
+    initialBalance: parseUnits('100000', 18),
+  },
+
+  syToken: {
+    address: '0xbe3d4ec488a0a042bb86f9176c24f8cd54018ba7',
+    symbol: 'SY-sUSDS',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSUSDE,
+    initialBalance: parseUnits('100000', 18),
+  },
+
+  timeToMaturity: 180 * 24 * 60 * 60, // 180 days
+
+  // swap params
+  preMaturity: {
+    swapExactIbtToPt: {
+      ibtIn: parseUnits('600', 18),
+      minPtOut: parseUnits('400', 18),
+    },
+    swapExactPtToIbt: {
+      ptIn: parseUnits('745.34', 18),
+      minIbtOut: parseUnits('500', 18),
+    },
+    swapPtToExactIbt: {
+      maxPtIn: parseUnits('15000.75', 18),
+      ibtOut: parseUnits('10000', 18),
+    },
+    swapIbtToExactPt: {
+      maxIbtIn: parseUnits('125', 18),
+      ptOut: parseUnits('100', 18),
+    },
+  },
+  postMaturity: {
+    swapExactPtToIbt: {
+      ptIn: parseUnits('150.576', 18),
+      minIbtOut: parseUnits('120.0', 18),
+    },
+    swapPtToExactIbt: {
+      maxPtIn: parseUnits('600', 18),
+      ibtOut: parseUnits('500', 18),
+    },
+  },
+};
+
+const USDS_sUSDS_TestCase: TestCase = {
+  forkNumber: 21830300,
+
+  pendleMarket: '0x21d85ff3bedff031ef466c7d5295240c8ab2a2b8',
+  ptToken: {
+    address: '0x152b8629fee8105248ba3b7ba6afb94f7a468302',
+    symbol: 'PT-sUSDS-27MAR2025',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSUSDE,
+    initialBalance: parseUnits('100000', 18),
+  },
+
+  assetToken: {
+    address: '0xdc035d45d973e3ec169d2276ddab16f1e407384f',
+    symbol: 'USDS',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.DAI,
+    initialBalance: parseUnits('100000', 18),
+  },
+
+  syToken: {
+    address: '0xbe3d4ec488a0a042bb86f9176c24f8cd54018ba7',
+    symbol: 'SY-sUSDS',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSUSDE,
+    initialBalance: parseUnits('100000', 18),
+  },
+
+  timeToMaturity: 180 * 24 * 60 * 60, // 180 days
+
+  // swap params
+  preMaturity: {
+    swapExactIbtToPt: {
+      ibtIn: parseUnits('600', 18),
+      minPtOut: parseUnits('400', 18),
+    },
+    swapExactPtToIbt: {
+      ptIn: parseUnits('745.34', 18),
+      minIbtOut: parseUnits('500', 18),
+    },
+    swapPtToExactIbt: {
+      maxPtIn: parseUnits('15000.75', 18),
+      ibtOut: parseUnits('10000', 18),
+    },
+    swapIbtToExactPt: {
+      maxIbtIn: parseUnits('125', 18),
+      ptOut: parseUnits('100', 18),
+    },
+  },
+  postMaturity: {
+    swapExactPtToIbt: {
+      ptIn: parseUnits('150.576', 18),
+      minIbtOut: parseUnits('120.0', 18),
+    },
+    swapPtToExactIbt: {
+      maxPtIn: parseUnits('600', 18),
+      ibtOut: parseUnits('500', 18),
+    },
+  },
+};
+
+const USDC_fluid_TestCase: TestCase = {
+  forkNumber: 21830300,
+
+  pendleMarket: '0x925cd38a68993819eef0138a463308c840080f17',
+  ptToken: {
+    address: '0x6704c353b0c2527863e4ef03dca07175b9318cbf',
+    symbol: 'PT-fUSDC-26Jun2025',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSUSDE,
+    initialBalance: parseUnits('100000', 6),
+  },
+
+  assetToken: {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    symbol: 'USDC',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.USDC,
+    initialBalance: parseUnits('100000', 6),
+  },
+
+  syToken: {
+    address: '0xf3a4aae37b90810c263c99538a47ad6f31837e19',
+    symbol: 'SY-fUSDC',
+    balanceSlot: EthereumMainnetERC20BalanceOfSlot.PTSUSDE,
+    initialBalance: parseUnits('100000', 6),
+  },
+
+  timeToMaturity: 180 * 24 * 60 * 60, // 180 days
+
+  // swap params
+  preMaturity: {
+    swapExactIbtToPt: {
+      ibtIn: parseUnits('600', 6),
+      minPtOut: parseUnits('400', 6),
+    },
+    swapExactPtToIbt: {
+      ptIn: parseUnits('745.34', 6),
+      minIbtOut: parseUnits('500', 6),
+    },
+    swapPtToExactIbt: {
+      maxPtIn: parseUnits('15000.75', 6),
+      ibtOut: parseUnits('10000', 6),
+    },
+    swapIbtToExactPt: {
+      maxIbtIn: parseUnits('125', 6),
+      ptOut: parseUnits('100', 6),
+    },
+  },
+  postMaturity: {
+    swapExactPtToIbt: {
+      ptIn: parseUnits('150.576', 6),
+      minIbtOut: parseUnits('120.0', 6),
+    },
+    swapPtToExactIbt: {
+      maxPtIn: parseUnits('600', 6),
+      ibtOut: parseUnits('500', 6),
+    },
+  },
+};
+
+const testCases = [
+  //DAI_sUSDS_TestCase,
+  //USDS_sUSDS_TestCase,
+  USDC_fluid_TestCase,
+  //wstUSR_TestCase, USR_TestCase, usual_TestCase
+];
 
 async function initializeRouter(testCase: TestCase): Promise<{
   ptToken: ERC20;
