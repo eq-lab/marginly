@@ -24,6 +24,7 @@ import {
   isCurveOracle,
   KeeperAlgebraDeployer,
   KeeperBalancerDeployer,
+  isMarginlyCompositeOracle,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -193,6 +194,11 @@ async function processPriceOracles(
       } else if (isCurveOracle(priceOracle)) {
         const deploymentResult = await priceOracleDeployer.deployCurveOracle(priceOracle, tokenRepository);
         printDeployState(`Curve price oracle ${priceOracle.id}`, deploymentResult, logger);
+
+        deployedPriceOracles.set(priceOracle.id, deploymentResult);
+      } else if (isMarginlyCompositeOracle(priceOracle)) {
+        const deploymentResult = await priceOracleDeployer.deployCompositeOracle(priceOracle, tokenRepository);
+        printDeployState(`Composite price oracle ${priceOracle.id}`, deploymentResult, logger);
 
         deployedPriceOracles.set(priceOracle.id, deploymentResult);
       } else {

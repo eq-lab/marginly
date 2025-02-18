@@ -10,6 +10,7 @@ import {
   isCurveOracleConfig,
   isDoublePairChainlinkOracleDeployConfig,
   isDoublePairPythOracleDeployConfig,
+  isMarginlyCompositeOracleConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
   isPendleMarketOracleConfig,
@@ -288,7 +289,8 @@ export type PriceOracleConfig =
   | PendleMarketOracleConfig
   | AlgebraOracleConfig
   | AlgebraDoubleOracleConfig
-  | CurveOracleConfig;
+  | CurveOracleConfig
+  | MarginlyCompositeOracleConfig;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -456,6 +458,18 @@ export interface CurveOracleConfig {
   }[];
 }
 
+export interface MarginlyCompositeOracleConfig {
+  id: string;
+  type: 'composite';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    intermediateToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    quoteIntermediateOracleId: string;
+    intermediateBaseOracleId: string;
+  }[];
+}
+
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
   return config.type === 'uniswapV3';
 }
@@ -490,6 +504,10 @@ export function isAlgebraDoubleOracle(config: PriceOracleConfig): config is Alge
 
 export function isCurveOracle(config: PriceOracleConfig): config is CurveOracleConfig {
   return config.type === 'curve';
+}
+
+export function isMarginlyCompositeOracle(config: PriceOracleConfig): config is MarginlyCompositeOracleConfig {
+  return config.type === 'composite';
 }
 
 export class StrictMarginlyDeployConfig {
@@ -894,16 +912,8 @@ export class StrictMarginlyDeployConfig {
           type: priceOracleConfig.type,
           factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
-            quoteToken:
-              tokens.get(x.quoteTokenId) ||
-              (() => {
-                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-              })(),
-            baseToken:
-              tokens.get(x.baseTokenId) ||
-              (() => {
-                throw new Error(`Base token not found by id ${x.baseTokenId}`);
-              })(),
+            quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+            baseToken: this.getRequiredToken(tokens, x.baseTokenId),
             secondsAgo: TimeSpan.parse(x.secondsAgo),
             secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
             uniswapFee: RationalNumber.parsePercent(x.uniswapFee),
@@ -917,21 +927,9 @@ export class StrictMarginlyDeployConfig {
           type: priceOracleConfig.type,
           factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
-            quoteToken:
-              tokens.get(x.quoteTokenId) ||
-              (() => {
-                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-              })(),
-            baseToken:
-              tokens.get(x.baseTokenId) ||
-              (() => {
-                throw new Error(`Base token not found by id ${x.baseTokenId}`);
-              })(),
-            intermediateToken:
-              tokens.get(x.intermediateTokenId) ||
-              (() => {
-                throw new Error(`Interm token not found by id ${x.baseTokenId}`);
-              })(),
+            quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+            baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+            intermediateToken: this.getRequiredToken(tokens, x.intermediateTokenId),
             secondsAgo: TimeSpan.parse(x.secondsAgo),
             secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
             baseTokenPairFee: RationalNumber.parsePercent(x.baseTokenPairFee),
@@ -948,36 +946,16 @@ export class StrictMarginlyDeployConfig {
             if (isSinglePairChainlinkOracleDeployConfig(x)) {
               return {
                 type: x.type,
-                quoteToken:
-                  tokens.get(x.quoteTokenId) ||
-                  (() => {
-                    throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                  })(),
-                baseToken:
-                  tokens.get(x.baseTokenId) ||
-                  (() => {
-                    throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                  })(),
+                quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+                baseToken: this.getRequiredToken(tokens, x.baseTokenId),
                 aggregatorV3: EthAddress.parse(x.aggregatorV3),
               } as SinglePairChainlinkOracleConfig;
             } else if (isDoublePairChainlinkOracleDeployConfig(x)) {
               return {
                 type: x.type,
-                quoteToken:
-                  tokens.get(x.quoteTokenId) ||
-                  (() => {
-                    throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                  })(),
-                baseToken:
-                  tokens.get(x.baseTokenId) ||
-                  (() => {
-                    throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                  })(),
-                intermediateToken:
-                  tokens.get(x.intermediateTokenId) ||
-                  (() => {
-                    throw new Error(`Intermediate token not found by id ${x.intermediateTokenId}`);
-                  })(),
+                quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+                baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+                intermediateToken: this.getRequiredToken(tokens, x.intermediateTokenId),
                 baseAggregatorV3: EthAddress.parse(x.baseAggregatorV3),
                 quoteAggregatorV3: EthAddress.parse(x.quoteAggregatorV3),
               } as DoublePairChainlinkOracleConfig;
@@ -1000,16 +978,8 @@ export class StrictMarginlyDeployConfig {
               }
               return {
                 type: x.type,
-                quoteToken:
-                  tokens.get(x.quoteTokenId) ||
-                  (() => {
-                    throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                  })(),
-                baseToken:
-                  tokens.get(x.baseTokenId) ||
-                  (() => {
-                    throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                  })(),
+                quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+                baseToken: this.getRequiredToken(tokens, x.baseTokenId),
                 pythPriceId: x.pythPriceId as `0x{string}`,
               } as SinglePairPythOracleConfig;
             } else if (isDoublePairPythOracleDeployConfig(x)) {
@@ -1022,21 +992,9 @@ export class StrictMarginlyDeployConfig {
 
               return {
                 type: x.type,
-                quoteToken:
-                  tokens.get(x.quoteTokenId) ||
-                  (() => {
-                    throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                  })(),
-                baseToken:
-                  tokens.get(x.baseTokenId) ||
-                  (() => {
-                    throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                  })(),
-                intermediateToken:
-                  tokens.get(x.intermediateTokenId) ||
-                  (() => {
-                    throw new Error(`Base token not found by id ${x.intermediateTokenId}`);
-                  })(),
+                quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+                baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+                intermediateToken: this.getRequiredToken(tokens, x.intermediateTokenId),
                 basePythPriceId: x.basePythPriceId as `0x{string}`,
                 quotePythPriceId: x.quotePythPriceId as `0x{string}`,
               } as DoublePairPythOracleConfig;
@@ -1054,22 +1012,10 @@ export class StrictMarginlyDeployConfig {
           pendlePtLpOracle: EthAddress.parse(priceOracleConfig.pendlePtLpOracle),
           settings: priceOracleConfig.settings.map((x) => {
             return {
-              quoteToken:
-                tokens.get(x.quoteTokenId) ||
-                (() => {
-                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                })(),
-              baseToken:
-                tokens.get(x.baseTokenId) ||
-                (() => {
-                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                })(),
+              quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+              baseToken: this.getRequiredToken(tokens, x.baseTokenId),
               pendleMarket: EthAddress.parse(x.pendleMarket),
-              ibToken:
-                tokens.get(x.ibTokenId) ||
-                (() => {
-                  throw new Error(`IB token not found by id ${x.ibTokenId}`);
-                })(),
+              ibToken: this.getRequiredToken(tokens, x.ibTokenId),
               secondsAgo: TimeSpan.parse(x.secondsAgo),
               secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
               secondaryPoolOracleId: x.secondaryPoolOracleId,
@@ -1085,16 +1031,8 @@ export class StrictMarginlyDeployConfig {
           pendlePtLpOracle: EthAddress.parse(priceOracleConfig.pendlePtLpOracle),
           settings: priceOracleConfig.settings.map((x) => {
             return {
-              quoteToken:
-                tokens.get(x.quoteTokenId) ||
-                (() => {
-                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                })(),
-              baseToken:
-                tokens.get(x.baseTokenId) ||
-                (() => {
-                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                })(),
+              quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+              baseToken: this.getRequiredToken(tokens, x.baseTokenId),
               pendleMarket: EthAddress.parse(x.pendleMarket),
               secondsAgo: TimeSpan.parse(x.secondsAgo),
               secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
@@ -1109,16 +1047,8 @@ export class StrictMarginlyDeployConfig {
           type: priceOracleConfig.type,
           factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
-            quoteToken:
-              tokens.get(x.quoteTokenId) ||
-              (() => {
-                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-              })(),
-            baseToken:
-              tokens.get(x.baseTokenId) ||
-              (() => {
-                throw new Error(`Base token not found by id ${x.baseTokenId}`);
-              })(),
+            quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+            baseToken: this.getRequiredToken(tokens, x.baseTokenId),
             secondsAgo: TimeSpan.parse(x.secondsAgo),
             secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
           })),
@@ -1131,25 +1061,15 @@ export class StrictMarginlyDeployConfig {
           type: priceOracleConfig.type,
           factory: EthAddress.parse(priceOracleConfig.factory),
           settings: priceOracleConfig.settings.map((x) => ({
-            quoteToken:
-              tokens.get(x.quoteTokenId) ||
-              (() => {
-                throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-              })(),
-            baseToken:
-              tokens.get(x.baseTokenId) ||
-              (() => {
-                throw new Error(`Base token not found by id ${x.baseTokenId}`);
-              })(),
-            intermediateToken:
-              tokens.get(x.intermediateTokenId) ||
-              (() => {
-                throw new Error(`Interm token not found by id ${x.baseTokenId}`);
-              })(),
+            quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+            baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+            intermediateToken: this.getRequiredToken(tokens, x.intermediateTokenId),
             secondsAgo: TimeSpan.parse(x.secondsAgo),
             secondsAgoLiquidation: TimeSpan.parse(x.secondsAgoLiquidation),
           })),
         };
+
+        priceOracles.set(priceOracleId, strictConfig);
       } else if (isCurveOracleConfig(priceOracleConfig)) {
         const strictConfig: CurveOracleConfig = {
           id: priceOracleId,
@@ -1157,16 +1077,24 @@ export class StrictMarginlyDeployConfig {
           settings: priceOracleConfig.settings.map((x) => {
             return {
               pool: EthAddress.parse(x.pool),
-              quoteToken:
-                tokens.get(x.quoteTokenId) ||
-                (() => {
-                  throw new Error(`Quote token not found by id ${x.quoteTokenId}`);
-                })(),
-              baseToken:
-                tokens.get(x.baseTokenId) ||
-                (() => {
-                  throw new Error(`Base token not found by id ${x.baseTokenId}`);
-                })(),
+              quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+              baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+            };
+          }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isMarginlyCompositeOracleConfig(priceOracleConfig)) {
+        const strictConfig: MarginlyCompositeOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+              intermediateToken: this.getRequiredToken(tokens, x.intermediateTokenId),
+              baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+              quoteIntermediateOracleId: x.quoteIntermediateOracleId,
+              intermediateBaseOracleId: x.interMediateBaseOracleId,
             };
           }),
         };
@@ -1176,5 +1104,15 @@ export class StrictMarginlyDeployConfig {
     }
 
     return priceOracles;
+  }
+
+  private static getRequiredToken(
+    tokenRepository: Map<string, MarginlyConfigToken>,
+    tokenId: string
+  ): MarginlyConfigToken {
+    const token = tokenRepository.get(tokenId);
+    if (!token) throw new Error(`Token with id ${tokenId} not found`);
+
+    return token;
   }
 }

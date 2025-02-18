@@ -53,7 +53,8 @@ export type PriceOracleDeployConfig =
   | PendleMarketOracleDeployConfig
   | AlgebraTickOracleDeployConfig
   | AlgebraDoubleDeployOracleConfig
-  | CurveOracleDeployConfig;
+  | CurveOracleDeployConfig
+  | MarginlyCompositeOracleDeployConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -248,6 +249,18 @@ export interface CurveOracleDeployConfig {
   }[];
 }
 
+export interface MarginlyCompositeOracleDeployConfig {
+  type: 'composite';
+  id: string;
+  settings: {
+    quoteTokenId: string;
+    intermediateTokenId: string;
+    baseTokenId: string;
+    quoteIntermediateOracleId: string;
+    interMediateBaseOracleId: string;
+  }[];
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -284,8 +297,14 @@ export function isAlgebraDoubleOracleConfig(
   return config.type === 'algebraDouble';
 }
 
-export function isCurveOracleConfig(config: CurveOracleDeployConfig): config is CurveOracleDeployConfig {
+export function isCurveOracleConfig(config: PriceOracleDeployConfig): config is CurveOracleDeployConfig {
   return config.type === 'curve';
+}
+
+export function isMarginlyCompositeOracleConfig(
+  config: PriceOracleDeployConfig
+): config is MarginlyCompositeOracleDeployConfig {
+  return config.type === 'composite';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {

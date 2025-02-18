@@ -7,6 +7,7 @@ import {
   isDoublePairPythOracleConfig,
   isSinglePairChainlinkOracleConfig,
   isSinglePairPythOracleConfig,
+  MarginlyCompositeOracleConfig,
   PendleMarketOracleConfig,
   PendleOracleConfig,
   PythOracleConfig,
@@ -16,7 +17,7 @@ import {
 import { DeployResult, ITokenRepository } from '../common/interfaces';
 import { BigNumber, Signer, ethers } from 'ethers';
 import { EthOptions } from '../config';
-import { StateStore } from '../common';
+import { DeployState, StateStore } from '../common';
 import { Logger } from '../logger';
 import { createMarginlyPeripheryOracleReader } from './contract-reader';
 import { BaseDeployer } from './BaseDeployer';
@@ -43,6 +44,29 @@ export class PriceOracleDeployer extends BaseDeployer {
   public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
     super(signer, ethArgs, stateStore, logger);
     this.readMarginlyPeripheryOracleContract = createMarginlyPeripheryOracleReader();
+  }
+
+  private getRequiredPriceOracle(priceOracleId: string): DeployState {
+    const priceOracle = this.stateStore.getById(`priceOracle_${priceOracleId}`);
+    if (!priceOracle) {
+      throw new Error(`Price oracle not found by id ${priceOracleId}`);
+    }
+    return priceOracle;
+  }
+
+  private async checkOraclePrice(
+    priceOracleId: string,
+    priceOracle: any,
+    quoteToken: string,
+    baseToken: string
+  ): Promise<void> {
+    this.logger.log(`Check oracle ${priceOracleId}`);
+
+    const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
+    this.logger.log(`BalancePrice is ${balancePrice}`);
+
+    const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
+    this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
   }
 
   public async deployAndConfigureUniswapV3TickOracle(
@@ -84,13 +108,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         await tx.wait();
       }
 
-      this.logger.log(`Check oracle ${config.id}`);
-
-      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`BalancePrice is ${balancePrice}`);
-
-      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
     return deploymentResult;
@@ -144,13 +162,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         await tx.wait();
       }
 
-      this.logger.log(`Check oracle ${config.id}`);
-
-      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`BalancePrice is ${balancePrice}`);
-
-      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
     return deploymentResult;
@@ -175,6 +187,8 @@ export class PriceOracleDeployer extends BaseDeployer {
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
         await priceOracle.setPair(quoteToken.toString(), baseToken.toString(), setting.aggregatorV3.toString());
+
+        await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       } else if (isDoublePairChainlinkOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
@@ -198,6 +212,8 @@ export class PriceOracleDeployer extends BaseDeployer {
           baseToken.toString()
         );
         await tx.wait();
+
+        await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       } else {
         throw new Error('Unknown pair type');
       }
@@ -248,6 +264,8 @@ export class PriceOracleDeployer extends BaseDeployer {
           baseToken.toString()
         );
         await tx.wait();
+
+        await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       } else {
         throw new Error('Unknown pair type');
       }
@@ -293,6 +311,8 @@ export class PriceOracleDeployer extends BaseDeployer {
         setting.secondsAgoLiquidation.toSeconds()
       );
       await tx.wait();
+
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
     return deploymentResult;
@@ -326,6 +346,8 @@ export class PriceOracleDeployer extends BaseDeployer {
         setting.secondsAgoLiquidation.toSeconds()
       );
       await tx.wait();
+
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
     return deploymentResult;
@@ -367,13 +389,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         await tx.wait();
       }
 
-      this.logger.log(`Check oracle ${config.id}`);
-
-      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`BalancePrice is ${balancePrice}`);
-
-      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
     return deploymentResult;
@@ -421,13 +437,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         await tx.wait();
       }
 
-      this.logger.log(`Check oracle ${config.id}`);
-
-      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`BalancePrice is ${balancePrice}`);
-
-      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
     return deploymentResult;
@@ -489,6 +499,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       if (currentParams.pool.toLowerCase() !== setting.pool.toString().toLowerCase()) {
         this.logger.log(`Add pool ${setting.pool.toString()}`);
+
         const tx = await priceOracle.addPool(
           setting.pool.toString(),
           quoteToken.toString(),
@@ -497,14 +508,51 @@ export class PriceOracleDeployer extends BaseDeployer {
         );
         await tx.wait();
       }
-
-      this.logger.log(`Check oracle ${config.id}`);
-      const balancePrice = await priceOracle.getBalancePrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`BalancePrice is ${balancePrice}`);
-
-      const liquidationPrice = await priceOracle.getMargincallPrice(quoteToken.toString(), baseToken.toString());
-      this.logger.log(`LiquidationPrice is ${liquidationPrice}`);
     }
+    return deploymentResult;
+  }
+
+  public async deployCompositeOracle(
+    config: MarginlyCompositeOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'MarginlyCompositeOracle',
+      [],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+    const priceOracle = (await deploymentResult).contract;
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+
+      this.logger.log(`Add setting ${setting.baseToken.toString()}/${setting.quoteToken.toString()}`);
+
+      const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+      if (
+        currentParams.quoteToken.toLowerCase() !== quoteToken.toString().toLowerCase() ||
+        currentParams.baseToken.toLowerCase() !== baseToken.toString().toLowerCase() ||
+        currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
+      ) {
+        const quoteIntermediateOracle = this.getRequiredPriceOracle(setting.quoteIntermediateOracleId);
+        const baseIntermediateOracle = this.getRequiredPriceOracle(setting.intermediateBaseOracleId);
+
+        const tx = await priceOracle.setPair(
+          quoteToken.toString(),
+          intermediateToken.toString(),
+          baseToken.toString(),
+          quoteIntermediateOracle.address,
+          baseIntermediateOracle.address
+        );
+        await tx.wait();
+
+        await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
+      }
+    }
+
     return deploymentResult;
   }
 }
