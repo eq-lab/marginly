@@ -26,6 +26,22 @@ contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
 
   mapping(address => mapping(address => OracleParams)) public getParams;
 
+  function _validateOracle(IPriceOracle priceOracle, address quoteToken, address baseToken) private view {
+    if (priceOracle.getBalancePrice(quoteToken, baseToken) == 0) revert ZeroPrice();
+    if (priceOracle.getBalancePrice(baseToken, quoteToken) == 0) revert ZeroPrice();
+
+    if (priceOracle.getMargincallPrice(quoteToken, baseToken) == 0) revert ZeroPrice();
+    if (priceOracle.getMargincallPrice(baseToken, quoteToken) == 0) revert ZeroPrice();
+  }
+
+  function _getOracleParamsSafe(
+    address quoteToken,
+    address baseToken
+  ) private view returns (OracleParams memory params) {
+    params = getParams[quoteToken][baseToken];
+    if (params.intermediateToken == address(0)) revert NotInitialized();
+  }
+
   function setPair(
     address quoteToken,
     address intermediateToken,
@@ -42,17 +58,8 @@ contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
     OracleParams memory params = getParams[quoteToken][baseToken];
     if (params.intermediateToken != address(0)) revert PairAlreadyExists();
 
-    if (quoteIntermediateOracle.getBalancePrice(quoteToken, intermediateToken) == 0) revert ZeroPrice();
-    if (quoteIntermediateOracle.getBalancePrice(intermediateToken, quoteToken) == 0) revert ZeroPrice();
-
-    if (quoteIntermediateOracle.getMargincallPrice(quoteToken, intermediateToken) == 0) revert ZeroPrice();
-    if (quoteIntermediateOracle.getMargincallPrice(intermediateToken, quoteToken) == 0) revert ZeroPrice();
-
-    if (interMediateBaseOracle.getBalancePrice(intermediateToken, baseToken) == 0) revert ZeroPrice();
-    if (interMediateBaseOracle.getBalancePrice(baseToken, intermediateToken) == 0) revert ZeroPrice();
-
-    if (interMediateBaseOracle.getMargincallPrice(intermediateToken, baseToken) == 0) revert ZeroPrice();
-    if (interMediateBaseOracle.getMargincallPrice(baseToken, intermediateToken) == 0) revert ZeroPrice();
+    _validateOracle(quoteIntermediateOracle, quoteToken, intermediateToken);
+    _validateOracle(interMediateBaseOracle, intermediateToken, baseToken);
 
     getParams[quoteToken][baseToken] = OracleParams({
       intermediateToken: intermediateToken,
@@ -68,8 +75,7 @@ contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
   }
 
   function getBalancePrice(address quoteToken, address baseToken) external view override returns (uint256) {
-    OracleParams memory params = getParams[quoteToken][baseToken];
-    if (params.intermediateToken == address(0)) revert NotInitialized();
+    OracleParams memory params = _getOracleParamsSafe(quoteToken, baseToken);
 
     uint256 firstPrice = params.quoteIntermediateOracle.getBalancePrice(quoteToken, params.intermediateToken);
     uint256 secondPrice = params.interMediateBaseOracle.getBalancePrice(params.intermediateToken, baseToken);
@@ -79,8 +85,7 @@ contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
   }
 
   function getMargincallPrice(address quoteToken, address baseToken) external view override returns (uint256) {
-    OracleParams memory params = getParams[quoteToken][baseToken];
-    if (params.intermediateToken == address(0)) revert NotInitialized();
+    OracleParams memory params = _getOracleParamsSafe(quoteToken, baseToken);
 
     uint256 firstPrice = params.quoteIntermediateOracle.getMargincallPrice(quoteToken, params.intermediateToken);
     uint256 secondPrice = params.interMediateBaseOracle.getMargincallPrice(params.intermediateToken, baseToken);
