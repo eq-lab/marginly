@@ -341,11 +341,11 @@ const sDOLA_TestCase: TestCase = {
 };
 
 const testCases = [
-  // USR_TestCase, // PT/Underlying case
-  // DOLA_TestCase, //PT/Underlying case
-  // wstUSR_TestCase, // PT-IBT/IBT case
-  // sDOLA_TestCase, //PT-IBT/IBT case
-  // inwstETHs_TestCase, // PT-sw/IBT case
+  USR_TestCase, // PT/Underlying case
+  DOLA_TestCase, //PT/Underlying case
+  wstUSR_TestCase, // PT-IBT/IBT case
+  sDOLA_TestCase, //PT-IBT/IBT case
+  inwstETHs_TestCase, // PT-sw/IBT case
 ];
 
 async function initializeRouter(testCase: TestCase): Promise<{
@@ -421,7 +421,7 @@ async function initializeRouter(testCase: TestCase): Promise<{
 }
 
 // Tests for running in ethereum mainnet fork
-describe.skip('SpectraAdapter', async () => {
+describe('SpectraAdapter', async () => {
   for (const testCase of testCases) {
     describe(`SpectraAdapter ${testCase.ptToken.symbol} - ${testCase.quoteToken.symbol}`, () => {
       before(async () => {

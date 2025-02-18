@@ -421,10 +421,12 @@ const USDC_fluid_TestCase: TestCase = {
 };
 
 const testCases = [
-  //DAI_sUSDS_TestCase,
-  //USDS_sUSDS_TestCase,
+  DAI_sUSDS_TestCase,
+  USDS_sUSDS_TestCase,
   USDC_fluid_TestCase,
-  //wstUSR_TestCase, USR_TestCase, usual_TestCase
+  wstUSR_TestCase,
+  USR_TestCase,
+  usual_TestCase,
 ];
 
 async function initializeRouter(testCase: TestCase): Promise<{
@@ -492,7 +494,7 @@ async function initializeRouter(testCase: TestCase): Promise<{
 }
 
 // Tests for running in ethereum mainnet fork
-describe.only('PendlePtToAssetAdapter', async () => {
+describe('PendlePtToAssetAdapter', async () => {
   for (const testCase of testCases) {
     describe(`PendlePtToAssetAdapter ${testCase.ptToken.symbol} - ${testCase.assetToken.symbol}`, () => {
       before(async () => {

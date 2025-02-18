@@ -224,21 +224,6 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
     }
   }
 
-  ///@dev Calc how much SY need to redeem exact assetAmount
-  function _assetToSyUpForRedeem(
-    PendleMarketData memory marketData,
-    uint256 assetAmount
-  ) private view returns (uint256) {
-    uint256 assetsPerSyUnit = IStandardizedYield(marketData.sy).previewRedeem(address(marketData.asset), PENDLE_ONE);
-    return (PENDLE_ONE * assetAmount + assetsPerSyUnit - 1) / assetsPerSyUnit;
-  }
-
-  ///@dev Calc how much asset need to deposit and get exact amount of SY
-  function _syToAssetUpForDeposit(PendleMarketData memory marketData, uint256 syAmount) private view returns (uint256) {
-    uint256 syPerAssetUnit = IStandardizedYield(marketData.sy).previewDeposit(address(marketData.asset), PENDLE_ONE);
-    return (PENDLE_ONE * syAmount + syPerAssetUnit - 1) / syPerAssetUnit;
-  }
-
   function _swapExactOutputPostMaturity(
     PendleMarketData memory marketData,
     address recipient,
@@ -341,8 +326,6 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
       syAmount
     );
 
-    if (syMinted < syAmount) revert InsufficientAmount();
-
     // small amount of sy left in the adapter contract
     // transfer exact amount of sy to recipient
     SafeERC20.safeTransfer(marketData.sy, recipient, syAmount);
@@ -366,6 +349,21 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
   ) private returns (uint256 syRedeemed) {
     IMarginlyRouter(router).adapterCallback(address(yt), ptAmount, adapterCallbackData);
     syRedeemed = yt.redeemPY(address(this));
+  }
+
+  ///@dev Calc how much SY need to redeem exact assetAmount
+  function _assetToSyUpForRedeem(
+    PendleMarketData memory marketData,
+    uint256 assetAmount
+  ) private view returns (uint256) {
+    uint256 assetsPerSyUnit = IStandardizedYield(marketData.sy).previewRedeem(address(marketData.asset), PENDLE_ONE);
+    return (PENDLE_ONE * assetAmount + assetsPerSyUnit - 1) / assetsPerSyUnit;
+  }
+
+  ///@dev Calc how much asset need to deposit and get exact amount of SY
+  function _syToAssetUpForDeposit(PendleMarketData memory marketData, uint256 syAmount) private view returns (uint256) {
+    uint256 syPerAssetUnit = IStandardizedYield(marketData.sy).previewDeposit(address(marketData.asset), PENDLE_ONE);
+    return (PENDLE_ONE * syAmount + syPerAssetUnit - 1) / syPerAssetUnit;
   }
 
   function _addPools(PoolInput[] memory poolsData) private {
