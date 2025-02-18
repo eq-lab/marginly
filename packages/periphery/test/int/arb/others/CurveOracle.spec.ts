@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { BigNumber } from 'ethers';
-import { createCurveCaseCrvUsdUsdc, createCurveCaseFrxEthWeth, CurveOracleCaseParams } from '../../shared/fixtures';
+import { createCurveCaseCrvUsdUsdc, createCurveCaseFrxEthWeth, CurveOracleCaseParams } from '../../../shared/fixtures';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { oneX96 } from '../pendle/common';
+import { oneX96 } from '../../pendle/common';
 import { ethers } from 'hardhat';
 
 async function fetchCurvePrices(

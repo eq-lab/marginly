@@ -12,7 +12,8 @@
     "compile": "hardhat compile --config ./hardhat-configs/hardhat.config.ts",
     "test": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat test ./test/*.spec.ts --config ./hardhat-configs/hardhat.config.ts",
     "test:coverage": "UPDATE_SNAPSHOT=1 REPORT_GAS=true hardhat coverage --testfiles './test/*.spec.ts'",
-    "test:int": "REPORT_GAS=true hardhat test --config ./hardhat-configs/fork.config.ts ./test/int/**/*.spec.ts",
+    "test:int-arb": "REPORT_GAS=true hardhat test --config ./hardhat-configs/arb-fork.config.ts ./test/int/arb/**/*.spec.ts",
+    "test:int-eth": "REPORT_GAS=true hardhat test --config ./hardhat-configs/eth-fork.config.ts ./test/int/eth/*.spec.ts",
     "lint:write": "prettier --write ./contracts ./test",
     "docgen": "hardhat docgen"
   },
