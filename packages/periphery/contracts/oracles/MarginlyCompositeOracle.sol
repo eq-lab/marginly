@@ -26,7 +26,7 @@ contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
 
   mapping(address => mapping(address => OracleParams)) public getParams;
 
-  function _validateOracle(IPriceOracle priceOracle, address quoteToken, address baseToken) private view {
+  function _validatePriceOracle(IPriceOracle priceOracle, address quoteToken, address baseToken) private view {
     if (priceOracle.getBalancePrice(quoteToken, baseToken) == 0) revert ZeroPrice();
     if (priceOracle.getBalancePrice(baseToken, quoteToken) == 0) revert ZeroPrice();
 
@@ -58,8 +58,8 @@ contract MarginlyCompositeOracle is IPriceOracle, Ownable2Step {
     OracleParams memory params = getParams[quoteToken][baseToken];
     if (params.intermediateToken != address(0)) revert PairAlreadyExists();
 
-    _validateOracle(quoteIntermediateOracle, quoteToken, intermediateToken);
-    _validateOracle(interMediateBaseOracle, intermediateToken, baseToken);
+    _validatePriceOracle(quoteIntermediateOracle, quoteToken, intermediateToken);
+    _validatePriceOracle(interMediateBaseOracle, intermediateToken, baseToken);
 
     getParams[quoteToken][baseToken] = OracleParams({
       intermediateToken: intermediateToken,

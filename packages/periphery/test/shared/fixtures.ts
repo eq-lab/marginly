@@ -35,8 +35,10 @@ import {
   UniswapV3TickOracle,
   UniswapV3TickOracleDouble,
 } from '../../typechain-types';
-import { one, oneX96 } from '../int/pendle/common';
 import { BigNumber, ContractFactory } from 'ethers';
+
+export const oneX96 = BigNumber.from(2).pow(96);
+export const one = BigNumber.from(10).pow(18);
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
