@@ -384,7 +384,8 @@ export type AdapterPair =
   | PendleUniswapAdapterPair
   | PendleMarketAdapterPair
   | PendleCurveAdapterPair
-  | PendleCurveRouterAdapterPair;
+  | PendleCurveRouterAdapterPair
+  | PendlePtToAssetAdapterPair;
 
 export interface GeneralAdapterPair {
   tokenAId: string;
@@ -426,6 +427,13 @@ export interface PendleCurveRouterAdapterPair {
   curveSwapParams: number[][];
   curvePools: string[];
   curveSlippage: number;
+}
+
+export interface PendlePtToAssetAdapterPair {
+  tokenAId: string;
+  tokenBId: string;
+  pendleMarket: string;
+  slippage: number;
 }
 
 export interface MarginlyDeployConfig {

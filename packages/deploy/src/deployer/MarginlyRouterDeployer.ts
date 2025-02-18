@@ -10,10 +10,12 @@ import {
   PendleCurveAdapterParam,
   PendleCurveRouterAdapterParam,
   PendleMarketAdapterParam,
+  PendlePtToAssetAdapterParam,
   isPendleAdapter,
   isPendleCurveAdapter,
   isPendleCurveRouterAdapter,
   isPendleMarketAdapter,
+  isPendlePtToAssetAdapter,
 } from './configs';
 import { EthOptions } from '../config';
 import { Logger } from '../logger';
@@ -57,6 +59,18 @@ export class MarginlyRouterDeployer extends BaseDeployer {
             locConfig.slippage,
             tokenRepository.getTokenInfo(locConfig.ptToken.id).address.toString(),
             tokenRepository.getTokenInfo(locConfig.ibToken.id).address.toString(),
+          ];
+        }),
+      ];
+    } else if (isPendlePtToAssetAdapter(pools[0])) {
+      args = [
+        pools.map((x) => {
+          const locConfig = x as PendlePtToAssetAdapterParam;
+          return [
+            locConfig.pendleMarket.toString(),
+            locConfig.slippage,
+            tokenRepository.getTokenInfo(locConfig.ptToken.id).address.toString(),
+            tokenRepository.getTokenInfo(locConfig.assetToken.id).address.toString(),
           ];
         }),
       ];

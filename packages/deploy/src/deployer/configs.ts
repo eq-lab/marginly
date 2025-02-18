@@ -1,6 +1,7 @@
 import { MarginlyConfigExistingToken, MarginlyConfigMintableToken, MarginlyConfigToken, TimeSpan } from '../common';
 import { EthAddress, RationalNumber } from '@marginly/common';
 import {
+  AdapterPair,
   EthConnectionConfig,
   GeneralAdapterPair,
   isAlgebraDoubleOracleConfig,
@@ -22,6 +23,7 @@ import {
   PendleCurveAdapterPair,
   PendleCurveRouterAdapterPair,
   PendleMarketAdapterPair,
+  PendlePtToAssetAdapterPair,
   PendleUniswapAdapterPair,
 } from '../config';
 import { adapterWriter, Logger } from '../logger';
@@ -173,7 +175,8 @@ export type AdapterParam =
   | PendleAdapterParam
   | PendleMarketAdapterParam
   | PendleCurveAdapterParam
-  | PendleCurveRouterAdapterParam;
+  | PendleCurveRouterAdapterParam
+  | PendlePtToAssetAdapterParam;
 
 export interface MarginlyAdapterParam {
   type: 'general';
@@ -220,12 +223,24 @@ export interface PendleCurveAdapterParam {
   quoteToken: MarginlyConfigToken;
 }
 
+export interface PendlePtToAssetAdapterParam {
+  type: 'pendlePtToAsset';
+  pendleMarket: EthAddress;
+  ptToken: MarginlyConfigToken;
+  assetToken: MarginlyConfigToken;
+  slippage: number;
+}
+
 export function isPendleAdapter(config: AdapterParam): config is PendleAdapterParam {
   return config.type === 'pendle';
 }
 
 export function isPendleMarketAdapter(config: AdapterParam): config is PendleMarketAdapterParam {
   return config.type === 'pendleMarket';
+}
+
+export function isPendlePtToAssetAdapter(config: AdapterParam): config is PendlePtToAssetAdapterParam {
+  return config.type === 'pendlePtToAsset';
 }
 
 export function isGeneralAdapter(config: AdapterParam): config is MarginlyAdapterParam {
@@ -597,144 +612,12 @@ export class StrictMarginlyDeployConfig {
     const adapters: MarginlyConfigAdapter[] = [];
 
     for (const adapter of config.adapters) {
+      const dexId = adapter.dexId;
       const adapterParams: AdapterParam[] = [];
+
       for (const pool of adapter.pools) {
-        if (adapter.adapterName === 'PendleAdapter') {
-          const pairConfig = pool as PendleUniswapAdapterPair;
-
-          if (!pairConfig.ibTokenId) {
-            throw new Error(`IB token id is not set for adapter with dexId ${adapter.dexId}`);
-          }
-          if (!pairConfig.slippage) {
-            throw new Error(`Slippage is not set for adapter with dexId ${adapter.dexId}`);
-          }
-          if (!pairConfig.pendleMarket) {
-            throw new Error(`Pendle market is not set for adapter with dexId ${adapter.dexId}`);
-          }
-
-          const poolAddress = EthAddress.parse(pairConfig.poolAddress);
-          const token0 = tokens.get(pairConfig.tokenAId);
-          if (token0 === undefined) {
-            throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${adapter.dexId}`);
-          }
-          const token1 = tokens.get(pairConfig.tokenBId);
-          if (token1 === undefined) {
-            throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${adapter.dexId}`);
-          }
-          const ibToken = tokens.get(pairConfig.ibTokenId);
-          if (ibToken === undefined) {
-            throw new Error(`Can not find ibToken '${pairConfig.ibTokenId}' for adapter with dexId ${adapter.dexId}`);
-          }
-
-          adapterParams.push({
-            type: 'pendle',
-            token0: token0,
-            token1: token1,
-            ib: ibToken,
-            uniswapV3LikePool: poolAddress,
-            pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
-            slippage: pairConfig.slippage,
-          });
-        } else if (adapter.adapterName === 'PendleMarketAdapter') {
-          const pairConfig = pool as PendleMarketAdapterPair;
-
-          const token0 = tokens.get(pairConfig.tokenAId);
-          if (token0 === undefined) {
-            throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${adapter.dexId}`);
-          }
-          const token1 = tokens.get(pairConfig.tokenBId);
-          if (token1 === undefined) {
-            throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${adapter.dexId}`);
-          }
-
-          adapterParams.push({
-            type: 'pendleMarket',
-            ptToken: token0,
-            ibToken: token1,
-            pendleMarket: EthAddress.parse(pairConfig.poolAddress),
-            slippage: pairConfig.slippage,
-          });
-        } else if (adapter.adapterName === 'PendleCurveNgAdapter') {
-          const pairConfig = pool as PendleCurveAdapterPair;
-
-          const ibToken = tokens.get(pairConfig.ibTokenId);
-          if (ibToken === undefined) {
-            throw new Error(`Can not find ibToken '${pairConfig.ibTokenId}' for adapter with dexId ${adapter.dexId}`);
-          }
-
-          const quoteToken = tokens.get(pairConfig.quoteTokenId);
-          if (quoteToken === undefined) {
-            throw new Error(
-              `Can not find quoteToken '${pairConfig.quoteTokenId}' for adapter with dexId ${adapter.dexId}`
-            );
-          }
-
-          adapterParams.push(<PendleCurveAdapterParam>{
-            type: 'pendleCurve',
-            pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
-            slippage: pairConfig.slippage,
-            curveSlippage: pairConfig.curveSlippage,
-            curvePool: EthAddress.parse(pairConfig.curvePool),
-            ibToken: ibToken,
-            quoteToken: quoteToken,
-          });
-        } else if (adapter.adapterName === 'PendleCurveRouterNg') {
-          const pairConfig = pool as PendleCurveRouterAdapterPair;
-
-          if (pairConfig.curveRoute.length !== 11) {
-            throw new Error(
-              `Wrong config for Pendle curve router adapter with dexId ${adapter.dexId}. Curve route length must be 11`
-            );
-          }
-
-          if (pairConfig.curvePools.length !== 5) {
-            throw new Error(
-              `Wrong config for Pendle curve router adapter with dexId ${adapter.dexId}. Curve pools length must be 5`
-            );
-          }
-
-          if (pairConfig.curveSwapParams.length !== 5) {
-            throw new Error(
-              `Wrong config for Pendle curve router adapter with dexId ${adapter.dexId}. Curve swap params array must be 5x5`
-            );
-          }
-
-          for (let i = 0; i < 5; i++) {
-            if (pairConfig.curveSwapParams[i].length !== 5) {
-              throw new Error(
-                `Wrong config for Pendle curve router adapter with dexId ${adapter.dexId}. Curve swap params array must be 5x5`
-              );
-            }
-          }
-
-          adapterParams.push(<PendleCurveRouterAdapterParam>{
-            type: 'pendleCurveRouter',
-            pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
-            slippage: pairConfig.slippage,
-            curveSlippage: pairConfig.curveSlippage,
-            curveRoute: pairConfig.curveRoute.map(EthAddress.parse),
-            curveSwapParams: pairConfig.curveSwapParams,
-            curvePools: pairConfig.curvePools.map(EthAddress.parse),
-          });
-        } else {
-          const pairConfig = pool as GeneralAdapterPair;
-
-          const poolAddress = EthAddress.parse(pairConfig.poolAddress);
-          const token0 = tokens.get(pairConfig.tokenAId);
-          if (token0 === undefined) {
-            throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${adapter.dexId}`);
-          }
-          const token1 = tokens.get(pairConfig.tokenBId);
-          if (token1 === undefined) {
-            throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${adapter.dexId}`);
-          }
-          adapterParams.push({
-            type: 'general',
-            token0: token0,
-            token1: token1,
-            pool: poolAddress,
-          });
-        }
+        const adapterParam = this.createAdapterParam(adapter.adapterName, pool, tokens, dexId);
+        adapterParams.push(adapterParam);
       }
 
       adapters.push({
@@ -785,6 +668,214 @@ export class StrictMarginlyDeployConfig {
       marginlyKeeper,
       marginlyRouter
     );
+  }
+
+  private static createAdapterParam(
+    adapterName: string,
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): AdapterParam {
+    if (adapterName === 'PendleAdapter') {
+      return this.createPendleAdapterParam(pair, tokens, dexId);
+    } else if (adapterName === 'PendleMarketAdapter') {
+      return this.createPendleMarketAdapterConfig(pair, tokens, dexId);
+    } else if (adapterName == 'PendlePtToAssetAdapter') {
+      return this.createPendlePtToAssetAdapterParam(pair, tokens, dexId);
+    } else if (adapterName === 'PendleCurveNgAdapter') {
+      return this.createPendleCurveNgAdapterConfig(pair, tokens, dexId);
+    } else if (adapterName === 'PendleCurveRouterNg') {
+      return this.createPendleCurveRouterAdapterConfig(pair, tokens, dexId);
+    } else {
+      return this.createSimpleAdapterParam(pair, tokens, dexId);
+    }
+  }
+
+  private static createPendleAdapterParam(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): PendleAdapterParam {
+    const pairConfig = pair as PendleUniswapAdapterPair;
+
+    if (!pairConfig.ibTokenId) {
+      throw new Error(`IB token id is not set for adapter with dexId ${dexId}`);
+    }
+    if (!pairConfig.slippage) {
+      throw new Error(`Slippage is not set for adapter with dexId ${dexId}`);
+    }
+    if (!pairConfig.pendleMarket) {
+      throw new Error(`Pendle market is not set for adapter with dexId ${dexId}`);
+    }
+
+    const poolAddress = EthAddress.parse(pairConfig.poolAddress);
+    const token0 = tokens.get(pairConfig.tokenAId);
+    if (token0 === undefined) {
+      throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${dexId}`);
+    }
+    const token1 = tokens.get(pairConfig.tokenBId);
+    if (token1 === undefined) {
+      throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${dexId}`);
+    }
+    const ibToken = tokens.get(pairConfig.ibTokenId);
+    if (ibToken === undefined) {
+      throw new Error(`Can not find ibToken '${pairConfig.ibTokenId}' for adapter with dexId ${dexId}`);
+    }
+
+    return {
+      type: 'pendle',
+      token0: token0,
+      token1: token1,
+      ib: ibToken,
+      uniswapV3LikePool: poolAddress,
+      pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
+      slippage: pairConfig.slippage,
+    };
+  }
+
+  private static createPendleMarketAdapterConfig(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): PendleMarketAdapterParam {
+    const pairConfig = pair as PendleMarketAdapterPair;
+
+    const token0 = tokens.get(pairConfig.tokenAId);
+    if (token0 === undefined) {
+      throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${dexId}`);
+    }
+    const token1 = tokens.get(pairConfig.tokenBId);
+    if (token1 === undefined) {
+      throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${dexId}`);
+    }
+
+    return {
+      type: 'pendleMarket',
+      ptToken: token0,
+      ibToken: token1,
+      pendleMarket: EthAddress.parse(pairConfig.poolAddress),
+      slippage: pairConfig.slippage,
+    };
+  }
+
+  private static createPendlePtToAssetAdapterParam(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): PendlePtToAssetAdapterParam {
+    const pairConfig = pair as PendlePtToAssetAdapterPair;
+
+    const token0 = tokens.get(pairConfig.tokenAId);
+    if (token0 === undefined) {
+      throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${dexId}`);
+    }
+    const token1 = tokens.get(pairConfig.tokenBId);
+    if (token1 === undefined) {
+      throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${dexId}`);
+    }
+
+    return {
+      type: 'pendlePtToAsset',
+      ptToken: token0,
+      assetToken: token1,
+      pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
+      slippage: pairConfig.slippage,
+    };
+  }
+
+  private static createPendleCurveNgAdapterConfig(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): PendleCurveAdapterParam {
+    const pairConfig = pair as PendleCurveAdapterPair;
+
+    const ibToken = tokens.get(pairConfig.ibTokenId);
+    if (ibToken === undefined) {
+      throw new Error(`Can not find ibToken '${pairConfig.ibTokenId}' for adapter with dexId ${dexId}`);
+    }
+
+    const quoteToken = tokens.get(pairConfig.quoteTokenId);
+    if (quoteToken === undefined) {
+      throw new Error(`Can not find quoteToken '${pairConfig.quoteTokenId}' for adapter with dexId ${dexId}`);
+    }
+
+    return <PendleCurveAdapterParam>{
+      type: 'pendleCurve',
+      pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
+      slippage: pairConfig.slippage,
+      curveSlippage: pairConfig.curveSlippage,
+      curvePool: EthAddress.parse(pairConfig.curvePool),
+      ibToken: ibToken,
+      quoteToken: quoteToken,
+    };
+  }
+
+  private static createPendleCurveRouterAdapterConfig(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): PendleCurveRouterAdapterParam {
+    const pairConfig = pair as PendleCurveRouterAdapterPair;
+
+    if (pairConfig.curveRoute.length !== 11) {
+      throw new Error(
+        `Wrong config for Pendle curve router adapter with dexId ${dexId}. Curve route length must be 11`
+      );
+    }
+
+    if (pairConfig.curvePools.length !== 5) {
+      throw new Error(`Wrong config for Pendle curve router adapter with dexId ${dexId}. Curve pools length must be 5`);
+    }
+
+    if (pairConfig.curveSwapParams.length !== 5) {
+      throw new Error(
+        `Wrong config for Pendle curve router adapter with dexId ${dexId}. Curve swap params array must be 5x5`
+      );
+    }
+
+    for (let i = 0; i < 5; i++) {
+      if (pairConfig.curveSwapParams[i].length !== 5) {
+        throw new Error(
+          `Wrong config for Pendle curve router adapter with dexId ${dexId}. Curve swap params array must be 5x5`
+        );
+      }
+    }
+
+    return <PendleCurveRouterAdapterParam>{
+      type: 'pendleCurveRouter',
+      pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
+      slippage: pairConfig.slippage,
+      curveSlippage: pairConfig.curveSlippage,
+      curveRoute: pairConfig.curveRoute.map(EthAddress.parse),
+      curveSwapParams: pairConfig.curveSwapParams,
+      curvePools: pairConfig.curvePools.map(EthAddress.parse),
+    };
+  }
+
+  private static createSimpleAdapterParam(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): MarginlyAdapterParam {
+    const pairConfig = pair as GeneralAdapterPair;
+
+    const poolAddress = EthAddress.parse(pairConfig.poolAddress);
+    const token0 = tokens.get(pairConfig.tokenAId);
+    if (token0 === undefined) {
+      throw new Error(`Can not find token0 '${pairConfig.tokenAId}' for adapter with dexId ${dexId}`);
+    }
+    const token1 = tokens.get(pairConfig.tokenBId);
+    if (token1 === undefined) {
+      throw new Error(`Can not find token1 '${pairConfig.tokenBId}' for adapter with dexId ${dexId}`);
+    }
+
+    return {
+      type: 'general',
+      token0: token0,
+      token1: token1,
+      pool: poolAddress,
+    };
   }
 
   private static createPriceOracleConfigs(

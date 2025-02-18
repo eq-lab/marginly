@@ -27,6 +27,7 @@ export const Dex = {
   PendleCurveRouter: 30,
   PendleCurve: 31,
   Spectra: 32,
+  PendlePtToAsset: 33,
 };
 
 export function constructSwap(dex: number[], ratios: number[]): BigNumber {
