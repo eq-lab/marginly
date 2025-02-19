@@ -26,6 +26,7 @@ import {
   PendleMarketAdapterPair,
   PendlePtToAssetAdapterPair,
   PendleUniswapAdapterPair,
+  SpectraAdapterPair,
 } from '../config';
 import { adapterWriter, Logger } from '../logger';
 import { createRootLogger, textFormatter } from '@marginly/logger';
@@ -177,7 +178,8 @@ export type AdapterParam =
   | PendleMarketAdapterParam
   | PendleCurveAdapterParam
   | PendleCurveRouterAdapterParam
-  | PendlePtToAssetAdapterParam;
+  | PendlePtToAssetAdapterParam
+  | SpectraAdapterParam;
 
 export interface MarginlyAdapterParam {
   type: 'general';
@@ -232,6 +234,13 @@ export interface PendlePtToAssetAdapterParam {
   slippage: number;
 }
 
+export interface SpectraAdapterParam {
+  type: 'spectra';
+  ptToken: MarginlyConfigToken;
+  quoteToken: MarginlyConfigToken;
+  spectraPool: EthAddress;
+}
+
 export function isPendleAdapter(config: AdapterParam): config is PendleAdapterParam {
   return config.type === 'pendle';
 }
@@ -242,6 +251,10 @@ export function isPendleMarketAdapter(config: AdapterParam): config is PendleMar
 
 export function isPendlePtToAssetAdapter(config: AdapterParam): config is PendlePtToAssetAdapterParam {
   return config.type === 'pendlePtToAsset';
+}
+
+export function isSpectraAdapter(config: AdapterParam): config is SpectraAdapterParam {
+  return config.type === 'spectra';
 }
 
 export function isGeneralAdapter(config: AdapterParam): config is MarginlyAdapterParam {
@@ -705,6 +718,8 @@ export class StrictMarginlyDeployConfig {
       return this.createPendleCurveNgAdapterConfig(pair, tokens, dexId);
     } else if (adapterName === 'PendleCurveRouterNg') {
       return this.createPendleCurveRouterAdapterConfig(pair, tokens, dexId);
+    } else if (adapterName === 'SpectraAdapter') {
+      return this.createSpectraAdapterConfig(pair, tokens, dexId);
     } else {
       return this.createSimpleAdapterParam(pair, tokens, dexId);
     }
@@ -869,6 +884,21 @@ export class StrictMarginlyDeployConfig {
       curveRoute: pairConfig.curveRoute.map(EthAddress.parse),
       curveSwapParams: pairConfig.curveSwapParams,
       curvePools: pairConfig.curvePools.map(EthAddress.parse),
+    };
+  }
+
+  private static createSpectraAdapterConfig(
+    pair: AdapterPair,
+    tokens: Map<string, MarginlyConfigToken>,
+    dexId: number
+  ): SpectraAdapterParam {
+    const pairConfig = pair as SpectraAdapterPair;
+
+    return <SpectraAdapterParam>{
+      type: 'spectra',
+      spectraPool: EthAddress.parse(pairConfig.spectraPool),
+      ptToken: this.getRequiredToken(tokens, pairConfig.ptTokenId),
+      quoteToken: this.getRequiredToken(tokens, pairConfig.quoteTokenId),
     };
   }
 

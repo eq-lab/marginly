@@ -11,11 +11,13 @@ import {
   PendleCurveRouterAdapterParam,
   PendleMarketAdapterParam,
   PendlePtToAssetAdapterParam,
+  SpectraAdapterParam,
   isPendleAdapter,
   isPendleCurveAdapter,
   isPendleCurveRouterAdapter,
   isPendleMarketAdapter,
   isPendlePtToAssetAdapter,
+  isSpectraAdapter,
 } from './configs';
 import { EthOptions } from '../config';
 import { Logger } from '../logger';
@@ -104,6 +106,17 @@ export class MarginlyRouterDeployer extends BaseDeployer {
             locConfig.curveRoute.map((y) => y.toString()),
             locConfig.curveSwapParams,
             locConfig.curvePools.map((y) => y.toString()),
+          ];
+        }),
+      ];
+    } else if (isSpectraAdapter(pools[0])) {
+      args = [
+        pools.map((x) => {
+          const locConfig = x as SpectraAdapterParam;
+          return [
+            tokenRepository.getTokenInfo(locConfig.ptToken.id).address.toString(),
+            tokenRepository.getTokenInfo(locConfig.quoteToken.id).address.toString(),
+            locConfig.spectraPool.toString(),
           ];
         }),
       ];

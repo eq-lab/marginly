@@ -405,7 +405,8 @@ export type AdapterPair =
   | PendleMarketAdapterPair
   | PendleCurveAdapterPair
   | PendleCurveRouterAdapterPair
-  | PendlePtToAssetAdapterPair;
+  | PendlePtToAssetAdapterPair
+  | SpectraAdapterPair;
 
 export interface GeneralAdapterPair {
   tokenAId: string;
@@ -454,6 +455,12 @@ export interface PendlePtToAssetAdapterPair {
   tokenBId: string;
   pendleMarket: string;
   slippage: number;
+}
+
+export interface SpectraAdapterPair {
+  ptTokenId: string;
+  quoteTokenId: string;
+  spectraPool: string;
 }
 
 export interface MarginlyDeployConfig {
