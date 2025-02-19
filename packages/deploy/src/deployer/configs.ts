@@ -1126,7 +1126,7 @@ export class StrictMarginlyDeployConfig {
               intermediateToken: this.getRequiredToken(tokens, x.intermediateTokenId),
               baseToken: this.getRequiredToken(tokens, x.baseTokenId),
               quoteIntermediateOracleId: x.quoteIntermediateOracleId,
-              intermediateBaseOracleId: x.interMediateBaseOracleId,
+              intermediateBaseOracleId: x.intermediateBaseOracleId,
             };
           }),
         };

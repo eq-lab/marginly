@@ -81,6 +81,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
 
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
@@ -110,7 +111,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -126,6 +127,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
@@ -164,7 +166,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -180,6 +182,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
 
     for (const setting of config.settings) {
       if (isSinglePairChainlinkOracleConfig(setting)) {
@@ -218,7 +221,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         throw new Error('Unknown pair type');
       }
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -234,18 +237,22 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
 
     for (const setting of config.settings) {
       if (isSinglePairPythOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
-        await priceOracle.setPair(
+        const tx = await priceOracle.setPair(
           quoteToken.toString(),
           baseToken.toString(),
           setting.pythPriceId,
           setting.maxPriceAge.toSeconds()
         );
+        await tx.wait();
+
+        await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       } else if (isDoublePairPythOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
@@ -275,7 +282,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         throw new Error('Unknown pair type');
       }
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -291,6 +298,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
     for (const setting of config.settings) {
       //find secondary oracle among deployed oracles
       const secondaryPoolOracle = this.stateStore.getById(`priceOracle_${setting.secondaryPoolOracleId}`);
@@ -319,7 +327,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -335,6 +343,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
@@ -354,7 +363,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -370,6 +379,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
 
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
@@ -396,7 +406,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
       await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
-
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -412,6 +422,8 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
 
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
+
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
@@ -445,6 +457,7 @@ export class PriceOracleDeployer extends BaseDeployer {
       await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
     }
 
+    setupOracleScope.close();
     return deploymentResult;
   }
   public async deployCurveOracle(config: CurveOracleConfig, tokenRepository: ITokenRepository): Promise<DeployResult> {
@@ -456,6 +469,7 @@ export class PriceOracleDeployer extends BaseDeployer {
     );
     const priceOracle = (await deploymentResult).contract;
 
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
@@ -514,6 +528,7 @@ export class PriceOracleDeployer extends BaseDeployer {
         await tx.wait();
       }
     }
+    setupOracleScope.close();
     return deploymentResult;
   }
 
@@ -528,20 +543,18 @@ export class PriceOracleDeployer extends BaseDeployer {
       this.readMarginlyPeripheryOracleContract
     );
     const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
 
     for (const setting of config.settings) {
       const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
       const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
-      this.logger.log(`Add setting ${setting.baseToken.toString()}/${setting.quoteToken.toString()}`);
+      this.logger.log(`Add setting ${setting.baseToken.id}/${setting.quoteToken.id}`);
 
       const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
-      if (
-        currentParams.quoteToken.toLowerCase() !== quoteToken.toString().toLowerCase() ||
-        currentParams.baseToken.toLowerCase() !== baseToken.toString().toLowerCase() ||
-        currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()
-      ) {
+
+      if (currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()) {
         const quoteIntermediateOracle = this.getRequiredPriceOracle(setting.quoteIntermediateOracleId);
         const baseIntermediateOracle = this.getRequiredPriceOracle(setting.intermediateBaseOracleId);
 
@@ -557,6 +570,8 @@ export class PriceOracleDeployer extends BaseDeployer {
         await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       }
     }
+
+    setupOracleScope.close();
 
     return deploymentResult;
   }

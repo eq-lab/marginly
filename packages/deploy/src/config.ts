@@ -258,7 +258,7 @@ export interface MarginlyCompositeOracleDeployConfig {
     intermediateTokenId: string;
     baseTokenId: string;
     quoteIntermediateOracleId: string;
-    interMediateBaseOracleId: string;
+    intermediateBaseOracleId: string;
   }[];
 }
 
