@@ -392,6 +392,7 @@ export interface SinglePairPythOracleConfig {
   quoteToken: MarginlyConfigToken;
   baseToken: MarginlyConfigToken;
   pythPriceId: `0x${string}`;
+  maxPriceAge: TimeSpan;
 }
 
 export interface DoublePairPythOracleConfig {
@@ -981,6 +982,7 @@ export class StrictMarginlyDeployConfig {
                 quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
                 baseToken: this.getRequiredToken(tokens, x.baseTokenId),
                 pythPriceId: x.pythPriceId as `0x{string}`,
+                maxPriceAge: TimeSpan.parse(x.maxPriceAge),
               } as SinglePairPythOracleConfig;
             } else if (isDoublePairPythOracleDeployConfig(x)) {
               if (!ethers.utils.isHexString(x.basePythPriceId, 32)) {

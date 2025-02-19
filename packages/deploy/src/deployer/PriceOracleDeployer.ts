@@ -240,7 +240,12 @@ export class PriceOracleDeployer extends BaseDeployer {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
-        await priceOracle.setPair(quoteToken.toString(), baseToken.toString(), setting.pythPriceId);
+        await priceOracle.setPair(
+          quoteToken.toString(),
+          baseToken.toString(),
+          setting.pythPriceId,
+          setting.maxPriceAge.toSeconds()
+        );
       } else if (isDoublePairPythOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);

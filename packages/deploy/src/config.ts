@@ -179,6 +179,7 @@ export interface SinglePairPythOracleDeployConfig {
   quoteTokenId: string;
   baseTokenId: string;
   pythPriceId: string;
+  maxPriceAge: string;
 }
 
 export interface DoublePairPythOracleDeployConfig {
