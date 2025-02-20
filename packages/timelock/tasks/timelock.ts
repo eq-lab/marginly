@@ -13,14 +13,6 @@ import { saveDeploymentData, verifyContract, SignerArgs, getSigner, taskWithSign
 import { MarginlyParamsStruct } from '../typechain-types/contracts/test/MockMarginlyFactory.sol/MockMarginlyFactory';
 import { MARGINLY_ROUTER_ABI } from './abi';
 
-//npx hardhat --network holesky --config hardhat.config.ts test-task --private-key <private-key>
-taskWithSigner('test-task', 'Test task with signer').setAction(
-  async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
-    const signer = await getSigner(taskArgs, hre.ethers.provider);
-    console.log(signer.address);
-  }
-);
-
 //npx hardhat --network holesky --config hardhat.config.ts deploy-timelock --signer <private-key>
 taskWithSigner('deploy-timelock', 'Deploy timelock contract and transfer ownership from router').setAction(
   async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
