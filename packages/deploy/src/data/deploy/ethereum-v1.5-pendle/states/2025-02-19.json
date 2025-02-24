@@ -196,9 +196,33 @@
       "address": "0x0776AC420eFD30A7FfAbb87A62b35C797916617E",
       "txHash": "0x8bdeed42a9348ec186c4f49266d26ced593f698cff3a3db5ede4818b1348faff"
     },
-    "PendlePendlePtToAssetAdapter_33": {
+    "PendlePtToAssetAdapter_33": {
       "address": "0x848E41AfB5a8fa28E87aEa7a0E3ae545137a9738",
       "txHash": "0xd447124e669385c694d0e4d234caea8a7a1413d8be4f75482f6ed9b2108bf557"
+    },
+    "priceOracle_pythOracle": {
+      "address": "0x7988AC69133C5D5e4970476f8d6fcAB994230Fa0",
+      "txHash": "0xe10ef60ae5d38ebeffab1b9276cc17f3ebb70153c457501594c0db7eb7444311"
+    },
+    "priceOracle_compositeOracle": {
+      "address": "0x6fc432Ec072e830834901EcC7423F9a207584C23",
+      "txHash": "0x4b9df4de2dbd43cf01b734d2f9a90f3d829b7d7a09c3752c817d20418f37e3a4"
+    },
+    "priceOracle_priceOracleProxy": {
+      "address": "0xC7aD54687257F7625127eD7428C048DA64cfbF32",
+      "txHash": "0x91c5fe38eec141bb48cf00ec091d868460f05e42cd5d57a0052bae1e32701d0d"
+    },
+    "marginlyPool_pt-sw-inwsteths-1752969615-inwsteths": {
+      "address": "0xBC2199dAD831F034A1fe19DE73c8cbA4c39e8794",
+      "txHash": "0xe17485a5da1a66e0c810862df79a270597777a88d07cd95334d51998e1956f17"
+    },
+    "marginlyPool_pt-wstusr-27mar2025-usr": {
+      "address": "0x97332917C5ABccDdaAB6597c638aA18a35f077f6",
+      "txHash": "0xf09eb3fcddd56b3224a3b2ba3842ec9fff452149028c74a47b6d7dd1e05c1b54"
+    },
+    "marginlyPool_pt-wstusr-1750896030-usr": {
+      "address": "0xB000f6157d7Bf372378FEb4FfA22d0fb46C8E124",
+      "txHash": "0xbb678b985966ae2b1ad452778e634f23b5ff6712b3771e942d48c8325023fb48"
     }
   }
 }

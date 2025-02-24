@@ -55,6 +55,24 @@
       "address": "0x66a1E37c9b0eAddca17d3662D6c05F4DECf3e110",
       "assertSymbol": "USR",
       "assertDecimals": 18
+    },
+    {
+      "id": "pt-sw-inwsteths-1752969615",
+      "address": "0x4ae0154f83427a5864e5de6513a47dac9e5d5a69",
+      "assertSymbol": "PT-sw-inwstETHs-1752969615",
+      "assertDecimals": 18
+    },
+    {
+      "id": "sw-inwsteths",
+      "address": "0xd89fc47aacbb31e2bf23ec599f593a4876d8c18c",
+      "assertSymbol": "sw-inwstETHs",
+      "assertDecimals": 18
+    },
+    {
+      "id": "inwsteths",
+      "address": "0x8E0789d39db454DBE9f4a77aCEF6dc7c69f6D552",
+      "assertSymbol": "inwstETHs",
+      "assertDecimals": 18
     }
   ],
   "prices": [],
@@ -77,6 +95,16 @@
           "pool": "0x16d050778b6599ce94993d2ff83f8da7136421a9",
           "quoteTokenId": "pt-wstusr-1750896030",
           "baseTokenId": "wstusr"
+        },
+        {
+          "pool": "0xe119bad8a35b999f65b1e5fd48c626c327daa16b",
+          "quoteTokenId": "sw-inwsteths",
+          "baseTokenId": "pt-sw-inwsteths-1752969615"
+        },
+        {
+          "pool": "0xe119bad8a35b999f65b1e5fd48c626c327daa16b",
+          "quoteTokenId": "pt-sw-inwsteths-1752969615",
+          "baseTokenId": "sw-inwsteths"
         }
       ]
     },
@@ -95,6 +123,19 @@
       ]
     },
     {
+      "id": "priceOracleProxy",
+      "type": "proxy",
+      "settings": [
+        {
+          "quoteTokenId": "inwsteths",
+          "baseTokenId": "pt-sw-inwsteths-1752969615",
+          "underlyingQuoteTokenId": "sw-inwsteths",
+          "underlyingBaseTokenId": "pt-sw-inwsteths-1752969615",
+          "priceOracleId": "curve-oracle"
+        }
+      ]
+    },
+    {
       "id": "pythOracle",
       "type": "pyth",
       "pyth": "0x4305FB66699C3B2702D4d05CF36551390A4c69C6",
@@ -104,7 +145,7 @@
           "quoteTokenId": "usr",
           "baseTokenId": "wstusr",
           "pythPriceId": "0xb74c2bc175c2dab850ce5a5451608501c293fe8410cb4aba7449dd1c355ab706",
-          "maxPriceAge": "50 min"
+          "maxPriceAge": "1440 min"
         }
       ]
     },
@@ -136,6 +177,22 @@
     "timelockOwner": "0x8cDAf202eBe2f38488074DcFCa08c0B0cB7B8Aa5"
   },
   "marginlyPools": [
+    {
+      "id": "pt-sw-inwsteths-1752969615-inwsteths",
+      "baseTokenId": "pt-sw-inwsteths-1752969615",
+      "quoteTokenId": "inwsteths",
+      "priceOracleId": "priceOracleProxy",
+      "defaultSwapCallData": "34078721",
+      "params": {
+        "interestRate": "0.5%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "0.5%",
+        "positionMinAmount": "5",
+        "quoteLimit": "1500"
+      }
+    },
     {
       "id": "pt-wstusr-27mar2025-usr",
       "baseTokenId": "pt-wstusr-27mar2025",
@@ -192,6 +249,11 @@
           "ptTokenId": "pt-wstusr-1750896030",
           "quoteTokenId": "usr",
           "spectraPool": "0x16d050778b6599ce94993d2ff83f8da7136421a9"
+        },
+        {
+          "ptTokenId": "pt-sw-inwsteths-1752969615",
+          "quoteTokenId": "inwsteths",
+          "spectraPool": "0xe119bad8a35b999f65b1e5fd48c626c327daa16b"
         }
       ]
     },

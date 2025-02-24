@@ -12,10 +12,10 @@ contract MockPriceOracleV2 is IPriceOracle {
 
   function setPrice(address quoteToken, address baseToken, uint256 balancePriceX96, uint256 mcPriceX96) public {
     balancePrices[quoteToken][baseToken] = balancePriceX96;
-    balancePrices[baseToken][quoteToken] = Math.mulDiv(X96ONE, X96ONE, balancePriceX96);
+    balancePrices[baseToken][quoteToken] = balancePriceX96 == 0 ? 0 : Math.mulDiv(X96ONE, X96ONE, balancePriceX96);
 
     mcPrices[quoteToken][baseToken] = mcPriceX96;
-    mcPrices[baseToken][quoteToken] = Math.mulDiv(X96ONE, X96ONE, mcPriceX96);
+    mcPrices[baseToken][quoteToken] = mcPriceX96 == 0 ? 0 : Math.mulDiv(X96ONE, X96ONE, mcPriceX96);
   }
 
   function getBalancePrice(address quoteToken, address baseToken) external view returns (uint256) {

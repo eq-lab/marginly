@@ -105,6 +105,10 @@
       "address": "0x6b79E799Ebdb9e867A1fe268A0703cbAA532C60d"
     },
     {
+      "id": "pt-sw-inwsteths-1752969615-inwsteths",
+      "address": "0xBC2199dAD831F034A1fe19DE73c8cbA4c39e8794"
+    },
+    {
       "id": "pt-unieth-26sep2024-unieth",
       "address": "0x86DC30f6dBbb742463CE77f88926eff979892b22"
     },
@@ -139,6 +143,14 @@
     {
       "id": "pt-weeths-26dec2024-weth",
       "address": "0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96"
+    },
+    {
+      "id": "pt-wstusr-1750896030-usr",
+      "address": "0xB000f6157d7Bf372378FEb4FfA22d0fb46C8E124"
+    },
+    {
+      "id": "pt-wstusr-27mar2025-usr",
+      "address": "0x97332917C5ABccDdaAB6597c638aA18a35f077f6"
     }
   ],
   "aaveKeeperDeployResult": {

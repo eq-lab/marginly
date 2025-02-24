@@ -5,8 +5,6 @@ import { Logger } from './logger';
 import { MarginlyDeployment, MarginlyDeploymentMarginlyPool, printDeployState, StateStore, using } from './common';
 import { TokenRepository } from './TokenRepository';
 import {
-  isUniswapV3DoubleOracle,
-  isUniswapV3Oracle,
   StrictMarginlyDeployConfig,
   MarginlyDeployer,
   PriceOracleDeployer,
@@ -14,17 +12,9 @@ import {
   KeeperAaveDeployer,
   MockTokenDeployer,
   MarginlyRouterDeployer,
-  isChainlinkOracle,
-  isPythOracle,
   KeeperUniswapV3Deployer,
-  isPendleMarketOracle,
-  isPendleOracle,
-  isAlgebraDoubleOracle,
-  isAlgebraOracle,
-  isCurveOracle,
   KeeperAlgebraDeployer,
   KeeperBalancerDeployer,
-  isMarginlyCompositeOracle,
 } from './deployer';
 import { Contract } from 'ethers';
 import { DeployResult, ITokenRepository } from './common/interfaces';
@@ -143,67 +133,8 @@ async function processPriceOracles(
     const deployedPriceOracles = new Map<string, DeployResult>();
 
     for (const priceOracle of config.priceOracles) {
-      if (isUniswapV3Oracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigureUniswapV3TickOracle(
-          priceOracle,
-          tokenRepository
-        );
-        printDeployState(`UniswapV3 price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isUniswapV3DoubleOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigureUniswapV3TickDoubleOracle(
-          priceOracle,
-          tokenRepository
-        );
-        printDeployState(`UniswapV3Double price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isChainlinkOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigureChainlinkOracle(
-          priceOracle,
-          tokenRepository
-        );
-        printDeployState(`ChainLink price oracle ${priceOracle.id}`, deploymentResult, logger);
-      } else if (isPythOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigurePythOracle(priceOracle, tokenRepository);
-        printDeployState(`Pyth price oracle ${priceOracle.id}`, deploymentResult, logger);
-      } else if (isPendleOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigurePendleOracle(priceOracle, tokenRepository);
-        printDeployState(`Pendle price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isPendleMarketOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAndConfigurePendleMarketOracle(
-          priceOracle,
-          tokenRepository
-        );
-        printDeployState(`PendleMarket price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isAlgebraOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAlgebraOracle(priceOracle, tokenRepository);
-        printDeployState(`Algebra price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isAlgebraDoubleOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployAlgebraDoubleOracle(priceOracle, tokenRepository);
-        printDeployState(`AlgebraDoule price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isCurveOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployCurveOracle(priceOracle, tokenRepository);
-        printDeployState(`Curve price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else if (isMarginlyCompositeOracle(priceOracle)) {
-        const deploymentResult = await priceOracleDeployer.deployCompositeOracle(priceOracle, tokenRepository);
-        printDeployState(`Composite price oracle ${priceOracle.id}`, deploymentResult, logger);
-
-        deployedPriceOracles.set(priceOracle.id, deploymentResult);
-      } else {
-        throw new Error(`Unknown priceOracle type`);
-      }
+      const deploymentResult = await priceOracleDeployer.deployPriceOracle(priceOracle, tokenRepository);
+      deployedPriceOracles.set(priceOracle.id, deploymentResult);
     }
 
     return deployedPriceOracles;

@@ -15,6 +15,7 @@ import {
   isMarginlyDeployConfigMintableToken,
   isPendleMarketOracleConfig,
   isPendleOracleConfig,
+  isPriceOracleProxyConfig,
   isPythOracleConfig,
   isSinglePairChainlinkOracleDeployConfig,
   isSinglePairPythOracleDeployConfig,
@@ -303,7 +304,8 @@ export type PriceOracleConfig =
   | AlgebraOracleConfig
   | AlgebraDoubleOracleConfig
   | CurveOracleConfig
-  | MarginlyCompositeOracleConfig;
+  | MarginlyCompositeOracleConfig
+  | PriceOracleProxyConfig;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -484,6 +486,18 @@ export interface MarginlyCompositeOracleConfig {
   }[];
 }
 
+export interface PriceOracleProxyConfig {
+  id: string;
+  type: 'proxy';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    underlyingQuoteToken: MarginlyConfigToken;
+    underlyingBaseToken: MarginlyConfigToken;
+    proxyOracleId: string;
+  }[];
+}
+
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
   return config.type === 'uniswapV3';
 }
@@ -522,6 +536,10 @@ export function isCurveOracle(config: PriceOracleConfig): config is CurveOracleC
 
 export function isMarginlyCompositeOracle(config: PriceOracleConfig): config is MarginlyCompositeOracleConfig {
   return config.type === 'composite';
+}
+
+export function isPriceOracleProxy(config: PriceOracleConfig): config is PriceOracleProxyConfig {
+  return config.type === 'proxy';
 }
 
 export class StrictMarginlyDeployConfig {
@@ -1127,6 +1145,22 @@ export class StrictMarginlyDeployConfig {
               baseToken: this.getRequiredToken(tokens, x.baseTokenId),
               quoteIntermediateOracleId: x.quoteIntermediateOracleId,
               intermediateBaseOracleId: x.intermediateBaseOracleId,
+            };
+          }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isPriceOracleProxyConfig(priceOracleConfig)) {
+        const strictConfig: PriceOracleProxyConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+              baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+              underlyingQuoteToken: this.getRequiredToken(tokens, x.underlyingQuoteTokenId),
+              underlyingBaseToken: this.getRequiredToken(tokens, x.underlyingBaseTokenId),
+              proxyOracleId: x.priceOracleId,
             };
           }),
         };

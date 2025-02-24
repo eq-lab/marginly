@@ -54,7 +54,8 @@ export type PriceOracleDeployConfig =
   | AlgebraTickOracleDeployConfig
   | AlgebraDoubleDeployOracleConfig
   | CurveOracleDeployConfig
-  | MarginlyCompositeOracleDeployConfig;
+  | MarginlyCompositeOracleDeployConfig
+  | PriceOracleProxyDeployConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -262,6 +263,18 @@ export interface MarginlyCompositeOracleDeployConfig {
   }[];
 }
 
+export interface PriceOracleProxyDeployConfig {
+  type: 'proxy';
+  id: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    underlyingQuoteTokenId: string;
+    underlyingBaseTokenId: string;
+    priceOracleId: string;
+  }[];
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -306,6 +319,10 @@ export function isMarginlyCompositeOracleConfig(
   config: PriceOracleDeployConfig
 ): config is MarginlyCompositeOracleDeployConfig {
   return config.type === 'composite';
+}
+
+export function isPriceOracleProxyConfig(config: PriceOracleDeployConfig): config is PriceOracleProxyDeployConfig {
+  return config.type === 'proxy';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {
