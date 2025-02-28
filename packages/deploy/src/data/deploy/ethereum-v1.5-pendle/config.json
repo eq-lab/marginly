@@ -224,6 +224,38 @@
         "positionMinAmount": "5",
         "quoteLimit": "500000"
       }
+    },
+    {
+      "id": "pt-wstusr-1750896030-wstusr",
+      "baseTokenId": "pt-wstusr-1750896030",
+      "quoteTokenId": "wstusr",
+      "priceOracleId": "curve-oracle",
+      "defaultSwapCallData": "34078721",
+      "params": {
+        "interestRate": "1.4%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "0.5%",
+        "positionMinAmount": "5",
+        "quoteLimit": "500000"
+      }
+    },
+    {
+      "id": "pt-wstusr-27mar2025-wstusr",
+      "baseTokenId": "pt-wstusr-27mar2025",
+      "quoteTokenId": "wstusr",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "1.2%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "0.1%",
+        "positionMinAmount": "5",
+        "quoteLimit": "2000000"
+      }
     }
   ],
   "adapters": [
@@ -254,6 +286,11 @@
           "ptTokenId": "pt-sw-inwsteths-1752969615",
           "quoteTokenId": "inwsteths",
           "spectraPool": "0xe119bad8a35b999f65b1e5fd48c626c327daa16b"
+        },
+        {
+          "ptTokenId": "pt-wstusr-1750896030",
+          "quoteTokenId": "wstusr",
+          "spectraPool": "0x16d050778b6599ce94993d2ff83f8da7136421a9"
         }
       ]
     },
@@ -266,6 +303,18 @@
           "slippage": 35,
           "tokenAId": "pt-wstusr-27mar2025",
           "tokenBId": "usr"
+        }
+      ]
+    },
+    {
+      "dexId": 19,
+      "adapterName": "PendleMarketAdapter",
+      "pools": [
+        {
+          "poolAddress": "0x353d0b2efb5b3a7987fb06d30ad6160522d08426",
+          "slippage": "45",
+          "tokenAId": "pt-wstusr-27mar2025",
+          "tokenBId": "wstusr"
         }
       ]
     }

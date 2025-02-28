@@ -149,8 +149,16 @@
       "address": "0xB000f6157d7Bf372378FEb4FfA22d0fb46C8E124"
     },
     {
+      "id": "pt-wstusr-1750896030-wstusr",
+      "address": "0xfb90799F0966728Ac79bec97F46B317d80605bA0"
+    },
+    {
       "id": "pt-wstusr-27mar2025-usr",
       "address": "0x97332917C5ABccDdaAB6597c638aA18a35f077f6"
+    },
+    {
+      "id": "pt-wstusr-27mar2025-wstusr",
+      "address": "0xd1e6E2bfB33De80Aa47458EDd75eeFFdA93510ec"
     }
   ],
   "aaveKeeperDeployResult": {
