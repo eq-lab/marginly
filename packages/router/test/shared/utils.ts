@@ -1,8 +1,10 @@
 import { BigNumber, ContractTransaction } from 'ethers';
-import { ERC20 } from '../../typechain-types';
+import { ERC20, MarginlyRouter } from '../../typechain-types';
 import { formatUnits } from 'ethers/lib/utils';
 import { reset } from '@nomicfoundation/hardhat-network-helpers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { SwapEvent } from '../../typechain-types/contracts/interfaces/IMarginlyRouter';
+import { expect } from 'chai';
 const hre = require('hardhat');
 
 export const SWAP_ONE = 1 << 15;
@@ -79,4 +81,40 @@ export async function resetFork(blockNumber?: number) {
 
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function assertSwapEvent(
+  expectedValues: {
+    isExactInput: boolean;
+    amountIn: BigNumber;
+    amountOut: BigNumber;
+    tokenIn: string;
+    tokenOut: string;
+  },
+  router: MarginlyRouter,
+  tx: any
+) {
+  const swapEvent = await getSwapEvent(router, tx);
+  expect(swapEvent.args.isExactInput).to.be.eq(expectedValues.isExactInput);
+  expect(swapEvent.args.amountIn).to.be.eq(expectedValues.amountIn);
+  expect(swapEvent.args.amountOut).to.be.eq(expectedValues.amountOut);
+  expect(swapEvent.args.tokenIn.toLocaleLowerCase()).to.be.eq(expectedValues.tokenIn.toLocaleLowerCase());
+  expect(swapEvent.args.tokenOut.toLocaleLowerCase()).to.be.eq(expectedValues.tokenOut.toLocaleLowerCase());
+}
+
+async function getSwapEvent(router: MarginlyRouter, tx: any): Promise<SwapEvent> {
+  const eventFilter = router.filters['Swap(bool,uint256,address,address,address,uint256,uint256)'](
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  );
+  const events = await router.queryFilter(eventFilter, tx.blockHash);
+  expect(events.length).to.be.eq(1);
+  const swapEvent = events[0];
+
+  expect(swapEvent).to.not.be.undefined;
+  return swapEvent;
 }

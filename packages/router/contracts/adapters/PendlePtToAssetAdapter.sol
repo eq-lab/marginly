@@ -47,6 +47,7 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
   uint256 private constant MAX_ITERATIONS = 10;
 
   mapping(address => mapping(address => PendleMarketData)) public getMarketData;
+  uint256 private callbackAmountIn;
 
   event NewPair(address indexed ptToken, address indexed asset, address pendleMarket, uint8 slippage);
 
@@ -120,7 +121,10 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
     } else {
       // this clause is realized when pt tokens is output
       // we need to mint SY from Asset and send to pendle
-      _pendleMintSy(marketData, msg.sender, uint256(-syToAccount), data);
+      (, uint256 amountIn) = _pendleMintSy(marketData, msg.sender, uint256(-syToAccount), data);
+      if (data.isExactOutput) {
+        callbackAmountIn = amountIn;
+      }
     }
   }
 
@@ -203,8 +207,14 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
       SafeERC20.safeTransfer(marketData.asset, recipient, amountOut);
     } else {
       // Sy to Pt -> in callback mint Sy from Asset and send to pendleMarket
-      (amountIn, ) = marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
+      marketData.market.swapSyForExactPt(recipient, amountOut, abi.encode(swapCallbackData));
+      amountIn = _getAmountIn();
     }
+  }
+
+  function _getAmountIn() private returns (uint256 amountIn) {
+    amountIn = callbackAmountIn;
+    delete callbackAmountIn;
   }
 
   function _swapExactInputPostMaturity(
@@ -310,19 +320,19 @@ contract PendlePtToAssetAdapter is IMarginlyAdapter, Ownable2Step {
     address recipient,
     uint256 syAmount,
     CallbackData memory data
-  ) private returns (uint256 syMinted) {
+  ) private returns (uint256 syMinted, uint256 actualAssetIn) {
     // Calculate amount of asset needed to mint syAmount
-    uint256 estimatedAssetIn = _syToAssetUpForDeposit(marketData, syAmount);
+    actualAssetIn = _syToAssetUpForDeposit(marketData, syAmount);
 
     if (data.isExactOutput) {
       //transfer estimatedAssetIn of Asset to adapter
-      IMarginlyRouter(data.router).adapterCallback(address(this), estimatedAssetIn, data.adapterCallbackData);
+      IMarginlyRouter(data.router).adapterCallback(address(this), actualAssetIn, data.adapterCallbackData);
     }
-    SafeERC20.forceApprove(marketData.asset, address(marketData.sy), estimatedAssetIn);
+    SafeERC20.forceApprove(marketData.asset, address(marketData.sy), actualAssetIn);
     syMinted = IStandardizedYield(marketData.sy).deposit(
       address(this),
       address(marketData.asset),
-      estimatedAssetIn,
+      actualAssetIn,
       syAmount
     );
 

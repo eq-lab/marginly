@@ -8,6 +8,7 @@ import {
   SpectraAdapter__factory,
 } from '../../typechain-types';
 import {
+  assertSwapEvent,
   constructSwap,
   delay,
   Dex,
@@ -459,6 +460,18 @@ describe('SpectraAdapter', async () => {
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceBefore.sub(ibtBalanceAfter)).to.be.lessThanOrEqual(ibtTokenAmount);
 
+          await assertSwapEvent(
+            {
+              amountIn: ibtBalanceBefore.sub(ibtBalanceAfter),
+              amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+              isExactInput: true,
+              tokenIn: ibtToken.address,
+              tokenOut: ptToken.address,
+            },
+            router,
+            tx
+          );
+
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
@@ -480,6 +493,18 @@ describe('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After: ');
           expect(ibtBalanceBefore).to.be.greaterThan(ibtBalanceAfter);
+
+          await assertSwapEvent(
+            {
+              amountIn: ibtBalanceBefore.sub(ibtBalanceAfter),
+              amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+              isExactInput: false,
+              tokenIn: ibtToken.address,
+              tokenOut: ptToken.address,
+            },
+            router,
+            tx
+          );
 
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
@@ -503,6 +528,18 @@ describe('SpectraAdapter', async () => {
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter).to.be.greaterThan(ibtBalanceBefore);
 
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: true,
+              tokenIn: ptToken.address,
+              tokenOut: ibtToken.address,
+            },
+            router,
+            tx
+          );
+
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
@@ -524,6 +561,18 @@ describe('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter.sub(ibtBalanceBefore)).to.be.eq(ibtMinOut);
+
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: false,
+              tokenIn: ptToken.address,
+              tokenOut: ibtToken.address,
+            },
+            router,
+            tx
+          );
 
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
@@ -602,6 +651,18 @@ describe('SpectraAdapter', async () => {
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter).to.be.greaterThan(ibtBalanceBefore);
 
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: true,
+              tokenIn: ptToken.address,
+              tokenOut: ibtToken.address,
+            },
+            router,
+            tx
+          );
+
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');
         });
@@ -623,6 +684,18 @@ describe('SpectraAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(ibtToken, user.address, 'ibt balance After:');
           expect(ibtBalanceAfter.sub(ibtBalanceBefore)).to.be.eq(ibtOut);
+
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: false,
+              tokenIn: ptToken.address,
+              tokenOut: ibtToken.address,
+            },
+            router,
+            tx
+          );
 
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, ibtToken, 'IBT balance delta:');

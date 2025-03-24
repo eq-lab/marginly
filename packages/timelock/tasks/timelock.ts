@@ -110,13 +110,13 @@ taskWithSigner('factory-transfer-ownership', 'Change factory owner to timelock')
   }
 );
 
-//npx hardhat --network holesky --config hardhat.config.ts timelock-execute --signer <private-key>
+//npx hardhat --network ethereum --config hardhat.config.ts timelock-execute --keystore path-to-keystore-file
 taskWithSigner('timelock-execute', 'Timelock schedule and execute operation').setAction(
   async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
     //@ts-ignore
     const signer = await getSigner(taskArgs, hre.ethers.provider);
 
-    const timelockAddress = '0xc71968f413bF7EDa0d11629e0Cedca0831967cD3';
+    const timelockAddress = '0x8cDAf202eBe2f38488074DcFCa08c0B0cB7B8Aa5';
     const timelock = TimelockWhitelist__factory.connect(timelockAddress, signer);
 
     const predecessor = ethers.ZeroHash;

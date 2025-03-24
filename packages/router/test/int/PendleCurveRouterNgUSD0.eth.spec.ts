@@ -7,7 +7,7 @@ import {
   PendleCurveRouterNgAdapter,
   PendleCurveRouterNgAdapter__factory,
 } from '../../typechain-types';
-import { constructSwap, Dex, resetFork, showGasUsage, SWAP_ONE } from '../shared/utils';
+import { constructSwap, Dex, resetFork, showGasUsage, SWAP_ONE, assertSwapEvent } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -185,6 +185,18 @@ describe('Pendle PT-usd0++ - usdc', () => {
           await usd0PlusPlusToken.decimals()
         )} ${await usd0PlusPlusToken.symbol()}`
       );
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: usdc.address,
+          tokenOut: ptToken.address,
+          amountIn: usdcBalanceBefore.sub(usdcBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('USDC to pt-USD0++ exact output, small amount', async () => {
@@ -220,6 +232,18 @@ describe('Pendle PT-usd0++ - usdc', () => {
           await usd0PlusPlusToken.decimals()
         )} ${await usd0PlusPlusToken.symbol()}`
       );
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: usdc.address,
+          tokenOut: ptToken.address,
+          amountIn: usdcBalanceBefore.sub(usdcBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('pt-USD0++ to USDC exact input', async () => {
@@ -227,10 +251,8 @@ describe('Pendle PT-usd0++ - usdc', () => {
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
-      const sUSDeBalanceBefore = await usdc.balanceOf(user.address);
-      console.log(
-        `usdcBalanceBefore: ${formatUnits(sUSDeBalanceBefore, await usdc.decimals())} ${await usdc.symbol()}`
-      );
+      const usdcBalanceBefore = await usdc.balanceOf(user.address);
+      console.log(`usdcBalanceBefore: ${formatUnits(usdcBalanceBefore, await usdc.decimals())} ${await usdc.symbol()}`);
       const swapCalldata = constructSwap([Dex.PendleCurveRouter], [SWAP_ONE]);
       const ptIn = ptBalanceBefore;
       await ptToken.connect(user).approve(router.address, ptIn);
@@ -240,9 +262,21 @@ describe('Pendle PT-usd0++ - usdc', () => {
       const ptBalanceAfter = await ptToken.balanceOf(user.address);
       console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
       expect(ptBalanceBefore.sub(ptBalanceAfter)).to.be.eq(ptIn);
-      const sUsdeBalanceAfter = await usdc.balanceOf(user.address);
-      console.log(`usdcBalanceAfter: ${formatUnits(sUsdeBalanceAfter, await usdc.decimals())} ${await usdc.symbol()}`);
-      expect(sUsdeBalanceAfter).to.be.greaterThan(sUSDeBalanceBefore);
+      const usdcBalanceAfter = await usdc.balanceOf(user.address);
+      console.log(`usdcBalanceAfter: ${formatUnits(usdcBalanceAfter, await usdc.decimals())} ${await usdc.symbol()}`);
+      expect(usdcBalanceAfter).to.be.greaterThan(usdcBalanceBefore);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('pt-USD0++ to USDC exact output', async () => {
@@ -271,6 +305,18 @@ describe('Pendle PT-usd0++ - usdc', () => {
       const usdcBalanceOnAdapter = await usdc.balanceOf(pendleCurveAdapter.address);
       console.log(
         `usdcBalanceOnAdapter: ${formatUnits(usdcBalanceOnAdapter, await usdc.decimals())} ${await usdc.symbol()}`
+      );
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
       );
     });
   });
@@ -380,6 +426,18 @@ describe('Pendle PT-usd0++ - usdc', () => {
       const usdcBalanceAfter = await usdc.balanceOf(user.address);
       console.log(`usdcBalanceAfter: ${formatUnits(usdcBalanceAfter, await usdc.decimals())} ${await usdc.symbol()}`);
       expect(usdcBalanceAfter).to.be.greaterThan(usdcBalanceBefore);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('pt-usd0++ to USDC exact output', async () => {
@@ -387,10 +445,8 @@ describe('Pendle PT-usd0++ - usdc', () => {
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
-      const sUsdeBalanceBefore = await usdc.balanceOf(user.address);
-      console.log(
-        `sUsdeBalanceBefore: ${formatUnits(sUsdeBalanceBefore, await usdc.decimals())} ${await usdc.symbol()}`
-      );
+      const usdcBalanceBefore = await usdc.balanceOf(user.address);
+      console.log(`usdcBalanceBefore: ${formatUnits(usdcBalanceBefore, await usdc.decimals())} ${await usdc.symbol()}`);
 
       const swapCalldata = constructSwap([Dex.PendleCurveRouter], [SWAP_ONE]);
       const usdcOut = parseUnits('900', 6);
@@ -406,7 +462,19 @@ describe('Pendle PT-usd0++ - usdc', () => {
       expect(ptBalanceBefore).to.be.greaterThan(ptBalanceAfter);
       const usdcBalanceAfter = await usdc.balanceOf(user.address);
       console.log(`sUsdeBalanceAfter: ${formatUnits(usdcBalanceAfter, await usdc.decimals())} ${await usdc.symbol()}`);
-      expect(usdcBalanceAfter.sub(sUsdeBalanceBefore)).to.be.eq(usdcOut);
+      expect(usdcBalanceAfter.sub(usdcBalanceBefore)).to.be.eq(usdcOut);
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
   });
 });

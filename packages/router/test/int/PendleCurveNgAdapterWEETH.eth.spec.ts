@@ -7,7 +7,7 @@ import {
   PendleCurveNgAdapter,
   PendleCurveNgAdapter__factory,
 } from '../../typechain-types';
-import { constructSwap, Dex, resetFork, showGasUsage, SWAP_ONE } from '../shared/utils';
+import { assertSwapEvent, constructSwap, Dex, resetFork, showGasUsage, SWAP_ONE } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -123,6 +123,18 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       const WETHBalanceAfter = await WETH.balanceOf(user.address);
       console.log(`WETHBalanceAfter: ${formatUnits(WETHBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
       expect(WETHBalanceBefore.sub(WETHBalanceAfter)).to.be.lessThanOrEqual(WETHSwapAmount);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: WETH.address,
+          tokenOut: ptToken.address,
+          amountIn: WETHBalanceBefore.sub(WETHBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('WETH to PT-eETH exact output', async () => {
@@ -153,6 +165,18 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
 
       const ebtcOnAdapter = await ebtc.balanceOf(pendleCurveAdapter.address);
       console.log(`ebtc stays on adapter: ${formatUnits(ebtcOnAdapter, await ebtc.decimals())} ${await ebtc.symbol()}`);
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: WETH.address,
+          tokenOut: ptToken.address,
+          amountIn: WETHBalanceBefore.sub(WETHBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('WETH to PT-eETH exact output, small amount', async () => {
@@ -183,6 +207,18 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
 
       const ebtcOnAdapter = await ebtc.balanceOf(pendleCurveAdapter.address);
       console.log(`ebtc stays on adapter: ${formatUnits(ebtcOnAdapter, await ebtc.decimals())} ${await ebtc.symbol()}`);
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: WETH.address,
+          tokenOut: ptToken.address,
+          amountIn: WETHBalanceBefore.sub(WETHBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('PT-eETH to WETH exact input', async () => {
@@ -190,10 +226,8 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
-      const sUSDeBalanceBefore = await WETH.balanceOf(user.address);
-      console.log(
-        `WETHBalanceBefore: ${formatUnits(sUSDeBalanceBefore, await WETH.decimals())} ${await WETH.symbol()}`
-      );
+      const WETHBalanceBefore = await WETH.balanceOf(user.address);
+      console.log(`WETHBalanceBefore: ${formatUnits(WETHBalanceBefore, await WETH.decimals())} ${await WETH.symbol()}`);
       const swapCalldata = constructSwap([Dex.PendleCurve], [SWAP_ONE]);
       const ptIn = parseUnits('0.1', 18);
       await ptToken.connect(user).approve(router.address, ptIn);
@@ -203,9 +237,21 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       const ptBalanceAfter = await ptToken.balanceOf(user.address);
       console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
       expect(ptBalanceBefore.sub(ptBalanceAfter)).to.be.eq(ptIn);
-      const sUsdeBalanceAfter = await WETH.balanceOf(user.address);
-      console.log(`WETHBalanceAfter: ${formatUnits(sUsdeBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
-      expect(sUsdeBalanceAfter).to.be.greaterThan(sUSDeBalanceBefore);
+      const WETHBalanceAfter = await WETH.balanceOf(user.address);
+      console.log(`WETHBalanceAfter: ${formatUnits(WETHBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
+      expect(WETHBalanceAfter).to.be.greaterThan(WETHBalanceBefore);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: ptToken.address,
+          tokenOut: WETH.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: WETHBalanceAfter.sub(WETHBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('PT-eETH to WETH exact output', async () => {
@@ -234,6 +280,18 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       const WETHBalanceOnAdapter = await WETH.balanceOf(pendleCurveAdapter.address);
       console.log(
         `WETHBalanceOnAdapter: ${formatUnits(WETHBalanceOnAdapter, await WETH.decimals())} ${await WETH.symbol()}`
+      );
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: ptToken.address,
+          tokenOut: WETH.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: WETHBalanceAfter.sub(WETHBalanceBefore),
+        },
+        router,
+        tx
       );
     });
   });
@@ -268,21 +326,19 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
-      const sUsdeBalanceBefore = await WETH.balanceOf(user.address);
-      console.log(
-        `WETHBalanceBefore: ${formatUnits(sUsdeBalanceBefore, await WETH.decimals())} ${await WETH.symbol()}`
-      );
+      const WETHBalanceBefore = await WETH.balanceOf(user.address);
+      console.log(`WETHBalanceBefore: ${formatUnits(WETHBalanceBefore, await WETH.decimals())} ${await WETH.symbol()}`);
 
       const swapCalldata = constructSwap([Dex.PendleCurve], [SWAP_ONE]);
-      await WETH.connect(user).approve(router.address, sUsdeBalanceBefore);
+      await WETH.connect(user).approve(router.address, WETHBalanceBefore);
       const tx = router
         .connect(user)
         .swapExactInput(
           swapCalldata,
           WETH.address,
           ptToken.address,
-          sUsdeBalanceBefore,
-          sUsdeBalanceBefore.mul(9).div(10)
+          WETHBalanceBefore,
+          WETHBalanceBefore.mul(9).div(10)
         );
 
       await expect(tx).to.be.revertedWithCustomError(pendleCurveAdapter, 'NotSupported');
@@ -291,9 +347,9 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       const ptBalanceAfter = await ptToken.balanceOf(user.address);
       console.log(`ptBalanceAfter: ${formatUnits(ptBalanceAfter, await ptToken.decimals())} ${await ptToken.symbol()}`);
       expect(ptBalanceAfter).to.be.eq(ptBalanceBefore);
-      const sUsdeBalanceAfter = await WETH.balanceOf(user.address);
-      console.log(`WETHBalanceAfter: ${formatUnits(sUsdeBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
-      expect(sUsdeBalanceAfter).to.be.eq(sUsdeBalanceBefore);
+      const WETHBalanceAfter = await WETH.balanceOf(user.address);
+      console.log(`WETHBalanceAfter: ${formatUnits(WETHBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
+      expect(WETHBalanceAfter).to.be.eq(WETHBalanceBefore);
     });
 
     it('WETH to PT-eETH exact output, forbidden', async () => {
@@ -346,6 +402,18 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       const WETHBalanceAfter = await WETH.balanceOf(user.address);
       console.log(`WETHBalanceAfter: ${formatUnits(WETHBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
       expect(WETHBalanceAfter).to.be.greaterThan(WETHBalanceBefore);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: ptToken.address,
+          tokenOut: WETH.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: WETHBalanceAfter.sub(WETHBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('PT-eETH to WETH exact output', async () => {
@@ -353,10 +421,8 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       console.log(
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
-      const sUsdeBalanceBefore = await WETH.balanceOf(user.address);
-      console.log(
-        `sUsdeBalanceBefore: ${formatUnits(sUsdeBalanceBefore, await WETH.decimals())} ${await WETH.symbol()}`
-      );
+      const WETHBalanceBefore = await WETH.balanceOf(user.address);
+      console.log(`WETHBalanceBefore: ${formatUnits(WETHBalanceBefore, await WETH.decimals())} ${await WETH.symbol()}`);
 
       const swapCalldata = constructSwap([Dex.PendleCurve], [SWAP_ONE]);
       const WETHOut = parseUnits('0.9', await WETH.decimals());
@@ -372,7 +438,19 @@ describe('PendleCurveAdapter PT-eETH - WETH', () => {
       expect(ptBalanceBefore).to.be.greaterThan(ptBalanceAfter);
       const WETHBalanceAfter = await WETH.balanceOf(user.address);
       console.log(`sUsdeBalanceAfter: ${formatUnits(WETHBalanceAfter, await WETH.decimals())} ${await WETH.symbol()}`);
-      expect(WETHBalanceAfter.sub(sUsdeBalanceBefore)).to.be.eq(WETHOut);
+      expect(WETHBalanceAfter.sub(WETHBalanceBefore)).to.be.eq(WETHOut);
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: ptToken.address,
+          tokenOut: WETH.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: WETHBalanceAfter.sub(WETHBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
   });
 });

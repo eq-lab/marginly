@@ -7,7 +7,7 @@ import {
   PendleCurveNgAdapter,
   PendleCurveNgAdapter__factory,
 } from '../../typechain-types';
-import { constructSwap, Dex, resetFork, showBalance, showGasUsage, SWAP_ONE } from '../shared/utils';
+import { assertSwapEvent, constructSwap, Dex, resetFork, showBalance, showGasUsage, SWAP_ONE } from '../shared/utils';
 import { EthAddress } from '@marginly/common';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -139,6 +139,18 @@ describe('PendleCurveAdapter PT-usde - usdc', () => {
       expect(usdcBalanceBefore).to.be.greaterThan(usdcBalanceAfter);
 
       await showBalance(usde, pendleCurveAdapter.address, 'usde stays on adapter: ');
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: usdc.address,
+          tokenOut: ptToken.address,
+          amountIn: usdcBalanceBefore.sub(usdcBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('USDC to pt-USDe exact output, small amount', async () => {
@@ -162,6 +174,18 @@ describe('PendleCurveAdapter PT-usde - usdc', () => {
       expect(usdcBalanceBefore).to.be.greaterThan(usdcBalanceAfter);
 
       await showBalance(usde, pendleCurveAdapter.address, 'usde stays on adapter: ');
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: usdc.address,
+          tokenOut: ptToken.address,
+          amountIn: usdcBalanceBefore.sub(usdcBalanceAfter),
+          amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('pt-USDe to USDC exact input', async () => {
@@ -179,6 +203,18 @@ describe('PendleCurveAdapter PT-usde - usdc', () => {
 
       const usdcBalanceAfter = await showBalance(usdc, user.address, 'usdc balance After:');
       expect(usdcBalanceAfter).to.be.greaterThan(usdcBalanceBefore);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('pt-USDe to USDC exact output', async () => {
@@ -201,6 +237,18 @@ describe('PendleCurveAdapter PT-usde - usdc', () => {
       expect(usdcBalanceAfter.sub(usdcBalanceBefore)).to.be.eq(usdcOut);
 
       await showBalance(usdc, pendleCurveAdapter.address, 'USDC stays on adapter: ');
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
   });
 
@@ -292,6 +340,18 @@ describe('PendleCurveAdapter PT-usde - usdc', () => {
 
       const usdcBalanceAfter = await showBalance(usdc, user.address, 'usdc balance After:');
       expect(usdcBalanceAfter).to.be.greaterThan(usdcBalanceBefore);
+
+      await assertSwapEvent(
+        {
+          isExactInput: true,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
 
     it('pt-USDe to USDC exact output', async () => {
@@ -312,6 +372,18 @@ describe('PendleCurveAdapter PT-usde - usdc', () => {
 
       const usdcBalanceAfter = await showBalance(usdc, user.address, 'usdc balance After:');
       expect(usdcBalanceAfter.sub(usdcBalanceBefore)).to.be.eq(usdcOut);
+
+      await assertSwapEvent(
+        {
+          isExactInput: false,
+          tokenIn: ptToken.address,
+          tokenOut: usdc.address,
+          amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+          amountOut: usdcBalanceAfter.sub(usdcBalanceBefore),
+        },
+        router,
+        tx
+      );
     });
   });
 });

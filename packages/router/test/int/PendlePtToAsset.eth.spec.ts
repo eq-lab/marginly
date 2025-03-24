@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import {
+  assertSwapEvent,
   constructSwap,
   delay,
   Dex,
@@ -533,6 +534,18 @@ describe('PendlePtToAssetAdapter', async () => {
           const ibtBalanceAfter = await showBalance(assetToken, user.address, 'Asset balance After:');
           expect(ibtBalanceBefore.sub(ibtBalanceAfter)).to.be.lessThanOrEqual(ibtTokenAmount);
 
+          await assertSwapEvent(
+            {
+              amountIn: ibtBalanceBefore.sub(ibtBalanceAfter),
+              amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+              isExactInput: true,
+              tokenIn: assetToken.address,
+              tokenOut: ptToken.address,
+            },
+            router,
+            tx
+          );
+
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, assetToken, 'Asset balance delta:');
           await showBalance(syToken, adapter.address, 'sy balance on adapter:');
@@ -556,6 +569,18 @@ describe('PendlePtToAssetAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(assetToken, user.address, 'Asset balance After: ');
           expect(ibtBalanceBefore).to.be.greaterThan(ibtBalanceAfter);
+
+          await assertSwapEvent(
+            {
+              amountIn: ibtBalanceBefore.sub(ibtBalanceAfter),
+              amountOut: ptBalanceAfter.sub(ptBalanceBefore),
+              isExactInput: false,
+              tokenIn: assetToken.address,
+              tokenOut: ptToken.address,
+            },
+            router,
+            tx
+          );
 
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, assetToken, 'Asset balance delta:');
@@ -581,6 +606,18 @@ describe('PendlePtToAssetAdapter', async () => {
           const ibtBalanceAfter = await showBalance(assetToken, user.address, 'Asset balance After:');
           expect(ibtBalanceAfter).to.be.greaterThan(ibtBalanceBefore);
 
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: true,
+              tokenIn: ptToken.address,
+              tokenOut: assetToken.address,
+            },
+            router,
+            tx
+          );
+
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, assetToken, 'Asset balance delta:');
           await showBalance(syToken, adapter.address, 'sy balance on adapter:');
@@ -604,6 +641,18 @@ describe('PendlePtToAssetAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(assetToken, user.address, 'Asset balance After:');
           expect(ibtBalanceAfter.sub(ibtBalanceBefore)).to.be.eq(ibtMinOut);
+
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: false,
+              tokenIn: ptToken.address,
+              tokenOut: assetToken.address,
+            },
+            router,
+            tx
+          );
 
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, assetToken, 'Asset balance delta:');
@@ -685,6 +734,18 @@ describe('PendlePtToAssetAdapter', async () => {
           const ibtBalanceAfter = await showBalance(assetToken, user.address, 'Asset balance After:');
           expect(ibtBalanceAfter).to.be.greaterThan(ibtBalanceBefore);
 
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: true,
+              tokenIn: ptToken.address,
+              tokenOut: assetToken.address,
+            },
+            router,
+            tx
+          );
+
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, assetToken, 'Asset balance delta:');
           await showBalance(syToken, adapter.address, 'sy balance on adapter:');
@@ -708,6 +769,18 @@ describe('PendlePtToAssetAdapter', async () => {
 
           const ibtBalanceAfter = await showBalance(assetToken, user.address, 'Asset balance After:');
           expect(ibtBalanceAfter.sub(ibtBalanceBefore)).to.be.eq(ibtOut);
+
+          await assertSwapEvent(
+            {
+              amountIn: ptBalanceBefore.sub(ptBalanceAfter),
+              amountOut: ibtBalanceAfter.sub(ibtBalanceBefore),
+              isExactInput: false,
+              tokenIn: ptToken.address,
+              tokenOut: assetToken.address,
+            },
+            router,
+            tx
+          );
 
           await showBalanceDelta(ptBalanceBefore, ptBalanceAfter, ptToken, 'PT balance delta:');
           await showBalanceDelta(ibtBalanceBefore, ibtBalanceAfter, assetToken, 'Asset balance delta:');
