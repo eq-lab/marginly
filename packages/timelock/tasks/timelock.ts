@@ -11,20 +11,18 @@ import {
   TimelockController,
 } from '../typechain-types';
 
-import { saveDeploymentData, verifyContract } from './utils';
+import { getSigner, saveDeploymentData, SignerArgs, taskWithSigner, verifyContract } from './utils';
 import { MarginlyParamsStruct } from '../typechain-types/contracts/test/MockMarginlyFactory.sol/MockMarginlyFactory';
 
 interface DeployArgs {
   signer: string;
 }
 
-//npx hardhat --network holesky --config hardhat.config.ts deploy-timelock-wl --signer <private-key>
-task('deploy-timelock-wl', 'Deploy timelock contract and transfer ownership from router')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+//npx hardhat --network holesky --config hardhat.config.ts deploy-timelock-wl --keystore <keystore-file>
+taskWithSigner('deploy-timelock-wl', 'Deploy timelock contract and transfer ownership from router').setAction(
+  async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
     const provider = hre.ethers.provider;
-
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+    let signer = await getSigner(taskArgs, provider);
 
     const configDir = `../deployment/${hre.network.name}`;
 
@@ -40,29 +38,10 @@ task('deploy-timelock-wl', 'Deploy timelock contract and transfer ownership from
     const setParametersSignature = marginlyPoolInterface.getFunction('setParameters').selector;
 
     const whitelisted = [
-      ['0xF8D88A292B0afa85E5Cf0d1195d0D3728Cfd7070', createPoolSignature], // factory
-      ['0xa77C2275C1F403056c7F73B44df69E374C299dd7', setParametersSignature], //pt-weeth-26dec2024-weth
-      ['0x4Cac44a1C50fea3F458f5F31529C0810AFcac497', setParametersSignature], //pt-weeth-26dec2024-weeth
-      ['0xb34DfB03973e148ED800F369EdE84b92803116CA', setParametersSignature], //pt-ezeth-26dec2024-ezeth
-      ['0x548F66BC804CB806ae5Ba3FeeE492a49FD8ef173', setParametersSignature], //pt-rseth-26dec2024-rseth
-      ['0xafcC4F047a1012c4b51B69c7C1bB39C5F38F0305', setParametersSignature], //pt-ageth-26dec2024-ageth
-      ['0xcAbAE9295e274c152b9DcCC124AB06cf78d079Eb', setParametersSignature], //pt-amphrlrt-26dec2024-amphrlrt
-      ['0x2F06faF2A2EEFfBd44a796b8c6d2D04841c6488C', setParametersSignature], //pt-ebtc-26dec2024-ebtc
-      ['0xee07F58A274Ebc50f79ccd1d67fF73426a317dAf', setParametersSignature], //pt-weeths-26dec2024-weeths
-      ['0x1F1A9004F00571Ea0Ed79e51bfd2Cdc3954abc40', setParametersSignature], //pt-pufeth-26dec2024-pufeth
-      ['0x530043876F37170468a9F366145E645BEE86da6C', setParametersSignature], //pt-amphreth-26dec2024-amphreth
-      ['0x2Df52e18e0fcA1E8CEE272cD034368278a49125f', setParametersSignature], //pt-re7lrt-26dec2024-re7lrt
-      ['0x32d850609FDc950bF6E23640d1EB0bbd60a5149c', setParametersSignature], //pt-cornlbtc-26dec2024-lbtc
-      ['0x49755E70285dE0c624e0750543046131CB7163de', setParametersSignature], //pt-corn-unibtc-26dec2024-unibtc
-      ['0x3D6f0097FA10f2e3855377daF2139dBeD66Fb343', setParametersSignature], //pt-cornlbtc-26dec2024-wbtc
-      ['0x056888DD4B31cA090E2FC7ca87AF62B588dD8207', setParametersSignature], //pt-corn-unibtc-26dec2024-wbtc
-      ['0xEe368c5014D218795F76DcDA58e8FD24D04E19Ff', setParametersSignature], //pt-corn-pumpbtc-26dec2024-wbtc
-      ['0xB95b9f7763de009a4E6c739855faCDfA960eB893', setParametersSignature], //pt-lbtc-27mar2025-wbtc
-      ['0xa692B4fb38f8e9aEA229DA05CC2FC9d748218CD3', setParametersSignature], //pt-pufeth-26dec2024-weth
-      ['0xaE2e6412d5c47e23c55c87e65cb2721Fa799Cb96', setParametersSignature], //pt-weeths-26dec2024-weth
-      ['0x49D7712f65B291E4574726d6e263a4E6Af2830F0', setParametersSignature], //pt-rseth-26dec2024-weth
-      ['0xf7710a79F2440423e5865EB3a7DF3e47a430859F', setParametersSignature], //pt-lbtc-27mar2025-lbtc
-      ['0xd88855292819e34388833A3cb5524eEDf25010AE', setParametersSignature], //pt-ebtc-27mar2025-ebtc
+      ['0x798A2FEb73E82D44b2148e37f02367CFb6ea3674', createPoolSignature], // factory trading
+      ['0xE08Fa38f77041Aa8917CD5a5A758c18Ea54B5F62', setParametersSignature], // wS / USDC.e pool
+      ['0x1768Faee0A63927FeB81100046f5D63BfE0f08dB', createPoolSignature], //factory farming
+      ['0xb312d61915c878938fce09d13dd3006c6835b3e5', setParametersSignature], // PT-asonUSDC-14Aug2025/USDC.e
     ];
 
     const whitelistedTargets = whitelisted.map((x) => x[0]);
@@ -100,15 +79,15 @@ task('deploy-timelock-wl', 'Deploy timelock contract and transfer ownership from
       whitelistedTargets,
       whitelistedMethods,
     ]);
-  });
+  }
+);
 
 //npx hardhat --network holesky --config hardhat.config.ts deploy-timelock --signer <private-key>
-task('deploy-timelock', 'Deploy timelock contract and transfer ownership from router')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+taskWithSigner('deploy-timelock', 'Deploy timelock contract and transfer ownership from router').setAction(
+  async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
     const provider = hre.ethers.provider;
 
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+    let signer = await getSigner(taskArgs, provider);
 
     const configDir = `../deployment/${hre.network.name}`;
 
@@ -151,101 +130,88 @@ task('deploy-timelock', 'Deploy timelock contract and transfer ownership from ro
 
     await saveDeploymentData('TimelockController', deploymentData, configDir);
     await verifyContract(hre, timelockAddress, [initialMinDelay, proposers, executors, admin]);
-  });
+  }
+);
 
-//npx hardhat --network holesky --config hardhat.config.ts timelock-grant-role --signer <private-key>
-task('timelock-grant-role')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
-    const provider = hre.ethers.provider;
+//npx hardhat --network holesky --config hardhat.config.ts timelock-grant-role --keystore <private-key>
+taskWithSigner('timelock-grant-role').setAction(async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
+  const provider = hre.ethers.provider;
 
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+  let signer = await getSigner(taskArgs, provider);
 
-    const cancellers = [];
-    const timelockAddress = '';
+  const cancellers = [];
+  const timelockAddress = '';
 
-    const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
-    const role = await timelock.CANCELLER_ROLE();
+  const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
+  const role = await timelock.CANCELLER_ROLE();
 
-    const delay = await timelock.getMinDelay();
+  const delay = await timelock.getMinDelay();
 
-    for (let i = 0; i < cancellers.length; i++) {
-      const grantCancellerRole = await timelock.interface.encodeFunctionData('grantRole', [role, cancellers[i]]);
+  for (let i = 0; i < cancellers.length; i++) {
+    const grantCancellerRole = await timelock.interface.encodeFunctionData('grantRole', [role, cancellers[i]]);
 
-      const txReceipt = await timelock.schedule(
-        timelock,
-        0,
-        grantCancellerRole,
-        ethers.ZeroHash,
-        ethers.ZeroHash,
-        delay
-      );
-      if (delay == 0n) {
-        await txReceipt.wait();
-        await timelock.execute(timelock, 0, grantCancellerRole, ethers.ZeroHash, ethers.ZeroHash);
-      }
-    }
-  });
-
-//npx hardhat --network holesky --config hardhat.config.ts timelock-set-delay --signer <private-key>
-task('timelock-set-delay')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
-    const provider = hre.ethers.provider;
-
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
-
-    const timelockAddress = '';
-
-    const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
-    const delay = 259_200; // 3 * 24 * 60 * 60
-
-    const updateDelayData = await timelock.interface.encodeFunctionData('updateDelay', [delay]);
-
-    const txReceipt = await timelock.schedule(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash, 0);
-    await txReceipt.wait();
-
-    await timelock.execute(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash);
-  });
-
-//npx hardhat --network holesky --config hardhat.config.ts timelock-accept-ownership --signer <private-key>
-task('timelock-accept-ownership')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
-    const provider = hre.ethers.provider;
-
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
-
-    const ownableContractAddress = '';
-    const ownableContract = Ownable2Step__factory.connect(ownableContractAddress, signer);
-    const timelockAddress = '';
-
-    const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
-    const acceptOwnershipCallData = await ownableContract.interface.encodeFunctionData('acceptOwnership');
-
-    const delay = await timelock.getMinDelay();
-    const txReceipt = await timelock.schedule(
-      ownableContract,
-      0,
-      acceptOwnershipCallData,
-      ethers.ZeroHash,
-      ethers.ZeroHash,
-      delay
-    );
-
+    const txReceipt = await timelock.schedule(timelock, 0, grantCancellerRole, ethers.ZeroHash, ethers.ZeroHash, delay);
     if (delay == 0n) {
       await txReceipt.wait();
-      await timelock.execute(ownableContract, 0, acceptOwnershipCallData, ethers.ZeroHash, ethers.ZeroHash);
+      await timelock.execute(timelock, 0, grantCancellerRole, ethers.ZeroHash, ethers.ZeroHash);
     }
-  });
+  }
+});
+
+//npx hardhat --network holesky --config hardhat.config.ts timelock-set-delay --signer <private-key>
+taskWithSigner('timelock-set-delay').setAction(async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
+  const provider = hre.ethers.provider;
+
+  let signer = await getSigner(taskArgs, provider);
+
+  const timelockAddress = '';
+
+  const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
+  const delay = 259_200; // 3 * 24 * 60 * 60
+
+  const updateDelayData = await timelock.interface.encodeFunctionData('updateDelay', [delay]);
+
+  const txReceipt = await timelock.schedule(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash, 0);
+  await txReceipt.wait();
+
+  await timelock.execute(timelock, 0, updateDelayData, ethers.ZeroHash, ethers.ZeroHash);
+});
+
+//npx hardhat --network holesky --config hardhat.config.ts timelock-accept-ownership --signer <private-key>
+taskWithSigner('timelock-accept-ownership').setAction(async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
+  const provider = hre.ethers.provider;
+
+  let signer = await getSigner(taskArgs, provider);
+
+  const ownableContractAddress = '';
+  const ownableContract = Ownable2Step__factory.connect(ownableContractAddress, signer);
+  const timelockAddress = '';
+
+  const timelock = TimelockController__factory.connect(timelockAddress, signer) as any as TimelockController;
+  const acceptOwnershipCallData = await ownableContract.interface.encodeFunctionData('acceptOwnership');
+
+  const delay = await timelock.getMinDelay();
+  const txReceipt = await timelock.schedule(
+    ownableContract,
+    0,
+    acceptOwnershipCallData,
+    ethers.ZeroHash,
+    ethers.ZeroHash,
+    delay
+  );
+
+  if (delay == 0n) {
+    await txReceipt.wait();
+    await timelock.execute(ownableContract, 0, acceptOwnershipCallData, ethers.ZeroHash, ethers.ZeroHash);
+  }
+});
 
 //npx hardhat --network holesky --config hardhat.config.ts timelock-transfer-ownership --signer <private-key>
-task('timelock-transfer-ownership')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+taskWithSigner('timelock-transfer-ownership').setAction(
+  async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
     const provider = hre.ethers.provider;
 
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+    let signer = await getSigner(taskArgs, provider);
 
     const ownableContractAddress = '0xe8632C0BA276B245988885A37E3B1A3CeeD0D469';
     const ownableContract = Ownable2Step__factory.connect(ownableContractAddress, signer);
@@ -271,15 +237,15 @@ task('timelock-transfer-ownership')
       await txReceipt.wait();
       await timelock.execute(ownableContract, 0, transferOwnershipCallData, ethers.ZeroHash, ethers.ZeroHash);
     }
-  });
+  }
+);
 
 //npx hardhat --network holesky --config hardhat.config.ts factory-transfer-ownership --signer <private-key>
-task('factory-transfer-ownership', 'Change factory owner to timelock')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+taskWithSigner('factory-transfer-ownership', 'Change factory owner to timelock').setAction(
+  async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
     const provider = hre.ethers.provider;
 
-    let signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+    let signer = await getSigner(taskArgs, provider);
 
     const timelockAddress = '0x8cDAf202eBe2f38488074DcFCa08c0B0cB7B8Aa5';
     const factoryAddress = '0xF8D88A292B0afa85E5Cf0d1195d0D3728Cfd7070';
@@ -318,14 +284,14 @@ task('factory-transfer-ownership', 'Change factory owner to timelock')
       await timelock.connect(signer).execute(timelock, 0n, updateMinDelay, ethers.ZeroHash, ethers.ZeroHash)
     ).wait();
     console.log('Executed update minDelay from 0 to 3 days');
-  });
+  }
+);
 
 //npx hardhat --network holesky --config hardhat.config.ts timelock-execute --signer <private-key>
-task('timelock-execute', 'Timelock schedule and execute operation')
-  .addParam<string>('signer', 'Private key of contracts creator')
-  .setAction(async (taskArgs: DeployArgs, hre: HardhatRuntimeEnvironment) => {
+taskWithSigner('timelock-execute', 'Timelock schedule and execute operation').setAction(
+  async (taskArgs: SignerArgs, hre: HardhatRuntimeEnvironment) => {
     const provider = hre.ethers.provider;
-    const signer = new hre.ethers.Wallet(taskArgs.signer, provider);
+    const signer = await getSigner(taskArgs, provider);
 
     const timelockAddress = '0xc71968f413bF7EDa0d11629e0Cedca0831967cD3';
     const timelock = TimelockWhitelist__factory.connect(timelockAddress, signer);
@@ -369,4 +335,5 @@ task('timelock-execute', 'Timelock schedule and execute operation')
       const readyTimestamp = await timelock.getTimestamp(operationId);
       console.log('Operation pending. Ready at ', new Date(Number(readyTimestamp) * 1000));
     }
-  });
+  }
+);

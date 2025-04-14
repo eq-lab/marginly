@@ -15,6 +15,9 @@ const config = {
     holesky: {
       url: 'https://1rpc.io/holesky',
     },
+    sonic: {
+      url: 'https://rpc.soniclabs.com',
+    },
   },
 };
 

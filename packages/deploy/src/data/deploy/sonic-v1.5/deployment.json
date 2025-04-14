@@ -1,0 +1,11 @@
+{
+  "marginlyPools": [
+    {
+      "id": "ws-usdc.e",
+      "address": "0xE08Fa38f77041Aa8917CD5a5A758c18Ea54B5F62"
+    }
+  ],
+  "aaveKeeperDeployResult": {
+    "address": "0x0D889a355456963A416a0b8611fb76c2bB5c69D3"
+  }
+}

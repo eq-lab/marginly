@@ -47,6 +47,9 @@ const config = {
     blastSepolia: {
       url: 'https://sepolia.blast.io',
     },
+    sonic: {
+      url: 'https://rpc.soniclabs.com',
+    },
   },
   etherscan: {
     apiKey: {
@@ -58,6 +61,7 @@ const config = {
       x1Testnet: process.env.API_KEY,
       artioTestnet: 'artio_testnet',
       blastSepolia: 'blast_sepolia',
+      sonic: process.env.SONIC_API_KEY,
     },
     customChains: [
       {
@@ -90,6 +94,14 @@ const config = {
         urls: {
           apiURL: 'https://api.routescan.io/v2/network/testnet/evm/168587773/etherscan',
           browserURL: 'https://testnet.blastscan.io',
+        },
+      },
+      {
+        network: 'sonic',
+        chainId: 146,
+        urls: {
+          apiURL: 'https://api.sonicscan.org/api',
+          browserURL: 'https://sonicscan.org',
         },
       },
     ],

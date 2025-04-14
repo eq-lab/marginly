@@ -1,0 +1,84 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://rpc.soniclabs.com"
+  },
+  "connection": {
+    "assertChainId": 146,
+    "ethOptions": {}
+  },
+  "tokens": [
+    {
+      "id": "ws",
+      "address": "0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38",
+      "assertSymbol": "wS",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usdc.e",
+      "address": "0x29219dd400f2bf60e5a23d13be72b486d4038894",
+      "assertSymbol": "USDC.e",
+      "assertDecimals": 6
+    }
+  ],
+  "prices": [],
+  "priceOracles": [
+    {
+      "id": "uniswapV3-oracle",
+      "type": "uniswapV3",
+      "factory": "0xcb2436774C3e191c85056d248EF4260ce5f27A9D",
+      "settings": [
+        {
+          "quoteTokenId": "usdc.e",
+          "baseTokenId": "ws",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec",
+          "uniswapFee": "0.3%"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
+    "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
+    "wethTokenId": "ws",
+    "timelockOwner": "0x51941B50c7F7059e9167B60eBFA8578b807b6fbc"
+  },
+  "marginlyPools": [
+    {
+      "id": "ws-usdc.e",
+      "baseTokenId": "ws",
+      "quoteTokenId": "usdc.e",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
+      "params": {
+        "interestRate": "5.4%",
+        "maxLeverage": "20",
+        "swapFee": "0.1%",
+        "fee": "0%",
+        "mcSlippage": "0.5%",
+        "positionMinAmount": "1",
+        "quoteLimit": "500000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 0,
+      "adapterName": "UniswapV3Adapter",
+      "pools": [
+        {
+          "type": "general",
+          "poolAddress": "0xEcb04e075503Bd678241f00155AbCB532c0a15Eb",
+          "tokenAId": "ws",
+          "tokenBId": "usdc.e"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {
+    "aaveKeeper": {
+      "aavePoolAddressesProvider": "0x5C2e738F6E27bCE0F7558051Bf90605dD6176900"
+    },
+    "uniswapKeeper": false
+  }
+}
