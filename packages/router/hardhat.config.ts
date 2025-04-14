@@ -33,6 +33,9 @@ const config = {
     arbitrumSepolia: {
       url: 'https://sepolia-rollup.arbitrum.io/rpc',
     },
+    sonic: {
+      url: 'https://rpc.soniclabs.com',
+    },
   },
   etherscan: {
     apiKey: {
@@ -41,6 +44,7 @@ const config = {
       arbitrumGoerli: process.env.API_KEY,
       arbitrumOne: process.env.API_KEY,
       artio_testnet: 'artio_testnet',
+      sonic: process.env.SONIC_API_KEY,
     },
     customChains: [
       {
@@ -57,6 +61,14 @@ const config = {
         urls: {
           apiURL: 'https://api.routescan.io/v2/network/testnet/evm/80085/etherscan',
           browserURL: 'https://artio.beratrail.io',
+        },
+      },
+      {
+        network: 'sonic',
+        chainId: 146,
+        urls: {
+          apiURL: 'https://api.sonicscan.org/api',
+          browserURL: 'https://sonicscan.org',
         },
       },
     ],

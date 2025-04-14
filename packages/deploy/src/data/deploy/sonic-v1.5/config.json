@@ -1,7 +1,6 @@
 {
   "systemContextDefaults": {
-    "ethNodeUri1": "https://rpc.soniclabs.com",
-    "ehtNodeUri": "http://127.0.0.1:8545" 
+    "ethNodeUri": "https://rpc.soniclabs.com"
   },
   "connection": {
     "assertChainId": 146,
@@ -41,16 +40,16 @@
   "marginlyFactory": {
     "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
     "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
-    "wethTokenId": "ws"
+    "wethTokenId": "ws",
+    "timelockOwner": "0x51941B50c7F7059e9167B60eBFA8578b807b6fbc"
   },
-  "marginlyPools": [],
-  "marginlyPools1": [
+  "marginlyPools": [
     {
       "id": "ws-usdc.e",
       "baseTokenId": "ws",
       "quoteTokenId": "usdc.e",
-      "priceOracleId": "compositeOracle",
-      "defaultSwapCallData": "35127297",
+      "priceOracleId": "uniswapV3-oracle",
+      "defaultSwapCallData": "0",
       "params": {
         "interestRate": "5.4%",
         "maxLeverage": "20",

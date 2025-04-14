@@ -21,7 +21,20 @@ const config: HardhatUserConfig & { contractSizer: any } = {
     ],
   },
   etherscan: {
-    apiKey: process.env.API_KEY,
+    apiKey: {
+      ethereum: process.env.API_KEY,
+      sonic: process.env.SONIC_API_KEY,
+    },
+    customChains: [
+      {
+        network: 'sonic',
+        chainId: 146,
+        urls: {
+          apiURL: 'https://api.sonicscan.org/api',
+          browserURL: 'https://sonicscan.org',
+        },
+      },
+    ],
   },
   mocha: {
     timeout: 2_000_000,
