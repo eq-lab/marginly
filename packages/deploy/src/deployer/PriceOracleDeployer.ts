@@ -160,7 +160,7 @@ export class PriceOracleDeployer extends BaseDeployer {
   ): Promise<DeployResult> {
     const deploymentResult = this.deploy(
       'ChainlinkOracle',
-      [],
+      [config.sequencerFeed.toString()],
       `priceOracle_${config.id}`,
       this.readMarginlyPeripheryOracleContract
     );
@@ -171,22 +171,31 @@ export class PriceOracleDeployer extends BaseDeployer {
       if (isSinglePairChainlinkOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+        const maxPriceAge = setting.maxPriceAge.toSeconds();
 
-        await priceOracle.setPair(quoteToken.toString(), baseToken.toString(), setting.aggregatorV3.toString());
+        await priceOracle.setPair(
+          quoteToken.toString(),
+          baseToken.toString(),
+          setting.aggregatorV3.toString(),
+          maxPriceAge
+        );
       } else if (isDoublePairChainlinkOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
         const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
+        const maxPriceAge = setting.maxPriceAge.toSeconds();
 
         await priceOracle.setPair(
           intermediateToken.toString(),
           quoteToken.toString(),
-          setting.quoteAggregatorV3.toString()
+          setting.quoteAggregatorV3.toString(),
+          maxPriceAge
         );
         await priceOracle.setPair(
           intermediateToken.toString(),
           baseToken.toString(),
-          setting.baseAggregatorV3.toString()
+          setting.baseAggregatorV3.toString(),
+          maxPriceAge
         );
         await priceOracle.setCompositePair(quoteToken.toString(), intermediateToken.toString(), baseToken.toString());
       } else {

@@ -113,6 +113,7 @@ export interface SinglePairChainlinkOracleDeployConfig {
   quoteTokenId: string;
   baseTokenId: string;
   aggregatorV3: string;
+  maxPriceAge: string;
 }
 
 export interface DoublePairChainlinkOracleDeployConfig {
@@ -143,6 +144,7 @@ export function isDoublePairChainlinkOracleDeployConfig(
 export interface ChainlinkOracleDeployConfig {
   type: 'chainlink';
   id: string;
+  sequencerFeed: string;
   settings: PairChainlinkOracleDeployConfig[];
 }
 

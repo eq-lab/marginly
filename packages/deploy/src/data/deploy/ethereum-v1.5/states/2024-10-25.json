@@ -36,7 +36,7 @@
       "address": "0xd136839D9978CAa3780a5D7a19a0322f3618A49D",
       "txHash": "0xc1f8500f04cc31d7961e289840fcdee9ac6a4f1beee3b5bf51b3eca0802696ba"
     },
-    "marginlyPool_weeth-weth": {
+    "marginlyPool_weeth-weth-old": {
       "address": "0x4819C556E87aDf28dB19e850480886F62D37f46A",
       "txHash": "0xb75671da6cf6258506da5e773810ca2e7eeccfc8e110e3457277ec1d837090b4"
     },
@@ -51,6 +51,10 @@
     "marginlyPool_pufeth-weth": {
       "address": "0x51b5D4a7c58bE1d131D7BD027B5713e55efa0606",
       "txHash": "0x54d273cbae9f28c72a92f8c46018585af14f44a7fb76116d3fb19a645242ff53"
+    },
+    "marginlyPool_weeth-weth": {
+      "address": "0x68f61128DeCd74b63f5b76Dc133A4C3F74319DF5",
+      "txHash": "0xe7eda7258d33d212ebf6e3bbb6bbc58a3ed5f71ebde3315c441fc80764cdbf00"
     }
   }
 }
