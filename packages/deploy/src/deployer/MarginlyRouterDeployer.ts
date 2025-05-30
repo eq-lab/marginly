@@ -102,7 +102,8 @@ export class MarginlyRouterDeployer extends BaseDeployer {
           return [
             locConfig.pendleMarket.toString(),
             locConfig.slippage,
-            locConfig.curveSlippage,
+            locConfig.curveDxAdjustPtToToken,
+            locConfig.curveDxAdjustTokenToPt,
             locConfig.curveRoute.map((y) => y.toString()),
             locConfig.curveSwapParams,
             locConfig.curvePools.map((y) => y.toString()),

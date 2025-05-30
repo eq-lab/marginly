@@ -482,7 +482,8 @@ export interface PendleCurveRouterAdapterPair {
   curveRoute: string[];
   curveSwapParams: number[][];
   curvePools: string[];
-  curveSlippage: number;
+  curveDxAdjustPtToToken: number;
+  curveDxAdjustTokenToPt: number;
 }
 
 export interface PendlePtToAssetAdapterPair {

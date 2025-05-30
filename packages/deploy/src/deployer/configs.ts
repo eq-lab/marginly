@@ -212,7 +212,8 @@ export interface PendleCurveRouterAdapterParam {
   type: 'pendleCurveRouter';
   pendleMarket: EthAddress;
   slippage: number;
-  curveSlippage: number;
+  curveDxAdjustTokenToPt: number;
+  curveDxAdjustPtToToken: number;
   curveRoute: EthAddress[]; // array of fixed length 11
   curveSwapParams: number[][]; // array of fixed length 5 x 5
   curvePools: EthAddress[]; // array of fixed length 5
@@ -917,7 +918,8 @@ export class StrictMarginlyDeployConfig {
       type: 'pendleCurveRouter',
       pendleMarket: EthAddress.parse(pairConfig.pendleMarket),
       slippage: pairConfig.slippage,
-      curveSlippage: pairConfig.curveSlippage,
+      curveDxAdjustPtToToken: pairConfig.curveDxAdjustPtToToken,
+      curveDxAdjustTokenToPt: pairConfig.curveDxAdjustTokenToPt,
       curveRoute: pairConfig.curveRoute.map(EthAddress.parse),
       curveSwapParams: pairConfig.curveSwapParams,
       curvePools: pairConfig.curvePools.map(EthAddress.parse),
