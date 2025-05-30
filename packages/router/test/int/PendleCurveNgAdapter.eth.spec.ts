@@ -80,7 +80,7 @@ const PT_wstUSR_USDC_TestCase: TestCase = {
   forkNumber: 22366500,
 
   pendleMarket: '0x09fa04aac9c6d1c6131352ee950cd67ecc6d4fb9',
-  curvePool:'0x3eE841F47947FEFbE510366E4bbb49e145484195',
+  curvePool: '0x3eE841F47947FEFbE510366E4bbb49e145484195',
   ptToken: {
     address: '0x23e60d1488525bf4685f53b3aa8e676c30321066',
     symbol: 'PT-wstUSR-25SEP2025',

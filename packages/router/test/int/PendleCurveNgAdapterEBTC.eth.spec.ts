@@ -422,9 +422,7 @@ describe('PendleCurveAdapter PT-eBTC - WBTC', () => {
         `ptBalanceBefore: ${formatUnits(ptBalanceBefore, await ptToken.decimals())} ${await ptToken.symbol()}`
       );
       const WBTCBalanceBefore = await WBTC.balanceOf(user.address);
-      console.log(
-        `WBTCBalanceBefore: ${formatUnits(WBTCBalanceBefore, await WBTC.decimals())} ${await WBTC.symbol()}`
-      );
+      console.log(`WBTCBalanceBefore: ${formatUnits(WBTCBalanceBefore, await WBTC.decimals())} ${await WBTC.symbol()}`);
 
       const swapCalldata = constructSwap([Dex.PendleCurve], [SWAP_ONE]);
       const WBTCOut = parseUnits('0.9', 8);
