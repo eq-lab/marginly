@@ -279,7 +279,7 @@ export class PriceOracleDeployer extends BaseDeployer {
 
         const pair = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
 
-        if (BigNumber.from(pair.maxPriceAge) !== setting.maxPriceAge.toSeconds()) {
+        if (!BigNumber.from(pair.maxPriceAge).eq(setting.maxPriceAge.toSeconds())) {
           // oracle already initialized
 
           const tx = await priceOracle.setPair(

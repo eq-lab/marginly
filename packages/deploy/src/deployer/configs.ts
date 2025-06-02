@@ -754,7 +754,7 @@ export class StrictMarginlyDeployConfig {
       return this.createPendlePtToAssetAdapterParam(pair, tokens, dexId);
     } else if (adapterName === 'PendleCurveNgAdapter') {
       return this.createPendleCurveNgAdapterConfig(pair, tokens, dexId);
-    } else if (adapterName === 'PendleCurveRouterNg') {
+    } else if (adapterName === 'PendleCurveRouterNgAdapter') {
       return this.createPendleCurveRouterAdapterConfig(pair, tokens, dexId);
     } else if (adapterName === 'SpectraAdapter') {
       return this.createSpectraAdapterConfig(pair, tokens, dexId);

@@ -105,6 +105,10 @@
       "address": "0x6b79E799Ebdb9e867A1fe268A0703cbAA532C60d"
     },
     {
+      "id": "pt-susde-25sep2025-susde",
+      "address": "0x849A31f96b240a58a2A70168e904d7C70B654c18"
+    },
+    {
       "id": "pt-susde-29may2025-susde",
       "address": "0x6C651b633470Fe9CDe7C7b71865Cc7790c164c27"
     },
@@ -167,6 +171,10 @@
     {
       "id": "pt-wstusr-1750896030-wstusr",
       "address": "0xfb90799F0966728Ac79bec97F46B317d80605bA0"
+    },
+    {
+      "id": "pt-wstusr-25sep2025-usr",
+      "address": "0x11CCf4a4Db276eeAa4b13eDac4F945ce82bF2dA8"
     },
     {
       "id": "pt-wstusr-27mar2025-usr",

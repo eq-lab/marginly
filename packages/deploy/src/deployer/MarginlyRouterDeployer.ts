@@ -1,5 +1,5 @@
 import { EthAddress } from '@marginly/common';
-import { BigNumber, Signer } from 'ethers';
+import { BigNumber, ethers, Signer } from 'ethers';
 import { StateStore, readMarginlyAdapterContract, readMarginlyRouterContract } from '../common';
 import { ITokenRepository, DeployResult } from '../common/interfaces';
 import { BaseDeployer } from './BaseDeployer';
@@ -21,10 +21,13 @@ import {
 } from './configs';
 import { EthOptions } from '../config';
 import { Logger } from '../logger';
+import { createTimelockWhitelistContract } from './contract-reader';
 
 export class MarginlyRouterDeployer extends BaseDeployer {
+  private readonly readTimeLockContract;
   public constructor(signer: Signer, ethArgs: EthOptions, stateStore: StateStore, logger: Logger) {
     super(signer, ethArgs, stateStore, logger);
+    this.readTimeLockContract = createTimelockWhitelistContract();
   }
 
   public async deployMarginlyAdapter(
@@ -159,7 +162,10 @@ export class MarginlyRouterDeployer extends BaseDeployer {
     console.log('\n\n');
   }
 
-  public async deployMarginlyRouter(adapters: { dexId: BigNumber; adapter: EthAddress }[]): Promise<DeployResult> {
+  public async deployMarginlyRouter(
+    adapters: { dexId: BigNumber; adapter: EthAddress }[],
+    timelockOwner?: EthAddress
+  ): Promise<DeployResult> {
     const args = [adapters.map((x) => [x.dexId.toNumber(), x.adapter.toString()])];
     const deployResult = await this.deploy('MarginlyRouter', args, 'MarginlyRouter', readMarginlyRouterContract);
 
@@ -176,7 +182,29 @@ export class MarginlyRouterDeployer extends BaseDeployer {
 
     if (adaptersToAdd.length > 0) {
       const adaptersToAddArgs = adaptersToAdd.map((x) => [x.dexId.toNumber(), x.adapter.toString()]);
-      await router.connect(this.signer).addDexAdapters(adaptersToAddArgs);
+      if (timelockOwner) {
+        const timelockDescription = this.readTimeLockContract('TimelockWhitelist');
+
+        const addAdaptersCallData = router.interface.encodeFunctionData('addDexAdapters', [adaptersToAddArgs]);
+        const timelockContract = new ethers.Contract(timelockOwner.toString(), timelockDescription.abi, this.signer);
+
+        const minDelay = await timelockContract.getMinDelay();
+        const addAdapterTx = await timelockContract.schedule(
+          router.address, //target
+          0, //value
+          addAdaptersCallData, //calldata
+          ethers.constants.HashZero, //predecessor
+          ethers.constants.HashZero, //salt
+          minDelay,
+          this.ethArgs //overrides
+        );
+
+        await addAdapterTx.wait();
+
+        this.logger.log(`Scheduled add ${adaptersToAdd.length} adapters to MarginlyRouter`);
+      } else {
+        await router.connect(this.signer).addDexAdapters(adaptersToAddArgs);
+      }
 
       this.logger.log(`Added ${adaptersToAdd.length} adapters to MarginlyRouter`);
     }

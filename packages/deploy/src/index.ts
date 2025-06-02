@@ -172,7 +172,10 @@ async function processMarginlyRouter(
       });
     }
 
-    const marginlyRouterDeployResult = await marginlyRouterDeployer.deployMarginlyRouter(adapterDeployResults);
+    const marginlyRouterDeployResult = await marginlyRouterDeployer.deployMarginlyRouter(
+      adapterDeployResults,
+      config.marginlyFactory.timelockOwner
+    );
     printDeployState('Marginly router', marginlyRouterDeployResult, logger);
 
     return marginlyRouterDeployResult;
@@ -407,5 +410,7 @@ export async function deployMarginly(
     const ethSpent = balanceBefore.sub(balanceAfter);
 
     logger.log(`ETH spent: ${ethers.utils.formatEther(ethSpent)}`);
+    const gasPrice = await provider.getGasPrice();
+    logger.log(`gas price: ${ethers.utils.formatUnits(gasPrice, 'gwei')} gwei`);
   }
 }
