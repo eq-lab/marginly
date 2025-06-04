@@ -33,8 +33,8 @@ async function initializeRouter(): Promise<{
   const routeInput: PendleCurveRouterNgAdapter.RouteInputStruct = {
     pendleMarket: pendleMarket,
     slippage: 35, // 20/100  = 20%
-    curveDxAdjustTokenToPt: -145_000, //
-    curveDxAdjustPtToToken: 175_000, //
+    curveDxAdjustPtToToken: 175_800, //
+    curveDxAdjustTokenToPt: -149_000, //
     curveRoute: [
       '0x4c9edd5852cd905f086c759e8383e09bff1e68b3', //usde
       '0x5dc1BF6f1e983C0b21EfB003c105133736fA0743', // usde -> frax
@@ -86,6 +86,8 @@ async function initializeRouter(): Promise<{
     parseUnits('10000', 18)
   );
 
+  console.log(routeInput);
+
   return {
     ptToken,
     sUSDEToken: sUSDEToken,
@@ -100,7 +102,8 @@ async function initializeRouter(): Promise<{
 // Tests for running in ethereum mainnet fork
 describe('Pendle PT-USDE - sUSDE', () => {
   before(async () => {
-    await resetFork(22388154); //2025-05-02
+    await resetFork(22622910);
+    //await resetFork(22388154); //2025-05-02
     //await resetFork(22588100); //2025-05-29
   });
 

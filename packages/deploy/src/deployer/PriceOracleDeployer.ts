@@ -4,6 +4,7 @@ import {
   AlgebraOracleConfig,
   ChainlinkOracleConfig,
   CurveOracleConfig,
+  EulerPriceOracleConfig,
   isAavePriceOracle,
   isAlgebraDoubleOracle,
   isAlgebraOracle,
@@ -11,6 +12,7 @@ import {
   isCurveOracle,
   isDoublePairChainlinkOracleConfig,
   isDoublePairPythOracleConfig,
+  isEulerPriceOracle,
   isMarginlyCompositeOracle,
   isPendleMarketOracle,
   isPendleOracle,
@@ -201,17 +203,24 @@ export class PriceOracleDeployer extends BaseDeployer {
     var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
 
     for (const setting of config.settings) {
+      const settingName = `${setting.baseToken.id}/${setting.quoteToken.id}`;
       if (isSinglePairChainlinkOracleConfig(setting)) {
         const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
         const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
         const maxPriceAge = setting.maxPriceAge.toSeconds();
 
-        await priceOracle.setPair(
-          quoteToken.toString(),
-          baseToken.toString(),
-          setting.aggregatorV3.toString(),
-          maxPriceAge
-        );
+        const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+        if (!BigNumber.from(currentParams.maxPriceAge).eq(maxPriceAge)) {
+          this.logger.log(`Set up ${settingName}\n`);
+
+          const tx = await priceOracle.setPair(
+            quoteToken.toString(),
+            baseToken.toString(),
+            setting.aggregatorV3.toString(),
+            maxPriceAge
+          );
+          tx.wait();
+        }
 
         await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       } else if (isDoublePairChainlinkOracleConfig(setting)) {
@@ -228,26 +237,35 @@ export class PriceOracleDeployer extends BaseDeployer {
 
         const maxPriceAge = setting.maxPriceAge.toSeconds();
 
-        let tx = await priceOracle.setPair(
-          intermediateToken.toString(),
-          quoteToken.toString(),
-          setting.quoteAggregatorV3.toString(),
-          maxPriceAge
-        );
-        await tx.wait();
-        tx = await priceOracle.setPair(
-          intermediateToken.toString(),
-          baseToken.toString(),
-          setting.baseAggregatorV3.toString(),
-          maxPriceAge
-        );
-        await tx.wait();
-        tx = await priceOracle.setCompositePair(
-          quoteToken.toString(),
-          intermediateToken.toString(),
-          baseToken.toString()
-        );
-        await tx.wait();
+        const intermQuoteTokenParams = await priceOracle.getParams(quoteToken.toString(), intermediateToken.toString());
+        const baseIntermediateParams = await priceOracle.getParams(intermediateToken.toString(), baseToken.toString());
+        if (
+          !BigNumber.from(intermQuoteTokenParams.maxPriceAge).eq(maxPriceAge) ||
+          !BigNumber.from(baseIntermediateParams.maxPriceAge).eq(maxPriceAge)
+        ) {
+          this.logger.log(`Setup double ${settingName}\n`);
+
+          let tx = await priceOracle.setPair(
+            intermediateToken.toString(),
+            quoteToken.toString(),
+            setting.quoteAggregatorV3.toString(),
+            maxPriceAge
+          );
+          await tx.wait();
+          tx = await priceOracle.setPair(
+            intermediateToken.toString(),
+            baseToken.toString(),
+            setting.baseAggregatorV3.toString(),
+            maxPriceAge
+          );
+          await tx.wait();
+          tx = await priceOracle.setCompositePair(
+            quoteToken.toString(),
+            intermediateToken.toString(),
+            baseToken.toString()
+          );
+          await tx.wait();
+        }
 
         await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
       } else {
@@ -589,11 +607,11 @@ export class PriceOracleDeployer extends BaseDeployer {
       const { address: intermediateToken } = tokenRepository.getTokenInfo(setting.intermediateToken.id);
       const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
 
-      this.logger.log(`Add setting ${setting.baseToken.id}/${setting.quoteToken.id}`);
-
       const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
 
       if (currentParams.intermediateToken.toLowerCase() !== intermediateToken.toString().toLowerCase()) {
+        this.logger.log(`Add setting ${setting.baseToken.id}/${setting.quoteToken.id}`);
+
         const quoteIntermediateOracle = this.getRequiredPriceOracle(setting.quoteIntermediateOracleId);
         const baseIntermediateOracle = this.getRequiredPriceOracle(setting.intermediateBaseOracleId);
 
@@ -693,6 +711,40 @@ export class PriceOracleDeployer extends BaseDeployer {
     return deploymentResult;
   }
 
+  private async deployEulerPriceOracle(
+    config: EulerPriceOracleConfig,
+    tokenRepository: ITokenRepository
+  ): Promise<DeployResult> {
+    const deploymentResult = this.deploy(
+      'EulerPriceOracle',
+      [],
+      `priceOracle_${config.id}`,
+      this.readMarginlyPeripheryOracleContract
+    );
+    const priceOracle = (await deploymentResult).contract;
+    var setupOracleScope = this.logger.beginScope(`SetUp ${config.id}`);
+
+    for (const setting of config.settings) {
+      const { address: baseToken } = tokenRepository.getTokenInfo(setting.baseToken.id);
+      const { address: quoteToken } = tokenRepository.getTokenInfo(setting.quoteToken.id);
+      const eulerOracle = setting.eulerOracle.toString();
+
+      const currentParams = await priceOracle.getParams(quoteToken.toString(), baseToken.toString());
+
+      if (currentParams.toLowerCase() !== eulerOracle.toLowerCase()) {
+        this.logger.log(`Add setting ${setting.baseToken.id}/${setting.quoteToken.id}`);
+        const tx = await priceOracle.addPair(quoteToken.toString(), baseToken.toString(), eulerOracle);
+        await tx.wait();
+      }
+
+      await this.checkOraclePrice(config.id, priceOracle, quoteToken.toString(), baseToken.toString());
+    }
+
+    setupOracleScope.close();
+
+    return deploymentResult;
+  }
+
   public async deployPriceOracle(
     priceOracle: PriceOracleConfig,
     tokenRepository: ITokenRepository
@@ -722,6 +774,8 @@ export class PriceOracleDeployer extends BaseDeployer {
       deploymentResult = await this.deployPriceOracleProxy(priceOracle, tokenRepository);
     } else if (isAavePriceOracle(priceOracle)) {
       deploymentResult = await this.deployAavePriceOracle(priceOracle, tokenRepository);
+    } else if (isEulerPriceOracle(priceOracle)) {
+      deploymentResult = await this.deployEulerPriceOracle(priceOracle, tokenRepository);
     } else {
       throw new Error(`Unknown priceOracle type`);
     }

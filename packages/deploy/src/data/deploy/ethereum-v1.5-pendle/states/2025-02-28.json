@@ -263,6 +263,22 @@
     "marginlyPool_pt-wstusr-25sep2025-usr": {
       "address": "0x11CCf4a4Db276eeAa4b13eDac4F945ce82bF2dA8",
       "txHash": "0x23b3a534ba69783c64b7b216c365c753e8233b6b317b18637f5213412e76193e"
+    },
+    "priceOracle_eulerOracle": {
+      "address": "0xc83Fe597c6ED9E7Ae02A75096Faa4966567204c4",
+      "txHash": "0x5f063c3dc64a7b7b448db6282dcdaeaf88ba8b8923bf99d2b6bb8c451dba589b"
+    },
+    "marginlyPool_pt-steth-25dec2025-weth": {
+      "address": "0x47cD53c42d87ff7B371a5d6095f075dBdCc0bdA9",
+      "txHash": "0x0ba30e6b8d17c8ad38fca48808ec2ca1501bf79c96b940eed322d9c08d684743"
+    },
+    "marginlyPool_pt-usde-31jul2025-susde": {
+      "address": "0xFB016330aF77480D096381BE839d9C622F3642E9",
+      "txHash": "0x659f845908b2bdbbeea012367fc3c8483aae0b70342bc64f0dc085d1ece25bd1"
+    },
+    "marginlyPool_pt-usds-14aug2025-susde": {
+      "address": "0x5003ce3828f13839443dCa6ECD88b1FC5030c86d",
+      "txHash": "0x3e146fe53a0ec00b230f3f955a1b68e31dc6f0505bc0ad62a8f33f0b734a941c"
     }
   }
 }

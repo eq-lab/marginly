@@ -38,8 +38,8 @@ async function initializeRouter(): Promise<{
   const routeInput: PendleCurveRouterNgAdapter.RouteInputStruct = {
     pendleMarket: pendleMarket,
     slippage: 35, // 20/100  = 20%
-    curveDxAdjustTokenToPt: -900, //
-    curveDxAdjustPtToToken: 1000, //
+    curveDxAdjustPtToToken: 2000, //
+    curveDxAdjustTokenToPt: -800, //
     curveRoute: [
       '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0', // wstETH
       '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0', // wstETH -> stETH
@@ -93,6 +93,8 @@ async function initializeRouter(): Promise<{
   );
   expect(await ptToken.balanceOf(user.address)).to.be.eq(parseUnits('10000', 18));
 
+  console.log(routeInput);
+
   return {
     ptToken,
     quoteToken: WETH,
@@ -108,8 +110,7 @@ async function initializeRouter(): Promise<{
 // Tests for running in ethereum mainnet fork
 describe('Pendle PT-STETH - wETH', () => {
   before(async () => {
-    //await resetFork(22388154); //2025-05-02
-    await resetFork(22588100); //2025-05-29
+    await resetFork(22623241);
   });
 
   describe('Pendle swap pre maturity', () => {
@@ -135,7 +136,7 @@ describe('Pendle PT-STETH - wETH', () => {
       } = await initializeRouter());
     });
 
-    it.only('Curve check route', async () => {
+    it.skip('Curve check route', async () => {
       const curveRouter = ICurveRouterNg__factory.connect(curveRouterAddress, user);
       const invertedRoute: string[] = [];
       for (let i = 0; i < 11; i++) {

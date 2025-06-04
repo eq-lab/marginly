@@ -164,6 +164,17 @@
       ]
     },
     {
+      "id": "eulerOracle",
+      "type": "euler",
+      "settings": [
+        {
+          "quoteTokenId": "weth",
+          "baseTokenId": "wsteth",
+          "eulerOracle": "0x7c37aB8Cd76Ee8888ad7F19C1F8a3A6D1622e9B8"
+        }
+      ]
+    },
+    {
       "id": "compositeOracle",
       "type": "composite",
       "settings": [
@@ -187,6 +198,13 @@
           "baseTokenId": "pt-usds-14aug2025",
           "quoteIntermediateOracleId": "chainlinkOracle",
           "intermediateBaseOracleId": "pendleMarketOracle"
+        },
+        {
+          "quoteTokenId": "weth",
+          "intermediateTokenId": "wsteth",
+          "baseTokenId": "pt-steth-25dec2025",
+          "quoteIntermediateOracleId": "eulerOracle",
+          "intermediateBaseOracleId": "pendleMarketOracle"
         }
       ]
     }
@@ -199,27 +217,27 @@
   },
   "marginlyPools": [
     {
-      "id": "pt-susde-25sep2025-susde",
-      "baseTokenId": "pt-susde-25sep2025",
-      "quoteTokenId": "susde",
-      "priceOracleId": "pendleMarketOracle",
-      "defaultSwapCallData": "20447233",
+      "id": "pt-steth-25dec2025-weth",
+      "baseTokenId": "pt-steth-25dec2025",
+      "quoteTokenId": "weth",
+      "priceOracleId": "compositeOracle",
+      "defaultSwapCallData": "33030145",
       "params": {
-        "interestRate": "0.6%",
+        "interestRate": "0.2%",
         "maxLeverage": "20",
         "swapFee": "0%",
         "fee": "0%",
         "mcSlippage": "0.1%",
-        "positionMinAmount": "5",
-        "quoteLimit": "500000"
+        "positionMinAmount": "0.05",
+        "quoteLimit": "250"
       }
     },
     {
-      "id": "pt-wstusr-25sep2025-usr",
-      "baseTokenId": "pt-wstusr-25sep2025",
-      "quoteTokenId": "usr",
+      "id": "pt-usde-31jul2025-susde",
+      "baseTokenId": "pt-usde-31jul2025",
+      "quoteTokenId": "susde",
       "priceOracleId": "compositeOracle",
-      "defaultSwapCallData": "35127297",
+      "defaultSwapCallData": "33030145",
       "params": {
         "interestRate": "0.6%",
         "maxLeverage": "20",
@@ -227,7 +245,23 @@
         "fee": "0%",
         "mcSlippage": "0.1%",
         "positionMinAmount": "5",
-        "quoteLimit": "2000000"
+        "quoteLimit": "1000000"
+      }
+    },
+    {
+      "id": "pt-usds-14aug2025-susde",
+      "baseTokenId": "pt-usds-14aug2025",
+      "quoteTokenId": "susde",
+      "priceOracleId": "compositeOracle",
+      "defaultSwapCallData": "33030145",
+      "params": {
+        "interestRate": "0.6%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "0.1%",
+        "positionMinAmount": "5",
+        "quoteLimit": "1000000"
       }
     }
   ],

@@ -56,7 +56,8 @@ export type PriceOracleDeployConfig =
   | CurveOracleDeployConfig
   | MarginlyCompositeOracleDeployConfig
   | PriceOracleProxyDeployConfig
-  | AavePriceOracleDeployConfig;
+  | AavePriceOracleDeployConfig
+  | EulerOracleDeployConfig;
 
 export interface UniswapV3TickOracleDeployConfig {
   type: 'uniswapV3';
@@ -289,6 +290,16 @@ export interface AavePriceOracleDeployConfig {
   }[];
 }
 
+export interface EulerOracleDeployConfig {
+  type: 'euler';
+  id: string;
+  settings: {
+    quoteTokenId: string;
+    baseTokenId: string;
+    eulerOracle: string;
+  }[];
+}
+
 export function isUniswapV3OracleConfig(config: PriceOracleDeployConfig): config is UniswapV3TickOracleDeployConfig {
   return config.type === 'uniswapV3';
 }
@@ -341,6 +352,10 @@ export function isPriceOracleProxyConfig(config: PriceOracleDeployConfig): confi
 
 export function isAavePriceOracleConfig(config: PriceOracleDeployConfig): config is AavePriceOracleDeployConfig {
   return config.type === 'aave';
+}
+
+export function isEulerPriceOracleConfig(config: PriceOracleDeployConfig): config is EulerOracleDeployConfig {
+  return config.type === 'euler';
 }
 
 interface MarginlyDeployConfigUniswapGenuine {

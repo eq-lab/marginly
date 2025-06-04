@@ -22,6 +22,9 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { parseEther } from 'ethers/lib/utils';
 import { MarginlyAdmin, MarginlyRouter } from '../../typechain-types';
 import { UniswapV3Adapter } from '@marginly/router/typechain-types';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { reset } from '@nomicfoundation/hardhat-network-helpers';
+const hre = require('hardhat');
 
 /// @dev theme paddle front firm patient burger forward little enter pause rule limb
 export const FeeHolder = '0x4c576Bf4BbF1d9AB9c359414e5D2b466bab085fa';
@@ -225,4 +228,12 @@ export async function attachAdapterStorage(address: string): Promise<UniswapV3Ad
 export async function moveTimeOnFork(timestamp: number) {
   await ethers.provider.send('evm_setNextBlockTimestamp', [timestamp]);
   await ethers.provider.send('evm_mine', []);
+}
+
+export async function resetFork(blockNumber?: number) {
+  const hardhatConfig = (<HardhatRuntimeEnvironment>hre).config;
+  const forkingBlockNumber = hardhatConfig.networks.hardhat.forking?.blockNumber;
+  const forkingUrl = hardhatConfig.networks.hardhat.forking?.url;
+
+  await reset(forkingUrl, blockNumber ?? forkingBlockNumber);
 }

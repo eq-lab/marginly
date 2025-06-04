@@ -105,6 +105,10 @@
       "address": "0x6b79E799Ebdb9e867A1fe268A0703cbAA532C60d"
     },
     {
+      "id": "pt-steth-25dec2025-weth",
+      "address": "0x47cD53c42d87ff7B371a5d6095f075dBdCc0bdA9"
+    },
+    {
       "id": "pt-susde-25sep2025-susde",
       "address": "0x849A31f96b240a58a2A70168e904d7C70B654c18"
     },
@@ -127,6 +131,14 @@
     {
       "id": "pt-usde-25jul2024-usdt",
       "address": "0xbd4a9ca12c5f3c12d1378843c0b91585475aed51"
+    },
+    {
+      "id": "pt-usde-31jul2025-susde",
+      "address": "0xFB016330aF77480D096381BE839d9C622F3642E9"
+    },
+    {
+      "id": "pt-usds-14aug2025-susde",
+      "address": "0x5003ce3828f13839443dCa6ECD88b1FC5030c86d"
     },
     {
       "id": "pt-usr-29may2025-usr",

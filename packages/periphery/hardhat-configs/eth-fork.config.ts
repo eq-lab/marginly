@@ -8,7 +8,7 @@ const config = {
     hardhat: {
       forking: {
         enabled: true,
-        url: 'https://rpc.ankr.com/eth',
+        url: 'https://ethereum-rpc.publicnode.com',
         blockNumber: 21814800,
       },
     },

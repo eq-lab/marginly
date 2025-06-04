@@ -11,6 +11,7 @@ import {
   isCurveOracleConfig,
   isDoublePairChainlinkOracleDeployConfig,
   isDoublePairPythOracleDeployConfig,
+  isEulerPriceOracleConfig,
   isMarginlyCompositeOracleConfig,
   isMarginlyDeployConfigExistingToken,
   isMarginlyDeployConfigMintableToken,
@@ -308,7 +309,8 @@ export type PriceOracleConfig =
   | CurveOracleConfig
   | MarginlyCompositeOracleConfig
   | PriceOracleProxyConfig
-  | AavePriceOracleConfig;
+  | AavePriceOracleConfig
+  | EulerPriceOracleConfig;
 
 export interface UniswapV3TickOracleConfig {
   id: string;
@@ -514,6 +516,16 @@ export interface AavePriceOracleConfig {
   }[];
 }
 
+export interface EulerPriceOracleConfig {
+  id: string;
+  type: 'euler';
+  settings: {
+    quoteToken: MarginlyConfigToken;
+    baseToken: MarginlyConfigToken;
+    eulerOracle: EthAddress;
+  }[];
+}
+
 export function isUniswapV3Oracle(config: PriceOracleConfig): config is UniswapV3TickOracleConfig {
   return config.type === 'uniswapV3';
 }
@@ -560,6 +572,10 @@ export function isPriceOracleProxy(config: PriceOracleConfig): config is PriceOr
 
 export function isAavePriceOracle(config: PriceOracleConfig): config is AavePriceOracleConfig {
   return config.type === 'aave';
+}
+
+export function isEulerPriceOracle(config: PriceOracleConfig): config is EulerPriceOracleConfig {
+  return config.type === 'euler';
 }
 
 export class StrictMarginlyDeployConfig {
@@ -1200,6 +1216,20 @@ export class StrictMarginlyDeployConfig {
             return {
               quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
               baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+            };
+          }),
+        };
+
+        priceOracles.set(priceOracleId, strictConfig);
+      } else if (isEulerPriceOracleConfig(priceOracleConfig)) {
+        const strictConfig: EulerPriceOracleConfig = {
+          id: priceOracleId,
+          type: priceOracleConfig.type,
+          settings: priceOracleConfig.settings.map((x) => {
+            return {
+              quoteToken: this.getRequiredToken(tokens, x.quoteTokenId),
+              baseToken: this.getRequiredToken(tokens, x.baseTokenId),
+              eulerOracle: EthAddress.parse(x.eulerOracle),
             };
           }),
         };
