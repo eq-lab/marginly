@@ -2,6 +2,9 @@ import '@nomicfoundation/hardhat-toolbox';
 import 'hardhat-contract-sizer';
 import * as defaultConfig from './hardhat.common';
 import './tasks/timelock';
+import { config as dotEnvConfig } from 'dotenv';
+
+dotEnvConfig();
 
 const config = {
   ...defaultConfig.default,
@@ -10,7 +13,7 @@ const config = {
       url: 'https://arb1.arbitrum.io/rpc',
     },
     ethereum: {
-      url: 'https://rpc.ankr.com/eth',
+      url: process.env.ETH_RPC_URL,
     },
     holesky: {
       url: 'https://1rpc.io/holesky',

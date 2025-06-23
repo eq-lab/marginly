@@ -4,6 +4,7 @@ require('hardhat-contract-sizer');
 import 'solidity-docgen';
 import './scripts';
 import { config as dotEnvConfig } from 'dotenv';
+import { network } from 'hardhat';
 
 dotEnvConfig();
 
@@ -50,6 +51,9 @@ const config = {
     sonic: {
       url: 'https://rpc.soniclabs.com',
     },
+    base: {
+      url: 'https://mainnet.base.org',
+    },
   },
   etherscan: {
     apiKey: {
@@ -62,6 +66,7 @@ const config = {
       blastSepolia: 'blast_sepolia',
       mainnet: process.env.ETH_API_KEY,
       sonic: process.env.SONIC_API_KEY,
+      base: process.env.BASE_API_KEY,
     },
     customChains: [
       {
@@ -102,6 +107,14 @@ const config = {
         urls: {
           apiURL: 'https://api.sonicscan.org/api',
           browserURL: 'https://sonicscan.org',
+        },
+      },
+      {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.basescan.org/api',
+          browserURL: 'https://basescan.org',
         },
       },
     ],

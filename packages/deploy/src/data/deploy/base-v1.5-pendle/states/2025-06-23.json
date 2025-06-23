@@ -1,0 +1,28 @@
+{
+  "contracts": {
+    "priceOracle_pendleMarketOracle": {
+      "address": "0x170eBc619CdB767Fd987D54a08D77c0B4b93209e",
+      "txHash": "0xd0fd0c42cd78ff8f0a083ee09efd36bd58a518b32fa62cf5424e6ace7b965d0e"
+    },
+    "PendleMarketAdapter_19": {
+      "address": "0x1D17f7a1E9A53Cce6C89495AF1E3753c11Bf6DA2",
+      "txHash": "0x9d0b985efe8612155416ea4ea055fbe2084d04a9172f76d5a8a337b6ec7b6c61"
+    },
+    "MarginlyRouter": {
+      "address": "0x1e36749E00229759dca262cB25Ad8d9B21bEB3F5",
+      "txHash": "0xb44d1940e45c0aa9b3cdd634edd05de78c1404a7e7f9cbbab7f5883537911891"
+    },
+    "marginlyPoolImplementation": {
+      "address": "0x1768Faee0A63927FeB81100046f5D63BfE0f08dB",
+      "txHash": "0x195e7b15df646011287dd60e6f18be316ba69ae93473323f232cc436a3768cfa"
+    },
+    "marginlyFactory": {
+      "address": "0xb74a2382B5661969f0235b5c7FaCa77aA38e1eDc",
+      "txHash": "0xe79c90dab57df36d2f701ef9c1a03ba082f8cf84cc6d7f39cda9610f9e404cd8"
+    },
+    "marginlyPool_pt-usr-25sep2025-usr": {
+      "address": "0x08555D2d418019a875d710087BabB952ef4dFDd7",
+      "txHash": "0x71dd89968fe831c44c21642c1708f6e7c052b604865cedaea048a5a534f700d6"
+    }
+  }
+}

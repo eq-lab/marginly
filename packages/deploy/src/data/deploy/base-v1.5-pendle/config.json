@@ -1,0 +1,91 @@
+{
+  "systemContextDefaults": {
+    "ethNodeUri": "https://mainnet.base.org"
+  },
+  "connection": {
+    "assertChainId": 8453,
+    "ethOptions": {
+      "gasPrice": 7000000
+    }
+  },
+  "tokens": [
+    {
+      "id": "weth",
+      "address": "0x4200000000000000000000000000000000000006",
+      "assertSymbol": "WETH",
+      "assertDecimals": 18
+    },
+    {
+      "id": "pt-usr-25sep2025",
+      "address": "0xa6f0a4d18b6f6ddd408936e81b7b3a8befa18e77",
+      "assertSymbol": "PT-USR-25SEP2025",
+      "assertDecimals": 18
+    },
+    {
+      "id": "usr",
+      "address": "0x35E5dB674D8e93a03d814FA0ADa70731efe8a4b9",
+      "assertSymbol": "USR",
+      "assertDecimals": 18
+    }
+  ],
+  "prices": [],
+  "priceOracles": [
+    {
+      "id": "pendleMarketOracle",
+      "type": "pendleMarket",
+      "pendlePtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
+      "settings": [
+        {
+          "quoteTokenId": "usr",
+          "baseTokenId": "pt-usr-25sep2025",
+          "pendleMarket": "0x715509bde846104cf2ccebf6fdf7ef1bb874bc45",
+          "secondsAgo": "30 min",
+          "secondsAgoLiquidation": "5 sec"
+        }
+      ]
+    }
+  ],
+  "marginlyFactory": {
+    "feeHolder": "0x601A564628f9467ea76945fdDC6F9C7604eE1C1E",
+    "techPositionOwner": "0xd48658962b93aa404fD56baa7FD07977a0EB05a9",
+    "wethTokenId": "weth"
+  },
+  "marginlyPools": [
+    {
+      "id": "pt-usr-25sep2025-usr",
+      "baseTokenId": "pt-usr-25sep2025",
+      "quoteTokenId": "usr",
+      "priceOracleId": "pendleMarketOracle",
+      "defaultSwapCallData": "20447233",
+      "params": {
+        "interestRate": "0.5%",
+        "maxLeverage": "20",
+        "swapFee": "0%",
+        "fee": "0%",
+        "mcSlippage": "0.1%",
+        "positionMinAmount": "1",
+        "quoteLimit": "200000"
+      }
+    }
+  ],
+  "adapters": [
+    {
+      "dexId": 19,
+      "adapterName": "PendleMarketAdapter",
+      "pools": [
+        {
+          "poolAddress": "0x715509bde846104cf2ccebf6fdf7ef1bb874bc45",
+          "slippage": "45",
+          "tokenAId": "pt-usr-25sep2025",
+          "tokenBId": "usr"
+        }
+      ]
+    }
+  ],
+  "marginlyKeeper": {
+    "aaveKeeper": {
+      "aavePoolAddressesProvider": "0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D"
+    },
+    "uniswapKeeper": false
+  }
+}
